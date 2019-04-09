@@ -1,0 +1,166 @@
+<script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+
+<canvas id="myCanvas" width="1000" height="500"></canvas>
+
+<form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
+  <input name="region" type="text" size=20>
+  <input type="submit">
+</form>
+
+  <button onclick="left(); redraw();">left</button>
+  <button onclick="right(); redraw();">right</button>
+  <button onclick="zoom_in(); redraw();">+</button>
+  <button onclick="zoom_out(); redraw();">-</button>
+<script>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+  let chrom = "{{chrom}}";
+  let start = {{start}};
+  let end   = {{end}};
+
+  let call_chrom = "{{call_chrom}}";
+  let call_start = {{call_start}};
+  let call_end   = {{call_end}};
+  
+  var c = document.getElementById("myCanvas");
+  var ctx = c.getContext("2d");
+  var offscreen = document.createElement('canvas');
+  offscreen.width = c.width*2;
+  offscreen.height = c.height*2;
+  var off_ctx = offscreen.getContext("2d");
+
+  function draw_coverage(data) {
+      off_ctx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+      let ch = data[0][0];  
+      let scale = offscreen.width/(end-start);
+      let xaxis_tick_frq = Math.pow( 10, (end-start).toString().length-2 );
+      let xaxis_tick = Math.ceil(start/xaxis_tick_frq) * xaxis_tick_frq;
+      off_ctx.font = "9px Arial";
+      every_other = false;
+      i=0;
+      if( (end-start)/xaxis_tick_frq > 15 ) {
+        every_other = true;
+      } 
+      while( xaxis_tick < end ) {
+	off_ctx.fillRect(scale*(xaxis_tick-start), 100, 1, 5);
+        i++;			  
+        if( !every_other || i % 2 == 0) {
+  	  let txt = numberWithCommas(xaxis_tick);
+	  txt_width = off_ctx.measureText(txt).width;
+	  off_ctx.fillText(txt, scale*(xaxis_tick-start)-txt_width/2, 90);
+	}
+	xaxis_tick += xaxis_tick_frq;
+      } 
+      console.log(ch, start, end, (end-start), data.length);
+
+      if( data.length > 1000 ) {
+          for(let i=0; i<data.length-1; i++) {
+              off_ctx.fillRect(scale*(data[i][1]-start),400-data[i][3],1,1);
+          }
+      }
+      else {
+          off_ctx.beginPath();					
+          off_ctx.moveTo(0,400-data[0][3])
+          for(let i=1; i<data.length-1; i++) {
+              off_ctx.lineTo(scale*(data[i][1]-start),400-data[i][3],1,1);
+          }
+          off_ctx.stroke();
+          //ctx.closePath();					
+     }
+
+     if( chrom == call_chrom && (start < call_end && end > call_start) ) {
+         off_ctx.fillRect(scale*(call_start-start), 120, scale*(call_end-call_star), 10);
+         console.log("DRAW_CALL");											     
+     }
+
+     ctx.clearRect(0, 0, c.width, c.height);
+     ctx.drawImage(offscreen, c.width/2, 0, c.width, c.height, 0, 0, c.width, c.height);
+  }
+
+  
+  
+  draw_coverage( {{data|safe }} );
+
+  function left() {
+    let size = end-start;
+    start -= Math.floor(0.1*size);
+    end -= Math.floor(0.1*size);
+  }
+  function right() {
+    let size = end-start;
+    start += Math.floor(0.1*size);
+    end += Math.floor(0.1*size);
+  }
+  function zoom_in() {				    
+    let size = end-start;
+    start += Math.floor(size * 0.25);
+    end -= Math.floor(size * 0.25); 
+  }
+  function zoom_out() {
+    let size = end-start;
+    start -= Math.floor(size * 0.5); 
+    end += Math.floor(size * 0.5);
+    if( start < 1 ) { start = 1; }
+  }
+
+  function redraw() {
+    $.getJSON($SCRIPT_ROOT + '/_getcov', {
+      region: chrom+":"+start+"-"+end,
+    }, function( result ) {
+      draw_coverage(result["data"]);
+    }).done (function() { disallow_drag = false; } );
+  }
+
+
+
+  var drag = false;
+  var disallow_drag = false;		
+  var dragStart;
+  var dragEnd;
+
+  c.addEventListener('mousedown', function(event) {
+    if (!disallow_drag) {
+      dragStart = {
+        x: event.pageX - c.offsetLeft,
+        y: event.pageY - c.offsetTop
+      }
+      drag = true;
+    }		
+  });
+
+  c.addEventListener('mousemove', function(event) {
+    if (drag) {
+      dragEnd = {
+        x: event.pageX - c.offsetLeft,
+	y: event.pageY - c.offsetTop
+      }
+      ctx.clearRect(0, 0, c.width, c.height);
+//      ctx.drawImage(offscreen, dragEnd.x-dragStart.x, 0);
+      ctx.drawImage(offscreen, c.width/2 - (dragEnd.x-dragStart.x), 0, c.width, c.height, 0, 0, c.width, c.height);
+
+      console.log("a");		
+      //dragStart = dragEnd;		
+      //clear()
+      //draw()
+    }
+  });
+  c.addEventListener('mouseup', function(event) {
+    if (drag) {
+      drag = false;
+      let scale = offscreen.width/(end-start);
+      let move_dist = Math.floor((dragStart.x-dragEnd.x) / scale);
+      if (start+move_dist < 0 ) {
+        move_dist -= (start+move_dist);;
+      }
+      start += move_dist;
+      end += move_dist;
+      disallow_drag = true; 
+      redraw();
+    }   
+  });
+
+  function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+</script>
