@@ -12,7 +12,7 @@ def coverage_view():
         call_start = 1011000
         call_end   = 1015000
         res, chrom, start_pos, end_pos = parse_region_str(region)
-        cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
+        cov_file = "/data/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
         tb = tabix.open(cov_file)
         records = list(tb.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
@@ -24,7 +24,7 @@ def get_cov():
         region = request.args.get('region', '1:100000-200000')
 
         res, chrom, start_pos, end_pos = parse_region_str(region)        
-        cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
+        cov_file = "/data/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
         tb = tabix.open(cov_file)
         records = list(tb.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
