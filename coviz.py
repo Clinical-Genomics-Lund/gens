@@ -16,7 +16,11 @@ def coverage_view():
         tb = tabix.open(cov_file)
         records = list(tb.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
-        return render_template('show_cov.html', data=json.dumps(records), chrom=chrom, start=start_pos, end=end_pos, call_chrom=call_chrom, call_start=call_start, call_end=call_end)
+        baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
+        baf = tabix.open(baf_file)
+        baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
+        
+        return render_template('show_cov.html', data=json.dumps(records), baf=json.dumps(baf_records), chrom=chrom, start=start_pos, end=end_pos, call_chrom=call_chrom, call_start=call_start, call_end=call_end)
 
 
 @app.route('/_getcov', methods=['GET'])
@@ -28,7 +32,11 @@ def get_cov():
         tb = tabix.open(cov_file)
         records = list(tb.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
-        return jsonify(data=records, status="ok", chrom=chrom, start=start_pos, end=end_pos)
+        baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
+        baf = tabix.open(baf_file)
+        baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
+       
+        return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom, start=start_pos, end=end_pos)
 
 def parse_region_str(region):
         chrom =""

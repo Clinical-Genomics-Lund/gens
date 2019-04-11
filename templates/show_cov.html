@@ -29,7 +29,7 @@
   offscreen.height = c.height*2;
   var off_ctx = offscreen.getContext("2d");
 
-  function draw_coverage(data) {
+  function draw_coverage(data, baf) {
       off_ctx.clearRect(0, 0, offscreen.width, offscreen.height);
 
       let ch = data[0][0];  
@@ -68,7 +68,12 @@
           off_ctx.stroke();
           //ctx.closePath();					
      }
-
+     off_ctx.fillStyle = "#FF0000";
+     for( let i=0; i<baf.length-1; i++ ) {
+         off_ctx.fillRect(scale*(baf[i][1]-start),200-50*baf[i][3],1,1);			     
+     }
+     off_ctx.fillStyle = "#000000";
+					
      if( chrom == call_chrom && (start < call_end && end > call_start) ) {
          off_ctx.fillRect(scale*(call_start-start), 120, scale*(call_end-call_start), 10);
          console.log("DRAW_CALL");											     
@@ -80,7 +85,7 @@
 
   
   
-  draw_coverage( {{data|safe }} );
+  draw_coverage( {{data|safe}}, {{baf|safe }} );
 
   function left() {
     let size = end-start;
@@ -108,7 +113,7 @@
     $.getJSON($SCRIPT_ROOT + '/_getcov', {
       region: chrom+":"+start+"-"+end,
     }, function( result ) {
-      draw_coverage(result["data"]);
+      draw_coverage(result["data"], result["baf"]);
     }).done (function() { disallow_drag = false; } );
   }
 
