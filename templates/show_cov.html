@@ -21,7 +21,7 @@
   let call_chrom = "{{call_chrom}}";
   let call_start = {{call_start}};
   let call_end   = {{call_end}};
-  
+
   var c = document.getElementById("myCanvas");
   var ctx = c.getContext("2d");
   var offscreen = document.createElement('canvas');
@@ -32,7 +32,7 @@
   function draw_coverage(data, baf) {
       off_ctx.clearRect(0, 0, offscreen.width, offscreen.height);
 
-      let ch = data[0][0];  
+      let ch = data[0][0];
       let scale = offscreen.width/(end-start);
       let xaxis_tick_frq = Math.pow( 10, (end-start).toString().length-2 );
       let xaxis_tick = Math.ceil(start/xaxis_tick_frq) * xaxis_tick_frq;
@@ -41,17 +41,17 @@
       i=0;
       if( (end-start)/xaxis_tick_frq > 15 ) {
         every_other = true;
-      } 
+      }
       while( xaxis_tick < end ) {
 	off_ctx.fillRect(scale*(xaxis_tick-start), 100, 1, 5);
-        i++;			  
+        i++;
         if( !every_other || i % 2 == 0) {
   	  let txt = numberWithCommas(xaxis_tick);
 	  txt_width = off_ctx.measureText(txt).width;
 	  off_ctx.fillText(txt, scale*(xaxis_tick-start)-txt_width/2, 90);
 	}
 	xaxis_tick += xaxis_tick_frq;
-      } 
+      }
       console.log(ch, start, end, (end-start), data.length);
 
       if( data.length > 1000 ) {
@@ -60,31 +60,31 @@
           }
       }
       else {
-          off_ctx.beginPath();					
+          off_ctx.beginPath();
           off_ctx.moveTo(0,400-data[0][3])
           for(let i=1; i<data.length-1; i++) {
               off_ctx.lineTo(scale*(data[i][1]-start),400-data[i][3],1,1);
           }
           off_ctx.stroke();
-          //ctx.closePath();					
+          //ctx.closePath();
      }
      off_ctx.fillStyle = "#FF0000";
      for( let i=0; i<baf.length-1; i++ ) {
-         off_ctx.fillRect(scale*(baf[i][1]-start),200-50*baf[i][3],1,1);			     
+         off_ctx.fillRect(scale*(baf[i][1]-start),200-50*baf[i][3],1,1);
      }
      off_ctx.fillStyle = "#000000";
-					
+
      if( chrom == call_chrom && (start < call_end && end > call_start) ) {
          off_ctx.fillRect(scale*(call_start-start), 120, scale*(call_end-call_start), 10);
-         console.log("DRAW_CALL");											     
+         console.log("DRAW_CALL");
      }
 
      ctx.clearRect(0, 0, c.width, c.height);
      ctx.drawImage(offscreen, c.width/2, 0, c.width, c.height, 0, 0, c.width, c.height);
   }
 
-  
-  
+
+
   draw_coverage( {{data|safe}}, {{baf|safe }} );
 
   function left() {
@@ -97,14 +97,14 @@
     start += Math.floor(0.1*size);
     end += Math.floor(0.1*size);
   }
-  function zoom_in() {				    
+  function zoom_in() {
     let size = end-start;
     start += Math.floor(size * 0.25);
-    end -= Math.floor(size * 0.25); 
+    end -= Math.floor(size * 0.25);
   }
   function zoom_out() {
     let size = end-start;
-    start -= Math.floor(size * 0.5); 
+    start -= Math.floor(size * 0.5);
     end += Math.floor(size * 0.5);
     if( start < 1 ) { start = 1; }
   }
@@ -120,7 +120,7 @@
 
 
   var drag = false;
-  var disallow_drag = false;		
+  var disallow_drag = false;
   var dragStart;
   var dragEnd;
 
@@ -131,7 +131,7 @@
         y: event.pageY - c.offsetTop
       }
       drag = true;
-    }		
+    }
   });
 
   c.addEventListener('mousemove', function(event) {
@@ -144,8 +144,8 @@
 //      ctx.drawImage(offscreen, dragEnd.x-dragStart.x, 0);
       ctx.drawImage(offscreen, c.width/2 - (dragEnd.x-dragStart.x), 0, c.width, c.height, 0, 0, c.width, c.height);
 
-      console.log("a");		
-      //dragStart = dragEnd;		
+      console.log("a");
+      //dragStart = dragEnd;
       //clear()
       //draw()
     }
@@ -160,9 +160,9 @@
       }
       start += move_dist;
       end += move_dist;
-      disallow_drag = true; 
+      disallow_drag = true;
       redraw();
-    }   
+    }
   });
 
   function numberWithCommas(x) {
