@@ -28,7 +28,7 @@ def coverage_view():
     baf = tabix.open(baf_file)
     baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
 
-    return render_template('show_cov.html', data=json.dumps(records),
+    return render_template('cov.html', data=json.dumps(records),
                            baf=json.dumps(baf_records), chrom=chrom,
                            start=start_pos, end=end_pos, call_chrom=call_chrom,
                            call_start=call_start, call_end=call_end)

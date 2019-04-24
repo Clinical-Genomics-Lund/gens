@@ -1,0 +1,304 @@
+<!doctype html>
+    <head>
+        <link rel="stylesheet" href="static/css/flexboxgrid.min.css" type="text/css">
+        <link rel="stylesheet" href="static/css/cov.css" type="text/css">
+        <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
+    </head>
+
+    <body>
+        <div class="grid-container">
+            <div id="canvas-container" width="1000" height="500"></div>
+
+            <div id="button-container">
+                <form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
+                    <input name="region" type="text" size=20>
+                    <input type="submit">
+                </form>
+
+                <button onclick="left(); redraw();">left</button>
+                <button onclick="right(); redraw();">right</button>
+                <button onclick="zoom_in(); redraw();">+</button>
+                <button onclick="zoom_out(); redraw();">-</button>
+            </div>
+        </div>
+
+    </body>
+
+    <script>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+        function createCanvas(canvas_width, canvas_height) {
+            var canvas = document.createElement('canvas');
+            canvas.width = canvas_width;
+            canvas.height = canvas_height;
+            document.getElementById("canvas-container").appendChild(canvas);
+            return canvas;
+        }
+
+        function draw_static_coord_box(canvas, cvar) {
+            let ctx = canvas.getContext("2d");
+
+            // Set colour of whole canvas
+            ctx.save();
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            // Function draws a static coordinate system
+            let draw_coord_lines = function(start, end, fraction, padding) {
+                var position = 0;
+                var step = cvar.box_height / ((start - end) / fraction);
+
+                // Draw boundingbox and clear it from colour
+                ctx.lineWidth = 2;
+                ctx.clearRect(cvar.left_padding, padding, cvar.box_width, cvar.box_height);
+                ctx.rect(cvar.left_padding, padding, cvar.box_width, cvar.box_height);
+                ctx.stroke();
+
+                // Draw lines and values for Y-axis
+                for (let i = start.toFixed(1); i >= end; i = (i - fraction).toFixed(1)) {
+                    let ypos = padding + position;
+
+                    ctx.beginPath();
+
+                    // Draw a tick mark for values
+                    ctx.moveTo(cvar.left_padding - cvar.tick_len / 2, ypos);
+                    ctx.lineTo(cvar.left_padding + cvar.tick_len / 2, ypos);
+                    ctx.stroke();
+
+                    // Draw a filled line
+                    if (i != start && i != end) {
+                        ctx.lineWidth = cvar.tick_width;
+                        ctx.strokeStyle = cvar.line_colour;
+                        ctx.moveTo(cvar.left_padding, ypos);
+                        ctx.lineTo(cvar.left_padding + cvar.box_width, ypos);
+                        ctx.stroke();
+
+                    }
+
+                    // Draw Y-axis value
+                    ctx.font = "12px Arial";
+                    ctx.fillText(i, 25, ypos + 4);
+                    position += step;
+                }
+            }
+
+            // Draw BAF context
+            draw_coord_lines(cvar.baf_start, cvar.baf_end, cvar.baf_frac, cvar.baf_padding);
+
+            // Draw LogR context
+            draw_coord_lines(cvar.logr_start, cvar.logr_end, cvar.logr_frac, cvar.logr_padding);
+
+            // Draws rotated text
+            let draw_rotated_text = function(text, posx, posy) {
+                ctx.save();
+                ctx.font = "18px Arial";
+                ctx.translate(posx, posy); // Position for text
+                ctx.rotate(-Math.PI/2); // Rotate 90 degrees
+                ctx.textAlign = 'center';
+                ctx.fillText(text, 0, 9);
+                ctx.restore();
+            }
+
+            // Draw rotated y-axis legends
+            draw_rotated_text("B Allele Freq", 10, cvar.baf_padding + cvar.box_height / 2);
+            draw_rotated_text("Log R Ratio", 10, cvar.logr_padding + cvar.box_height / 2);
+        }
+
+
+        class GeneCanvas {
+            constructor(canvas_width, canvas_height) {
+                this.cvar = {
+                    // Box values
+                    left_padding: 50,
+                    box_width: 800,
+                    box_height: 200,
+                    tick_len: 6,
+                    tick_width: 0.2,
+                    line_colour: "#000000",
+
+                    // BAF values
+                    baf_start: 1.0,
+                    baf_end: 0.0,
+                    baf_frac: 0.2,
+                    baf_padding: 25,
+
+                    // LogR values
+                    logr_start: 4.0,
+                    logr_end: -4.0,
+                    logr_frac: 1.0,
+                    logr_padding: 0
+                }
+                this.cvar.logr_padding = 2 * this.cvar.baf_padding + this.cvar.box_height;
+
+                // Create canvas for data
+                this.dataCanvas = createCanvas(canvas_width, canvas_height);
+                this.dataCanvas.id = "dataCanvas";
+
+                // Create static canvas
+                this.staticCanvas = createCanvas(canvas_width, canvas_height);
+                this.staticCanvas.id = "staticCanvas";
+                draw_static_coord_box(this.staticCanvas, this.cvar);
+            }
+
+        }
+
+        let chrom = "{{chrom}}";
+        let start = {{start}};
+        let end   = {{end}};
+
+        let call_chrom = "{{call_chrom}}";
+        let call_start = {{call_start}};
+        let call_end   = {{call_end}};
+
+        var c = new GeneCanvas(1000, 500).dataCanvas;
+        var ctx = c.getContext("2d");
+
+        var offscreen = document.createElement('canvas');
+        offscreen.width = c.width*2;
+        offscreen.height = c.height*2;
+        var off_ctx = offscreen.getContext("2d");
+
+        function draw_coverage(data, baf) {
+            return;
+            off_ctx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+            let ch = data[0][0];
+            let scale = offscreen.width/(end-start);
+            let xaxis_tick_frq = Math.pow( 10, (end-start).toString().length-2 );
+            let xaxis_tick = Math.ceil(start/xaxis_tick_frq) * xaxis_tick_frq;
+            off_ctx.font = "9px Arial";
+            every_other = false;
+
+            i=0;
+            if( (end-start)/xaxis_tick_frq > 15 ) {
+                every_other = true;
+            }
+
+            while( xaxis_tick < end ) {
+                off_ctx.fillRect(scale*(xaxis_tick-start), 100, 1, 5);
+                    i++;
+                    if( !every_other || i % 2 == 0) {
+                        let txt = numberWithCommas(xaxis_tick);
+                        txt_width = off_ctx.measureText(txt).width;
+                        off_ctx.fillText(txt, scale*(xaxis_tick-start)-txt_width/2, 90);
+                    }
+                xaxis_tick += xaxis_tick_frq;
+            }
+            console.log(ch, start, end, (end-start), data.length);
+
+            if( data.length > 1000 ) {
+                for(let i=0; i<data.length-1; i++) {
+                    off_ctx.fillRect(scale*(data[i][1]-start),400-data[i][3],1,1);
+                }
+            } else {
+                off_ctx.beginPath();
+                off_ctx.moveTo(0,400-data[0][3])
+                for(let i=1; i<data.length-1; i++) {
+                    off_ctx.lineTo(scale*(data[i][1]-start),400-data[i][3],1,1);
+                }
+                off_ctx.stroke();
+                //ctx.closePath();
+            }
+
+            off_ctx.fillStyle = "#FF0000";
+            for( let i=0; i<baf.length-1; i++ ) {
+                off_ctx.fillRect(scale*(baf[i][1]-start),200-50*baf[i][3],1,1);
+            }
+
+            off_ctx.fillStyle = "#000000";
+            if( chrom == call_chrom && (start < call_end && end > call_start) ) {
+                off_ctx.fillRect(scale*(call_start-start), 120, scale*(call_end-call_start), 10);
+                console.log("DRAW_CALL");
+            }
+
+            ctx.clearRect(0, 0, c.width, c.height);
+            ctx.drawImage(offscreen, c.width/2, 0, c.width, c.height, 0, 0, c.width, c.height);
+        }
+
+        draw_coverage( {{data|safe}}, {{baf|safe }} );
+
+        function left() {
+            let size = end-start;
+            start -= Math.floor(0.1*size);
+            end -= Math.floor(0.1*size);
+        }
+        function right() {
+            let size = end-start;
+            start += Math.floor(0.1*size);
+            end += Math.floor(0.1*size);
+        }
+        function zoom_in() {
+            let size = end-start;
+            start += Math.floor(size * 0.25);
+            end -= Math.floor(size * 0.25);
+        }
+        function zoom_out() {
+            let size = end-start;
+            start -= Math.floor(size * 0.5);
+            end += Math.floor(size * 0.5);
+            if( start < 1 ) { start = 1; }
+        }
+
+        function redraw() {
+            $.getJSON($SCRIPT_ROOT + '/_getcov', {
+                region: chrom+":"+start+"-"+end,
+            }, function( result ) {
+                draw_coverage(result["data"], result["baf"]);
+            }).done (function() { disallow_drag = false; } );
+        }
+
+
+
+        var drag = false;
+        var disallow_drag = false;
+        var dragStart;
+        var dragEnd;
+
+        c.addEventListener('mousedown', function(event) {
+            if (!disallow_drag) {
+                dragStart = {
+                    x: event.pageX - c.offsetLeft,
+                    y: event.pageY - c.offsetTop
+                }
+                drag = true;
+            }
+        });
+
+        c.addEventListener('mousemove', function(event) {
+            if (drag) {
+                dragEnd = {
+                    x: event.pageX - c.offsetLeft,
+                    y: event.pageY - c.offsetTop
+                }
+                ctx.clearRect(0, 0, c.width, c.height);
+                // ctx.drawImage(offscreen, dragEnd.x-dragStart.x, 0);
+                ctx.drawImage(offscreen, c.width/2 - (dragEnd.x-dragStart.x), 0, c.width, c.height, 0, 0, c.width, c.height);
+
+                console.log("a");
+                //dragStart = dragEnd;
+                //clear()
+                //draw()
+            }
+        });
+
+        c.addEventListener('mouseup', function(event) {
+            if (drag) {
+                drag = false;
+                let scale = offscreen.width/(end-start);
+                let move_dist = Math.floor((dragStart.x-dragEnd.x) / scale);
+                if (start+move_dist < 0 ) {
+                    move_dist -= (start+move_dist);;
+                }
+                start += move_dist;
+                end += move_dist;
+                disallow_drag = true;
+                redraw();
+            }
+        });
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+</html>

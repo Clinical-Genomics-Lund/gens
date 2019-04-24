@@ -1,0 +1,25 @@
+.grid-container {
+    /* display: flex; */
+    /* flex-direction: column; */
+}
+
+#canvas-container {
+    position: relative;
+    width: 1000;
+    height:500;
+    color:coral;
+}
+
+#staticCanvas {
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index=0;
+}
+
+#dataCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index=-1;
+}
