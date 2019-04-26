@@ -15,10 +15,10 @@
                     <input type="submit">
                 </form>
 
-                <button onclick="left(); redraw();">left</button>
-                <button onclick="right(); redraw();">right</button>
-                <button onclick="zoom_in(); redraw();">+</button>
-                <button onclick="zoom_out(); redraw();">-</button>
+                <button onclick="left();">left</button>
+                <button onclick="right();">right</button>
+                <button onclick="zoom_in();">+</button>
+                <button onclick="zoom_out();">-</button>
             </div>
         </div>
 
@@ -245,16 +245,19 @@
             let size = end - start;
             start -= Math.floor(0.1 * size);
             end -= Math.floor(0.1 * size);
+            redraw();
         }
         function right() {
             let size = end - start;
             start += Math.floor(0.1 * size);
             end += Math.floor(0.1 * size);
+            redraw();
         }
         function zoom_in() {
             let size = end - start;
             start += Math.floor(size * 0.25);
             end -= Math.floor(size * 0.25);
+            redraw();
         }
         function zoom_out() {
             let size = end - start;
@@ -263,6 +266,7 @@
             if (start < 1) {
                 start = 1;
             }
+            redraw();
         }
 
         function redraw() {
@@ -315,7 +319,7 @@
                 let scale = gc.dataCanvas.width / (end - start);
                 let move_dist = Math.floor((dragStart.x - dragEnd.x) / scale);
                 if (start + move_dist < 0 ) {
-                    move_dist -= (start + move_dist);;
+                    move_dist -= (start + move_dist);
                 }
                 start += move_dist;
                 end += move_dist;
@@ -327,5 +331,82 @@
         function numberWithCommas(x) {
             return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            'use strict';
+
+            const options = {
+                eventType: 'keydown',
+                keystrokeDelay: 1000
+            };
+
+            keyMapper(options);
+        });
+
+        function keyMapper (options) {
+            const keystrokeDelay = options && options.keystrokeDelay || 1000;
+
+            let state = {
+                buffer: "",
+                lastKeyTime: Date.now()
+            };
+
+            document.addEventListener('keydown', event => {
+                const key = event.key;
+                const currentTime = Date.now();
+                const eventType = window.event;
+                const target = eventType.target || eventType.scrElement;
+                const targetTagName = (target.nodeType == 1) ? target.nodeName.toUpperCase() : "";
+                let buffer = "";
+
+                // Do not listen to keydown events for active fields
+                if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+                    return;
+                }
+
+                if (event.keyCode == 13 &&
+                    currentTime - state.lastKeyTime < keystrokeDelay) {
+                    // Enter was pressed, process previous key presses.
+                    if (state.buffer < 24 && state.buffer > 0) {
+                        // Display new chromosome
+                        chrom = state.buffer
+                        redraw();
+                    }
+                } else if (!isFinite(key)) {
+                    // Arrow keys for moving graph
+                    switch(event.keyCode) {
+                        case 37: // Left arrow
+                            left();
+                            break;
+                        case 39: // Right arrow
+                            right();
+                            break;
+                        case 38: // Up arrow
+                            zoom_in();
+                            break;
+                        case 40: // Down arrow
+                            zoom_out();
+                            break;
+                        default:
+                            return;
+                    }
+                } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+                    // Reset buffer
+                    buffer = key;
+                } else {
+                    if(state.buffer.length > 1) {
+                        // Buffer contains more than two digits, keep the last digit
+                        buffer = state.buffer[state.buffer.length - 1] + key;
+                    } else {
+                        // Add new digit to buffer
+                        buffer = state.buffer + key;
+                    }
+                }
+
+                // Save current state
+                state = {buffer: buffer, lastKeyTime: currentTime};
+            });
+        }
+
     </script>
 </html>
