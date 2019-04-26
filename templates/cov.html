@@ -45,19 +45,21 @@
             ctx.restore();
 
             // Function draws a static coordinate system
-            let draw_coord_lines = function(start, end, fraction, padding) {
+            let draw_coord_lines = function(start, end, fraction,
+                                            top_padding, header_padding) {
                 var position = 0;
                 var step = cvar.box_height / ((start - end) / fraction);
 
                 // Draw boundingbox and clear it from colour
                 ctx.lineWidth = 2;
-                ctx.clearRect(cvar.left_padding, padding, cvar.box_width, cvar.box_height);
-                ctx.rect(cvar.left_padding, padding, cvar.box_width, cvar.box_height);
+                ctx.clearRect(cvar.left_padding, top_padding - header_padding,
+                              cvar.box_width, cvar.box_height + header_padding);
+                ctx.rect(cvar.left_padding, top_padding, cvar.box_width, cvar.box_height);
                 ctx.stroke();
 
                 // Draw lines and values for Y-axis
                 for (let i = start.toFixed(1); i >= end; i = (i - fraction).toFixed(1)) {
-                    let ypos = padding + position;
+                    let ypos = top_padding + position;
 
                     ctx.beginPath();
 
@@ -66,7 +68,7 @@
                     ctx.lineTo(cvar.left_padding + cvar.tick_len / 2, ypos);
                     ctx.stroke();
 
-                    // Draw a filled line
+                    // Draw a transparent line across box
                     if (i != start && i != end) {
                         ctx.lineWidth = cvar.tick_width;
                         ctx.strokeStyle = cvar.line_colour;
@@ -84,10 +86,12 @@
             }
 
             // Draw BAF context
-            draw_coord_lines(cvar.baf_start, cvar.baf_end, cvar.baf_frac, cvar.baf_padding);
+            draw_coord_lines(cvar.baf_start, cvar.baf_end, cvar.baf_frac,
+                             cvar.baf_padding, cvar.header_padding);
 
             // Draw LogR context
-            draw_coord_lines(cvar.logr_start, cvar.logr_end, cvar.logr_frac, cvar.logr_padding);
+            draw_coord_lines(cvar.logr_start, cvar.logr_end, cvar.logr_frac,
+                             cvar.logr_padding, 0);
 
             // Draws rotated text
             let draw_rotated_text = function(text, posx, posy) {
@@ -108,9 +112,11 @@
 
         class GeneCanvas {
             constructor(canvas_width, canvas_height) {
+                // Canvas variables
                 this.cvar = {
                     // Box values
                     left_padding: 50,
+                    header_padding: 50,
                     box_width: 800,
                     box_height: 200,
                     tick_len: 6,
@@ -135,12 +141,14 @@
                 this.dataCanvas = createCanvas(canvas_width, canvas_height);
                 this.dataCanvas.id = "dataCanvas";
 
+                this.drawCanvas = createCanvas(canvas_width, canvas_height);
+                this.drawCanvas.id = "drawCanvas";
+
                 // Create static canvas
                 this.staticCanvas = createCanvas(canvas_width, canvas_height);
                 this.staticCanvas.id = "staticCanvas";
                 draw_static_coord_box(this.staticCanvas, this.cvar);
             }
-
         }
 
         let chrom = "{{chrom}}";
@@ -151,101 +159,118 @@
         let call_start = {{call_start}};
         let call_end   = {{call_end}};
 
-        var c = new GeneCanvas(1000, 500).dataCanvas;
-        var ctx = c.getContext("2d");
-
-        var offscreen = document.createElement('canvas');
-        offscreen.width = c.width*2;
-        offscreen.height = c.height*2;
-        var off_ctx = offscreen.getContext("2d");
+        var gc = new GeneCanvas(1000, 500);
+        var ctx = gc.dataCanvas.getContext("2d");
 
         function draw_coverage(data, baf) {
-            return;
-            off_ctx.clearRect(0, 0, offscreen.width, offscreen.height);
-
             let ch = data[0][0];
-            let scale = offscreen.width/(end-start);
-            let xaxis_tick_frq = Math.pow( 10, (end-start).toString().length-2 );
-            let xaxis_tick = Math.ceil(start/xaxis_tick_frq) * xaxis_tick_frq;
-            off_ctx.font = "9px Arial";
-            every_other = false;
+            let scale = gc.drawCanvas.width / (end - start);
+            let xaxis_tick_frq = Math.pow(10, (end - start).toString().length - 2);
+            let xaxis_tick = Math.ceil(start / xaxis_tick_frq) * xaxis_tick_frq;
+            let every_other = false;
 
-            i=0;
-            if( (end-start)/xaxis_tick_frq > 15 ) {
+            // Draw on empty temporary canvas
+            var drawCanvas = gc.drawCanvas.getContext("2d");
+            drawCanvas.clearRect(0, 0, gc.drawCanvas.width, gc.drawCanvas.height);
+
+            drawCanvas.font = "9px Arial";
+
+            if (((end - start) / xaxis_tick_frq) > 15 ) {
                 every_other = true;
             }
 
-            while( xaxis_tick < end ) {
-                off_ctx.fillRect(scale*(xaxis_tick-start), 100, 1, 5);
-                    i++;
-                    if( !every_other || i % 2 == 0) {
-                        let txt = numberWithCommas(xaxis_tick);
-                        txt_width = off_ctx.measureText(txt).width;
-                        off_ctx.fillText(txt, scale*(xaxis_tick-start)-txt_width/2, 90);
-                    }
+            // Draw x-axis tick value
+            let counter = 0;
+            let prev_xpos = 0;
+            while (xaxis_tick < end) {
+                drawCanvas.fillRect(scale * (xaxis_tick - start),
+                                    gc.cvar.baf_padding - 2,
+                                    2, 5);
+                counter++;
+                // Only draw value on every other tick
+                let txt = numberWithCommas(xaxis_tick);
+                let txt_width = drawCanvas.measureText(txt).width;
+                let tick_xpos = scale * (xaxis_tick - start) - txt_width / 2;
+                if((!every_other || counter % 2 == 0) && (tick_xpos - prev_xpos) > (txt_width + 5)) {
+                    drawCanvas.fillText(txt, tick_xpos, gc.cvar.baf_padding - 10);
+                    prev_xpos = tick_xpos;
+                }
                 xaxis_tick += xaxis_tick_frq;
             }
-            console.log(ch, start, end, (end-start), data.length);
+            console.log(ch, start, end, (end - start), data.length);
 
-            if( data.length > 1000 ) {
-                for(let i=0; i<data.length-1; i++) {
-                    off_ctx.fillRect(scale*(data[i][1]-start),400-data[i][3],1,1);
-                }
-            } else {
-                off_ctx.beginPath();
-                off_ctx.moveTo(0,400-data[0][3])
-                for(let i=1; i<data.length-1; i++) {
-                    off_ctx.lineTo(scale*(data[i][1]-start),400-data[i][3],1,1);
-                }
-                off_ctx.stroke();
-                //ctx.closePath();
+            // Draw BAF values
+            let ampl = gc.cvar.box_height;
+            let padding = gc.cvar.baf_padding + gc.cvar.box_height;
+            drawCanvas.fillStyle = "#FF0000";
+            for (let i = 0; i < baf.length - 1; i++) {
+                drawCanvas.fillRect(scale * (baf[i][1] - start),
+                                    padding - ampl * baf[i][3], 2, 2);
             }
 
-            off_ctx.fillStyle = "#FF0000";
-            for( let i=0; i<baf.length-1; i++ ) {
-                off_ctx.fillRect(scale*(baf[i][1]-start),200-50*baf[i][3],1,1);
-            }
-
-            off_ctx.fillStyle = "#000000";
-            if( chrom == call_chrom && (start < call_end && end > call_start) ) {
-                off_ctx.fillRect(scale*(call_start-start), 120, scale*(call_end-call_start), 10);
+            drawCanvas.fillStyle = "#000000";
+            if (chrom == call_chrom && (start < call_end && end > call_start)) {
+                drawCanvas.fillRect(scale * (call_start - start),
+                                    120, scale * (call_end - call_start), 10);
                 console.log("DRAW_CALL");
             }
 
-            ctx.clearRect(0, 0, c.width, c.height);
-            ctx.drawImage(offscreen, c.width/2, 0, c.width, c.height, 0, 0, c.width, c.height);
+            // Draw Log R ratio values
+            ampl = gc.cvar.box_height / (2 * gc.cvar.logr_start);
+            padding = gc.cvar.logr_padding + gc.cvar.box_height / 2;
+            if (data.length > 1000) {
+                for (let i = 0; i < data.length - 1; i++) {
+                    drawCanvas.fillRect(scale * (data[i][1] - start),
+                    padding - ampl * data[i][3], 2, 2);
+                }
+            } else {
+                drawCanvas.beginPath();
+                drawCanvas.moveTo(0, padding - ampl * data[0][3]);
+                for (let i = 1; i < data.length - 1; i++) {
+                    drawCanvas.lineTo(scale * (data[i][1] - start),
+                                      padding - ampl * data[i][3], 2, 2);
+                }
+                drawCanvas.stroke();
+            }
+
+            gc.dataCanvas.getContext("2d").clearRect(0, 0,
+                                                     gc.dataCanvas.width,
+                                                     gc.dataCanvas.height);
+            gc.dataCanvas.getContext("2d").drawImage(gc.drawCanvas, 0, 0);
         }
 
-        draw_coverage( {{data|safe}}, {{baf|safe }} );
+        draw_coverage({{data|safe}}, {{baf|safe}});
 
         function left() {
-            let size = end-start;
-            start -= Math.floor(0.1*size);
-            end -= Math.floor(0.1*size);
+            let size = end - start;
+            start -= Math.floor(0.1 * size);
+            end -= Math.floor(0.1 * size);
         }
         function right() {
-            let size = end-start;
-            start += Math.floor(0.1*size);
-            end += Math.floor(0.1*size);
+            let size = end - start;
+            start += Math.floor(0.1 * size);
+            end += Math.floor(0.1 * size);
         }
         function zoom_in() {
-            let size = end-start;
+            let size = end - start;
             start += Math.floor(size * 0.25);
             end -= Math.floor(size * 0.25);
         }
         function zoom_out() {
-            let size = end-start;
+            let size = end - start;
             start -= Math.floor(size * 0.5);
             end += Math.floor(size * 0.5);
-            if( start < 1 ) { start = 1; }
+            if (start < 1) {
+                start = 1;
+            }
         }
 
         function redraw() {
             $.getJSON($SCRIPT_ROOT + '/_getcov', {
-                region: chrom+":"+start+"-"+end,
-            }, function( result ) {
+                region: chrom + ":" + start + "-" + end,
+            }, function(result) {
                 draw_coverage(result["data"], result["baf"]);
-            }).done (function() { disallow_drag = false; } );
+            }).done (function() { disallow_drag = false; });
         }
 
 
@@ -255,40 +280,42 @@
         var dragStart;
         var dragEnd;
 
-        c.addEventListener('mousedown', function(event) {
+        gc.dataCanvas.addEventListener('mousedown', function(event) {
             if (!disallow_drag) {
                 dragStart = {
-                    x: event.pageX - c.offsetLeft,
-                    y: event.pageY - c.offsetTop
+                    x: event.pageX - gc.dataCanvas.offsetLeft,
+                    y: event.pageY - gc.dataCanvas.offsetTop
                 }
                 drag = true;
             }
         });
 
-        c.addEventListener('mousemove', function(event) {
-            if (drag) {
+        gc.dataCanvas.addEventListener('mousemove', function(event) {
+            if (drag && !disallow_drag) {
                 dragEnd = {
-                    x: event.pageX - c.offsetLeft,
-                    y: event.pageY - c.offsetTop
+                    x: event.pageX - gc.dataCanvas.offsetLeft,
+                    y: event.pageY - gc.dataCanvas.offsetTop
                 }
-                ctx.clearRect(0, 0, c.width, c.height);
-                // ctx.drawImage(offscreen, dragEnd.x-dragStart.x, 0);
-                ctx.drawImage(offscreen, c.width/2 - (dragEnd.x-dragStart.x), 0, c.width, c.height, 0, 0, c.width, c.height);
-
-                console.log("a");
-                //dragStart = dragEnd;
-                //clear()
-                //draw()
+                ctx.clearRect(0, 0, gc.dataCanvas.width, gc.dataCanvas.height);
+                ctx.drawImage(gc.drawCanvas,
+                              0,
+                              0,
+                              gc.drawCanvas.width,
+                              gc.drawCanvas.height,
+                              dragEnd.x - dragStart.x,
+                              0,
+                              gc.drawCanvas.width,
+                              gc.drawCanvas.height);
             }
         });
 
-        c.addEventListener('mouseup', function(event) {
+        gc.dataCanvas.addEventListener('mouseup', function(event) {
             if (drag) {
                 drag = false;
-                let scale = offscreen.width/(end-start);
-                let move_dist = Math.floor((dragStart.x-dragEnd.x) / scale);
-                if (start+move_dist < 0 ) {
-                    move_dist -= (start+move_dist);;
+                let scale = gc.dataCanvas.width / (end - start);
+                let move_dist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                if (start + move_dist < 0 ) {
+                    move_dist -= (start + move_dist);;
                 }
                 start += move_dist;
                 end += move_dist;

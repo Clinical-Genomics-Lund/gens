@@ -7,7 +7,6 @@
     position: relative;
     width: 1000;
     height:500;
-    color:coral;
 }
 
 #staticCanvas {
@@ -15,6 +14,7 @@
     top: 0;
     left: 0;
     z-index=0;
+    pointer-events: none;
 }
 
 #dataCanvas {
@@ -22,4 +22,11 @@
     top: 0;
     left: 0;
     z-index=-1;
+}
+
+#drawCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
 }
