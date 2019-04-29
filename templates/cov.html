@@ -71,11 +71,13 @@
 
                     // Draw a transparent line across box
                     if (i != start && i != end) {
+                        ctx.save();
                         ctx.lineWidth = cvar.tick_width;
                         ctx.strokeStyle = cvar.line_colour;
                         ctx.moveTo(cvar.left_padding, ypos);
                         ctx.lineTo(cvar.left_padding + cvar.box_width, ypos);
                         ctx.stroke();
+                        ctx.restore();
 
                     }
 
