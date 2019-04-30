@@ -7,7 +7,9 @@
 
     <body>
         <div class="grid-container">
-            <div id="canvas-container" width="1000" height="500">
+            <div id="interactive-container">
+            </div>
+            <div id="overview-container">
             </div>
 
             <div id="button-container">
@@ -28,90 +30,68 @@
     <script>
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
-        function createCanvas(canvas_width, canvas_height) {
+        function createCanvas(canvas_width, canvas_height, canvasID) {
             var canvas = document.createElement('canvas');
             canvas.width = canvas_width;
             canvas.height = canvas_height;
-            document.getElementById("canvas-container").appendChild(canvas);
+            document.getElementById(canvasID).appendChild(canvas);
             return canvas;
         }
 
-        function draw_static_coord_box(canvas, cvar) {
-            let ctx = canvas.getContext("2d");
+        // Function draws static y-axis coordinate lines
+        function draw_y_coordinates (ctx, cvar, start, end, fraction,
+                top_padding) {
+            var position = 0;
+            var step = cvar.box_height / ((start - end) / fraction);
+            // Draw lines and values for Y-axis
+            for (let i = start.toFixed(1); i >= end; i = (i - fraction).toFixed(1)) {
+                let ypos = top_padding + position;
 
-            // Set colour of whole canvas
-            ctx.save();
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
+                ctx.beginPath();
 
-            // Function draws a static coordinate system
-            let draw_coord_lines = function(start, end, fraction,
-                                            top_padding, top_offset) {
-                var position = 0;
-                var step = cvar.box_height / ((start - end) / fraction);
-
-                // Draw boundingbox and clear it from colour
-                ctx.lineWidth = 2;
-                ctx.clearRect(cvar.left_padding, top_padding - top_offset,
-                              cvar.box_width, cvar.box_height + top_offset);
-                ctx.rect(cvar.left_padding, top_padding, cvar.box_width, cvar.box_height);
+                // Draw a tick mark for values
+                ctx.moveTo(cvar.left_padding - cvar.tick_len / 2, ypos);
+                ctx.lineTo(cvar.left_padding + cvar.tick_len / 2, ypos);
                 ctx.stroke();
 
-                // Draw lines and values for Y-axis
-                for (let i = start.toFixed(1); i >= end; i = (i - fraction).toFixed(1)) {
-                    let ypos = top_padding + position;
-
-                    ctx.beginPath();
-
-                    // Draw a tick mark for values
-                    ctx.moveTo(cvar.left_padding - cvar.tick_len / 2, ypos);
-                    ctx.lineTo(cvar.left_padding + cvar.tick_len / 2, ypos);
+                // Draw a transparent line across box
+                if (i != start && i != end) {
+                    ctx.save();
+                    ctx.lineWidth = cvar.tick_width;
+                    ctx.strokeStyle = cvar.line_colour;
+                    ctx.moveTo(cvar.left_padding, ypos);
+                    ctx.lineTo(cvar.left_padding + cvar.box_width, ypos);
                     ctx.stroke();
-
-                    // Draw a transparent line across box
-                    if (i != start && i != end) {
-                        ctx.save();
-                        ctx.lineWidth = cvar.tick_width;
-                        ctx.strokeStyle = cvar.line_colour;
-                        ctx.moveTo(cvar.left_padding, ypos);
-                        ctx.lineTo(cvar.left_padding + cvar.box_width, ypos);
-                        ctx.stroke();
-                        ctx.restore();
-
-                    }
-
-                    // Draw Y-axis value
-                    ctx.font = "12px Arial";
-                    ctx.fillText(i, 25, ypos + 4);
-                    position += step;
+                    ctx.restore();
                 }
+
+                // Draw Y-axis value
+                ctx.font = "12px Arial";
+                ctx.fillText(i, 25, ypos + 4);
+                position += step;
             }
-
-            // Draw BAF context
-            draw_coord_lines(cvar.baf_start, cvar.baf_end, cvar.baf_frac,
-                             cvar.baf_padding, cvar.top_offset);
-
-            // Draw LogR context
-            draw_coord_lines(cvar.logr_start, cvar.logr_end, cvar.logr_frac,
-                             cvar.logr_padding, 0);
-
-            // Draws rotated text
-            let draw_rotated_text = function(text, posx, posy) {
-                ctx.save();
-                ctx.font = "18px Arial";
-                ctx.translate(posx, posy); // Position for text
-                ctx.rotate(-Math.PI/2); // Rotate 90 degrees
-                ctx.textAlign = 'center';
-                ctx.fillText(text, 0, 9);
-                ctx.restore();
-            }
-
-            // Draw rotated y-axis legends
-            draw_rotated_text("B Allele Freq", 10, cvar.baf_padding + cvar.box_height / 2);
-            draw_rotated_text("Log R Ratio", 10, cvar.logr_padding + cvar.box_height / 2);
         }
 
+        function draw_bounding_box (ctx, cvar, start, end, fraction,
+                top_padding, top_offset) {
+            // Draw boundingbox and clear it from colour
+            ctx.lineWidth = 2;
+            ctx.clearRect(cvar.left_padding, top_padding - top_offset,
+                    cvar.box_width, cvar.box_height + top_offset);
+            ctx.rect(cvar.left_padding, top_padding, cvar.box_width, cvar.box_height);
+            ctx.stroke();
+
+        }
+
+        function draw_rotated_text (ctx, text, posx, posy) {
+            ctx.save();
+            ctx.font = "18px Arial";
+            ctx.translate(posx, posy); // Position for text
+            ctx.rotate(-Math.PI/2); // Rotate 90 degrees
+            ctx.textAlign = 'center';
+            ctx.fillText(text, 0, 9);
+            ctx.restore();
+        }
 
         class GeneCanvas {
             constructor(canvas_width, canvas_height) {
@@ -130,7 +110,7 @@
                     baf_start: 1.0,
                     baf_end: 0.0,
                     baf_frac: 0.2,
-                    baf_padding: 45,
+                    baf_padding: 40,
 
                     // LogR values
                     logr_start: 4.0,
@@ -138,21 +118,93 @@
                     logr_frac: 1.0,
                     logr_padding: 0
                 }
-                this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height - 20;
                 this.cvar.box_width -= this.cvar.left_padding;
                 this.cvar.box_height = (canvas_height - this.cvar.top_offset - this.cvar.baf_padding) / 2;
+                this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height + 20;
 
                 // Create canvas for data
-                this.dataCanvas = createCanvas(canvas_width, canvas_height);
+                this.dataCanvas = createCanvas(canvas_width, canvas_height, 'interactive-container');
                 this.dataCanvas.id = "dataCanvas";
 
-                this.drawCanvas = createCanvas(canvas_width, canvas_height);
+                this.drawCanvas = createCanvas(canvas_width, canvas_height, 'interactive-container');
                 this.drawCanvas.id = "drawCanvas";
 
                 // Create static canvas
-                this.staticCanvas = createCanvas(canvas_width, canvas_height);
+                this.staticCanvas = createCanvas(canvas_width, canvas_height, 'interactive-container');
                 this.staticCanvas.id = "staticCanvas";
-                draw_static_coord_box(this.staticCanvas, this.cvar);
+
+                // Draw on static canvas
+                let ctx = staticCanvas.getContext("2d");
+
+                // Set colour of whole canvas
+                ctx.save();
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, staticCanvas.width, staticCanvas.height);
+                ctx.restore();
+
+                // Draw BAF context
+                draw_bounding_box(ctx, this.cvar, this.cvar.baf_start,
+                        this.cvar.baf_end, this.cvar.baf_frac,
+                        this.cvar.baf_padding, this.cvar.top_offset);
+                draw_y_coordinates(ctx, this.cvar, this.cvar.baf_start,
+                        this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding);
+
+                // Draw LogR context
+                draw_bounding_box(ctx, this.cvar, this.cvar.logr_start,
+                        this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, 0);
+                draw_y_coordinates(ctx, this.cvar, this.cvar.logr_start,
+                        this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding);
+
+                // Draw rotated y-axis legends
+                draw_rotated_text(ctx, "B Allele Freq", 10,
+                        this.cvar.baf_padding + this.cvar.box_height / 2);
+                draw_rotated_text(ctx, "Log R Ratio", 10,
+                        this.cvar.logr_padding + this.cvar.box_height / 2);
+            }
+        }
+
+        class OverviewCanvas {
+            constructor(canvas_width, canvas_height) {
+                // Canvas variables
+                this.cvar = {
+                    // Box values
+                    left_padding: 0,
+                    top_offset: 0,
+                    box_width: canvas_width,
+                    box_height: canvas_height / 2,
+                    tick_len: 6,
+                    tick_width: 0.2,
+                    line_colour: "#000000",
+
+                    // BAF values
+                    baf_start: 1.0,
+                    baf_end: 0.0,
+                    baf_frac: 0.2,
+                    baf_padding: 0,
+
+                    // LogR values
+                    logr_start: 4.0,
+                    logr_end: -4.0,
+                    logr_frac: 1.0,
+                    logr_padding: 0
+                }
+                this.cvar.box_width -= this.cvar.left_padding;
+                this.cvar.box_height = (canvas_height - this.cvar.top_offset - this.cvar.baf_padding) / 2;
+                this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height;
+
+                this.staticCanvas = createCanvas(canvas_width, canvas_height, 'overview-container');
+                this.staticCanvas.id = "staticCanvas";
+
+                // Draw overview canvas
+                let ctx = this.staticCanvas.getContext("2d");
+
+                // Draw BAF context
+                draw_bounding_box(ctx, this.cvar, this.cvar.baf_start,
+                        this.cvar.baf_end, this.cvar.baf_frac,
+                        this.cvar.baf_padding, this.cvar.top_offset);
+                // Draw LogR context
+                draw_bounding_box(ctx, this.cvar, this.cvar.logr_start,
+                        this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, 0);
             }
         }
 
@@ -210,7 +262,7 @@
                 txt_width = drawCanvas.measureText(txt).width;
                 let tick_xpos = scale * (xaxis_tick - start) - txt_width / 2;
                 if((!every_other || counter % 2 == 0) && (tick_xpos - prev_xpos) > (txt_width + 5)) {
-                    drawCanvas.fillText(txt, tick_xpos, gc.cvar.baf_padding - 10);
+                    drawCanvas.fillText(txt, tick_xpos, gc.cvar.baf_padding - x_axis_offset);
                     prev_xpos = tick_xpos;
                 }
                 xaxis_tick += xaxis_tick_frq;
