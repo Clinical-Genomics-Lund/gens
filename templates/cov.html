@@ -120,8 +120,8 @@
                     // Box values
                     left_padding: 50,
                     top_offset: 25,
-                    box_width: 800,
-                    box_height: 200,
+                    box_width: canvas_width,
+                    box_height: canvas_height / 2,
                     tick_len: 6,
                     tick_width: 0.2,
                     line_colour: "#000000",
@@ -130,7 +130,7 @@
                     baf_start: 1.0,
                     baf_end: 0.0,
                     baf_frac: 0.2,
-                    baf_padding: 55,
+                    baf_padding: 45,
 
                     // LogR values
                     logr_start: 4.0,
@@ -138,7 +138,9 @@
                     logr_frac: 1.0,
                     logr_padding: 0
                 }
-                this.cvar.logr_padding = this.cvar.baf_padding + 25 + this.cvar.box_height;
+                this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height - 20;
+                this.cvar.box_width -= this.cvar.left_padding;
+                this.cvar.box_height = (canvas_height - this.cvar.top_offset - this.cvar.baf_padding) / 2;
 
                 // Create canvas for data
                 this.dataCanvas = createCanvas(canvas_width, canvas_height);
