@@ -4,19 +4,14 @@ html, body {
 }
 
 .grid-container {
-    /* display: flex; */
-    /* flex-direction: column; */
 }
 
 #interactive-container {
     position: relative;
-    width: 1000;
-    height:500;
 }
 
 #overview-container {
-    display: flex;
-    flex-direction: column;
+    position: relative;
 }
 
 #staticCanvas {

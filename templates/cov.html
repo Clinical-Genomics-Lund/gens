@@ -39,8 +39,7 @@
         }
 
         // Function draws static y-axis coordinate lines
-        function draw_y_coordinates (ctx, cvar, start, end, fraction,
-                top_padding) {
+        function draw_y_coordinates (ctx, cvar, start, end, fraction, top_padding) {
             var position = 0;
             var step = cvar.box_height / ((start - end) / fraction);
             // Draw lines and values for Y-axis
@@ -72,8 +71,7 @@
             }
         }
 
-        function draw_bounding_box (ctx, cvar, start, end, fraction,
-                top_padding, top_offset) {
+        function draw_bounding_box (ctx, cvar, fraction, top_padding, top_offset) {
             // Draw boundingbox and clear it from colour
             ctx.lineWidth = 2;
             ctx.clearRect(cvar.left_padding, top_padding - top_offset,
@@ -143,15 +141,13 @@
                 ctx.restore();
 
                 // Draw BAF context
-                draw_bounding_box(ctx, this.cvar, this.cvar.baf_start,
-                        this.cvar.baf_end, this.cvar.baf_frac,
+                draw_bounding_box(ctx, this.cvar, this.cvar.baf_frac,
                         this.cvar.baf_padding, this.cvar.top_offset);
                 draw_y_coordinates(ctx, this.cvar, this.cvar.baf_start,
                         this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding);
 
                 // Draw LogR context
-                draw_bounding_box(ctx, this.cvar, this.cvar.logr_start,
-                        this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, 0);
+                draw_bounding_box(ctx, this.cvar, this.cvar.logr_frac, this.cvar.logr_padding, 0);
                 draw_y_coordinates(ctx, this.cvar, this.cvar.logr_start,
                         this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding);
 
@@ -168,8 +164,8 @@
                 // Canvas variables
                 this.cvar = {
                     // Box values
-                    left_padding: 0,
-                    top_offset: 0,
+                    left_padding: 5,
+                    top_offset: 5,
                     box_width: canvas_width,
                     box_height: canvas_height / 2,
                     tick_len: 6,
@@ -180,7 +176,7 @@
                     baf_start: 1.0,
                     baf_end: 0.0,
                     baf_frac: 0.2,
-                    baf_padding: 0,
+                    baf_padding: 20,
 
                     // LogR values
                     logr_start: 4.0,
@@ -199,12 +195,11 @@
                 let ctx = this.staticCanvas.getContext("2d");
 
                 // Draw BAF context
-                draw_bounding_box(ctx, this.cvar, this.cvar.baf_start,
-                        this.cvar.baf_end, this.cvar.baf_frac,
+                draw_bounding_box(ctx, this.cvar, this.cvar.baf_frac,
                         this.cvar.baf_padding, this.cvar.top_offset);
                 // Draw LogR context
-                draw_bounding_box(ctx, this.cvar, this.cvar.logr_start,
-                        this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, 0);
+                draw_bounding_box(ctx, this.cvar, this.cvar.logr_frac,
+                        this.cvar.logr_padding, 0);
             }
         }
 
@@ -212,38 +207,41 @@
         let start = {{start}};
         let end   = {{end}};
 
+        let chrom_start = 0;
+        let chrom_end = 35460000;
+
         let call_chrom = "{{call_chrom}}";
         let call_start = {{call_start}};
         let call_end   = {{call_end}};
 
-        var gc = new GeneCanvas(1000, 500);
+        var gc = new GeneCanvas(400, 300);
         var ctx = gc.dataCanvas.getContext("2d");
 
-        function draw_coverage(data, baf) {
-            let ch = data[0][0];
-            let scale = gc.drawCanvas.width / (end - start);
+        let overviews = [5];
+        for (let i = 1; i <= 5; i++) {
+            overviews[i] = new OverviewCanvas(150, 400);
+            $.getJSON($SCRIPT_ROOT + '/_getcov', {
+                region: i + ":" + chrom_start + "-" + chrom_end,
+            }, function(result) {
+                draw_coverage(result["data"], result["baf"], overviews[i], i);
+            }).done (function() { disallow_drag = false; });
+        }
+
+        function draw_title(ctx, cvar, title, title_len) {
+            ctx.clearRect(0, 0, cvar.box_width, cvar.baf_padding - cvar.top_offset);
+            ctx.font = "bold 14px Arial";
+            ctx.fillText(title,
+                    cvar.left_padding + cvar.box_width / 2 - title_len / 2,
+                    cvar.baf_padding - cvar.top_offset);
+        }
+
+        function draw_x_axis(ctx, cvar, canvas_width) {
+            let scale = canvas_width / (end - start);
             let xaxis_tick_frq = Math.pow(10, (end - start).toString().length - 2);
             let xaxis_tick = Math.ceil(start / xaxis_tick_frq) * xaxis_tick_frq;
-            let every_other = false;
-
-            let title_offset = 30; // Offset from top padding
             let x_axis_offset = 10; // Offset from top padding
-
-            // Draw on empty temporary canvas
-            var drawCanvas = gc.drawCanvas.getContext("2d");
-            drawCanvas.clearRect(0, 0, gc.drawCanvas.width, gc.drawCanvas.height);
-
-            // Draw chromosome title
-            let txt = "Chromosome " + chrom;
-            let txt_width = 110;
-            gc.staticCanvas.getContext("2d").clearRect(0, 0,
-                    gc.cvar.box_width, gc.cvar.baf_padding - gc.cvar.top_offset);
-            gc.staticCanvas.getContext("2d").font = "bold 14px Arial";
-            gc.staticCanvas.getContext("2d").fillText(txt,
-                    gc.cvar.left_padding + gc.cvar.box_width / 2 - txt_width / 2,
-                    gc.cvar.baf_padding - title_offset);
-
-            drawCanvas.font = "9px Arial";
+            let every_other = false;
+            ctx.font = "9px Arial";
 
             if (((end - start) / xaxis_tick_frq) > 15 ) {
                 every_other = true;
@@ -253,63 +251,93 @@
             let counter = 0;
             let prev_xpos = 0;
             while (xaxis_tick < end) {
-                drawCanvas.fillRect(scale * (xaxis_tick - start),
-                                    gc.cvar.baf_padding - 2,
+                ctx.fillRect(scale * (xaxis_tick - start),
+                                    cvar.baf_padding - 2,
                                     2, 5);
                 counter++;
                 // Only draw value on every other tick
                 txt = numberWithCommas(xaxis_tick);
-                txt_width = drawCanvas.measureText(txt).width;
+                txt_width = ctx.measureText(txt).width;
                 let tick_xpos = scale * (xaxis_tick - start) - txt_width / 2;
                 if((!every_other || counter % 2 == 0) && (tick_xpos - prev_xpos) > (txt_width + 5)) {
-                    drawCanvas.fillText(txt, tick_xpos, gc.cvar.baf_padding - x_axis_offset);
+                    ctx.fillText(txt, tick_xpos, cvar.baf_padding - x_axis_offset);
                     prev_xpos = tick_xpos;
                 }
                 xaxis_tick += xaxis_tick_frq;
             }
-            console.log(ch, start, end, (end - start), data.length);
+        }
+
+        function draw_coverage(data, baf, canvas, chromosome) {
+            let ch = data[0][0];
+            let interactive = canvas.drawCanvas ? true : false;
+            let cov_start = interactive ? start : chrom_start;
+            let cov_end = interactive ? end : chrom_end;
+            let title_len = interactive ? 110 : 12;
+            let left_padding = interactive ? 0 : canvas.cvar.left_padding;
+
+            // Draw on empty temporary canvas
+            let ctx = interactive ? canvas.drawCanvas.getContext("2d") :
+                    canvas.staticCanvas.getContext("2d");
+            let canvas_width = interactive ? canvas.drawCanvas.width :
+                    canvas.staticCanvas.width;
+            let canvas_height = interactive ? canvas.drawCanvas.height :
+                    canvas.staticCanvas.height;
+
+            // Only draw title and x-axis values for interactive canvas
+            if (interactive) {
+                ctx.clearRect(0, 0, canvas_width, canvas_height);
+                draw_title(canvas.staticCanvas.getContext("2d"), canvas.cvar,
+                        'Chromosome ' + chromosome, title_len);
+                draw_x_axis(ctx, canvas.cvar, canvas_width);
+            } else {
+                draw_title(ctx, canvas.cvar, chromosome, title_len);
+            }
+            console.log(ch, cov_start, cov_end, (cov_end - cov_start), data.length);
 
             // Draw BAF values
-            let ampl = gc.cvar.box_height;
-            let padding = gc.cvar.baf_padding + gc.cvar.box_height;
-            drawCanvas.fillStyle = "#FF0000";
+            let ampl = canvas.cvar.box_height;
+            let padding = canvas.cvar.baf_padding + canvas.cvar.box_height;
+            let scale = canvas_width / (cov_end - cov_start);
+            ctx.fillStyle = "#FF0000";
             for (let i = 0; i < baf.length - 1; i++) {
-                drawCanvas.fillRect(scale * (baf[i][1] - start),
-                                    padding - ampl * baf[i][3], 2, 2);
+                ctx.fillRect(left_padding + scale * (baf[i][1] - cov_start),
+                        padding - ampl * baf[i][3], 2, 2);
             }
 
-            drawCanvas.fillStyle = "#000000";
-            if (chrom == call_chrom && (start < call_end && end > call_start)) {
-                drawCanvas.fillRect(scale * (call_start - start),
-                                    120, scale * (call_end - call_start), title_offset);
+            ctx.fillStyle = "#000000";
+            if (chrom == call_chrom && (cov_start < call_end && cov_end > call_start)) {
+                ctx.fillRect(left_padding + scale * (call_start - cov_start),
+                        120, scale * (call_end - call_start), canvas.cvar.top_offset);
                 console.log("DRAW_CALL");
             }
 
             // Draw Log R ratio values
-            ampl = gc.cvar.box_height / (2 * gc.cvar.logr_start);
-            padding = gc.cvar.logr_padding + gc.cvar.box_height / 2;
+            ampl = canvas.cvar.box_height / (2 * canvas.cvar.logr_start);
+            padding = canvas.cvar.logr_padding + canvas.cvar.box_height / 2;
             if (data.length > 1000) {
                 for (let i = 0; i < data.length - 1; i++) {
-                    drawCanvas.fillRect(scale * (data[i][1] - start),
-                    padding - ampl * data[i][3], 2, 2);
+                    ctx.fillRect(left_padding + scale * (data[i][1] - cov_start),
+                            padding - ampl * data[i][3], 2, 2);
                 }
             } else {
-                drawCanvas.beginPath();
-                drawCanvas.moveTo(0, padding - ampl * data[0][3]);
+                ctx.beginPath();
+                ctx.moveTo(canvas.cvar.left_padding, padding - ampl * data[0][3]);
                 for (let i = 1; i < data.length - 1; i++) {
-                    drawCanvas.lineTo(scale * (data[i][1] - start),
-                                      padding - ampl * data[i][3], 2, 2);
+                    ctx.lineTo(left_padding + scale * (data[i][1] - cov_start),
+                            padding - ampl * data[i][3], 2, 2);
                 }
-                drawCanvas.stroke();
+                ctx.stroke();
             }
 
-            gc.dataCanvas.getContext("2d").clearRect(0, 0,
-                                                     gc.dataCanvas.width,
-                                                     gc.dataCanvas.height);
-            gc.dataCanvas.getContext("2d").drawImage(gc.drawCanvas, 0, 0);
+            if (interactive) {
+                canvas.dataCanvas.getContext("2d").clearRect(0, 0,
+                                                        canvas.dataCanvas.width,
+                                                        canvas.dataCanvas.height);
+                canvas.dataCanvas.getContext("2d").drawImage(canvas.drawCanvas, 0, 0);
+            }
         }
 
-        draw_coverage({{data|safe}}, {{baf|safe}});
+        draw_coverage({{data|safe}}, {{baf|safe}}, gc, chrom);
 
         function left() {
             let size = end - start;
@@ -343,7 +371,7 @@
             $.getJSON($SCRIPT_ROOT + '/_getcov', {
                 region: chrom + ":" + start + "-" + end,
             }, function(result) {
-                draw_coverage(result["data"], result["baf"]);
+                draw_coverage(result["data"], result["baf"], gc, chrom);
             }).done (function() { disallow_drag = false; });
         }
 
