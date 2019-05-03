@@ -20,8 +20,8 @@
 
                 <button onclick="left();">left</button>
                 <button onclick="right();">right</button>
-                <button onclick="zoom_in();">+</button>
-                <button onclick="zoom_out();">-</button>
+                <button onclick="zoomIn();">+</button>
+                <button onclick="zoomOut();">-</button>
             </div>
         </div>
         <script type="text/javascript" src="{{ url_for('static', filename='js/cov.js')}}"></script>
@@ -35,12 +35,12 @@
         let start = {{start}};
         let end   = {{end}};
 
-        let chrom_start = 0;
-        let chrom_end = 35460000;
+        let chromStart = 0;
+        let chromEnd = 35460000;
 
-        let call_chrom = "{{call_chrom}}";
-        let call_start = {{call_start}};
-        let call_end   = {{call_end}};
+        let callChrom = "{{call_chrom}}";
+        let callStart = {{call_start}};
+        let callEnd   = {{call_end}};
 
         var gc = new GeneCanvas(400, 300);
         var ctx = gc.dataCanvas.getContext("2d");
@@ -49,21 +49,21 @@
         for (let i = 1; i <= 5; i++) {
             overviews[i] = new OverviewCanvas(150, 400);
             $.getJSON($SCRIPT_ROOT + '/_getcov', {
-                region: i + ":" + chrom_start + "-" + chrom_end,
+                region: i + ":" + chromStart + "-" + chromEnd,
             }, function(result) {
-                draw_coverage(result["data"], result["baf"], overviews[i], i);
-            }).done (function() { disallow_drag = false; });
+                drawCoverage(result["data"], result["baf"], overviews[i], i);
+            }).done (function() { disallowDrag = false; });
         }
 
-        draw_coverage({{data|safe}}, {{baf|safe}}, gc, chrom);
+        drawCoverage({{data|safe}}, {{baf|safe}}, gc, chrom);
 
         var drag = false;
-        var disallow_drag = false;
+        var disallowDrag = false;
         var dragStart;
         var dragEnd;
 
         gc.dataCanvas.addEventListener('mousedown', function(event) {
-            if (!disallow_drag) {
+            if (!disallowDrag) {
                 dragStart = {
                     x: event.pageX - gc.dataCanvas.offsetLeft,
                     y: event.pageY - gc.dataCanvas.offsetTop
@@ -77,7 +77,7 @@
         });
 
         gc.dataCanvas.addEventListener('mousemove', function(event) {
-            if (drag && !disallow_drag) {
+            if (drag && !disallowDrag) {
                 dragEnd = {
                     x: event.pageX - gc.dataCanvas.offsetLeft,
                     y: event.pageY - gc.dataCanvas.offsetTop
@@ -105,7 +105,7 @@
                 }
                 start += move_dist;
                 end += move_dist;
-                disallow_drag = true;
+                disallowDrag = true;
                 redraw();
             }
         });
