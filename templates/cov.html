@@ -34,6 +34,8 @@
         let chrom = "{{chrom}}";
         let start = {{start}};
         let end   = {{end}};
+        let logRMedian = {{median}};
+        let title = "{{title}}";
 
         let chromStart = 0;
         let chromEnd = 35460000;
@@ -50,6 +52,7 @@
             overviews[i] = new OverviewCanvas(150, 400);
             $.getJSON($SCRIPT_ROOT + '/_getcov', {
                 region: i + ":" + chromStart + "-" + chromEnd,
+                median: logRMedian
             }, function(result) {
                 drawCoverage(result["data"], result["baf"], overviews[i], i);
             }).done (function() { disallowDrag = false; });

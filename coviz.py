@@ -5,6 +5,7 @@ Whole genome visualization of BAF and log R ratio
 import sys
 import json
 import tabix
+import math
 from flask import Flask, request, render_template, jsonify
 APP = Flask(__name__)
 
@@ -28,10 +29,22 @@ def coverage_view():
     baf = tabix.open(baf_file)
     baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
 
+    # Get sample information
+    sample_file = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
+    with open(sample_file) as f:
+        sample_data = json.load(f)
+    median = float(sample_data['median_depth'])
+    title = sample_data['sample_name']
+
+    #  Normalize and calculate the Log R Ratio
+    chromosome, res1, res2, intensity = zip(*records)
+    intensity = [str(math.log(float(val) / median + 1, 2)) for val in intensity]
+    records = zip(chromosome, res1, res2, intensity)
+
     return render_template('cov.html', data=json.dumps(records),
                            baf=json.dumps(baf_records), chrom=chrom,
                            start=start_pos, end=end_pos, call_chrom=call_chrom,
-                           call_start=call_start, call_end=call_end)
+                           call_start=call_start, call_end=call_end, median=median, title=title)
 
 
 @APP.route('/_getcov', methods=['GET'])
@@ -40,6 +53,7 @@ def get_cov():
     Method for redrawing region on button change
     '''
     region = request.args.get('region', '1:100000-200000')
+    median = request.args.get('median', 1)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
@@ -49,6 +63,11 @@ def get_cov():
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
     baf = tabix.open(baf_file)
     baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
+
+    #  Normalize and calculate the Log R Ratio
+    chromosome, res1, res2, intensity = zip(*records)
+    intensity = [str(math.log(float(val) / float(median) + 1, 2)) for val in intensity]
+    records = zip(chromosome, res1, res2, intensity)
 
     return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
                    start=start_pos, end=end_pos)

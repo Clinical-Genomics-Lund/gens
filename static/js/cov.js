@@ -310,7 +310,8 @@ function zoomOut () {
 
 function redraw () {
   $.getJSON($SCRIPT_ROOT + '/_getcov', {
-    region: chrom + ':' + start + '-' + end
+    region: chrom + ':' + start + '-' + end,
+    median: logRMedian
   }, function (result) {
     drawCoverage(result['data'], result['baf'], gc, chrom);
   }).done(function () { disallowDrag = false; });
