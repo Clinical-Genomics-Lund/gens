@@ -83,9 +83,12 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       logr_frac: 1.0,
       logr_padding: 0,
 
+      // Chromosome values
       chromosome: chromosome,
       start: start,
       end: end,
+
+      // Options
       disallowDrag: false
     };
     this.cvar.box_width -= this.cvar.leftPadding;
@@ -214,6 +217,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       logr_frac: 1.0,
       logr_padding: 0,
 
+      // Chromosome values
       chromosome: chromosome,
       start: 0,
       end: 35460000
@@ -313,9 +317,7 @@ function drawXAxis (ctx, cvar, canvasWidth) {
   let counter = 0;
   let prevXPos = 0;
   while (xAxisTick < cvar.end) {
-    ctx.fillRect(scale * (xAxisTick - cvar.start),
-        cvar.baf_padding - 2,
-        2, 5);
+    let tickLength = 1;
     counter++;
     // Only draw value on every other tick
     let txt = numberWithCommas(xAxisTick);
@@ -324,7 +326,11 @@ function drawXAxis (ctx, cvar, canvasWidth) {
     if ((!everyOther || counter % 2 === 0) && (tickXPos - prevXPos) > (txtWidth + 5)) {
       ctx.fillText(txt, tickXPos, cvar.baf_padding - xAxisOffset);
       prevXPos = tickXPos;
+      tickLength++;
     }
+    ctx.fillRect(scale * (xAxisTick - cvar.start),
+        cvar.baf_padding - 2,
+        tickLength, 5);
     xAxisTick += xAxisTickFrq;
   }
 }
