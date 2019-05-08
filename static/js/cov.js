@@ -7,7 +7,7 @@ function createCanvas (canvasWidth, canvasHeight, canvasID) {
 }
 
 // Function draws static y-axis coordinate lines
-function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding) {
+function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding, drawYValues) {
   var position = 0;
   var step = cvar.box_height / ((start - end) / fraction);
   // Draw lines and values for Y-axis
@@ -15,11 +15,6 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding) {
     let ypos = topPadding + position;
 
     ctx.beginPath();
-
-    // Draw a tick mark for values
-    ctx.moveTo(cvar.leftPadding - cvar.tick_len / 2, ypos);
-    ctx.lineTo(cvar.leftPadding + cvar.tick_len / 2, ypos);
-    ctx.stroke();
 
     // Draw a transparent line across box
     if (i !== start && i !== end) {
@@ -32,9 +27,14 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding) {
       ctx.restore();
     }
 
-    // Draw Y-axis value
-    ctx.font = '12px Arial';
-    ctx.fillText(i, 25, ypos + 4);
+    if (drawYValues) {
+      // Draw a tick mark for values
+      ctx.fillRect(cvar.leftPadding - cvar.tick_len/2, ypos - 1, cvar.tick_len, 2);
+
+      // Draw Y-axis value
+      ctx.font = '12px Arial';
+      ctx.fillText(i, 25, ypos + 4);
+    }
     position += step;
   }
 }
@@ -120,12 +120,12 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
       this.cvar.baf_padding, this.cvar.topOffset);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
-      this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding);
+      this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, true);
 
     // Draw LogR context
     drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac, this.cvar.logr_padding, 0);
     drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
-      this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding);
+      this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, true);
 
     // Draw rotated y-axis legends
     drawRotatedText(ctx, 'B Allele Freq', 10,
@@ -193,7 +193,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 }
 
 class OverviewCanvas { // eslint-disable-line no-unused-vars
-  constructor (canvasWidth, canvasHeight, chromosome) {
+  constructor (canvasWidth, canvasHeight, chromosome, drawYValues) {
     // Canvas variables
     this.cvar = {
       // Box values
@@ -215,17 +215,23 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       logr_start: 4.0,
       logr_end: -4.0,
       logr_frac: 1.0,
-      logr_padding: 0,
+      logr_padding: 5,
 
       // Chromosome values
       chromosome: chromosome,
       start: 0,
       end: 35460000
-
     };
-    this.cvar.box_width -= this.cvar.leftPadding;
+
+    if (drawYValues) {
+      this.cvar.leftPadding = 50;
+      canvasWidth += this.cvar.leftPadding;
+    } else {
+      this.cvar.box_width -= this.cvar.leftPadding;
+    }
+
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
-    this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height;
+    this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
 
     this.staticCanvas = createCanvas(canvasWidth, canvasHeight, 'overview-container');
     this.staticCanvas.id = 'staticCanvas';
@@ -236,9 +242,14 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
         this.cvar.baf_padding, this.cvar.topOffset);
+    drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
+      this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, drawYValues);
+
     // Draw LogR context
     drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac,
         this.cvar.logr_padding, 0);
+    drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
+      this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, drawYValues);
   }
 
   // Draw coverage for overview canvas
