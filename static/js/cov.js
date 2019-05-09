@@ -81,7 +81,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       logr_start: 4.0,
       logr_end: -4.0,
       logr_frac: 1.0,
-      logr_padding: 0,
+      logr_padding: 20,
 
       // Chromosome values
       chromosome: chromosome,
@@ -93,7 +93,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     };
     this.cvar.box_width -= this.cvar.leftPadding;
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
-    this.cvar.logr_padding = this.cvar.baf_padding + this.cvar.box_height + 20;
+    this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
 
 
     // Create canvas for data
@@ -155,11 +155,13 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     let ampl = this.cvar.box_height;
     let padding = this.cvar.baf_padding + this.cvar.box_height;
     let scale = canvasWidth / (this.cvar.end - this.cvar.start);
+    ctx.save();
     ctx.fillStyle = '#FF0000';
     for (let i = 0; i < baf.length - 1; i++) {
       ctx.fillRect(leftPadding + scale * (baf[i][1] - this.cvar.start),
           padding - ampl * baf[i][3], 2, 2);
     }
+    ctx.restore();
 
     ctx.fillStyle = '#000000';
     if (this.cvar.chromosome === callChrom && (this.cvar.start < callEnd && this.cvar.end > callStart)) {
@@ -220,7 +222,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       // Chromosome values
       chromosome: chromosome,
       start: 0,
-      end: 35460000
+      end: 245000000
     };
 
     if (drawYValues) {
@@ -269,20 +271,14 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     // Draw BAF values
     let ampl = this.cvar.box_height;
     let padding = this.cvar.baf_padding + this.cvar.box_height;
-    let scale = canvasWidth / (this.cvar.end - this.cvar.start);
+    let scale = this.cvar.box_width / (this.cvar.end - this.cvar.start);
+    ctx.save();
     ctx.fillStyle = '#FF0000';
     for (let i = 0; i < baf.length - 1; i++) {
       ctx.fillRect(this.cvar.leftPadding + scale * (baf[i][1] - this.cvar.start),
           padding - ampl * baf[i][3], 2, 2);
     }
-
-    ctx.fillStyle = '#000000';
-    if (this.cvar.chromosome === callChrom &&
-        (this.cvar.start < callEnd && this.cvar.end > callStart)) {
-      ctx.fillRect(this.cvar.leftPadding + scale * (callStart - this.cvar.start),
-          120, scale * (callEnd - callStart), this.cvar.topOffset);
-      console.log('DRAW_CALL');
-    }
+    ctx.restore();
 
     // Draw Log R ratio values
     ampl = this.cvar.box_height / (2 * this.cvar.logr_start);
