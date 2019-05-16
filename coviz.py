@@ -9,6 +9,34 @@ import math
 from flask import Flask, request, render_template, jsonify
 APP = Flask(__name__)
 
+def test_coverage_view():
+    '''
+    Function for mocking if data is not present,
+    only for test purposes
+    '''
+    region = request.form.get('region', '1:100000-200000')
+
+    call_chrom = 1
+    call_start = 1011000
+    call_end = 1015000
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    median = 1
+    title = 'test'
+
+    records = []
+    baf_records = []
+    intensity = 0.5
+    for i in range(int(start_pos), int(end_pos), 100):
+        records.append([res + '_' + chrom, i, i, intensity])
+        baf_records.append([res + '_' + chrom, i, i, intensity])
+
+    return render_template('cov.html', data=json.dumps(records),
+                           baf=json.dumps(baf_records), chrom=chrom,
+                           start=start_pos, end=end_pos,
+                           call_chrom=call_chrom, call_start=call_start,
+                           call_end=call_end, median=median, title=title)
+
 
 @APP.route('/', methods=['POST', 'GET'])
 def coverage_view():
@@ -22,7 +50,13 @@ def coverage_view():
     call_end = 1015000
     res, chrom, start_pos, end_pos = parse_region_str(region)
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    tb_file = tabix.open(cov_file)
+
+    try:
+        tb_file = tabix.open(cov_file)
+    except tabix.TabixError:
+        print 'Warning, could not open tabix file, mocking input'
+        return test_coverage_view()
+
     records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
@@ -47,6 +81,25 @@ def coverage_view():
                            call_start=call_start, call_end=call_end, median=median, title=title)
 
 
+def test_get_cov():
+    '''
+    Function for mocking if data is not present,
+    only for test purposes
+    '''
+    region = request.args.get('region', '1:100000-200000')
+
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    records = []
+    baf_records = []
+    intensity = 0.5
+    for i in range(int(start_pos), int(end_pos), 2000):
+        records.append([res + '_' + chrom, i, i, intensity])
+        baf_records.append([res + '_' + chrom, i, i, intensity])
+
+    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
+                   start=start_pos, end=end_pos)
+
 @APP.route('/_getcov', methods=['GET'])
 def get_cov():
     '''
@@ -57,7 +110,13 @@ def get_cov():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    tb_file = tabix.open(cov_file)
+
+    try:
+        tb_file = tabix.open(cov_file)
+    except tabix.TabixError:
+        print 'Warning, could not open tabix file, mocking input'
+        return test_get_cov()
+
     records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
