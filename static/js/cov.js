@@ -195,7 +195,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 }
 
 class OverviewCanvas { // eslint-disable-line no-unused-vars
-  constructor (canvasWidth, canvasHeight, chromosome, drawYValues) {
+  constructor (canvasWidth, canvasHeight, chromosome, drawYValues, divClass) {
     // Canvas variables
     this.cvar = {
       // Box values
@@ -235,7 +235,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
 
-    this.staticCanvas = createCanvas(canvasWidth, canvasHeight, 'overview-container');
+    this.staticCanvas = createCanvas(canvasWidth, canvasHeight, divClass);
     this.staticCanvas.id = 'staticCanvas';
 
     // Draw overview canvas

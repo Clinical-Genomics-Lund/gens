@@ -14,6 +14,10 @@ html, body {
     position: relative;
 }
 
+#overview-div {
+    display: block;
+}
+
 #staticCanvas {
     position: relative;
     top: 0;
