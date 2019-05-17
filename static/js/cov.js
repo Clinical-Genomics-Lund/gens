@@ -269,14 +269,15 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
         (this.cvar.end - this.cvar.start), data.length);
 
     // Draw BAF values
+    let pointSize = 2;
     let ampl = this.cvar.box_height;
     let padding = this.cvar.baf_padding + this.cvar.box_height;
-    let scale = this.cvar.box_width / (this.cvar.end - this.cvar.start);
+    let scale = (this.cvar.box_width - pointSize) / (this.cvar.end - this.cvar.start);
     ctx.save();
     ctx.fillStyle = '#FF0000';
     for (let i = 0; i < baf.length - 1; i++) {
       ctx.fillRect(this.cvar.leftPadding + scale * (baf[i][1] - this.cvar.start),
-          padding - ampl * baf[i][3], 2, 2);
+          padding - ampl * baf[i][3], pointSize, pointSize);
     }
     ctx.restore();
 
@@ -286,14 +287,14 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     if (data.length > 1000) {
       for (let i = 0; i < data.length - 1; i++) {
         ctx.fillRect(this.cvar.leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], 2, 2);
+            padding - ampl * data[i][3], pointSize, pointSize);
       }
     } else {
       ctx.beginPath();
       ctx.moveTo(this.cvar.leftPadding, padding - ampl * data[0][3]);
       for (let i = 1; i < data.length - 1; i++) {
         ctx.lineTo(this.cvar.leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], 2, 2);
+            padding - ampl * data[i][3], pointSize, pointSize);
       }
       ctx.stroke();
     }

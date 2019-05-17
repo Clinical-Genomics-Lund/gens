@@ -54,7 +54,7 @@ def coverage_view():
     try:
         tb_file = tabix.open(cov_file)
     except tabix.TabixError:
-        print 'Warning, could not open tabix file, mocking input'
+        print ('Warning, could not open tabix file, mocking input')
         return test_coverage_view()
 
     records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
@@ -114,7 +114,7 @@ def get_cov():
     try:
         tb_file = tabix.open(cov_file)
     except tabix.TabixError:
-        print 'Warning, could not open tabix file, mocking input'
+        print ('Warning, could not open tabix file, mocking input')
         return test_get_cov()
 
     records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
