@@ -1,8 +1,7 @@
-function createCanvas (canvasWidth, canvasHeight, canvasID) {
+function createCanvas (canvasWidth, canvasHeight) {
   var canvas = document.createElement('canvas');
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
-  document.getElementById(canvasID).appendChild(canvas);
   return canvas;
 }
 
@@ -95,16 +94,17 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
 
-
     // Create canvas for data
-    this.dataCanvas = createCanvas(canvasWidth, canvasHeight, 'interactive-container');
+    this.dataCanvas = createCanvas(canvasWidth, canvasHeight);
+    document.getElementById('interactive-container').appendChild(this.dataCanvas);
     this.dataCanvas.id = 'dataCanvas';
 
-    this.drawCanvas = createCanvas(canvasWidth, canvasHeight, 'interactive-container');
+    this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     this.drawCanvas.id = 'drawCanvas';
 
     // Create static canvas
-    this.staticCanvas = createCanvas(canvasWidth, canvasHeight, 'interactive-container');
+    this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
+    document.getElementById('interactive-container').appendChild(this.staticCanvas);
     this.staticCanvas.id = 'staticCanvas';
 
     // Draw on static canvas
@@ -190,7 +190,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 
     this.dataCanvas.getContext('2d').clearRect(0, 0, this.dataCanvas.width,
         this.dataCanvas.height);
-    this.dataCanvas.getContext('2d').drawImage(this.drawCanvas, 0, 0);
+    this.dataCanvas.getContext('2d').putImageData(this.drawCanvas.getContext('2d').getImageData(0,0,this.dataCanvas.width, this.dataCanvas.height), 0, 0);
   }
 }
 
@@ -235,11 +235,15 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
 
-    this.staticCanvas = createCanvas(canvasWidth, canvasHeight, divClass);
+    this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
+    this.drawCanvas.id = 'drawCanvas';
+
+    this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
+    document.getElementById(divClass).appendChild(this.staticCanvas);
     this.staticCanvas.id = 'staticCanvas';
 
     // Draw overview canvas
-    let ctx = this.staticCanvas.getContext('2d');
+    let ctx = this.drawCanvas.getContext('2d');
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
@@ -260,9 +264,9 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     let titleLength = 12;
 
     // Draw on empty temporary canvas
-    let ctx = this.staticCanvas.getContext('2d');
-    let canvasWidth = this.staticCanvas.width;
-    let canvasHeight = this.staticCanvas.height;
+    let ctx = this.drawCanvas.getContext('2d');
+    let canvasWidth = this.drawCanvas.width;
+    let canvasHeight = this.drawCanvas.height;
 
     drawTitle(ctx, this.cvar, this.cvar.chromosome, titleLength);
     console.log(ch, this.cvar.start, this.cvar.end,
@@ -298,6 +302,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       }
       ctx.stroke();
     }
+    this.staticCanvas.getContext('2d').putImageData(this.drawCanvas.getContext('2d').getImageData(0,0,this.staticCanvas.width, this.staticCanvas.height), 0, 0);
   }
 }
 
