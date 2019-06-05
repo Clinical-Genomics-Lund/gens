@@ -2,11 +2,12 @@
 Whole genome visualization of BAF and log R ratio
 '''
 
-import sys
+from __future__ import print_function
 import json
-import tabix
 import math
+import tabix
 from flask import Flask, request, render_template, jsonify
+
 APP = Flask(__name__)
 
 def test_coverage_view():
@@ -65,8 +66,8 @@ def coverage_view():
 
     # Get sample information
     sample_file = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
-    with open(sample_file) as f:
-        sample_data = json.load(f)
+    with open(sample_file) as data_file:
+        sample_data = json.load(data_file)
     median = float(sample_data['median_depth'])
     title = sample_data['sample_name']
 
