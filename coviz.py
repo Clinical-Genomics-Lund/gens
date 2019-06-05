@@ -5,10 +5,18 @@ Whole genome visualization of BAF and log R ratio
 from __future__ import print_function
 import json
 import math
-import tabix
+from subprocess import Popen, PIPE
 from flask import Flask, request, render_template, jsonify
 
 APP = Flask(__name__)
+
+### Help functions ###
+def tabix_query(filename, chrom, start, end):
+    """Call tabix and generate an array of strings for each line it returns."""
+    query = '{}:{}-{}'.format(chrom, start, end)
+    process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
+    for line in process.stdout:
+        yield line.strip().split()
 
 def test_coverage_view():
     '''
@@ -39,6 +47,7 @@ def test_coverage_view():
                            call_end=call_end, median=median, title=title)
 
 
+### Main functions ###
 @APP.route('/', methods=['POST', 'GET'])
 def coverage_view():
     '''
@@ -50,19 +59,12 @@ def coverage_view():
     call_start = 1011000
     call_end = 1015000
     res, chrom, start_pos, end_pos = parse_region_str(region)
+
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-
-    try:
-        tb_file = tabix.open(cov_file)
-    except tabix.TabixError:
-        print ('Warning, could not open tabix file, mocking input')
-        return test_coverage_view()
-
-    records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
+    records = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf = tabix.open(baf_file)
-    baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
+    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
 
     # Get sample information
     sample_file = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
@@ -110,19 +112,12 @@ def get_cov():
     median = request.args.get('median', 1)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
+
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-
-    try:
-        tb_file = tabix.open(cov_file)
-    except tabix.TabixError:
-        print ('Warning, could not open tabix file, mocking input')
-        return test_get_cov()
-
-    records = list(tb_file.query(res+'_'+chrom, int(start_pos), int(end_pos)))
+    records = list(tabix_query(cov_file, res+'_'+chrom, int(start_pos), int(end_pos)))
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf = tabix.open(baf_file)
-    baf_records = list(baf.query(chrom, int(start_pos), int(end_pos)))
+    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
 
     #  Normalize and calculate the Log R Ratio
     chromosome, res1, res2, intensity = zip(*records)
