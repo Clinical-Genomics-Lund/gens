@@ -6,7 +6,7 @@ from __future__ import print_function
 import json
 import math
 from subprocess import Popen, PIPE
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, abort
 
 APP = Flask(__name__)
 
@@ -36,6 +36,7 @@ def test_coverage_view():
     records = []
     baf_records = []
     intensity = 0.5
+
     for i in range(int(start_pos), int(end_pos), 100):
         records.append([res + '_' + chrom, i, i, intensity])
         baf_records.append([res + '_' + chrom, i, i, intensity])
@@ -78,6 +79,9 @@ def coverage_view():
     intensity = [str(math.log(float(val) / median + 1, 2)) for val in intensity]
     records = zip(chromosome, res1, res2, intensity)
 
+    if not records or not baf_records:
+        return abort(416)
+
     return render_template('cov.html', data=json.dumps(records),
                            baf=json.dumps(baf_records), chrom=chrom,
                            start=start_pos, end=end_pos, call_chrom=call_chrom,
@@ -96,6 +100,7 @@ def test_get_cov():
     records = []
     baf_records = []
     intensity = 0.5
+
     for i in range(int(start_pos), int(end_pos), 2000):
         records.append([res + '_' + chrom, i, i, intensity])
         baf_records.append([res + '_' + chrom, i, i, intensity])
@@ -124,6 +129,9 @@ def get_cov():
     intensity = [str(math.log(float(val) / float(median) + 1, 2)) for val in intensity]
     records = zip(chromosome, res1, res2, intensity)
 
+    if not records or not baf_records:
+        return abort(416)
+
     return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
                    start=start_pos, end=end_pos)
 
@@ -131,9 +139,6 @@ def parse_region_str(region):
     '''
     Parses a region string
     '''
-    chrom = ""
-    start_pos = 0
-    end_pos = 0
     if ":" in region and "-" in region:
         chrom, pos_range = region.split(':')
         start_pos, end_pos = pos_range.split('-')
