@@ -69,11 +69,11 @@
                 region: i + ":" + overviews[i].cvar.start + "-" + overviews[i].cvar.end,
                 median: logRMedian
             }, function(result) {
-                overviews[i].drawCoverage(result["data"], result["baf"]);
+                overviews[i].draw(result["data"], result["baf"]);
             });
         }
 
-        gc.drawCoverage({{data|safe}}, {{baf|safe}});
+        gc.draw({{data|safe}}, {{baf|safe}});
 
         var drag = false;
         var dragStart;

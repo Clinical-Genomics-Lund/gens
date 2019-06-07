@@ -28,7 +28,7 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding, drawYVal
 
     if (drawYValues) {
       // Draw a tick mark for values
-      ctx.fillRect(cvar.leftPadding - cvar.tick_len/2, ypos - 1, cvar.tick_len, 2);
+      ctx.fillRect(cvar.leftPadding - cvar.tick_len / 2, ypos - 1, cvar.tick_len, 2);
 
       // Draw Y-axis value
       ctx.font = '12px Arial';
@@ -87,6 +87,10 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       start: start,
       end: end,
 
+      // Draw values
+      titleLength: 110,
+      drawPadding: 0,
+
       // Options
       disallowDrag: false
     };
@@ -135,62 +139,8 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
   }
 
   // Draw coverage for gene canvas
-  drawCoverage (data, baf) {
-    let ch = data[0][0];
-    let titleLength = 110;
-    let leftPadding = 0;
-
-    // Draw on empty temporary canvas
-    let ctx = this.drawCanvas.getContext('2d');
-    let canvasWidth = this.drawCanvas.width;
-    let canvasHeight = this.drawCanvas.height;
-
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    drawTitle(this.staticCanvas.getContext('2d'), this.cvar,
-        'Chromosome ' + this.cvar.chromosome, titleLength);
-    drawXAxis(ctx, this.cvar, canvasWidth);
-    console.log(ch, this.cvar.start, this.cvar.end, (this.cvar.end - this.cvar.start), data.length);
-
-    // Draw BAF values
-    let ampl = this.cvar.box_height;
-    let padding = this.cvar.baf_padding + this.cvar.box_height;
-    let scale = canvasWidth / (this.cvar.end - this.cvar.start);
-    ctx.save();
-    ctx.fillStyle = '#FF0000';
-    for (let i = 0; i < baf.length - 1; i++) {
-      ctx.fillRect(leftPadding + scale * (baf[i][1] - this.cvar.start),
-          padding - ampl * baf[i][3], 2, 2);
-    }
-    ctx.restore();
-
-    ctx.fillStyle = '#000000';
-    if (this.cvar.chromosome === callChrom && (this.cvar.start < callEnd && this.cvar.end > callStart)) {
-      ctx.fillRect(leftPadding + scale * (callStart - this.cvar.start),
-          120, scale * (callEnd - callStart), this.cvar.topOffset);
-      console.log('DRAW_CALL');
-    }
-
-    // Draw Log R ratio values
-    ampl = this.cvar.box_height / (2 * this.cvar.logr_start);
-    padding = this.cvar.logr_padding + this.cvar.box_height / 2;
-    if (data.length > 1000) {
-      for (let i = 0; i < data.length - 1; i++) {
-        ctx.fillRect(leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], 2, 2);
-      }
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(this.cvar.leftPadding, padding - ampl * data[0][3]);
-      for (let i = 1; i < data.length - 1; i++) {
-        ctx.lineTo(leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], 2, 2);
-      }
-      ctx.stroke();
-    }
-
-    this.dataCanvas.getContext('2d').clearRect(0, 0, this.dataCanvas.width,
-        this.dataCanvas.height);
-    this.dataCanvas.getContext('2d').putImageData(this.drawCanvas.getContext('2d').getImageData(0,0,this.dataCanvas.width, this.dataCanvas.height), 0, 0);
+  draw (data, baf) {
+    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.dataCanvas, this.cvar, true);
   }
 }
 
@@ -222,7 +172,11 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       // Chromosome values
       chromosome: chromosome,
       start: 0,
-      end: 245000000
+      end: 245000000,
+
+      // Draw values
+      titleLength: 12,
+      drawPadding: 5
     };
 
     if (drawYValues) {
@@ -231,6 +185,8 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     } else {
       this.cvar.box_width -= this.cvar.leftPadding;
     }
+
+    this.cvar.drawPadding = this.cvar.leftPadding;
 
     this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
@@ -247,63 +203,96 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-        this.cvar.baf_padding, this.cvar.topOffset);
+      this.cvar.baf_padding, this.cvar.topOffset);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
       this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, drawYValues);
 
     // Draw LogR context
     drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac,
-        this.cvar.logr_padding, 0);
+      this.cvar.logr_padding, 0);
     drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
       this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, drawYValues);
   }
 
   // Draw coverage for overview canvas
-  drawCoverage (data, baf) {
-    let ch = data[0][0];
-    let titleLength = 12;
+  draw (data, baf) {
+    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.staticCanvas, this.cvar, false);
+  }
+}
 
-    // Draw on empty temporary canvas
-    let ctx = this.drawCanvas.getContext('2d');
-    let canvasWidth = this.drawCanvas.width;
-    let canvasHeight = this.drawCanvas.height;
+// Draw coverage for canvas
+function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dynamic) {
+  let ch = data[0][0];
 
-    drawTitle(ctx, this.cvar, this.cvar.chromosome, titleLength);
-    console.log(ch, this.cvar.start, this.cvar.end,
-        (this.cvar.end - this.cvar.start), data.length);
+  // Draw on empty temporary canvas
+  let ctx = drawCanvas.getContext('2d');
+  let canvasWidth = drawCanvas.width;
+  let canvasHeight = drawCanvas.height;
 
-    // Draw BAF values
-    let pointSize = 2;
-    let ampl = this.cvar.box_height;
-    let padding = this.cvar.baf_padding + this.cvar.box_height;
-    let scale = (this.cvar.box_width - pointSize) / (this.cvar.end - this.cvar.start);
+  if (dynamic) {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    drawXAxis(ctx, cvar, canvasWidth);
+    drawTitle(staticCanvas.getContext('2d'), cvar, 'Chromosome' + cvar.chromosome, cvar.titleLength);
+  } else {
+    drawTitle(drawCanvas.getContext('2d'), cvar, cvar.chromosome, cvar.titleLength);
+  }
+  console.log(ch, cvar.start, cvar.end, (cvar.end - cvar.start), data.length);
+
+  // Draw BAF values
+  let pointSize = 2;
+  let ampl = cvar.box_height;
+  let padding = cvar.baf_padding + cvar.box_height;
+  let scale;
+
+  if (dynamic) {
+    scale = canvasWidth / (cvar.end - cvar.start);
+  } else {
+    scale = (cvar.box_width - pointSize) / (cvar.end - cvar.start);
+  }
+
+  ctx.save();
+  ctx.fillStyle = '#FF0000';
+  for (let i = 0; i < baf.length - 1; i++) {
+    ctx.fillRect(cvar.drawPadding + scale * (baf[i][1] - cvar.start),
+      padding - ampl * baf[i][3], 2, 2);
+  }
+  ctx.restore();
+
+  if (dynamic) {
     ctx.save();
-    ctx.fillStyle = '#FF0000';
-    for (let i = 0; i < baf.length - 1; i++) {
-      ctx.fillRect(this.cvar.leftPadding + scale * (baf[i][1] - this.cvar.start),
-          padding - ampl * baf[i][3], pointSize, pointSize);
+    ctx.fillStyle = '#000000';
+    if (cvar.chromosome === callChrom && (cvar.start < callEnd && cvar.end > callStart)) {
+      ctx.fillRect(cvar.drawPadding + scale * (callStart - cvar.start),
+        120, scale * (callEnd - callStart), cvar.topOffset);
+      console.log('DRAW_CALL');
     }
     ctx.restore();
-
-    // Draw Log R ratio values
-    ampl = this.cvar.box_height / (2 * this.cvar.logr_start);
-    padding = this.cvar.logr_padding + this.cvar.box_height / 2;
-    if (data.length > 1000) {
-      for (let i = 0; i < data.length - 1; i++) {
-        ctx.fillRect(this.cvar.leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], pointSize, pointSize);
-      }
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(this.cvar.leftPadding, padding - ampl * data[0][3]);
-      for (let i = 1; i < data.length - 1; i++) {
-        ctx.lineTo(this.cvar.leftPadding + scale * (data[i][1] - this.cvar.start),
-            padding - ampl * data[i][3], pointSize, pointSize);
-      }
-      ctx.stroke();
-    }
-    this.staticCanvas.getContext('2d').putImageData(this.drawCanvas.getContext('2d').getImageData(0,0,this.staticCanvas.width, this.staticCanvas.height), 0, 0);
   }
+
+  // Draw Log R ratio values
+  ampl = cvar.box_height / (2 * cvar.logr_start);
+  padding = cvar.logr_padding + cvar.box_height / 2;
+  if (data.length > 1000) {
+    for (let i = 0; i < data.length - 1; i++) {
+      ctx.fillRect(cvar.drawPadding + scale * (data[i][1] - cvar.start),
+        padding - ampl * data[i][3], pointSize, pointSize);
+    }
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(cvar.cvar.drawPadding, padding - ampl * data[0][3]);
+    for (let i = 1; i < data.length - 1; i++) {
+      ctx.lineTo(cvar.drawPadding + scale * (data[i][1] - cvar.start),
+        padding - ampl * data[i][3], pointSize, pointSize);
+    }
+    ctx.stroke();
+  }
+
+  if (dynamic) {
+    dataCanvas.getContext('2d').clearRect(0, 0, dataCanvas.width,
+      dataCanvas.height);
+  }
+  dataCanvas.getContext('2d').putImageData(drawCanvas.getContext('2d').getImageData(
+    0, 0, dataCanvas.width, dataCanvas.height), 0, 0);
 }
 
 function drawTitle (ctx, cvar, title, titleLength) {
@@ -342,8 +331,8 @@ function drawXAxis (ctx, cvar, canvasWidth) {
       tickLength++;
     }
     ctx.fillRect(scale * (xAxisTick - cvar.start),
-        cvar.baf_padding - 2,
-        tickLength, 5);
+      cvar.baf_padding - 2,
+      tickLength, 5);
     xAxisTick += xAxisTickFrq;
   }
 }
@@ -381,7 +370,7 @@ function redraw () {
     region: gc.cvar.chromosome + ':' + gc.cvar.start + '-' + gc.cvar.end,
     median: logRMedian
   }, function (result) {
-    gc.drawCoverage(result['data'], result['baf']);
+    gc.draw(result['data'], result['baf']);
   }).done(function () { gc.cvar.disallowDrag = false; });
 }
 
