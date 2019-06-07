@@ -2,7 +2,6 @@
 Whole genome visualization of BAF and log R ratio
 '''
 
-from __future__ import print_function
 import json
 import math
 from subprocess import Popen, PIPE
@@ -16,7 +15,7 @@ def tabix_query(filename, chrom, start, end):
     query = '{}:{}-{}'.format(chrom, start, end)
     process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
     for line in process.stdout:
-        yield line.strip().split()
+        yield line.strip().decode('utf-8').split()
 
 def test_coverage_view():
     '''
@@ -75,9 +74,8 @@ def coverage_view():
     title = sample_data['sample_name']
 
     #  Normalize and calculate the Log R Ratio
-    chromosome, res1, res2, intensity = zip(*records)
-    intensity = [str(math.log(float(val) / median + 1, 2)) for val in intensity]
-    records = zip(chromosome, res1, res2, intensity)
+    records = [[record[0], record[1], record[2], str(math.log(float(record[3]) / median + 1, 2))]
+               for record in records]
 
     if not records or not baf_records:
         return abort(416)
@@ -114,7 +112,7 @@ def get_cov():
     Method for redrawing region on button change
     '''
     region = request.args.get('region', '1:100000-200000')
-    median = request.args.get('median', 1)
+    median = float(request.args.get('median', 1))
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
@@ -125,9 +123,8 @@ def get_cov():
     baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
 
     #  Normalize and calculate the Log R Ratio
-    chromosome, res1, res2, intensity = zip(*records)
-    intensity = [str(math.log(float(val) / float(median) + 1, 2)) for val in intensity]
-    records = zip(chromosome, res1, res2, intensity)
+    records = [[record[0], record[1], record[2], str(math.log(float(record[3]) / median + 1, 2))]
+               for record in records]
 
     if not records or not baf_records:
         return abort(416)
