@@ -40,28 +40,28 @@
         var gc = new GeneCanvas(400, 300, "{{chrom}}", {{start}}, {{end}});
         var ctx = gc.dataCanvas.getContext("2d");
 
-		let overviewWidth = 150;
-		let overviewHeight = 400;
-		let overviewInterval = Math.floor(($(window).width() - overviewWidth) / overviewWidth);
-		let overviewNum = 12;
-		let overviewRows = Math.ceil(overviewNum / overviewInterval);
+        let overviewWidth = 150;
+        let overviewHeight = 400;
+        let overviewInterval = Math.floor(($(window).width() - overviewWidth) / overviewWidth);
+        let overviewNum = 12;
+        let overviewRows = Math.ceil(overviewNum / overviewInterval);
 
-		for (let i = 1; i <= overviewRows; i++) {
-			let overviewDiv = document.createElement('div');
-			overviewDiv.id = 'overview-div' + i;
-			overviewDiv.class = 'overview-div';
-			document.getElementById('overview-container').appendChild(overviewDiv);
-		}
+        for (let i = 1; i <= overviewRows; i++) {
+            let overviewDiv = document.createElement('div');
+            overviewDiv.id = 'overview-div' + i;
+            overviewDiv.class = 'overview-div';
+            document.getElementById('overview-container').appendChild(overviewDiv);
+        }
 
         let overviews = [overviewNum];
-		let divNum = 0;
+        let divNum = 0;
         for (let i = 1; i <= overviewNum; i++) {
-			if ((i - 1) % overviewInterval === 0 || i === 1) {
-				divNum++;
-				showYValues = true
-			} else {
-				showYValues = false
-			}
+            if ((i - 1) % overviewInterval === 0 || i === 1) {
+                divNum++;
+                showYValues = true
+            } else {
+                showYValues = false
+            }
 
             overviews[i] = new OverviewCanvas(overviewWidth, overviewHeight, i, showYValues, 'overview-div' + divNum);
 

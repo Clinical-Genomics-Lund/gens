@@ -13,18 +13,12 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding, drawYVal
   for (let i = start.toFixed(1); i >= end; i = (i - fraction).toFixed(1)) {
     let ypos = topPadding + position;
 
-    ctx.beginPath();
-
     // Draw a transparent line across box
-    if (i !== start && i !== end) {
-      ctx.save();
-      ctx.lineWidth = cvar.tick_width;
-      ctx.strokeStyle = cvar.line_colour;
-      ctx.moveTo(cvar.leftPadding, ypos);
-      ctx.lineTo(cvar.leftPadding + cvar.box_width, ypos);
-      ctx.stroke();
-      ctx.restore();
-    }
+    ctx.save();
+    ctx.lineWidth = cvar.tick_width;
+    ctx.strokeStyle = cvar.line_colour;
+    ctx.strokeRect(cvar.leftPadding, ypos, cvar.box_width, 0);
+    ctx.stroke();
 
     if (drawYValues) {
       // Draw a tick mark for values
@@ -34,17 +28,20 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding, drawYVal
       ctx.font = '12px Arial';
       ctx.fillText(i, 25, ypos + 4);
     }
+    ctx.restore();
     position += step;
   }
 }
 
-function drawBoundingBox (ctx, cvar, fraction, topPadding, topOffset) {
+function drawBoundingBox (ctx, cvar, fraction, topPadding, topOffset, valueMargin) {
   // Draw boundingbox and clear it from colour
+  ctx.save();
   ctx.lineWidth = 2;
-  ctx.clearRect(cvar.leftPadding, topPadding - topOffset,
-    cvar.box_width, cvar.box_height + topOffset);
-  ctx.rect(cvar.leftPadding, topPadding, cvar.box_width, cvar.box_height);
+  ctx.clearRect(cvar.leftPadding, topPadding - topOffset - valueMargin,
+    cvar.box_width, cvar.box_height + topOffset + 2 * valueMargin);
+  ctx.strokeRect(cvar.leftPadding, topPadding - valueMargin, cvar.box_width, cvar.box_height + 2 * valueMargin);
   ctx.stroke();
+  ctx.restore();
 }
 
 function drawRotatedText (ctx, text, posx, posy) {
@@ -64,6 +61,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       // Box values
       leftPadding: 50,
       topOffset: 25,
+      valueMargin: 10,
       box_width: canvasWidth,
       box_height: canvasHeight / 2,
       tick_len: 6,
@@ -74,13 +72,13 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       baf_start: 1.0,
       baf_end: 0.0,
       baf_frac: 0.2,
-      baf_padding: 40,
+      baf_padding: 50,
 
       // LogR values
       logr_start: 4.0,
       logr_end: -4.0,
       logr_frac: 1.0,
-      logr_padding: 20,
+      logr_padding: 10,
 
       // Chromosome values
       chromosome: chromosome,
@@ -94,9 +92,10 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       // Options
       disallowDrag: false
     };
+    this.cvar.topOffset += this.cvar.valueMargin;
     this.cvar.box_width -= this.cvar.leftPadding;
-    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
-    this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
+    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
+    this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
     // Create canvas for data
     this.dataCanvas = createCanvas(canvasWidth, canvasHeight);
@@ -122,12 +121,12 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-      this.cvar.baf_padding, this.cvar.topOffset);
+      this.cvar.baf_padding, this.cvar.topOffset, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
       this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, true);
 
     // Draw LogR context
-    drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac, this.cvar.logr_padding, 0);
+    drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac, this.cvar.logr_padding, 0, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
       this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, true);
 
@@ -151,6 +150,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       // Box values
       leftPadding: 5,
       topOffset: 5,
+      valueMargin: 10,
       box_width: canvasWidth,
       box_height: canvasHeight / 2,
       tick_len: 6,
@@ -161,7 +161,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       baf_start: 1.0,
       baf_end: 0.0,
       baf_frac: 0.2,
-      baf_padding: 20,
+      baf_padding: 40,
 
       // LogR values
       logr_start: 4.0,
@@ -186,10 +186,11 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       this.cvar.box_width -= this.cvar.leftPadding;
     }
 
+    this.cvar.topOffset += this.cvar.valueMargin;
     this.cvar.drawPadding = this.cvar.leftPadding;
 
-    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding) / 2;
-    this.cvar.logr_padding += this.cvar.baf_padding + this.cvar.box_height;
+    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
+    this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
     this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     this.drawCanvas.id = 'drawCanvas';
@@ -203,13 +204,13 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-      this.cvar.baf_padding, this.cvar.topOffset);
+      this.cvar.baf_padding, this.cvar.topOffset, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
       this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, drawYValues);
 
     // Draw LogR context
     drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac,
-      this.cvar.logr_padding, 0);
+      this.cvar.logr_padding, 0, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
       this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, drawYValues);
   }
@@ -296,11 +297,13 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
 }
 
 function drawTitle (ctx, cvar, title, titleLength) {
-  ctx.clearRect(0, 0, cvar.box_width, cvar.baf_padding - cvar.topOffset);
+  ctx.save();
+  ctx.clearRect(0, 0, cvar.box_width, cvar.baf_padding - cvar.topOffset - cvar.valueMargin);
   ctx.font = 'bold 14px Arial';
   ctx.fillText(title,
     cvar.leftPadding + cvar.box_width / 2 - titleLength / 2,
-    cvar.baf_padding - cvar.topOffset);
+    cvar.baf_padding - cvar.topOffset );
+  ctx.restore();
 }
 
 function drawXAxis (ctx, cvar, canvasWidth) {
@@ -309,6 +312,8 @@ function drawXAxis (ctx, cvar, canvasWidth) {
   let xAxisTick = Math.ceil(cvar.start / xAxisTickFrq) * xAxisTickFrq;
   let xAxisOffset = 10; // Offset from top padding
   let everyOther = false;
+
+  ctx.save();
   ctx.font = '9px Arial';
 
   if (((cvar.end - cvar.start) / xAxisTickFrq) > 15) {
@@ -326,14 +331,15 @@ function drawXAxis (ctx, cvar, canvasWidth) {
     let txtWidth = ctx.measureText(txt).width;
     let tickXPos = scale * (xAxisTick - cvar.start) - txtWidth / 2;
     if ((!everyOther || counter % 2 === 0) && (tickXPos - prevXPos) > (txtWidth + 5)) {
-      ctx.fillText(txt, tickXPos, cvar.baf_padding - xAxisOffset);
+      ctx.fillText(txt, tickXPos, cvar.baf_padding - xAxisOffset - cvar.valueMargin);
       prevXPos = tickXPos;
       tickLength++;
     }
     ctx.fillRect(scale * (xAxisTick - cvar.start),
-      cvar.baf_padding - 2,
+      cvar.baf_padding - 2 - cvar.valueMargin,
       tickLength, 5);
     xAxisTick += xAxisTickFrq;
+    ctx.restore();
   }
 }
 
