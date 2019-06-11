@@ -8,20 +8,19 @@
         <div class="grid-container">
             <div id="interactive-container">
             </div>
-            <div id="overview-container">
-            </div>
 
             <div id="button-container">
                 <form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
                     <input name="region" type="text" size=20>
                     <input type="submit">
                 </form>
-
                 <button onclick="left();">left</button>
                 <button onclick="right();">right</button>
                 <button onclick="zoomIn();">+</button>
                 <button onclick="zoomOut();">-</button>
             </div>
+
+            <div id="overview-container"></div>
         </div>
         <script type="text/javascript" src="{{ url_for('static', filename='js/cov.js')}}"></script>
 

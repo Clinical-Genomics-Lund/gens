@@ -6,12 +6,16 @@ html, body {
 .grid-container {
 }
 
+#button-container {
+    text-align: center;
+}
+
 #interactive-container {
-    position: relative;
+    display: grid;
+    justify-items: center;
 }
 
 #overview-container {
-    position: relative;
 }
 
 #overview-div {
@@ -19,7 +23,6 @@ html, body {
 }
 
 #staticCanvas {
-    position: relative;
     top: 0;
     left: 0;
     z-index=0;
@@ -27,14 +30,12 @@ html, body {
 }
 
 #dataCanvas {
-    position: absolute;
     top: 0;
     left: 0;
     z-index=-1;
 }
 
 #drawCanvas {
-    position: absolute;
     top: 0;
     left: 0;
     visibility: hidden;

@@ -101,6 +101,8 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.dataCanvas = createCanvas(canvasWidth, canvasHeight);
     document.getElementById('interactive-container').appendChild(this.dataCanvas);
     this.dataCanvas.id = 'dataCanvas';
+    $(this.dataCanvas).css('grid-row', '1');
+    $(this.dataCanvas).css('grid-column', '1');
 
     this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     this.drawCanvas.id = 'drawCanvas';
@@ -109,6 +111,8 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
     document.getElementById('interactive-container').appendChild(this.staticCanvas);
     this.staticCanvas.id = 'staticCanvas';
+    $(this.staticCanvas).css('grid-row', '1');
+    $(this.staticCanvas).css('grid-column', '1');
 
     // Draw on static canvas
     let ctx = this.staticCanvas.getContext('2d');
@@ -300,7 +304,7 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
     }
   } else {
     ctx.beginPath();
-    ctx.moveTo(cvar.cvar.drawPadding, padding - ampl * data[0][3]);
+    ctx.moveTo(cvar.drawPadding, padding - ampl * data[0][3]);
     for (let i = 1; i < data.length - 1; i++) {
       ctx.lineTo(cvar.drawPadding + scale * (data[i][1] - cvar.start),
         padding - ampl * data[i][3], pointSize, pointSize);
