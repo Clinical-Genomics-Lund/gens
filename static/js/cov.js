@@ -33,12 +33,12 @@ function drawYCoordinates (ctx, cvar, start, end, fraction, topPadding, drawYVal
   }
 }
 
-function drawBoundingBox (ctx, cvar, fraction, topPadding, topOffset, valueMargin) {
+function drawBoundingBox (ctx, cvar, fraction, topPadding, titleOffset, valueMargin) {
   // Draw boundingbox and clear it from colour
   ctx.save();
   ctx.lineWidth = 2;
-  ctx.clearRect(cvar.leftPadding, topPadding - topOffset - valueMargin,
-    cvar.box_width, cvar.box_height + topOffset + 2 * valueMargin);
+  ctx.clearRect(cvar.leftPadding, topPadding - titleOffset - valueMargin,
+    cvar.box_width, cvar.box_height + titleOffset + 2 * valueMargin);
   ctx.strokeRect(cvar.leftPadding, topPadding - valueMargin, cvar.box_width, cvar.box_height + 2 * valueMargin);
   ctx.stroke();
   ctx.restore();
@@ -60,7 +60,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.cvar = {
       // Box values
       leftPadding: 50,
-      topOffset: 25,
+      titleOffset: 22,
       valueMargin: 10,
       box_width: canvasWidth,
       box_height: canvasHeight / 2,
@@ -92,9 +92,8 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
       // Options
       disallowDrag: false
     };
-    this.cvar.topOffset += this.cvar.valueMargin;
     this.cvar.box_width -= this.cvar.leftPadding;
-    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
+    this.cvar.box_height = (canvasHeight - this.cvar.titleOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
     // Create canvas for data
@@ -125,7 +124,7 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-      this.cvar.baf_padding, this.cvar.topOffset, this.cvar.valueMargin);
+      this.cvar.baf_padding, this.cvar.titleOffset, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
       this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, true);
 
@@ -153,7 +152,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     this.cvar = {
       // Box values
       leftPadding: 5,
-      topOffset: 5,
+      titleOffset: 5,
       valueMargin: 10,
       box_width: canvasWidth,
       box_height: canvasHeight / 2,
@@ -190,10 +189,9 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       this.cvar.box_width -= this.cvar.leftPadding;
     }
 
-    this.cvar.topOffset += this.cvar.valueMargin;
     this.cvar.drawPadding = this.cvar.leftPadding;
 
-    this.cvar.box_height = (canvasHeight - this.cvar.topOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
+    this.cvar.box_height = (canvasHeight - this.cvar.titleOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
     this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
@@ -208,7 +206,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
 
     // Draw BAF context
     drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-      this.cvar.baf_padding, this.cvar.topOffset, this.cvar.valueMargin);
+      this.cvar.baf_padding, this.cvar.titleOffset, this.cvar.valueMargin);
     drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
       this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, drawYValues);
 
@@ -278,7 +276,7 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
     ctx.fillStyle = '#000000';
     if (cvar.chromosome === callChrom && (cvar.start < callEnd && cvar.end > callStart)) {
       ctx.fillRect(cvar.drawPadding + scale * (callStart - cvar.start),
-        120, scale * (callEnd - callStart), cvar.topOffset);
+        120, scale * (callEnd - callStart), cvar.titleOffset);
       console.log('DRAW_CALL');
     }
     ctx.restore();
@@ -324,11 +322,11 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
 
 function drawTitle (ctx, cvar, title, titleLength) {
   ctx.save();
-  ctx.clearRect(0, 0, cvar.box_width, cvar.baf_padding - cvar.topOffset - cvar.valueMargin);
+  ctx.clearRect(0, 0, cvar.box_width, cvar.baf_padding - cvar.titleOffset - cvar.valueMargin);
   ctx.font = 'bold 14px Arial';
   ctx.fillText(title,
     cvar.leftPadding + cvar.box_width / 2 - titleLength / 2,
-    cvar.baf_padding - cvar.topOffset);
+    cvar.baf_padding - cvar.titleOffset - cvar.valueMargin);
   ctx.restore();
 }
 
