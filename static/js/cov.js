@@ -239,7 +239,6 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   }
   console.log(ch, cvar.start, cvar.end, (cvar.end - cvar.start), data.length);
 
-  // Draw BAF values
   let pointSize = 2;
   let ampl = cvar.box_height;
   let padding = cvar.baf_padding + cvar.box_height;
@@ -251,11 +250,22 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
     scale = (cvar.box_width - pointSize) / (cvar.end - cvar.start);
   }
 
+  // Draw BAF values
   ctx.save();
   ctx.fillStyle = '#FF0000';
   for (let i = 0; i < baf.length - 1; i++) {
-    ctx.fillRect(cvar.drawPadding + scale * (baf[i][1] - cvar.start),
-      padding - ampl * baf[i][3], 2, 2);
+    let yValue = padding - ampl * baf[i][3];
+
+    // Cap values outside of graph to graph margin
+    if (baf[i][3] < cvar.baf_end) {
+      yValue = padding - ampl * cvar.baf_stop + cvar.valueMargin / 2;
+    } else if (baf[i][3] > cvar.baf_start) {
+      yValue = padding - ampl * cvar.baf_start - cvar.valueMargin / 2;
+    }
+
+    // Fill value
+    ctx.fillRect(cvar.drawPadding + scale * (baf[i][1] - cvar.start) - pointSize / 2,
+      yValue - pointSize / 2, pointSize, pointSize);
   }
   ctx.restore();
 
@@ -275,8 +285,18 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   padding = cvar.logr_padding + cvar.box_height / 2;
   if (data.length > 1000) {
     for (let i = 0; i < data.length - 1; i++) {
-      ctx.fillRect(cvar.drawPadding + scale * (data[i][1] - cvar.start),
-        padding - ampl * data[i][3], pointSize, pointSize);
+      let yValue = padding - ampl * data[i][3];
+
+      // Cap values outside of graph to graph margin
+      if (data[i][3] < cvar.logr_end) {
+        yValue = padding - ampl * cvar.logr_stop + cvar.valueMargin / 2;
+      } else if (data[i][3] > cvar.logr_start) {
+        yValue = padding - ampl * cvar.logr_start - cvar.valueMargin / 2;
+      }
+
+      // Fill value
+      ctx.fillRect(cvar.drawPadding + scale * (data[i][1] - cvar.start) - pointSize / 2,
+        yValue - pointSize / 2, pointSize, pointSize);
     }
   } else {
     ctx.beginPath();
@@ -289,9 +309,11 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   }
 
   if (dynamic) {
+    // Clear canvas for redraw
     dataCanvas.getContext('2d').clearRect(0, 0, dataCanvas.width,
       dataCanvas.height);
   }
+  // Transfer drawn canvas to a visible canvas
   dataCanvas.getContext('2d').putImageData(drawCanvas.getContext('2d').getImageData(
     0, 0, dataCanvas.width, dataCanvas.height), 0, 0);
 }
@@ -302,7 +324,7 @@ function drawTitle (ctx, cvar, title, titleLength) {
   ctx.font = 'bold 14px Arial';
   ctx.fillText(title,
     cvar.leftPadding + cvar.box_width / 2 - titleLength / 2,
-    cvar.baf_padding - cvar.topOffset );
+    cvar.baf_padding - cvar.topOffset);
   ctx.restore();
 }
 
