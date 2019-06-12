@@ -397,7 +397,10 @@ function redraw () {
     median: logRMedian
   }, function (result) {
     gc.draw(result['data'], result['baf']);
-  }).done(function () { gc.cvar.disallowDrag = false; });
+    input_field.placeholder = gc.cvar.chromosome + ':' + gc.cvar.start + '-' + gc.cvar.end;
+  }).done(function () {
+    gc.cvar.disallowDrag = false;
+  });
 }
 
 function numberWithCommas (x) {

@@ -10,7 +10,7 @@
 
             <div id="button-container">
                 <form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
-                    <input name="region" type="text" size=20>
+                    <input name="region" id='region_field' type="text" size=20>
                     <input type="submit">
                 </form>
                 <button onclick="left();">left</button>
@@ -76,6 +76,8 @@
         var drag = false;
         var dragStart;
         var dragEnd;
+        let input_field = document.getElementById('region_field');
+        input_field.placeholder = gc.cvar.chromosome + ':' + gc.cvar.start + '-' + gc.cvar.end;
 
         gc.dataCanvas.addEventListener('mousedown', function(event) {
             if (!gc.cvar.disallowDrag) {
