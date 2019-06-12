@@ -100,8 +100,6 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.dataCanvas = createCanvas(canvasWidth, canvasHeight);
     document.getElementById('interactive-container').appendChild(this.dataCanvas);
     this.dataCanvas.id = 'dataCanvas';
-    $(this.dataCanvas).css('grid-row', '1');
-    $(this.dataCanvas).css('grid-column', '1');
 
     this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     this.drawCanvas.id = 'drawCanvas';
@@ -110,8 +108,6 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
     document.getElementById('interactive-container').appendChild(this.staticCanvas);
     this.staticCanvas.id = 'staticCanvas';
-    $(this.staticCanvas).css('grid-row', '1');
-    $(this.staticCanvas).css('grid-column', '1');
 
     // Draw on static canvas
     let ctx = this.staticCanvas.getContext('2d');
@@ -195,11 +191,11 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
     this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
-    this.drawCanvas.id = 'drawCanvas';
+    this.drawCanvas.id = 'drawOverviewCanvas';
 
     this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
     document.getElementById(divClass).appendChild(this.staticCanvas);
-    this.staticCanvas.id = 'staticCanvas';
+    this.staticCanvas.id = 'staticOverviewCanvas';
 
     // Draw overview canvas
     let ctx = this.drawCanvas.getContext('2d');

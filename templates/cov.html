@@ -6,8 +6,7 @@
 
     <body>
         <div class="grid-container">
-            <div id="interactive-container">
-            </div>
+            <div id="interactive-container"></div>
 
             <div id="button-container">
                 <form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
@@ -36,13 +35,13 @@
         let callStart = {{call_start}};
         let callEnd   = {{call_end}};
 
-        var gc = new GeneCanvas(400, 300, "{{chrom}}", {{start}}, {{end}});
+        var gc = new GeneCanvas(700, 300, "{{chrom}}", {{start}}, {{end}});
         var ctx = gc.dataCanvas.getContext("2d");
 
-        let overviewWidth = 150;
+        let overviewWidth = 100;
         let overviewHeight = 400;
         let overviewInterval = Math.floor(($(window).width() - overviewWidth) / overviewWidth);
-        let overviewNum = 12;
+        let overviewNum = 22;
         let overviewRows = Math.ceil(overviewNum / overviewInterval);
 
         for (let i = 1; i <= overviewRows; i++) {

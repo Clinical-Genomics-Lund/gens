@@ -4,18 +4,25 @@ html, body {
 }
 
 .grid-container {
+    display: grid;
 }
 
 #button-container {
     text-align: center;
+    grid-row: 2;
+    grid-column: 1;
 }
 
 #interactive-container {
     display: grid;
-    justify-items: center;
+    justify-content: center;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 #overview-container {
+    grid-row: 3;
+    grid-column: 1;
 }
 
 #overview-div {
@@ -27,15 +34,32 @@ html, body {
     left: 0;
     z-index=0;
     pointer-events: none;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 #dataCanvas {
     top: 0;
     left: 0;
     z-index=-1;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 #drawCanvas {
+    top: 0;
+    left: 0;
+    visibility: hidden;
+}
+
+#staticOverviewCanvas {
+    top: 0;
+    left: 0;
+    z-index=0;
+    pointer-events: none;
+}
+
+#drawOverviewCanvas {
     top: 0;
     left: 0;
     visibility: hidden;
