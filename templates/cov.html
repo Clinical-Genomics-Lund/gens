@@ -9,7 +9,7 @@
             <div id="interactive-container"></div>
 
             <div id="button-container">
-                <form method="POST" id="region_form" action="{{url_for('coverage_view')}}">
+                <form id="region_form">
                     <input name="region" id='region_field' type="text" size=20>
                     <input type="submit">
                 </form>
@@ -78,6 +78,21 @@
         var dragEnd;
         let input_field = document.getElementById('region_field');
         input_field.placeholder = gc.cvar.chromosome + ':' + gc.cvar.start + '-' + gc.cvar.end;
+
+        document.getElementById('region_form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            $.getJSON($SCRIPT_ROOT + '/_getcov', {
+                region: document.getElementById('region_field').value,
+                median: logRMedian
+            }, function (result) {
+                gc.cvar.chromosome = result['chrom'];
+                gc.cvar.start = result['start'];
+                gc.cvar.end = result['end'];
+                gc.draw(result['data'], result['baf']);
+            }).done(function(){
+                input_field.blur();
+            });
+        });
 
         gc.dataCanvas.addEventListener('mousedown', function(event) {
             if (!gc.cvar.disallowDrag) {
