@@ -9,45 +9,6 @@ from flask import Flask, request, render_template, jsonify, abort
 
 APP = Flask(__name__)
 
-### Help functions ###
-def tabix_query(filename, chrom, start, end):
-    """Call tabix and generate an array of strings for each line it returns."""
-    query = '{}:{}-{}'.format(chrom, start, end)
-    process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
-    for line in process.stdout:
-        yield line.strip().decode('utf-8').split()
-
-def test_coverage_view():
-    '''
-    Function for mocking if data is not present,
-    only for test purposes
-    '''
-    region = request.form.get('region', '1:100000-200000')
-
-    call_chrom = 1
-    call_start = 1011000
-    call_end = 1015000
-    res, chrom, start_pos, end_pos = parse_region_str(region)
-
-    median = 1
-    title = 'test'
-
-    records = []
-    baf_records = []
-    intensity = 0.5
-
-    for i in range(int(start_pos), int(end_pos), 100):
-        records.append([res + '_' + chrom, i, i, intensity])
-        baf_records.append([res + '_' + chrom, i, i, intensity])
-
-    return render_template('cov.html', data=json.dumps(records),
-                           baf=json.dumps(baf_records), chrom=chrom,
-                           start=start_pos, end=end_pos,
-                           call_chrom=call_chrom, call_start=call_start,
-                           call_end=call_end, median=median, title=title)
-
-
-### Main functions ###
 @APP.route('/', methods=['POST', 'GET'])
 def coverage_view():
     '''
@@ -85,27 +46,6 @@ def coverage_view():
                            start=start_pos, end=end_pos, call_chrom=call_chrom,
                            call_start=call_start, call_end=call_end, median=median, title=title)
 
-
-def test_get_cov():
-    '''
-    Function for mocking if data is not present,
-    only for test purposes
-    '''
-    region = request.args.get('region', '1:100000-200000')
-
-    res, chrom, start_pos, end_pos = parse_region_str(region)
-
-    records = []
-    baf_records = []
-    intensity = 0.5
-
-    for i in range(int(start_pos), int(end_pos), 2000):
-        records.append([res + '_' + chrom, i, i, intensity])
-        baf_records.append([res + '_' + chrom, i, i, intensity])
-
-    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
-                   start=start_pos, end=end_pos)
-
 @APP.route('/_getcov', methods=['GET'])
 def get_cov():
     '''
@@ -132,6 +72,8 @@ def get_cov():
     return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
                    start=start_pos, end=end_pos)
 
+### Help functions ###
+
 def parse_region_str(region):
     '''
     Parses a region string
@@ -157,3 +99,59 @@ def parse_region_str(region):
         resolution = "c"
 
     return resolution, chrom, start_pos, end_pos
+
+def tabix_query(filename, chrom, start, end):
+    """Call tabix and generate an array of strings for each line it returns."""
+    query = '{}:{}-{}'.format(chrom, start, end)
+    process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
+    for line in process.stdout:
+        yield line.strip().decode('utf-8').split()
+
+def test_coverage_view():
+    '''
+    Function for mocking if data is not present,
+    only for test purposes
+    '''
+    region = request.form.get('region', '1:100000-200000')
+
+    call_chrom = 1
+    call_start = 1011000
+    call_end = 1015000
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    median = 1
+    title = 'test'
+
+    records = []
+    baf_records = []
+    intensity = 0.5
+
+    for i in range(int(start_pos), int(end_pos), 100):
+        records.append([res + '_' + chrom, i, i, intensity])
+        baf_records.append([res + '_' + chrom, i, i, intensity])
+
+    return render_template('cov.html', data=json.dumps(records),
+                           baf=json.dumps(baf_records), chrom=chrom,
+                           start=start_pos, end=end_pos,
+                           call_chrom=call_chrom, call_start=call_start,
+                           call_end=call_end, median=median, title=title)
+
+def test_get_cov():
+    '''
+    Function for mocking if data is not present,
+    only for test purposes
+    '''
+    region = request.args.get('region', '1:100000-200000')
+
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    records = []
+    baf_records = []
+    intensity = 0.5
+
+    for i in range(int(start_pos), int(end_pos), 2000):
+        records.append([res + '_' + chrom, i, i, intensity])
+        baf_records.append([res + '_' + chrom, i, i, intensity])
+
+    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
+                   start=start_pos, end=end_pos)

@@ -231,7 +231,7 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   if (dynamic) {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     drawXAxis(ctx, cvar, canvasWidth);
-    drawTitle(staticCanvas.getContext('2d'), cvar, 'Chromosome' + cvar.chromosome, cvar.titleLength);
+    drawTitle(staticCanvas.getContext('2d'), cvar, 'Chromosome ' + cvar.chromosome, cvar.titleLength);
   } else {
     drawTitle(drawCanvas.getContext('2d'), cvar, cvar.chromosome, cvar.titleLength);
   }
