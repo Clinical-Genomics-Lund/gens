@@ -19,7 +19,12 @@ def coverage_view():
     call_chrom = 1
     call_start = 1011000
     call_end = 1015000
-    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    parsed_region = parse_region_str(region)
+    if not parsed_region:
+        return abort(416)
+
+    res, chrom, start_pos, end_pos = parsed_region
 
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
     records = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
@@ -54,7 +59,11 @@ def get_cov():
     region = request.args.get('region', '1:100000-200000')
     median = float(request.args.get('median', 1))
 
-    res, chrom, start_pos, end_pos = parse_region_str(region)
+    parsed_region = parse_region_str(region)
+    if not parsed_region:
+        return abort(416)
+
+    res, chrom, start_pos, end_pos = parsed_region
 
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
     records = list(tabix_query(cov_file, res+'_'+chrom, int(start_pos), int(end_pos)))
@@ -67,7 +76,7 @@ def get_cov():
                for record in records]
 
     if not records or not baf_records:
-        return abort(416)
+        return abort(404)
 
     return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
                    start=start_pos, end=end_pos)
@@ -79,13 +88,20 @@ def parse_region_str(region):
     Parses a region string
     '''
     if ":" in region and "-" in region:
-        chrom, pos_range = region.split(':')
-        start_pos, end_pos = pos_range.split('-')
+        try:
+            chrom, pos_range = region.split(':')
+            start_pos, end_pos = pos_range.split('-')
+        except ValueError:
+            return None
     else:
-        chrom, start_pos, end_pos = region.split()
+        try:
+            chrom, start_pos, end_pos = region.split()
+        except ValueError:
+            return None
 
     if "chr" in chrom:
         chrom.lstrip('chr')
+
     if int(start_pos) < 0:
         start_pos = 0
     size = int(end_pos) - int(start_pos)
@@ -117,7 +133,12 @@ def test_coverage_view():
     call_chrom = 1
     call_start = 1011000
     call_end = 1015000
-    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    parsed_region = parse_region_str(region)
+    if not parsed_region:
+        return abort(416)
+
+    res, chrom, start_pos, end_pos = parsed_region
 
     median = 1
     title = 'test'
@@ -143,7 +164,11 @@ def test_get_cov():
     '''
     region = request.args.get('region', '1:100000-200000')
 
-    res, chrom, start_pos, end_pos = parse_region_str(region)
+    parsed_region = parse_region_str(region)
+    if not parsed_region:
+        return abort(416)
+
+    res, chrom, start_pos, end_pos = parsed_region
 
     records = []
     baf_records = []
