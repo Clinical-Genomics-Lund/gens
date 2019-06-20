@@ -143,11 +143,11 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 }
 
 class OverviewCanvas { // eslint-disable-line no-unused-vars
-  constructor (canvasWidth, canvasHeight, chromosome, drawYValues, divClass) {
+  constructor (canvasWidth, canvasHeight, chromosome) {
     // Canvas variables
     this.cvar = {
       // Box values
-      leftPadding: 5,
+      leftPadding: 0,
       titleOffset: 5,
       valueMargin: 10,
       box_width: canvasWidth,
@@ -166,7 +166,7 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
       logr_start: 4.0,
       logr_end: -4.0,
       logr_frac: 1.0,
-      logr_padding: 5,
+      logr_padding: 0,
 
       // Chromosome values
       chromosome: chromosome,
@@ -175,13 +175,26 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
 
       // Draw values
       titleLength: 12,
-      drawPadding: 5
+      drawPadding: 0
     };
 
-    if (drawYValues) {
+    this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
+    this.drawCanvas.id = 'drawOverviewCanvas';
+
+    this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
+    document.getElementById('overview-container').appendChild(this.staticCanvas);
+    this.staticCanvas.id = 'staticOverviewCanvas';
+
+    // Set some position specific padding variables
+    // Only add tick marks and values for leftmost graph
+    let drawYValues;
+    if (this.staticCanvas.offsetLeft < 10) {
+      drawYValues = true;
       this.cvar.leftPadding = 50;
-      canvasWidth += this.cvar.leftPadding;
+      this.drawCanvas.width += this.cvar.leftPadding;
+      this.staticCanvas.width += this.cvar.leftPadding;
     } else {
+      drawYValues = false
       this.cvar.box_width -= this.cvar.leftPadding;
     }
 
@@ -190,12 +203,6 @@ class OverviewCanvas { // eslint-disable-line no-unused-vars
     this.cvar.box_height = (canvasHeight - this.cvar.titleOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
     this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
 
-    this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
-    this.drawCanvas.id = 'drawOverviewCanvas';
-
-    this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
-    document.getElementById(divClass).appendChild(this.staticCanvas);
-    this.staticCanvas.id = 'staticOverviewCanvas';
 
     // Draw overview canvas
     let ctx = this.drawCanvas.getContext('2d');
