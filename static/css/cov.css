@@ -21,7 +21,24 @@ html, body {
 }
 
 #overview-container {
+    display: grid;
     grid-row: 3;
+    grid-column: 1;
+}
+
+#overview-text {
+    top: 0;
+    left: 0;
+    z-index=0;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+#overview-content {
+    top: 0;
+    left: 0;
+    z-index=-1;
+    grid-row: 1;
     grid-column: 1;
 }
 
@@ -53,6 +70,7 @@ html, body {
     left: 0;
     z-index=0;
     pointer-events: none;
+    visibility: hidden;
 }
 
 #drawOverviewCanvas {
