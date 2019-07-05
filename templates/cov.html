@@ -97,13 +97,13 @@
             // TODO: draw both BAF and LOGR
             while (chrom < num_chrom) {
                 for (let x_pos = x; x_pos + 120 < $(document).innerWidth(); x_pos += 120) {
-                    create_overview_graph(scene, chrom, x_pos, y_pos,  120, 120, y_start, y_end, step);
+                    createOverviewGraph(scene, chrom, x_pos, y_pos,  120, 120, y_start, y_end, step);
                     chrom++;
                 }
                 y_pos += 130;
             }
-            <!-- create_overview_graph(scene, x, y,  120, 120, y_start, y_end, step); -->
-            <!-- create_overview_graph(scene, 120 + margin * 2, y,  120, 120, y_start, y_end, step); -->
+            <!-- createOverviewGraph(scene, x, y,  120, 120, y_start, y_end, step); -->
+            <!-- createOverviewGraph(scene, 120 + margin * 2, y,  120, 120, y_start, y_end, step); -->
 
             camera.position.x = width / 2 - margin;
             camera.position.y = height / 2 - margin;
