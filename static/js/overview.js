@@ -2,9 +2,9 @@
 // LogR [-4.0, 1.0, 4.0] [beg, step, end]
 
 // Creates an overview graph for one chromosome
-function createOverviewGraph (scene, chrom, left, top, width, height, yStart, yEnd, step) {
+function createOverviewGraph (scene, left, top, width, height, yStart, yEnd, step) {
   var height_margin = 5; // margin for top and bottom in graph
-  var ampl = (height - 2 * height_margin) / (yEnd - yStart); // Amplitude for scaling y-axis to fill whole width
+  var ampl = (height - 2 * height_margin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole width
 
   // Draw surrounding coordinate box
   drawBox(scene, left, top, width, height);
@@ -23,23 +23,26 @@ function createOverviewGraph (scene, chrom, left, top, width, height, yStart, yE
 // Draws tick marks and guide lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, x, y, yStart, yEnd, width, step, ampl) {
+function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
   let xDraw = x;
   let lineThickness = 2;
   let lineWidth = 10;
   let leftmost_point = 28;
 
-  for (let i = yStart; i <= yEnd; i += step) {
+  for (let step = yStart; step >= yEnd; step -= drawStep) {
     // Draw guide line
-    drawLine(scene, x, y + i * ampl, x + width, y + i * ampl, lineThickness, 0xd3d3d3);
+    drawLine(scene, x, y + (yStart - step) * ampl, x + width,
+      y + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
 
     // Draw text and ticks only for the leftmost box
     if (x < leftmost_point) {
       // TODO: fix correct centering
-      drawText(xDraw - 4, y + i * ampl + 2.2, i.toFixed(1), 'right');
+      drawText(xDraw - 4, y + (yStart - step) * ampl + 2.2, step.toFixed(1),
+        'right');
 
       // Draw tick line
-      drawCenteredLine(scene, x, y + i * ampl, lineWidth, lineThickness, 0x000000);
+      drawCenteredLine(scene, x, y + (yStart - step) * ampl, lineWidth,
+        lineThickness, 0x000000);
     }
   }
 }

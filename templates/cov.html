@@ -83,9 +83,13 @@
             var context = canvas.getContext('webgl2');
             var renderer = new THREE.WebGLRenderer({ canvas:canvas, context:context, antialiasing: true });
 
-            var y_start = 0.0; // Start value for y axis
-            var y_end = 1.0; // End value for y axis
-            var step = 0.2; // Step value for drawing ticks along y-axis
+            var baf_y_start = 1.0; // Start value for y axis
+            var baf_y_end = 0.0; // End value for y axis
+            var baf_step = 0.2; // Step value for drawing ticks along y-axis
+
+            var logr_y_start = 4.0; // Start value for y axis
+            var logr_y_end = -4.0; // End value for y axis
+            var logr_step = 1.0; // Step value for drawing ticks along y-axis
 
             let x = margin * 2 + 20; // Y-position for first box
             let y = margin * 2; // X-position for first box
@@ -97,14 +101,18 @@
             let box_width = 120; // Width of one box
             let box_height = 130; // Height of one box
 
-            // TODO: draw both BAF and LOGR
             while (chrom <= num_chrom) {
                 for (let x_pos = x; x_pos + box_width < $(document).innerWidth() && chrom <= num_chrom; x_pos += box_width) {
                     drawText(x_pos + box_width / 2, y_pos - title_margin, chrom, 'center');
-                    createOverviewGraph(scene, chrom, x_pos, y_pos, box_width, box_height, y_start, y_end, step);
+
+                    // Draw BAF
+                    createOverviewGraph(scene, x_pos, y_pos, box_width, box_height, baf_y_start, baf_y_end, baf_step);
+
+                    // Draw LogR
+                    createOverviewGraph(scene, x_pos, y_pos + box_height, box_width, box_height, logr_y_start, logr_y_end, logr_step);
                     chrom++;
                 }
-                y_pos += box_height + row_margin;
+                y_pos += 2 * box_height + row_margin;
             }
 
             camera.position.x = width / 2 - margin;
