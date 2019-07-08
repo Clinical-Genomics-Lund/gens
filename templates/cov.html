@@ -83,27 +83,29 @@
             var context = canvas.getContext('webgl2');
             var renderer = new THREE.WebGLRenderer({ canvas:canvas, context:context, antialiasing: true });
 
-
             var y_start = 0.0; // Start value for y axis
             var y_end = 1.0; // End value for y axis
             var step = 0.2; // Step value for drawing ticks along y-axis
 
-            let x = margin * 2 + 20;
-            let y = margin * 2;
-            let num_chrom = 23;
-            let y_pos = y;
-            let chrom = 1;
+            let x = margin * 2 + 20; // Y-position for first box
+            let y = margin * 2; // X-position for first box
+            let num_chrom = 23; // Number displayable chromosoms
+            let title_margin = 10; // Margin between box and title
+            let row_margin = 30; // margin between rows
+            let y_pos = y + row_margin; // Variable y_pos
+            let chrom = 1; // First chromosome
+            let box_width = 120; // Width of one box
+            let box_height = 130; // Height of one box
 
             // TODO: draw both BAF and LOGR
-            while (chrom < num_chrom) {
-                for (let x_pos = x; x_pos + 120 < $(document).innerWidth(); x_pos += 120) {
-                    createOverviewGraph(scene, chrom, x_pos, y_pos,  120, 120, y_start, y_end, step);
+            while (chrom <= num_chrom) {
+                for (let x_pos = x; x_pos + box_width < $(document).innerWidth() && chrom <= num_chrom; x_pos += box_width) {
+                    drawText(x_pos + box_width / 2, y_pos - title_margin, chrom, 'center');
+                    createOverviewGraph(scene, chrom, x_pos, y_pos, box_width, box_height, y_start, y_end, step);
                     chrom++;
                 }
-                y_pos += 130;
+                y_pos += box_height + row_margin;
             }
-            <!-- createOverviewGraph(scene, x, y,  120, 120, y_start, y_end, step); -->
-            <!-- createOverviewGraph(scene, 120 + margin * 2, y,  120, 120, y_start, y_end, step); -->
 
             camera.position.x = width / 2 - margin;
             camera.position.y = height / 2 - margin;

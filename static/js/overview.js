@@ -3,13 +3,14 @@
 
 // Creates an overview graph for one chromosome
 function createOverviewGraph (scene, chrom, left, top, width, height, yStart, yEnd, step) {
-  var ampl = height / (yEnd - yStart); // Amplitude for scaling y-axis to fill whole width
+  var height_margin = 5; // margin for top and bottom in graph
+  var ampl = (height - 2 * height_margin) / (yEnd - yStart); // Amplitude for scaling y-axis to fill whole width
 
   // Draw surrounding coordinate box
-  drawBox(scene, left, top, height, ampl, step);
+  drawBox(scene, left, top, width, height);
 
   // Draw tick marks
-  drawTicks(scene, left, top, yStart, yEnd, step, ampl);
+  drawTicks(scene, left, top + height_margin, yStart, yEnd, width, step, ampl);
 
   // Help box
   // TODO: Remove this, only for marking out origo
@@ -22,30 +23,33 @@ function createOverviewGraph (scene, chrom, left, top, width, height, yStart, yE
 // Draws tick marks and guide lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, x, y, yStart, yEnd, step, ampl) {
+function drawTicks (scene, x, y, yStart, yEnd, width, step, ampl) {
   let xDraw = x;
+  let lineThickness = 2;
+  let lineWidth = 10;
+  let leftmost_point = 28;
 
   for (let i = yStart; i <= yEnd; i += step) {
     // Draw guide line
-    drawLine(scene, x, y + i * ampl, x + 120, y + i * ampl, 2, 0xd3d3d3);
+    drawLine(scene, x, y + i * ampl, x + width, y + i * ampl, lineThickness, 0xd3d3d3);
 
-    // Draw text for the leftmost box
-    if (x < 28) {
+    // Draw text and ticks only for the leftmost box
+    if (x < leftmost_point) {
       // TODO: fix correct centering
-      drawText(scene, xDraw - 4, y + i * ampl + 2.2, i.toFixed(1));
+      drawText(xDraw - 4, y + i * ampl + 2.2, i.toFixed(1), 'right');
 
       // Draw tick line
-      drawCenteredLine(scene, x, y + i * ampl, 10, 2, 0x000000);
+      drawCenteredLine(scene, x, y + i * ampl, lineWidth, lineThickness, 0x000000);
     }
   }
 }
 
-// Draw right adjusted text at (x, y)
-function drawText (scene, x, y, text) {
+// Draw aligned text at (x, y)
+function drawText (x, y, text, align) {
   var canvas = document.getElementById('overview-text');
   var ctx = canvas.getContext('2d');
   ctx.font = '10px Arial';
-  ctx.textAlign = 'right';
+  ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = 'black';
   ctx.fillText(text, x, y);
@@ -78,16 +82,14 @@ function drawLine (scene, x, y, x2, y2, thickness, color) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-// TODO: remove this margin to make it more intuitive
 function drawBox (scene, x, y, width, height) {
   var coordAxes = new THREE.Geometry();
-  let margin = 5; // TODO: make parameter, also work in parameter into width and height instead...
   coordAxes.vertices.push(
-    new THREE.Vector3(x, y - margin, 0),
-    new THREE.Vector3(x, y + height + margin, 0),
-    new THREE.Vector3(x + width, y + height + margin, 0),
-    new THREE.Vector3(x + width, y - margin, 0),
-    new THREE.Vector3(x, y - margin, 0)
+    new THREE.Vector3(x, y, 0),
+    new THREE.Vector3(x, y + height, 0),
+    new THREE.Vector3(x + width, y + height, 0),
+    new THREE.Vector3(x + width, y, 0),
+    new THREE.Vector3(x, y, 0)
   );
 
   var material = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 });
