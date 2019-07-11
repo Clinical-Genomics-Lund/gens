@@ -81,6 +81,54 @@ def get_cov():
     return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
                    start=start_pos, end=end_pos)
 
+@APP.route('/_getoverviewcov', methods=['GET'])
+def get_overview_cov():
+    '''
+    Reads and computes LogR and BAF values for overview graph
+    '''
+    region = request.args.get('region', '1:100000-200000')
+    median = float(request.args.get('median', 1))
+    xpos = float(request.args.get('xpos', 1))
+    ypos = float(request.args.get('ypos', 1))
+    box_height = float(request.args.get('boxHeight', 1))
+    y_margin = float(request.args.get('y_margin', 1))
+    x_ampl = float(request.args.get('x_ampl', 1))
+
+    # Set graph-specific values
+    baf_ampl = box_height - 2 * y_margin
+    logr_ampl = (box_height - y_margin * 2) / 8
+    baf_ypos = ypos + box_height  - y_margin
+    logr_ypos = ypos + box_height + box_height / 2
+
+    parsed_region = parse_region_str(region)
+    if not parsed_region:
+        return abort(416)
+
+    res, chrom, start_pos, end_pos = parsed_region
+
+    cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
+    records = list(tabix_query(cov_file, res+'_'+chrom, int(start_pos), int(end_pos)))
+
+    #  Normalize and calculate the Log R Ratio
+    records = [[xpos + x_ampl * float(record[1]),
+                logr_ypos - logr_ampl * math.log(float(record[3]) / median + 1, 2),
+                0]
+               for record in records]
+    records = [item for sublist in records for item in sublist]
+
+    baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
+    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
+    baf_records = [[xpos + x_ampl * float(record[1]),
+                    baf_ypos - baf_ampl * float(record[3]), 0]
+                   for record in baf_records]
+    baf_records = [item for sublist in baf_records for item in sublist]
+
+    if not records or not baf_records:
+        return abort(404)
+
+    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
+                   x_pos=xpos, y_pos=ypos)
+
 ### Help functions ###
 
 def parse_region_str(region):
@@ -119,9 +167,13 @@ def parse_region_str(region):
 def tabix_query(filename, chrom, start, end):
     """Call tabix and generate an array of strings for each line it returns."""
     query = '{}:{}-{}'.format(chrom, start, end)
-    process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
-    for line in process.stdout:
-        yield line.strip().decode('utf-8').split()
+    try:
+        process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
+    except:
+        print('Could not open ' + filename)
+    else:
+        for line in process.stdout:
+            yield line.strip().decode('utf-8').split()
 
 def test_coverage_view():
     '''

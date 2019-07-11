@@ -1,16 +1,13 @@
-// BAF [0.0, 0.2, 1.0] [beg, step, end]
-// LogR [-4.0, 1.0, 4.0] [beg, step, end]
-
 // Creates an overview graph for one chromosome
-function createOverviewGraph (scene, left, top, width, height, yStart, yEnd, step) {
-  var height_margin = 5; // margin for top and bottom in graph
-  var ampl = (height - 2 * height_margin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole width
-
-  // Draw surrounding coordinate box
-  drawBox(scene, left, top, width, height);
+function createOverviewGraph (scene, x, y, width, height, y_margin,
+    yStart, yEnd, step) {
+  let ampl = (height - 2 * y_margin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
 
   // Draw tick marks
-  drawTicks(scene, left, top + height_margin, yStart, yEnd, width, step, ampl);
+  drawTicks(scene, x, y + y_margin, yStart, yEnd, width, step, ampl);
+
+  // Draw surrounding coordinate box
+  drawBox(scene, x, y, width, height);
 
   // Help box
   // TODO: Remove this, only for marking out origo
@@ -18,6 +15,20 @@ function createOverviewGraph (scene, left, top, width, height, yStart, yEnd, ste
   var material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
   var plane = new THREE.Mesh(geometry, material);
   scene.add(plane);
+}
+
+// Draw data points
+function drawData(scene, data, color) {
+  var container = document.getElementById( 'container' );
+  var geometry = new THREE.BufferGeometry();
+
+  geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
+  geometry.computeBoundingSphere();
+
+  var material = new THREE.PointsMaterial({ size: 2, color: color });
+  var points = new THREE.Points(geometry, material);
+
+  scene.add(points);
 }
 
 // Draws tick marks and guide lines for selected values between

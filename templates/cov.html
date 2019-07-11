@@ -3,6 +3,7 @@
     <head>
 		<meta charset=utf-8>
         <link rel="stylesheet" href="static/css/cov.css" type="text/css">
+        <link rel="icon" href="data:,">
         <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
         <html>
@@ -75,13 +76,17 @@
 
             // Set dimensions of overview canvases
             var canvas = document.getElementById('overview-content');
+            var canvasText = document.getElementById('overview-text')
             canvas.width = width;
             canvas.height = height;
-            document.getElementById('overview-text').width = width;
-            document.getElementById('overview-text').height = height;
+            canvasText.width = width;
+            canvasText.height = height;
 
             var context = canvas.getContext('webgl2');
             var renderer = new THREE.WebGLRenderer({ canvas:canvas, context:context, antialiasing: true });
+
+            var res_start = 0; // Start value for overview graph
+            var res_end = 245000000; // End value for overview graph
 
             var baf_y_start = 1.0; // Start value for y axis
             var baf_y_end = 0.0; // End value for y axis
@@ -93,37 +98,62 @@
 
             let x = margin * 2 + 20; // Y-position for first box
             let y = margin * 2; // X-position for first box
-            let num_chrom = 23; // Number displayable chromosoms
+            let num_chrom = 22; // Number displayable chromosoms
             let title_margin = 10; // Margin between box and title
+            let y_margin = 5; // margin for top and bottom in graph
+            let x_margin = 2.5; // margin for x-axis in graph
             let row_margin = 30; // margin between rows
-            let y_pos = y + row_margin; // Variable y_pos
+            let y_pos = y + row_margin; // Startpoint for variable y_pos after margin
             let chrom = 1; // First chromosome
             let box_width = 120; // Width of one box
             let box_height = 130; // Height of one box
+            let xAmpl = (box_width - 2 * x_margin) / (res_end - res_start); // Amplitude for scaling x-axis to fill whole width
+            let bafYAmpl = (box_height) / (baf_y_start - baf_y_end); // Amplitude for scaling y-axis to fill whole width
+            let logrYAmpl = (box_height) / (logr_y_start - logr_y_end); // Amplitude for scaling y-axis to fill whole width
 
             while (chrom <= num_chrom) {
-                for (let x_pos = x; x_pos + box_width < $(document).innerWidth() && chrom <= num_chrom; x_pos += box_width) {
-                    drawText(x_pos + box_width / 2, y_pos - title_margin, chrom, 'center');
+                // Fill row with graphs, start on new row when full
+                for (let x_pos = x; (x_pos + box_width < $(document).innerWidth()) && (chrom <= num_chrom); x_pos += box_width) {
+                    // Draw data
+                    $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
+                        region: chrom + ":" + res_start + "-" + res_end,
+                        median: logRMedian,
+                        xpos: x_pos + x_margin,
+                        ypos: y_pos,
+                        boxHeight: box_height,
+                        y_margin: y_margin,
+                        x_ampl: xAmpl
+                    }, function(result) {
+                        // Draw chromosome title
+                        drawText(result['x_pos'] - x_margin + box_width / 2,
+                                result['y_pos'] - title_margin,
+                                result['chrom'], 'center');
 
-                    // Draw BAF
-                    createOverviewGraph(scene, x_pos, y_pos, box_width, box_height, baf_y_start, baf_y_end, baf_step);
+                        // Draw BAF
+                        createOverviewGraph(scene, result['x_pos'] - x_margin,
+                                result['y_pos'], box_width, box_height, y_margin,
+                                baf_y_start, baf_y_end, baf_step);
 
-                    // Draw LogR
-                    createOverviewGraph(scene, x_pos, y_pos + box_height, box_width, box_height, logr_y_start, logr_y_end, logr_step);
+                        // Draw LogR
+                        createOverviewGraph(scene, result['x_pos'] - x_margin,
+                                result['y_pos'] + box_height, box_width, box_height,
+                                y_margin, logr_y_start, logr_y_end, logr_step);
+
+                        // Plot scatter data
+                        drawData(scene, result["baf"], '#FF0000');
+                        drawData(scene, result["data"], '#000000');
+                        renderer.render(scene, camera);
+                    });
                     chrom++;
                 }
+                // Start on new row
                 y_pos += 2 * box_height + row_margin;
             }
 
+            // Only want to see fourth quadrant
             camera.position.x = width / 2 - margin;
             camera.position.y = height / 2 - margin;
             camera.position.z = 1;
-
-            function animate() {
-                <!-- requestAnimationFrame( animate ); -->
-                renderer.render( scene, camera );
-            }
-            animate();
 
             gc.draw({{data|safe}}, {{baf|safe}});
 
