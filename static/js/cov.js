@@ -138,96 +138,12 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
 
   // Draw coverage for gene canvas
   draw (data, baf) {
-    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.dataCanvas, this.cvar, true);
-  }
-}
-
-class OverviewCanvas { // eslint-disable-line no-unused-vars
-  constructor (canvasWidth, canvasHeight, chromosome) {
-    // Canvas variables
-    this.cvar = {
-      // Box values
-      leftPadding: 0,
-      titleOffset: 5,
-      valueMargin: 10,
-      box_width: canvasWidth,
-      box_height: canvasHeight / 2,
-      tick_len: 6,
-      tick_width: 0.2,
-      line_colour: '#000000',
-
-      // BAF values
-      baf_start: 1.0,
-      baf_end: 0.0,
-      baf_frac: 0.2,
-      baf_padding: 40,
-
-      // LogR values
-      logr_start: 4.0,
-      logr_end: -4.0,
-      logr_frac: 1.0,
-      logr_padding: 0,
-
-      // Chromosome values
-      chromosome: chromosome,
-      start: 0,
-      end: 245000000,
-
-      // Draw values
-      titleLength: 12,
-      drawPadding: 0
-    };
-
-    this.drawCanvas = new OffscreenCanvas(canvasWidth, canvasHeight);
-    this.drawCanvas.id = 'drawOverviewCanvas';
-
-    this.staticCanvas = createCanvas(canvasWidth, canvasHeight);
-    document.getElementById('overview-container').appendChild(this.staticCanvas);
-    this.staticCanvas.id = 'staticOverviewCanvas';
-
-    // Set some position specific padding variables
-    // Only add tick marks and values for leftmost graph
-    let drawYValues;
-    if (this.staticCanvas.offsetLeft < 10) {
-      drawYValues = true;
-      this.cvar.leftPadding = 50;
-      this.drawCanvas.width += this.cvar.leftPadding;
-      this.staticCanvas.width += this.cvar.leftPadding;
-    } else {
-      drawYValues = false
-      this.cvar.box_width -= this.cvar.leftPadding;
-    }
-
-    this.cvar.drawPadding = this.cvar.leftPadding;
-
-    this.cvar.box_height = (canvasHeight - this.cvar.titleOffset - this.cvar.baf_padding - 3 * this.cvar.valueMargin) / 2;
-    this.cvar.logr_padding += this.cvar.baf_padding + 2 * this.cvar.valueMargin + this.cvar.box_height;
-
-
-    // Draw overview canvas
-    let ctx = this.drawCanvas.getContext('2d');
-
-    // Draw BAF context
-    drawBoundingBox(ctx, this.cvar, this.cvar.baf_frac,
-      this.cvar.baf_padding, this.cvar.titleOffset, this.cvar.valueMargin);
-    drawYCoordinates(ctx, this.cvar, this.cvar.baf_start,
-      this.cvar.baf_end, this.cvar.baf_frac, this.cvar.baf_padding, drawYValues);
-
-    // Draw LogR context
-    drawBoundingBox(ctx, this.cvar, this.cvar.logr_frac,
-      this.cvar.logr_padding, 0, this.cvar.valueMargin);
-    drawYCoordinates(ctx, this.cvar, this.cvar.logr_start,
-      this.cvar.logr_end, this.cvar.logr_frac, this.cvar.logr_padding, drawYValues);
-  }
-
-  // Draw coverage for overview canvas
-  draw (data, baf) {
-    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.staticCanvas, this.cvar, false);
+    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.dataCanvas, this.cvar);
   }
 }
 
 // Draw coverage for canvas
-function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dynamic) {
+function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar) {
   let ch = data[0][0];
 
   // Draw on empty temporary canvas
@@ -235,13 +151,10 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   let canvasWidth = drawCanvas.width;
   let canvasHeight = drawCanvas.height;
 
-  if (dynamic) {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    drawXAxis(ctx, cvar, canvasWidth);
-    drawTitle(staticCanvas.getContext('2d'), cvar, 'Chromosome ' + cvar.chromosome, cvar.titleLength);
-  } else {
-    drawTitle(drawCanvas.getContext('2d'), cvar, cvar.chromosome, cvar.titleLength);
-  }
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  drawXAxis(ctx, cvar, canvasWidth);
+  drawTitle(staticCanvas.getContext('2d'), cvar, 'Chromosome ' + cvar.chromosome, cvar.titleLength);
+
   console.log(ch, cvar.start, cvar.end, (cvar.end - cvar.start), data.length);
 
   let pointSize = 2;
@@ -249,11 +162,7 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   let padding = cvar.baf_padding + cvar.box_height;
   let scale;
 
-  if (dynamic) {
-    scale = canvasWidth / (cvar.end - cvar.start);
-  } else {
-    scale = (cvar.box_width - pointSize) / (cvar.end - cvar.start);
-  }
+  scale = canvasWidth / (cvar.end - cvar.start);
 
   // Draw BAF values
   ctx.save();
@@ -274,16 +183,14 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
   }
   ctx.restore();
 
-  if (dynamic) {
-    ctx.save();
-    ctx.fillStyle = '#000000';
-    if (cvar.chromosome === callChrom && (cvar.start < callEnd && cvar.end > callStart)) {
-      ctx.fillRect(cvar.drawPadding + scale * (callStart - cvar.start),
-        120, scale * (callEnd - callStart), cvar.titleOffset);
-      console.log('DRAW_CALL');
-    }
-    ctx.restore();
+  ctx.save();
+  ctx.fillStyle = '#000000';
+  if (cvar.chromosome === callChrom && (cvar.start < callEnd && cvar.end > callStart)) {
+    ctx.fillRect(cvar.drawPadding + scale * (callStart - cvar.start),
+      120, scale * (callEnd - callStart), cvar.titleOffset);
+    console.log('DRAW_CALL');
   }
+  ctx.restore();
 
   // Draw Log R ratio values
   ampl = cvar.box_height / (2 * cvar.logr_start);
@@ -313,11 +220,10 @@ function drawCoverage (data, baf, drawCanvas, staticCanvas, dataCanvas, cvar, dy
     ctx.stroke();
   }
 
-  if (dynamic) {
-    // Clear canvas for redraw
-    dataCanvas.getContext('2d').clearRect(0, 0, dataCanvas.width,
-      dataCanvas.height);
-  }
+  // Clear canvas for redraw
+  dataCanvas.getContext('2d').clearRect(0, 0, dataCanvas.width,
+    dataCanvas.height);
+
   // Transfer drawn canvas to a visible canvas
   dataCanvas.getContext('2d').putImageData(drawCanvas.getContext('2d').getImageData(
     0, 0, dataCanvas.width, dataCanvas.height), 0, 0);

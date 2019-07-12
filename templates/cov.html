@@ -48,26 +48,7 @@
             var gc = new GeneCanvas(700, 300, "{{chrom}}", {{start}}, {{end}});
             var ctx = gc.dataCanvas.getContext("2d");
 
-            <!-- OVERVIEW CANVAS -->
-
-            <!-- let overviewWidth = 100; -->
-            <!-- let overviewHeight = 400; -->
-            <!-- let overviewNum = 0; -->
-
-            <!-- let overviews = [overviewNum]; -->
-            <!-- for (let i = 1; i <= overviewNum; i++) { -->
-                <!-- overviews[i] = new OverviewCanvas(overviewWidth, overviewHeight, i); -->
-
-                <!-- $.getJSON($SCRIPT_ROOT + '/_getcov', { -->
-                    <!-- region: i + ":" + overviews[i].cvar.start + "-" + overviews[i].cvar.end, -->
-                    <!-- median: logRMedian -->
-                <!-- }, function(result) { -->
-                    <!-- overviews[i].draw(result["data"], result["baf"]); -->
-                <!-- }); -->
-            <!-- } -->
-
-
-            <!-- WEBGL OVERVIEW -->
+            // WEBGL OVERVIEW
 
             let width = $(document).innerWidth(), height = 800, near = 0.1, far = 100;
             let margin = 2;
@@ -158,7 +139,7 @@
             gc.draw({{data|safe}}, {{baf|safe}});
 
 
-            <!-- LISTENERS -->
+            // LISTENERS
 
             var drag = false;
             var dragStart;
