@@ -25,7 +25,7 @@ function drawData(scene, data, color) {
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
   geometry.computeBoundingSphere();
 
-  var material = new THREE.PointsMaterial({ size: 2, color: color });
+  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 0.3});
   var points = new THREE.Points(geometry, material);
 
   scene.add(points);
