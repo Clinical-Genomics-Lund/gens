@@ -107,27 +107,27 @@ def get_overview_cov():
     res, chrom, start_pos, end_pos = parsed_region
 
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    records = list(tabix_query(cov_file, res+'_'+chrom, int(start_pos), int(end_pos)))
+    logr_list = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
 
     #  Normalize and calculate the Log R Ratio
-    records = [[xpos + x_ampl * float(record[1]),
-                logr_ypos - logr_ampl * math.log(float(record[3]) / median + 1, 2),
-                0]
-               for record in records]
-    records = [item for sublist in records for item in sublist]
+    logr_records = []
+    for record in logr_list:
+        logr_records.extend([xpos + x_ampl * float(record[1]),
+                             logr_ypos - logr_ampl *
+                             math.log(float(record[3]) / median + 1, 2), 0])
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
-    baf_records = [[xpos + x_ampl * float(record[1]),
-                    baf_ypos - baf_ampl * float(record[3]), 0]
-                   for record in baf_records]
-    baf_records = [item for sublist in baf_records for item in sublist]
+    baf_list = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
+    baf_records = []
+    for record in baf_list:
+        baf_records.extend([xpos + x_ampl * float(record[1]),
+                            baf_ypos - baf_ampl * float(record[3]), 0])
 
-    if not records or not baf_records:
+    if not logr_records or not baf_records:
         return abort(404)
 
-    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
-                   x_pos=xpos, y_pos=ypos)
+    return jsonify(data=logr_records, baf=baf_records, status="ok",
+                   chrom=chrom, x_pos=xpos, y_pos=ypos)
 
 ### Help functions ###
 
