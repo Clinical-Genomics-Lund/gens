@@ -7,14 +7,7 @@ function createOverviewGraph (scene, x, y, width, height, y_margin,
   drawTicks(scene, x, y + y_margin, yStart, yEnd, width, step, ampl);
 
   // Draw surrounding coordinate box
-  drawBox(scene, x, y, width, height);
-
-  // Help box
-  // TODO: Remove this, only for marking out origo
-  var geometry = new THREE.PlaneGeometry(20, 20, 20);
-  var material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
-  var plane = new THREE.Mesh(geometry, material);
-  scene.add(plane);
+  drawBox(scene, x, y, width, height, 2);
 }
 
 // Draw data points
@@ -37,7 +30,7 @@ function drawData(scene, data, color) {
 function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
   let xDraw = x;
   let lineThickness = 2;
-  let lineWidth = 10;
+  let lineWidth = 4;
   let leftmost_point = 28;
 
   for (let step = yStart; step >= yEnd; step -= drawStep) {
@@ -52,8 +45,7 @@ function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
         'right');
 
       // Draw tick line
-      drawCenteredLine(scene, x, y + (yStart - step) * ampl, lineWidth,
-        lineThickness, 0x000000);
+      drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
     }
   }
 }
@@ -67,19 +59,6 @@ function drawText (x, y, text, align) {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = 'black';
   ctx.fillText(text, x, y);
-}
-
-// Draws a line with centerpoint (x, y)
-function drawCenteredLine (scene, x, y, width, thickness, color) {
-  var line = new THREE.Geometry();
-  line.vertices.push(
-    new THREE.Vector3(x - width / 2, y, 0),
-    new THREE.Vector3(x + width / 2, y, 0)
-  );
-
-  var material = new THREE.LineBasicMaterial({ color: color, linewidth: thickness });
-  line = new THREE.Line(line, material);
-  scene.add(line);
 }
 
 // Draws a line between point (x, y) and (x2, y2)
@@ -96,7 +75,7 @@ function drawLine (scene, x, y, x2, y2, thickness, color) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-function drawBox (scene, x, y, width, height) {
+function drawBox (scene, x, y, width, height, lineWidth) {
   var coordAxes = new THREE.Geometry();
   coordAxes.vertices.push(
     new THREE.Vector3(x, y, 0),
@@ -106,7 +85,7 @@ function drawBox (scene, x, y, width, height) {
     new THREE.Vector3(x, y, 0)
   );
 
-  var material = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 });
+  var material = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: lineWidth });
   coordAxes = new THREE.Line(coordAxes, material);
   scene.add(coordAxes);
 }
