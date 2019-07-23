@@ -26,7 +26,7 @@ html, body {
     grid-column: 1;
 }
 
-#overview-text {
+#overview-static {
     top: 0;
     left: 0;
     z-index=0;
@@ -39,6 +39,23 @@ html, body {
     left: 0;
     z-index=-1;
     grid-row: 1;
+    grid-column: 1;
+}
+
+#interactive-static{
+    top: 0;
+    left: 0;
+    z-index=0;
+    pointer-events: none;
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#interactive-content {
+    top: 0;
+    left: 0;
+    z-index=-1;
+    grid-row: 2;
     grid-column: 1;
 }
 

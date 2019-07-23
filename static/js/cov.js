@@ -135,11 +135,6 @@ class GeneCanvas { // eslint-disable-line no-unused-vars
     drawRotatedText(ctx, 'Log R Ratio', 10,
       this.cvar.logr_padding + this.cvar.box_height / 2);
   }
-
-  // Draw coverage for gene canvas
-  draw (data, baf) {
-    drawCoverage(data, baf, this.drawCanvas, this.staticCanvas, this.dataCanvas, this.cvar);
-  }
 }
 
 // Draw coverage for canvas

@@ -39,17 +39,9 @@ def coverage_view():
     median = float(sample_data['median_depth'])
     title = sample_data['sample_name']
 
-    #  Normalize and calculate the Log R Ratio
-    records = [[record[0], record[1], record[2], str(math.log(float(record[3]) / median + 1, 2))]
-               for record in records]
-
-    if not records or not baf_records:
-        return abort(416)
-
-    return render_template('cov.html', data=json.dumps(records),
-                           baf=json.dumps(baf_records), chrom=chrom,
-                           start=start_pos, end=end_pos, call_chrom=call_chrom,
-                           call_start=call_start, call_end=call_end, median=median, title=title)
+    return render_template('cov.html', chrom=chrom, start=start_pos,
+            end=end_pos, call_chrom=call_chrom, call_start=call_start,
+            call_end=call_end, median=median, title=title)
 
 @APP.route('/_getcov', methods=['GET'])
 def get_cov():
@@ -97,14 +89,17 @@ def get_overview_cov():
     # Set graph-specific values
     baf_ampl = box_height - 2 * y_margin
     logr_ampl = (box_height - y_margin * 2) / 8
-    baf_ypos = ypos + box_height  - y_margin
-    logr_ypos = ypos + box_height + box_height / 2
+    baf_ypos = ypos + box_height - y_margin
+    logr_ypos = ypos + 1.5 * box_height
 
     parsed_region = parse_region_str(region)
     if not parsed_region:
+        print('No parsed region')
         return abort(416)
 
     res, chrom, start_pos, end_pos = parsed_region
+    x_ampl = x_ampl / (end_pos - start_pos)
+
 
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
     logr_list = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
@@ -112,7 +107,7 @@ def get_overview_cov():
     #  Normalize and calculate the Log R Ratio
     logr_records = []
     for record in logr_list:
-        logr_records.extend([xpos + x_ampl * float(record[1]),
+        logr_records.extend([xpos + x_ampl * (float(record[1]) - start_pos),
                              logr_ypos - logr_ampl *
                              math.log(float(record[3]) / median + 1, 2), 0])
 
@@ -120,10 +115,11 @@ def get_overview_cov():
     baf_list = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
     baf_records = []
     for record in baf_list:
-        baf_records.extend([xpos + x_ampl * float(record[1]),
+        baf_records.extend([xpos + x_ampl * (float(record[1]) - start_pos),
                             baf_ypos - baf_ampl * float(record[3]), 0])
 
     if not logr_records or not baf_records:
+        print('No records')
         return abort(404)
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
@@ -162,7 +158,7 @@ def parse_region_str(region):
     elif size > 200000:
         resolution = "c"
 
-    return resolution, chrom, start_pos, end_pos
+    return resolution, chrom, int(start_pos), int(end_pos)
 
 def tabix_query(filename, chrom, start, end):
     """Call tabix and generate an array of strings for each line it returns."""

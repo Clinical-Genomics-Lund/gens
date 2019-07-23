@@ -1,10 +1,10 @@
-// Creates an overview graph for one chromosome
-function createOverviewGraph (scene, x, y, width, height, y_margin,
-    yStart, yEnd, step) {
+// Creates a graph for one chromosome data type
+function createGraph (scene, canvas, x, y, width, height, y_margin,
+    yStart, yEnd, step, drawValues) {
   let ampl = (height - 2 * y_margin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
 
   // Draw tick marks
-  drawTicks(scene, x, y + y_margin, yStart, yEnd, width, step, ampl);
+  drawTicks(scene, canvas, x, y + y_margin, yStart, yEnd, width, step, ampl, drawValues);
 
   // Draw surrounding coordinate box
   drawBox(scene, x, y, width, height, 2);
@@ -12,7 +12,6 @@ function createOverviewGraph (scene, x, y, width, height, y_margin,
 
 // Draw data points
 function drawData(scene, data, color) {
-  var container = document.getElementById( 'container' );
   var geometry = new THREE.BufferGeometry();
 
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
@@ -27,11 +26,9 @@ function drawData(scene, data, color) {
 // Draws tick marks and guide lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
-  let xDraw = x;
+function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, drawValues) {
   let lineThickness = 2;
   let lineWidth = 4;
-  let leftmost_point = 28;
 
   for (let step = yStart; step >= yEnd; step -= drawStep) {
     // Draw guide line
@@ -39,10 +36,10 @@ function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
       y + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
 
     // Draw text and ticks only for the leftmost box
-    if (x < leftmost_point) {
+    if (drawValues) {
       // TODO: fix correct centering
-      drawText(xDraw - 4, y + (yStart - step) * ampl + 2.2, step.toFixed(1),
-        'right');
+      drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
+               step.toFixed(1), 'right');
 
       // Draw tick line
       drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
@@ -51,8 +48,7 @@ function drawTicks (scene, x, y, yStart, yEnd, width, drawStep, ampl) {
 }
 
 // Draw aligned text at (x, y)
-function drawText (x, y, text, align) {
-  var canvas = document.getElementById('overview-text');
+function drawText (canvas, x, y, text, align) {
   var ctx = canvas.getContext('2d');
   ctx.font = '10px Arial';
   ctx.textAlign = align;
@@ -88,4 +84,47 @@ function drawBox (scene, x, y, width, height, lineWidth) {
   var material = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: lineWidth });
   coordAxes = new THREE.Line(coordAxes, material);
   scene.add(coordAxes);
+}
+
+// Draw values for interactive canvas
+function drawInteractiveCanvas() {
+  $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
+    region: document.getElementById('region_field').placeholder,
+    median: logRMedian,
+    xpos: ic_x + x_margin,
+    ypos: ic_y,
+    boxHeight: ic_box_height,
+    y_margin: y_margin,
+    x_ampl: ic_x_ampl
+  }, function (result) {
+    // Draw chromosome title
+    drawText(interactiveStatic,
+      result['x_pos'] - x_margin + ic_box_width / 2,
+      result['y_pos'] - title_margin,
+      'Chromosome ' + result['chrom'], 'center');
+
+    // Draw BAF
+    createGraph(interactiveScene, interactiveStatic,
+      result['x_pos'] - x_margin,
+      result['y_pos'], ic_box_width,
+      ic_box_height, y_margin,
+      baf_y_start, baf_y_end, baf_step, true);
+
+    // Draw LogR
+    createGraph(interactiveScene, interactiveStatic,
+      result['x_pos'] - x_margin,
+      result['y_pos'] + ic_box_height, ic_box_width, ic_box_height,
+      y_margin, logr_y_start, logr_y_end, logr_step, true);
+
+    // Plot scatter data
+    drawData(interactiveScene, result["baf"], '#FF0000');
+    drawData(interactiveScene, result["data"], '#000000');
+    interactiveRenderer.render(interactiveScene, interactiveCamera);
+  }).done(function () {
+    input_field.blur();
+  }).fail(function (result) {
+    console.log("Bad input");
+    input_field.placeholder = 'Bad input: ' + input_field.value;
+    input_field.value = '';
+  });
 }
