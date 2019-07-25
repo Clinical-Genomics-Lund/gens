@@ -39,7 +39,7 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, dr
     if (drawValues) {
       // TODO: fix correct centering
       drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
-        step.toFixed(1), 'right');
+        step.toFixed(1), 10, 'right');
 
       // Draw tick line
       drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
@@ -47,14 +47,28 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, dr
   }
 }
 
+// Draw 90 degree rotated text
+function drawRotatedText (canvas, text, textSize, posx, posy) {
+  let ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.font = ''.concat(textSize, 'px Arial');
+  ctx.translate(posx, posy); // Position for text
+  ctx.rotate(-Math.PI / 2); // Rotate 90 degrees
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 0, 9);
+  ctx.restore();
+}
+
 // Draw aligned text at (x, y)
-function drawText (canvas, x, y, text, align) {
-  var ctx = canvas.getContext('2d');
-  ctx.font = '10px Arial';
+function drawText (canvas, x, y, text, textSize, align) {
+  let ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.font = ''.concat(textSize, 'px Arial');
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = 'black';
   ctx.fillText(text, x, y);
+  ctx.restore();
 }
 
 // Draws a line between point (x, y) and (x2, y2)
@@ -101,7 +115,14 @@ function drawInteractiveCanvas () {
     drawText(ic.staticCanvas,
       result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
       result['y_pos'] - ic.titleMargin,
-      'Chromosome ' + result['chrom'], 'center');
+      'Chromosome ' + result['chrom'], 15, 'center');
+
+    // Draw rotated y-axis legends
+    console.log(ic.x, ic.y);
+    drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
+        ic.y + ic.boxHeight / 2);
+    drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
+        ic.y + 1.5 * ic.boxHeight);
 
     // Draw BAF
     createGraph(ic.scene, ic.staticCanvas,

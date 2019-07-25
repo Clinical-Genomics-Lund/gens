@@ -132,7 +132,8 @@
                 boxHeight: 200, // Height of one box
                 x: null, // X-position for first box
                 y: null, // Y-position for first box
-                titleMargin: 10, // Margin between box and title
+                titleMargin: 15, // Margin between box and title
+                legendMargin: 45, // Margin between legend and box
                 xMargin: 2, // margin for x-axis in graph
                 yMargin: 5, // margin for top and bottom in graph
                 xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
@@ -159,7 +160,7 @@
             ic.camera = new THREE.OrthographicCamera(ic.width / -2, ic.width / 2, ic.height / -2, ic.height / 2, near, far);
             ic.renderer = new THREE.WebGLRenderer({ canvas: ic.contentCanvas, context: ic.context, antialiasing: true });
             ic.x = ic.contentCanvas.clientWidth / 2 - ic.boxWidth / 2;
-            ic.y = lineMargin * 2;
+            ic.y = 10 + lineMargin * 2 + ic.titleMargin;
             ic.xAmpl = ic.boxWidth - 2 * ic.xMargin;
 
             // Listener values
@@ -194,7 +195,7 @@
                         drawText(staticCanvas,
                                 result['x_pos'] - oc.xMargin + oc.boxWidth / 2,
                                 result['y_pos'] - oc.titleMargin,
-                                result['chrom'], 'center');
+                                result['chrom'], 10, 'center');
 
                         // Draw BAF
                         createGraph(oc.scene, staticCanvas,
