@@ -1,23 +1,23 @@
 // Creates a graph for one chromosome data type
-function createGraph (scene, canvas, x, y, width, height, y_margin,
-    yStart, yEnd, step, drawValues) {
-  let ampl = (height - 2 * y_margin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
+function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
+  yEnd, step, drawValues) {
+  let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
 
   // Draw tick marks
-  drawTicks(scene, canvas, x, y + y_margin, yStart, yEnd, width, step, ampl, drawValues);
+  drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, width, step, ampl, drawValues);
 
   // Draw surrounding coordinate box
   drawBox(scene, x, y, width, height, 2);
 }
 
 // Draw data points
-function drawData(scene, data, color) {
+function drawData (scene, data, color) {
   var geometry = new THREE.BufferGeometry();
 
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
   geometry.computeBoundingSphere();
 
-  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 0.3});
+  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 0.3 });
   var points = new THREE.Points(geometry, material);
 
   scene.add(points);
@@ -39,7 +39,7 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, dr
     if (drawValues) {
       // TODO: fix correct centering
       drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
-               step.toFixed(1), 'right');
+        step.toFixed(1), 'right');
 
       // Draw tick line
       drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
@@ -87,44 +87,44 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 }
 
 // Draw values for interactive canvas
-function drawInteractiveCanvas() {
+function drawInteractiveCanvas () {
   $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
     region: document.getElementById('region_field').placeholder,
     median: logRMedian,
-    xpos: ic.x + ic.x_margin,
+    xpos: ic.x + ic.xMargin,
     ypos: ic.y,
-    boxHeight: ic.box_height,
-    y_margin: ic.y_margin,
-    x_ampl: ic.x_ampl
+    boxHeight: ic.boxHeight,
+    y_margin: ic.yMargin,
+    x_ampl: ic.xAmpl
   }, function (result) {
     // Draw chromosome title
     drawText(ic.staticCanvas,
-      result['x_pos'] - ic.x_margin + ic.box_width / 2,
-      result['y_pos'] - ic.title_margin,
+      result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
+      result['y_pos'] - ic.titleMargin,
       'Chromosome ' + result['chrom'], 'center');
 
     // Draw BAF
     createGraph(ic.scene, ic.staticCanvas,
-      result['x_pos'] - ic.x_margin,
-      result['y_pos'], ic.box_width,
-      ic.box_height, ic.y_margin,
-      baf.y_start, baf.y_end, baf.step, true);
+      result['x_pos'] - ic.xMargin,
+      result['y_pos'], ic.boxWidth,
+      ic.boxHeight, ic.yMargin,
+      baf.yStart, baf.yEnd, baf.step, true);
 
     // Draw LogR
     createGraph(ic.scene, ic.staticCanvas,
-      result['x_pos'] - ic.x_margin,
-      result['y_pos'] + ic.box_height, ic.box_width, ic.box_height,
-      ic.y_margin, logr.y_start, logr.y_end, logr.step, true);
+      result['x_pos'] - ic.xMargin,
+      result['y_pos'] + ic.boxHeight, ic.boxWidth, ic.boxHeight,
+      ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
 
     // Plot scatter data
-    drawData(ic.scene, result["baf"], '#FF0000');
-    drawData(ic.scene, result["data"], '#000000');
+    drawData(ic.scene, result['baf'], '#FF0000');
+    drawData(ic.scene, result['data'], '#000000');
     ic.renderer.render(ic.scene, ic.camera);
   }).done(function () {
-    input_field.blur();
+    inputField.blur();
   }).fail(function (result) {
-    console.log("Bad input");
-    input_field.placeholder = 'Bad input: ' + input_field.value;
-    input_field.value = '';
+    console.log('Bad input');
+    inputField.placeholder = 'Bad input: ' + inputField.value;
+    inputField.value = '';
   });
 }

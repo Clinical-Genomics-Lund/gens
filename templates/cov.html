@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-		<meta charset=utf-8>
+        <meta charset=utf-8>
         <link rel="stylesheet" href="static/css/cov.css" type="text/css">
         <link rel="icon" href="data:,">
         <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
@@ -42,34 +42,34 @@
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
             // FLASK VALUES //
-            let logRMedian = {{median}};
-            let title = "{{title}}";
+            let logRMedian = {{ median }};
+            let title = "{{ title }}";
 
-            let callChrom = "{{call_chrom}}";
-            let callStart = {{call_start}};
-            let callEnd   = {{call_end}};
+            let callChrom = "{{ call_chrom }}";
+            let callStart = {{ call_start }};
+            let callEnd   = {{ call_end }};
 
-            var gc = new GeneCanvas(700, 300, "{{chrom}}", {{start}}, {{end}});
+            var gc = new GeneCanvas(700, 300, "{{ chrom }}", {{ start }}, {{ end }});
             var ctx = gc.dataCanvas.getContext("2d");
 
             // WEBGL VALUES //
             let near = 0.1;
             let far = 100;
-            let line_margin = 2; // Margin for line thickness
+            let lineMargin = 2; // Margin for line thickness
 
             // BAF values
             let baf = {
-                y_start: 1.0, // Start value for y axis
-                y_end: 0.0, // End value for y axis
+                yStart: 1.0, // Start value for y axis
+                yEnd: 0.0, // End value for y axis
                 step: 0.2 // Step value for drawing ticks along y-axis
-            }
+            };
 
             // LOGR values
             let logr = {
-                y_start: 4.0, // Start value for y axis
-                y_end: -4.0, // End value for y axis
+                yStart: 4.0, // Start value for y axis
+                yEnd: -4.0, // End value for y axis
                 step: 1.0 // Step value for drawing ticks along y-axis
-            }
+            };
 
             // Overview canvas values
             // The null-values are set later since they use values set here
@@ -82,27 +82,27 @@
                 // Canvas variables
                 width: $(document).innerWidth(), // Canvas width
                 height: 800, // Canvas height
-                res_start: 0, // Start value for overview graph
-                res_end: 245000000, // End value for overview graph
+                resStart: 0, // Start value for overview graph
+                resEnd: 245000000, // End value for overview graph
 
                 // Box variables
-                box_width: 120, // Width of one box
-                box_height: 130, // Height of one box
+                boxWidth: 120, // Width of one box
+                boxHeight: 130, // Height of one box
                 x: null, // X-position for box
                 y: 20, // Y-position for box
-                num_chrom: 1, // Number of displayable chromosomes
-                row_margin: 30, // margin between rows
-                title_margin: 10, // Margin between box and title
-                x_margin: 2, // margin for x-axis in graph
-                y_margin: 5, // margin for top and bottom in graph
-                leftmost_point: 28, // Draw y-values for graph left of this point
+                numChrom: 1, // Number of displayable chromosomes
+                rowMargin: 30, // margin between rows
+                titleMargin: 10, // Margin between box and title
+                xMargin: 2, // margin for x-axis in graph
+                yMargin: 5, // margin for top and bottom in graph
+                leftmostPoint: 28, // Draw y-values for graph left of this point
                 xAmpl: null, // Part of amplitude for scaling x-axis to fill whole width
 
                 // WebGL scene variables
                 scene: new THREE.Scene(),
                 camera: null,
-                renderer: null,
-            }
+                renderer: null
+            };
 
             // Set dimensions of overview canvases
             oc.contentCanvas.width = oc.width;
@@ -115,9 +115,9 @@
             oc.camera = new THREE.OrthographicCamera(oc.width / -2, oc.width / 2, oc.height / -2, oc.height / 2, near, far);
             oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
                 context: oc.context, antialiasing: true });
-            oc.x = line_margin * 2 + 20;
-            oc.y = line_margin * 2;
-            oc.xAmpl = oc.box_width - 2 * oc.x_margin;
+            oc.x = lineMargin * 2 + 20;
+            oc.y = lineMargin * 2;
+            oc.xAmpl = oc.boxWidth - 2 * oc.xMargin;
 
             // Interactive canvas values
             // The null-values are set later since they use values set here
@@ -132,102 +132,100 @@
                 height: 500, // Canvas height
 
                 // Box variables
-                box_width: 600, // Width of one box
-                box_height: 200, // Height of one box
+                boxWidth: 600, // Width of one box
+                boxHeight: 200, // Height of one box
                 x: null, // X-position for first box
                 y: null, // Y-position for first box
-                title_margin: 10, // Margin between box and title
-                x_margin: 2, // margin for x-axis in graph
-                y_margin: 5, // margin for top and bottom in graph
-                x_ampl: null, // Part of amplitude for scaling x-axis to fill whole box width
+                titleMargin: 10, // Margin between box and title
+                xMargin: 2, // margin for x-axis in graph
+                yMargin: 5, // margin for top and bottom in graph
+                xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
 
                 // WebGL scene variables
                 scene: new THREE.Scene(),
                 camera: null,
-                renderer: null,
-            }
+                renderer: null
+            };
 
             // Set dimensions of overview canvases
-            ic.contentCanvas.width  = ic.width;
-            ic.staticCanvas.width   = ic.width;
+            ic.contentCanvas.width = ic.width;
+            ic.staticCanvas.width = ic.width;
             ic.contentCanvas.height = ic.height;
-            ic.staticCanvas.height  = ic.height;
+            ic.staticCanvas.height = ic.height;
 
             // Set null values
             ic.camera = new THREE.OrthographicCamera(ic.width / -2, ic.width / 2, ic.height / -2, ic.height / 2, near, far);
-            ic.renderer = new THREE.WebGLRenderer({ canvas: ic.contentCanvas,
-                context: ic.context, antialiasing: true });
-            ic.x = ic.contentCanvas.clientWidth / 2 - ic.box_width / 2;
-            ic.y = line_margin * 2;
-            ic.x_ampl = ic.box_width - 2 * ic.x_margin;
+            ic.renderer = new THREE.WebGLRenderer({ canvas: ic.contentCanvas, context: ic.context, antialiasing: true });
+            ic.x = ic.contentCanvas.clientWidth / 2 - ic.boxWidth / 2;
+            ic.y = lineMargin * 2;
+            ic.xAmpl = ic.boxWidth - 2 * ic.xMargin;
 
             // Listener values
             var drag = false;
             var dragStart;
             var dragEnd;
-            let input_field = document.getElementById('region_field');
+            let inputField = document.getElementById('region_field');
 
             // Set first input field value for ic
             document.getElementById('region_field').placeholder = '1:100000-200000';
 
             // Draw interactive canvas
-            drawInteractiveCanvas(ic.scene,
-                                  ic.camera);
+            drawInteractiveCanvas(ic.scene, ic.camera);
 
             let chrom = 1; // First chromosome
-            while (chrom <= oc.num_chrom) {
-                let y_pos = oc.y + oc.row_margin;
+            while (chrom <= oc.numChrom) {
+                let yPos = oc.y + oc.rowMargin;
                 // Fill row with graphs, start on new row when full
-                for (let x_pos = oc.x; (x_pos + oc.box_width < $(document).innerWidth()) && (chrom <= oc.num_chrom); x_pos += oc.box_width) {
+                for (let xPos = oc.x; (xPos + oc.boxWidth < $(document).innerWidth()) && (chrom <= oc.numChrom); xPos += oc.boxWidth) {
                     // Draw data
                     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
-                        region: chrom + ":" + oc.res_start + "-" + oc.res_end,
+                        region: chrom + ':' + oc.resStart + '-' + oc.resEnd,
                         median: logRMedian,
-                        xpos: x_pos + oc.x_margin,
-                        ypos: y_pos,
-                        boxHeight: oc.box_height,
-                        y_margin: oc.y_margin,
+                        xpos: xPos + oc.xMargin,
+                        ypos: yPos,
+                        boxHeight: oc.boxHeight,
+                        y_margin: oc.yMargin,
                         x_ampl: oc.xAmpl
-                    }, function(result) {
+                    }, function (result) {
                         let staticCanvas = document.getElementById('overview-static');
                         // Draw chromosome title
                         drawText(staticCanvas,
-                                result['x_pos'] - oc.x_margin + oc.box_width / 2,
-                                result['y_pos'] - oc.title_margin,
+                                result['x_pos'] - oc.xMargin + oc.boxWidth / 2,
+                                result['y_pos'] - oc.titleMargin,
                                 result['chrom'], 'center');
 
                         // Draw BAF
                         createGraph(oc.scene, staticCanvas,
-                                result['x_pos'] - oc.x_margin,
-                                result['y_pos'], oc.box_width, oc.box_height, oc.y_margin,
-                                baf.y_start, baf.y_end, baf.step,
-                                result['x_pos'] < oc.leftmost_point);
+                                result['x_pos'] - oc.xMargin,
+                                result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
+                                baf.yStart, baf.yEnd, baf.step,
+                                result['x_pos'] < oc.leftmostPoint);
 
                         // Draw LogR
                         createGraph(oc.scene, staticCanvas,
-                                result['x_pos'] - oc.x_margin,
-                                result['y_pos'] + oc.box_height, oc.box_width,
-                                oc.box_height, oc.y_margin, logr.y_start,
-                                logr.y_end, logr.step,
-                                result['x_pos'] < oc.leftmost_point);
+                                result['x_pos'] - oc.xMargin,
+                                result['y_pos'] + oc.boxHeight, oc.boxWidth,
+                                oc.boxHeight, oc.yMargin, logr.yStart,
+                                logr.yEnd, logr.step,
+                                result['x_pos'] < oc.leftmostPoint);
 
                         // Plot scatter data
-                        drawData(oc.scene, result["baf"], '#FF0000');
-                        drawData(oc.scene, result["data"], '#000000');
+                        drawData(oc.scene, result['baf'], '#FF0000');
+                        drawData(oc.scene, result['data'], '#000000');
                         oc.renderer.render(oc.scene, oc.camera);
                     });
                     chrom++;
                 }
                 // Start on new row
-                y_pos += 2 * oc.box_height + oc.row_margin;
+                yPos += 2 * oc.boxHeight + oc.rowMargin;
             }
 
             // Only want to see fourth quadrant
-            oc.camera.position.x = oc.width / 2 - line_margin;
-            oc.camera.position.y = oc.height / 2 - line_margin;
+            oc.camera.position.x = oc.width / 2 - lineMargin;
+            oc.camera.position.y = oc.height / 2 - lineMargin;
             oc.camera.position.z = 1;
-            ic.camera.position.x = ic.width / 2 - line_margin;
-            ic.camera.position.y = ic.height / 2 - line_margin;
+            ic.camera.position.x = ic.width / 2 - lineMargin;
+            ic.camera.position.y = ic.height / 2 - lineMargin;
             ic.camera.position.z = 1;
 
             // LISTENERS
@@ -237,26 +235,26 @@
                 drawInteractiveCanvas(scene, ic.camera, ic.contentCanvas);
             });
 
-            gc.dataCanvas.addEventListener('mousedown', function(event) {
+            gc.dataCanvas.addEventListener('mousedown', function (event) {
                 if (!gc.cvar.disallowDrag) {
                     dragStart = {
                         x: event.pageX - gc.dataCanvas.offsetLeft,
                         y: event.pageY - gc.dataCanvas.offsetTop
-                    }
+                    };
                     dragEnd = {
                         x: event.pageX - gc.dataCanvas.offsetLeft,
                         y: event.pageY - gc.dataCanvas.offsetTop
-                    }
+                    };
                     drag = true;
                 }
             });
 
-            gc.dataCanvas.addEventListener('mousemove', function(event) {
+            gc.dataCanvas.addEventListener('mousemove', function (event) {
                 if (drag && !gc.cvar.disallowDrag) {
                     dragEnd = {
                         x: event.pageX - gc.dataCanvas.offsetLeft,
                         y: event.pageY - gc.dataCanvas.offsetTop
-                    }
+                    };
                     ctx.clearRect(0, 0, gc.dataCanvas.width, gc.dataCanvas.height);
                     ctx.drawImage(gc.drawCanvas,
                                 0,
@@ -270,16 +268,16 @@
                 }
             });
 
-            gc.dataCanvas.addEventListener('mouseup', function(event) {
+            gc.dataCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
                     drag = false;
                     let scale = gc.dataCanvas.width / (gc.cvar.end - gc.cvar.start);
-                    let move_dist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                    if (gc.cvar.start + move_dist < 0 ) {
-                        move_dist -= (gc.cvar.start + move_dist);
+                    let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                    if (gc.cvar.start + moveDist < 0) {
+                        moveDist -= (gc.cvar.start + moveDist);
                     }
-                    gc.cvar.start += move_dist;
-                    gc.cvar.end += move_dist;
+                    gc.cvar.start += moveDist;
+                    gc.cvar.end += moveDist;
                     gc.cvar.disallowDrag = true;
                     redraw();
                 }
