@@ -120,6 +120,12 @@ function drawInteractiveCanvas () {
     drawData(ic.scene, result['baf'], '#FF0000');
     drawData(ic.scene, result['data'], '#000000');
     ic.renderer.render(ic.scene, ic.camera);
+
+    // Set values
+    ic.chromosome = result['chrom'];
+    ic.start = result['start'];
+    ic.end = result['end'];
+
   }).done(function () {
     inputField.blur();
   }).fail(function (result) {

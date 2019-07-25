@@ -123,7 +123,8 @@ def get_overview_cov():
         return abort(404)
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
-                   chrom=chrom, x_pos=xpos, y_pos=ypos)
+                   chrom=chrom, x_pos=xpos, y_pos=ypos,
+                   start=start_pos, end=end_pos)
 
 ### Help functions ###
 

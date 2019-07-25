@@ -35,7 +35,6 @@
     </head>
 
     <body>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/cov.js')}}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/overview.js')}}"></script>
 
         <script>
@@ -48,9 +47,6 @@
             let callChrom = "{{ call_chrom }}";
             let callStart = {{ call_start }};
             let callEnd   = {{ call_end }};
-
-            var gc = new GeneCanvas(700, 300, "{{ chrom }}", {{ start }}, {{ end }});
-            var ctx = gc.dataCanvas.getContext("2d");
 
             // WEBGL VALUES //
             let near = 0.1;
@@ -141,6 +137,12 @@
                 yMargin: 5, // margin for top and bottom in graph
                 xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
 
+                // Data values
+                chromosome: null,
+                start: null,
+                end: null,
+                disallowDrag: false,
+
                 // WebGL scene variables
                 scene: new THREE.Scene(),
                 camera: null,
@@ -230,55 +232,56 @@
 
             // LISTENERS
 
-            document.getElementById('region_form').addEventListener('submit', function (event) {
+            document.getElementById('region_form').addEventListener('submit',
+                    function (event) {
                 event.preventDefault();
                 drawInteractiveCanvas(scene, ic.camera, ic.contentCanvas);
             });
 
-            gc.dataCanvas.addEventListener('mousedown', function (event) {
-                if (!gc.cvar.disallowDrag) {
+            ic.contentCanvas.addEventListener('mousedown', function (event) {
+                if (!ic.disallowDrag) {
                     dragStart = {
-                        x: event.pageX - gc.dataCanvas.offsetLeft,
-                        y: event.pageY - gc.dataCanvas.offsetTop
+                        x: event.pageX - ic.contentCanvas.offsetLeft,
+                        y: event.pageY - ic.contentCanvas.offsetTop
                     };
                     dragEnd = {
-                        x: event.pageX - gc.dataCanvas.offsetLeft,
-                        y: event.pageY - gc.dataCanvas.offsetTop
+                        x: event.pageX - ic.contentCanvas.offsetLeft,
+                        y: event.pageY - ic.contentCanvas.offsetTop
                     };
                     drag = true;
                 }
             });
 
-            gc.dataCanvas.addEventListener('mousemove', function (event) {
-                if (drag && !gc.cvar.disallowDrag) {
+            ic.contentCanvas.addEventListener('mousemove', function (event) {
+                if (drag && !ic.disallowDrag) {
                     dragEnd = {
-                        x: event.pageX - gc.dataCanvas.offsetLeft,
-                        y: event.pageY - gc.dataCanvas.offsetTop
+                        x: event.pageX - ic.contentCanvas.offsetLeft,
+                        y: event.pageY - ic.contentCanvas.offsetTop
                     };
-                    ctx.clearRect(0, 0, gc.dataCanvas.width, gc.dataCanvas.height);
-                    ctx.drawImage(gc.drawCanvas,
+                    ic.context.clearRect(0, 0, ic.contentCanvas.width, ic.contentCanvas.height);
+                    ic.context.drawImage(ic.contentCanvas,
                                 0,
                                 0,
-                                gc.drawCanvas.width,
-                                gc.drawCanvas.height,
+                                ic.contentCanvas.width,
+                                ic.contentCanvas.height,
                                 dragEnd.x - dragStart.x,
                                 0,
-                                gc.drawCanvas.width,
-                                gc.drawCanvas.height);
+                                ic.contentCanvas.width,
+                                ic.contentCanvas.height);
                 }
             });
 
-            gc.dataCanvas.addEventListener('mouseup', function (event) {
+            ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
                     drag = false;
-                    let scale = gc.dataCanvas.width / (gc.cvar.end - gc.cvar.start);
+                    let scale = ic.contentCanvas.width / (ic.end - ic.start);
                     let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                    if (gc.cvar.start + moveDist < 0) {
-                        moveDist -= (gc.cvar.start + moveDist);
+                    if (ic.start + moveDist < 0) {
+                        moveDist -= (ic.start + moveDist);
                     }
-                    gc.cvar.start += moveDist;
-                    gc.cvar.end += moveDist;
-                    gc.cvar.disallowDrag = true;
+                    ic.start += moveDist;
+                    ic.end += moveDist;
+                    ic.disallowDrag = true;
                     redraw();
                 }
             });
