@@ -91,35 +91,35 @@ function drawInteractiveCanvas() {
   $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
     region: document.getElementById('region_field').placeholder,
     median: logRMedian,
-    xpos: ic_x + x_margin,
-    ypos: ic_y,
-    boxHeight: ic_box_height,
-    y_margin: y_margin,
-    x_ampl: ic_x_ampl
+    xpos: ic.x + ic.x_margin,
+    ypos: ic.y,
+    boxHeight: ic.box_height,
+    y_margin: ic.y_margin,
+    x_ampl: ic.x_ampl
   }, function (result) {
     // Draw chromosome title
-    drawText(interactiveStatic,
-      result['x_pos'] - x_margin + ic_box_width / 2,
-      result['y_pos'] - title_margin,
+    drawText(ic.staticCanvas,
+      result['x_pos'] - ic.x_margin + ic.box_width / 2,
+      result['y_pos'] - ic.title_margin,
       'Chromosome ' + result['chrom'], 'center');
 
     // Draw BAF
-    createGraph(interactiveScene, interactiveStatic,
-      result['x_pos'] - x_margin,
-      result['y_pos'], ic_box_width,
-      ic_box_height, y_margin,
-      baf_y_start, baf_y_end, baf_step, true);
+    createGraph(ic.scene, ic.staticCanvas,
+      result['x_pos'] - ic.x_margin,
+      result['y_pos'], ic.box_width,
+      ic.box_height, ic.y_margin,
+      baf.y_start, baf.y_end, baf.step, true);
 
     // Draw LogR
-    createGraph(interactiveScene, interactiveStatic,
-      result['x_pos'] - x_margin,
-      result['y_pos'] + ic_box_height, ic_box_width, ic_box_height,
-      y_margin, logr_y_start, logr_y_end, logr_step, true);
+    createGraph(ic.scene, ic.staticCanvas,
+      result['x_pos'] - ic.x_margin,
+      result['y_pos'] + ic.box_height, ic.box_width, ic.box_height,
+      ic.y_margin, logr.y_start, logr.y_end, logr.step, true);
 
     // Plot scatter data
-    drawData(interactiveScene, result["baf"], '#FF0000');
-    drawData(interactiveScene, result["data"], '#000000');
-    interactiveRenderer.render(interactiveScene, interactiveCamera);
+    drawData(ic.scene, result["baf"], '#FF0000');
+    drawData(ic.scene, result["data"], '#000000');
+    ic.renderer.render(ic.scene, ic.camera);
   }).done(function () {
     input_field.blur();
   }).fail(function (result) {
