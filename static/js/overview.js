@@ -118,11 +118,10 @@ function drawInteractiveCanvas () {
       'Chromosome ' + result['chrom'], 15, 'center');
 
     // Draw rotated y-axis legends
-    console.log(ic.x, ic.y);
     drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
-        ic.y + ic.boxHeight / 2);
+      ic.y + ic.boxHeight / 2);
     drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
-        ic.y + 1.5 * ic.boxHeight);
+      ic.y + 1.5 * ic.boxHeight);
 
     // Draw BAF
     createGraph(ic.scene, ic.staticCanvas,
@@ -141,6 +140,10 @@ function drawInteractiveCanvas () {
     drawData(ic.scene, result['baf'], '#FF0000');
     drawData(ic.scene, result['data'], '#000000');
     ic.renderer.render(ic.scene, ic.camera);
+    ic.contentCanvas.getContext('2d').clearRect(0, 0,
+      ic.contentCanvas.width, ic.contentCanvas.height);
+    ic.contentCanvas.getContext('2d').drawImage(
+      ic.drawCanvas.transferToImageBitmap(), 0, 0);
 
     // Set values
     ic.chromosome = result['chrom'];

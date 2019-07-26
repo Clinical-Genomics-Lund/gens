@@ -10,7 +10,7 @@
             <div class="grid-container">
                 <div id="interactive-container">
                     <canvas id='interactive-content'></canvas>
-                    <canvas id='interactive-static' ></canvas>
+                    <canvas id='interactive-static'></canvas>
                 </div>
 
                 <div id="button-container">
@@ -25,10 +25,7 @@
                 </div>
 
                 <div id="overview-container">
-                    <canvas id='overview-content'>
-                    </canvas>
-                    <canvas id='overview-static'>
-                    </canvas>
+                    <canvas id='overview-static'></canvas>
                 </div>
             </div>
         </html>
@@ -71,7 +68,7 @@
             // The null-values are set later since they use values set here
             let oc = {
                 // Canvases
-                contentCanvas: document.getElementById('overview-content'),
+                contentCanvas: null,
                 staticCanvas: document.getElementById('overview-static'),
                 context: null,
 
@@ -101,12 +98,11 @@
             };
 
             // Set dimensions of overview canvases
-            oc.contentCanvas.width = oc.width;
-            oc.contentCanvas.height = oc.height;
             oc.staticCanvas.width = oc.width;
             oc.staticCanvas.height = oc.height;
 
             // Set null values
+            oc.contentCanvas = new OffscreenCanvas(oc.width, oc.height);
             oc.context = oc.contentCanvas.getContext('webgl2');
             oc.camera = new THREE.OrthographicCamera(oc.width / -2, oc.width / 2, oc.height / -2, oc.height / 2, near, far);
             oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
@@ -119,9 +115,10 @@
             // The null-values are set later since they use values set here
             let ic = {
                 // Canvases
+                drawCanvas: null,
                 contentCanvas: document.getElementById('interactive-content'),
                 staticCanvas: document.getElementById('interactive-static'),
-                context: document.getElementById('interactive-content').getContext('webgl2'),
+                context: null,
 
                 // Canvas variables
                 width: $(document).innerWidth(), // Canvas width
@@ -151,15 +148,19 @@
             };
 
             // Set dimensions of overview canvases
-            ic.contentCanvas.width = ic.width;
             ic.staticCanvas.width = ic.width;
-            ic.contentCanvas.height = ic.height;
             ic.staticCanvas.height = ic.height;
+            ic.contentCanvas.width = ic.width;
+            ic.contentCanvas.height = ic.height;
+
+            ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.height);
 
             // Set null values
+            ic.drawCanvas = new OffscreenCanvas(ic.width, ic.height);
+            ic.context = ic.drawCanvas.getContext('webgl2');
             ic.camera = new THREE.OrthographicCamera(ic.width / -2, ic.width / 2, ic.height / -2, ic.height / 2, near, far);
-            ic.renderer = new THREE.WebGLRenderer({ canvas: ic.contentCanvas, context: ic.context, antialiasing: true });
-            ic.x = ic.contentCanvas.clientWidth / 2 - ic.boxWidth / 2;
+            ic.renderer = new THREE.WebGLRenderer({ canvas: ic.drawCanvas, context: ic.context, antialiasing: true });
+            ic.x = ic.width / 2 - ic.boxWidth / 2;
             ic.y = 10 + lineMargin * 2 + ic.titleMargin;
             ic.xAmpl = ic.boxWidth - 2 * ic.xMargin;
 
@@ -176,6 +177,7 @@
             drawInteractiveCanvas();
 
             let chrom = 1; // First chromosome
+            let drawnChrom = 0; // Amount of async drawn chromosomes
             while (chrom <= oc.numChrom) {
                 let yPos = oc.y + oc.rowMargin;
                 // Fill row with graphs, start on new row when full
@@ -215,7 +217,12 @@
                         // Plot scatter data
                         drawData(oc.scene, result['baf'], '#FF0000');
                         drawData(oc.scene, result['data'], '#000000');
-                        oc.renderer.render(oc.scene, oc.camera);
+
+                        if (++drawnChrom == oc.numChrom) {
+                            // Render scene and transfer to visible canvas
+                            oc.renderer.render(oc.scene, oc.camera);
+                            oc.staticCanvas.getContext('2d').drawImage(oc.contentCanvas.transferToImageBitmap(), 0, 0);
+                        }
                     });
                     chrom++;
                 }
@@ -259,16 +266,19 @@
                         x: event.pageX - ic.contentCanvas.offsetLeft,
                         y: event.pageY - ic.contentCanvas.offsetTop
                     };
-                    ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.staticCanvas.width, ic.staticCanvas.height);
-                    ic.staticCanvas.getContext('2d').drawImage(ic.contentCanvas,
+
+                    ic.contentCanvas.getContext('2d').clearRect(0, 0,
+                            ic.contentCanvas.width, ic.contentCanvas.height);
+                    ic.contentCanvas.getContext('2d').drawImage(
+                            ic.drawCanvas,
                             0,
                             0,
-                            ic.staticCanvas.width,
-                            ic.staticCanvas.height,
+                            ic.contentCanvas.width,
+                            ic.contentCanvas.height,
                             dragEnd.x - dragStart.x,
                             0,
-                            ic.staticCanvas.width,
-                            ic.staticCanvas.height);
+                            ic.contentCanvas.width,
+                            ic.contentCanvas.height);
                 }
             });
 

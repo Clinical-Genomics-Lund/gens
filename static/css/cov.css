@@ -2,7 +2,7 @@ html, body {
     max-width: 100%;
     overflow-x: hidden;
 }
-
+staticCanvas
 .grid-container {
     display: grid;
 }
@@ -16,28 +16,6 @@ html, body {
 #interactive-container {
     display: grid;
     justify-content: center;
-    grid-row: 1;
-    grid-column: 1;
-}
-
-#overview-container {
-    display: grid;
-    grid-row: 3;
-    grid-column: 1;
-}
-
-#overview-static {
-    top: 0;
-    left: 0;
-    z-index=0;
-    grid-row: 1;
-    grid-column: 1;
-}
-
-#overview-content {
-    top: 0;
-    left: 0;
-    z-index=-1;
     grid-row: 1;
     grid-column: 1;
 }
@@ -56,6 +34,20 @@ html, body {
     left: 0;
     z-index=-1;
     grid-row: 2;
+    grid-column: 1;
+}
+
+#overview-container {
+    display: grid;
+    grid-row: 3;
+    grid-column: 1;
+}
+
+#overview-static {
+    top: 0;
+    left: 0;
+    z-index=0;
+    grid-row: 1;
     grid-column: 1;
 }
 
