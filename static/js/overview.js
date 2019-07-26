@@ -155,3 +155,105 @@ function drawInteractiveCanvas () {
     inputField.value = '';
   });
 }
+
+function left () {
+  let size = ic.end - ic.start;
+  ic.start -= Math.floor(0.1 * size);
+  ic.end -= Math.floor(0.1 * size);
+  redraw();
+}
+function right () {
+  let size = ic.end - ic.start;
+  ic.start += Math.floor(0.1 * size);
+  ic.end += Math.floor(0.1 * size);
+  redraw();
+}
+function zoomIn () {
+  let size = ic.end - ic.start;
+  ic.start += Math.floor(size * 0.25);
+  ic.end -= Math.floor(size * 0.25);
+  redraw();
+}
+function zoomOut () {
+  let size = ic.end - ic.start;
+  ic.start -= Math.floor(size * 0.5);
+  ic.end += Math.floor(size * 0.5);
+  if (ic.start < 1) {
+    ic.start = 1;
+  }
+  redraw();
+}
+
+function redraw () {
+  ic.disallowDrag = false;
+  drawInteractiveCanvas();
+}
+
+function numberWithCommas (x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function keyMapper (options) {
+  const keystrokeDelay = options.keystrokeDelay || 1000;
+
+  let state = {
+    buffer: '',
+    lastKeyTime: Date.now()
+  };
+
+  document.addEventListener('keydown', event => {
+    const key = event.key;
+    const currentTime = Date.now();
+    const eventType = window.event;
+    const target = eventType.target || eventType.scrElement;
+    const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
+    let buffer = '';
+
+    // Do not listen to keydown events for active fields
+    if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+      return;
+    }
+
+    if (event.keyCode === 13 &&
+            currentTime - state.lastKeyTime < keystrokeDelay) {
+      // Enter was pressed, process previous key presses.
+      if (state.buffer < 24 && state.buffer > 0) {
+        // Display new chromosome
+        ic.chromosome = state.buffer;
+        redraw();
+      }
+    } else if (!isFinite(key)) {
+      // Arrow keys for moving graph
+      switch (event.keyCode) {
+        case 37: // Left arrow
+          left();
+          break;
+        case 39: // Right arrow
+          right();
+          break;
+        case 38: // Up arrow
+          zoomIn();
+          break;
+        case 40: // Down arrow
+          zoomOut();
+          break;
+        default:
+          return;
+      }
+    } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+      // Reset buffer
+      buffer = key;
+    } else {
+      if (state.buffer.length > 1) {
+        // Buffer contains more than two digits, keep the last digit
+        buffer = state.buffer[state.buffer.length - 1] + key;
+      } else {
+        // Add new digit to buffer
+        buffer = state.buffer + key;
+      }
+    }
+
+    // Save current state
+    state = { buffer: buffer, lastKeyTime: currentTime };
+  });
+}

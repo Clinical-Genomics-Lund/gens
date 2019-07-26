@@ -173,7 +173,7 @@
             document.getElementById('region_field').placeholder = '1:100000-200000';
 
             // Draw interactive canvas
-            drawInteractiveCanvas(ic.scene, ic.camera);
+            drawInteractiveCanvas();
 
             let chrom = 1; // First chromosome
             while (chrom <= oc.numChrom) {
@@ -236,7 +236,7 @@
             document.getElementById('region_form').addEventListener('submit',
                     function (event) {
                 event.preventDefault();
-                drawInteractiveCanvas(scene, ic.camera, ic.contentCanvas);
+                drawInteractiveCanvas();
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
@@ -259,16 +259,16 @@
                         x: event.pageX - ic.contentCanvas.offsetLeft,
                         y: event.pageY - ic.contentCanvas.offsetTop
                     };
-                    ic.context.clearRect(0, 0, ic.contentCanvas.width, ic.contentCanvas.height);
-                    ic.context.drawImage(ic.contentCanvas,
-                                0,
-                                0,
-                                ic.contentCanvas.width,
-                                ic.contentCanvas.height,
-                                dragEnd.x - dragStart.x,
-                                0,
-                                ic.contentCanvas.width,
-                                ic.contentCanvas.height);
+                    ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.staticCanvas.width, ic.staticCanvas.height);
+                    ic.staticCanvas.getContext('2d').drawImage(ic.contentCanvas,
+                            0,
+                            0,
+                            ic.staticCanvas.width,
+                            ic.staticCanvas.height,
+                            dragEnd.x - dragStart.x,
+                            0,
+                            ic.staticCanvas.width,
+                            ic.staticCanvas.height);
                 }
             });
 
