@@ -23,6 +23,30 @@ function drawData (scene, data, color) {
   scene.add(points);
 }
 
+// Makes large numbers more readable with commas
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Draws vertical tick marks for selected values between
+// yStart and yEnd with step length.
+// The amplitude scales the values to drawing size
+function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, drawValues) {
+  let lineThickness = 2;
+  let lineWidth = 4;
+
+  for (let step = yStart; step <= yEnd; step += drawStep) {
+    let xStep = (yStart - step) * ampl;
+    let value = numberWithCommas(step.toFixed(0));
+    // Draw text and ticks only for the leftmost box
+    drawRotatedText(canvas, value, 10, x + xStep,
+      y - value.length - 2.5 * ic.yMargin, -Math.PI / 4);
+
+    // Draw tick line
+    drawLine(scene, x + xStep, y - lineWidth, x + xStep, y, lineThickness, 0x000000);
+  }
+}
+
 // Draws tick marks and guide lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
@@ -48,12 +72,12 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, dr
 }
 
 // Draw 90 degree rotated text
-function drawRotatedText (canvas, text, textSize, posx, posy) {
+function drawRotatedText (canvas, text, textSize, posx, posy, rot) {
   let ctx = canvas.getContext('2d');
   ctx.save();
   ctx.font = ''.concat(textSize, 'px Arial');
   ctx.translate(posx, posy); // Position for text
-  ctx.rotate(-Math.PI / 2); // Rotate 90 degrees
+  ctx.rotate(rot); // Rotate rot degrees
   ctx.textAlign = 'center';
   ctx.fillText(text, 0, 9);
   ctx.restore();
@@ -104,9 +128,9 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 function drawStaticContent() {
   // Draw rotated y-axis legends
   drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
-    ic.y + ic.boxHeight / 2);
+    ic.y + ic.boxHeight / 2, -Math.PI / 2);
   drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
-    ic.y + 1.5 * ic.boxHeight);
+    ic.y + 1.5 * ic.boxHeight, -Math.PI / 2);
 
   // Draw BAF
   createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y, ic.boxWidth, ic.boxHeight,
@@ -137,12 +161,20 @@ function drawInteractiveContent () {
     y_margin: ic.yMargin,
     x_ampl: ic.xAmpl
   }, function (result) {
+    // Clear canvas
+    ic.contentCanvas.getContext('2d').clearRect(0, 0,
+      ic.contentCanvas.width, ic.contentCanvas.height);
+
+    // Draw ticks for x-axis
+    let ampl = (ic.boxWidth) / (result['start'] - result['end'])
+    drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y, result['start'],
+      result['end'], ic.boxWidth, Math.floor((result['end'] - result['start']) / 20),
+      ampl, true);
+
     // Plot scatter data
     drawData(ic.scene, result['baf'], '#FF0000');
     drawData(ic.scene, result['data'], '#000000');
     ic.renderer.render(ic.scene, ic.camera);
-    ic.contentCanvas.getContext('2d').clearRect(0, 0,
-      ic.contentCanvas.width, ic.contentCanvas.height);
 
     // Draw chromosome title
     drawText(ic.contentCanvas,
