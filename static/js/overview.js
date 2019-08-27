@@ -100,8 +100,34 @@ function drawBox (scene, x, y, width, height, lineWidth) {
   scene.add(coordAxes);
 }
 
+// Draw static content for interactive canvas
+function drawStaticContent() {
+  // Draw rotated y-axis legends
+  drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
+    ic.y + ic.boxHeight / 2);
+  drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
+    ic.y + 1.5 * ic.boxHeight);
+
+  // Draw BAF
+  createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y, ic.boxWidth, ic.boxHeight,
+    ic.yMargin, baf.yStart, baf.yEnd, baf.step, true);
+
+  // Draw LogR
+  createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y + ic.boxHeight, ic.boxWidth,
+    ic.boxHeight, ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
+
+  ic.renderer.render(ic.scene, ic.camera);
+
+  // Transfer image to visible canvas
+  ic.staticCanvas.getContext('2d').drawImage(
+    ic.drawCanvas.transferToImageBitmap(), 0, 0);
+
+  // Clear draw scene for next render
+  ic.scene.remove.apply(ic.scene, ic.scene.children);
+}
+
 // Draw values for interactive canvas
-function drawInteractiveCanvas () {
+function drawInteractiveContent () {
   $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
     region: document.getElementById('region_field').placeholder,
     median: logRMedian,
@@ -111,39 +137,25 @@ function drawInteractiveCanvas () {
     y_margin: ic.yMargin,
     x_ampl: ic.xAmpl
   }, function (result) {
-    // Draw chromosome title
-    drawText(ic.staticCanvas,
-      result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
-      result['y_pos'] - ic.titleMargin,
-      'Chromosome ' + result['chrom'], 15, 'center');
-
-    // Draw rotated y-axis legends
-    drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
-      ic.y + ic.boxHeight / 2);
-    drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
-      ic.y + 1.5 * ic.boxHeight);
-
-    // Draw BAF
-    createGraph(ic.scene, ic.staticCanvas,
-      result['x_pos'] - ic.xMargin,
-      result['y_pos'], ic.boxWidth,
-      ic.boxHeight, ic.yMargin,
-      baf.yStart, baf.yEnd, baf.step, true);
-
-    // Draw LogR
-    createGraph(ic.scene, ic.staticCanvas,
-      result['x_pos'] - ic.xMargin,
-      result['y_pos'] + ic.boxHeight, ic.boxWidth, ic.boxHeight,
-      ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
-
     // Plot scatter data
     drawData(ic.scene, result['baf'], '#FF0000');
     drawData(ic.scene, result['data'], '#000000');
     ic.renderer.render(ic.scene, ic.camera);
     ic.contentCanvas.getContext('2d').clearRect(0, 0,
       ic.contentCanvas.width, ic.contentCanvas.height);
+
+    // Draw chromosome title
+    drawText(ic.contentCanvas,
+      result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
+      result['y_pos'] - ic.titleMargin,
+      'Chromosome ' + result['chrom'], 15, 'center');
+
+    // Transfer image to visible canvas
     ic.contentCanvas.getContext('2d').drawImage(
       ic.drawCanvas.transferToImageBitmap(), 0, 0);
+
+    // Clear draw scene for next render
+    ic.scene.remove.apply(ic.scene, ic.scene.children);
 
     // Set values
     ic.chromosome = result['chrom'];
@@ -154,7 +166,7 @@ function drawInteractiveCanvas () {
     inputField.blur();
   }).fail(function (result) {
     console.log('Bad input');
-    inputField.placeholder = 'Bad input: ' + inputField.value;
+    inputField.placeholder = 'Bad input: ' + inputField.placeholder;
     inputField.value = '';
   });
 }
@@ -189,7 +201,8 @@ function zoomOut () {
 
 function redraw () {
   ic.disallowDrag = false;
-  drawInteractiveCanvas();
+  inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
+  drawInteractiveContent();
 }
 
 function numberWithCommas (x) {

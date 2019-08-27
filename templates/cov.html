@@ -173,8 +173,17 @@
             // Set first input field value for ic
             document.getElementById('region_field').placeholder = '1:100000-200000';
 
+            // Only want to see fourth quadrant of scene
+            oc.camera.position.x = oc.width / 2 - lineMargin;
+            oc.camera.position.y = oc.height / 2 - lineMargin;
+            oc.camera.position.z = 1;
+            ic.camera.position.x = ic.width / 2 - lineMargin;
+            ic.camera.position.y = ic.height / 2 - lineMargin;
+            ic.camera.position.z = 1;
+
             // Draw interactive canvas
-            drawInteractiveCanvas();
+            drawStaticContent();
+            drawInteractiveContent();
 
             let chrom = 1; // First chromosome
             let drawnChrom = 0; // Amount of async drawn chromosomes
@@ -243,7 +252,7 @@
             document.getElementById('region_form').addEventListener('submit',
                     function (event) {
                 event.preventDefault();
-                drawInteractiveCanvas();
+                drawInteractiveContent();
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
