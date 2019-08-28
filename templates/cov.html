@@ -187,8 +187,8 @@
 
             let chrom = 1; // First chromosome
             let drawnChrom = 0; // Amount of async drawn chromosomes
+            let yPos = oc.y + oc.rowMargin;
             while (chrom <= oc.numChrom) {
-                let yPos = oc.y + oc.rowMargin;
                 // Fill row with graphs, start on new row when full
                 for (let xPos = oc.x; (xPos + oc.boxWidth < $(document).innerWidth()) && (chrom <= oc.numChrom); xPos += oc.boxWidth) {
                     // Draw data
