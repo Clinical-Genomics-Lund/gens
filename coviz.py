@@ -83,6 +83,7 @@ def get_overview_cov():
     xpos = float(request.args.get('xpos', 1))
     ypos = float(request.args.get('ypos', 1))
     box_height = float(request.args.get('boxHeight', 1))
+    extraBoxWidth = float(request.args.get('boxHeight', 0))
     y_margin = float(request.args.get('y_margin', 1))
     x_ampl = float(request.args.get('x_ampl', 1))
 
@@ -98,24 +99,45 @@ def get_overview_cov():
         return abort(416)
 
     res, chrom, start_pos, end_pos = parsed_region
-    x_ampl = x_ampl / (end_pos - start_pos)
+    if start_pos < 0:
+        end_pos += start_pos
+        start_pos = 0
 
+    # Add extra data to edges
+    new_start_pos = int(start_pos - extraBoxWidth * ((end_pos - start_pos) / x_ampl)) \
+        if start_pos > 0 else 0
+    new_end_pos = int(end_pos + extraBoxWidth * ((end_pos - start_pos) / x_ampl))
+    left_extra_width = extraBoxWidth
+
+    # No extra data
+    if new_start_pos == 0:
+        left_extra_width = 0
+    # Move negative position to zero
+    elif new_start_pos < 0:
+        new_start_pos = 0
+        left_extra_width = start_pos / ((end_pos - start_pos) / x_ampl)
+        if left_extra_width < 0:
+            left_extra_width = 0
+    # Contains the total width to plot x data on
+    x_ampl += left_extra_width + extraBoxWidth
+    x_ampl = x_ampl / (new_end_pos - new_start_pos)
+    xpos -= left_extra_width
 
     cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    logr_list = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
+    logr_list = list(tabix_query(cov_file, res + '_' + chrom, int(new_start_pos), int(new_end_pos)))
 
     #  Normalize and calculate the Log R Ratio
     logr_records = []
     for record in logr_list:
-        logr_records.extend([xpos + x_ampl * (float(record[1]) - start_pos),
+        logr_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
                              logr_ypos - logr_ampl *
                              math.log(float(record[3]) / median + 1, 2), 0])
 
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf_list = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
+    baf_list = list(tabix_query(baf_file, chrom, int(new_start_pos), int(new_end_pos)))
     baf_records = []
     for record in baf_list:
-        baf_records.extend([xpos + x_ampl * (float(record[1]) - start_pos),
+        baf_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
                             baf_ypos - baf_ampl * float(record[3]), 0])
 
     if not logr_records or not baf_records:
@@ -123,8 +145,8 @@ def get_overview_cov():
         return abort(404)
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
-                   chrom=chrom, x_pos=xpos, y_pos=ypos,
-                   start=start_pos, end=end_pos)
+                   chrom=chrom, x_pos=xpos + left_extra_width, y_pos=ypos,
+                   start=start_pos, end=end_pos, left_extra_width=left_extra_width)
 
 ### Help functions ###
 
@@ -135,7 +157,18 @@ def parse_region_str(region):
     if ":" in region and "-" in region:
         try:
             chrom, pos_range = region.split(':')
-            start_pos, end_pos = pos_range.split('-')
+            pos = pos_range.split('-')
+
+            # Wrong format
+            if len(pos) > 3:
+                raise ValueError
+            # Negative start position
+            if pos[0] == '':
+                start_pos = 0
+                end_pos = int(pos[2]) + int(pos[1])
+            # Positive values and correct format
+            else:
+                start_pos, end_pos = pos
         except ValueError:
             return None
     else:

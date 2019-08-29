@@ -158,6 +158,7 @@ function drawInteractiveContent () {
     xpos: ic.x + ic.xMargin,
     ypos: ic.y,
     boxHeight: ic.boxHeight,
+    extraBoxWidth: ic.extraWidth,
     y_margin: ic.yMargin,
     x_ampl: ic.xAmpl
   }, function (result) {
@@ -193,6 +194,7 @@ function drawInteractiveContent () {
     ic.chromosome = result['chrom'];
     ic.start = result['start'];
     ic.end = result['end'];
+    inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
 
   }).done(function () {
     inputField.blur();
