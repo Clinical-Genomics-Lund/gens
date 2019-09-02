@@ -1,10 +1,10 @@
 // Creates a graph for one chromosome data type
 function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
-  yEnd, step, drawValues) {
-  let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
-
+  yEnd, step, addTicks) {
   // Draw tick marks
-  drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, width, step, ampl, drawValues);
+  if (addTicks) {
+    drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width, height);
+  }
 
   // Draw surrounding coordinate box
   drawBox(scene, x, y, width, height, 2);
@@ -23,17 +23,12 @@ function drawData (scene, data, color) {
   scene.add(points);
 }
 
-// Makes large numbers more readable with commas
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
 // Draws vertical tick marks for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, drawValues) {
+function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl) {
   let lineThickness = 2;
-  let lineWidth = 4;
+  let lineWidth = 5;
 
   for (let step = yStart; step <= yEnd; step += drawStep) {
     let xStep = (yStart - step) * ampl;
@@ -47,27 +42,36 @@ function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, 
   }
 }
 
-// Draws tick marks and guide lines for selected values between
+// Draws horizontal lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, ampl, drawValues) {
+function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
+  let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
   let lineWidth = 4;
 
   for (let step = yStart; step >= yEnd; step -= drawStep) {
-    // Draw guide line
-    drawLine(scene, x, y + (yStart - step) * ampl, x + width,
-      y + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
+    // Draw horizontal line
+    drawLine(scene, x, y + yMargin + (yStart - step) * ampl, x + width,
+      y + yMargin + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
+  }
+}
 
-    // Draw text and ticks only for the leftmost box
-    if (drawValues) {
-      // TODO: fix correct centering
-      drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
-        step.toFixed(1), 10, 'right');
+// Draws tick marks for selected values between
+// yStart and yEnd with step length.
+// The amplitude scales the values to drawing size
+function drawTicks (scene, canvas, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
+  let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
+  let lineThickness = 2;
+  let lineWidth = 4;
 
-      // Draw tick line
-      drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
-    }
+  for (let step = yStart; step >= yEnd; step -= drawStep) {
+    // TODO: fix correct centering
+    drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
+      step.toFixed(1), 10, 'right');
+
+    // Draw tick line
+    drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
   }
 }
 
@@ -126,6 +130,14 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 
 // Draw static content for interactive canvas
 function drawStaticContent() {
+  // Fill background colour
+  ic.staticCanvas.getContext('2d').fillStyle = "white";
+  ic.staticCanvas.getContext('2d').fillRect(0, 0, ic.width, ic.height);
+
+  // Make content area visible
+  ic.staticCanvas.getContext('2d').clearRect(ic.x + 1, ic.y + 1, ic.boxWidth, ic.width);
+  ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.y + 2);
+
   // Draw rotated y-axis legends
   drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
     ic.y + ic.boxHeight / 2, -Math.PI / 2);
@@ -146,7 +158,7 @@ function drawStaticContent() {
   ic.staticCanvas.getContext('2d').drawImage(
     ic.drawCanvas.transferToImageBitmap(), 0, 0);
 
-  // Clear draw scene for next render
+  // Clear scene for next render
   ic.scene.remove.apply(ic.scene, ic.scene.children);
 }
 
@@ -170,7 +182,13 @@ function drawInteractiveContent () {
     let ampl = (ic.boxWidth) / (result['start'] - result['end'])
     drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y, result['start'],
       result['end'], ic.boxWidth, Math.floor((result['end'] - result['start']) / 20),
-      ampl, true);
+      ampl);
+
+    // Draw horizontal lines for BAF and LogR
+    drawGraphLines(ic.scene, 0, result['y_pos'],
+      baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.width, ic.boxHeight);
+    drawGraphLines(ic.scene, 0, result['y_pos'] + ic.boxHeight,
+      logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.width, ic.boxHeight);
 
     // Plot scatter data
     drawData(ic.scene, result['baf'], '#FF0000');
@@ -187,7 +205,7 @@ function drawInteractiveContent () {
     ic.contentCanvas.getContext('2d').drawImage(
       ic.drawCanvas.transferToImageBitmap(), 0, 0);
 
-    // Clear draw scene for next render
+    // Clear scene before drawing
     ic.scene.remove.apply(ic.scene, ic.scene.children);
 
     // Set values
@@ -195,7 +213,6 @@ function drawInteractiveContent () {
     ic.start = result['start'];
     ic.end = result['end'];
     inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
-
   }).done(function () {
     inputField.blur();
   }).fail(function (result) {
@@ -239,6 +256,7 @@ function redraw () {
   drawInteractiveContent();
 }
 
+// Makes large numbers more readable with commas
 function numberWithCommas (x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

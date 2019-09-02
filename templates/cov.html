@@ -144,6 +144,7 @@
                 yMargin: 5, // margin for top and bottom in graph
                 xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
                 extraWidth: 200, // Width for loading in extra edge data
+                moveImg: null, // Placeholder for image copy of contentCanvas
 
                 // Data values
                 chromosome: null,
@@ -224,6 +225,7 @@
                                 result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
                                 baf.yStart, baf.yEnd, baf.step,
                                 result['x_pos'] < oc.leftmostPoint);
+                        drawGraphLines(oc.scene, result['x_pos'], result['y_pos'], baf.yStart, baf.yEnd, baf.step, oc.yMargin, oc.boxWidth, oc.boxHeight);
 
                         // Draw LogR
                         createGraph(oc.scene, staticCanvas,
@@ -232,6 +234,10 @@
                                 oc.boxHeight, oc.yMargin, logr.yStart,
                                 logr.yEnd, logr.step,
                                 result['x_pos'] < oc.leftmostPoint);
+                        drawGraphLines(oc.scene, result['x_pos'],
+                                result['y_pos'] + oc.boxHeight, logr.yStart,
+                                logr.yEnd, logr.step, oc.yMargin,
+                                oc.boxWidth, oc.boxHeight);
 
                         // Plot scatter data
                         drawData(oc.scene, result['baf'], '#FF0000');
@@ -266,6 +272,7 @@
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
+                ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(0, ic.y + 2, ic.width, ic.height);
                 if (!ic.disallowDrag) {
                     dragStart = {
                         x: event.pageX - ic.contentCanvas.offsetLeft,
@@ -286,23 +293,22 @@
                         y: event.pageY - ic.contentCanvas.offsetTop
                     };
 
+
+                    // Clear whole content canvas
                     ic.contentCanvas.getContext('2d').clearRect(0, 0,
                             ic.contentCanvas.width, ic.contentCanvas.height);
-                    ic.contentCanvas.getContext('2d').drawImage(
-                            ic.drawCanvas,
-                            0,
-                            0,
-                            ic.contentCanvas.width,
-                            ic.contentCanvas.height,
-                            dragEnd.x - dragStart.x,
-                            0,
-                            ic.contentCanvas.width,
-                            ic.contentCanvas.height);
+
+                    // Copy draw image to content Canvas
+                    ic.contentCanvas.getContext('2d').putImageData(
+                        ic.moveImg,
+                        dragEnd.x - dragStart.x,
+                        ic.y + 2);
                 }
             });
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
+                    ic.moveImg = null;
                     drag = false;
                     let scale = ic.contentCanvas.width / (ic.end - ic.start);
                     let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
