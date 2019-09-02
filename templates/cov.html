@@ -310,7 +310,7 @@
                 if (drag) {
                     ic.moveImg = null;
                     drag = false;
-                    let scale = ic.contentCanvas.width / (ic.end - ic.start);
+                    let scale = ic.boxWidth / (ic.end - ic.start);
                     let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
                     if (ic.start + moveDist < 0) {
                         moveDist -= (ic.start + moveDist);
