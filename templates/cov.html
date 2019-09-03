@@ -2,38 +2,42 @@
 <html>
     <head>
         <meta charset=utf-8>
-        <link rel="stylesheet" href="static/css/cov.css" type="text/css">
-        <script src="https://use.fontawesome.com/releases/v5.10.2/js/all.js" data-auto-replace-svg="nest"></script>
-        <link rel="icon" href="data:,">
-        <script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
+        <link rel='stylesheet' href='static/css/cov.css' type='text/css'>
+        <script src='https://use.fontawesome.com/releases/v5.10.2/js/all.js' data-auto-replace-svg='nest'></script>
+        <link rel='icon' href='data:,'>
+        <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
         <html>
-            <div class="grid-container">
-                <div id="interactive-container">
+            <div id='progress-container'>
+                <progress value="0" max="1" id='progress-bar'></progress>
+            </div>
+
+            <div id='grid-container'>
+                <div id='interactive-container'>
                     <canvas id='interactive-content'></canvas>
                     <canvas id='interactive-static'></canvas>
                 </div>
 
-                <div id="button-container">
-                    <button onclick="left();">
-                        <span class="fas fa-arrow-left" title='Left'></span>
+                <div id='button-container'>
+                    <button onclick='left();'>
+                        <span class='fas fa-arrow-left' title='Left'></span>
                     </button>
-                    <button onclick="right();">
-                        <span class="fas fa-arrow-right" title='Right'></span>
+                    <button onclick='right();'>
+                        <span class='fas fa-arrow-right' title='Right'></span>
                     </button>
-                    <button onclick="zoomIn();">
-                        <span class="fas fa-search-plus" title='Zoom in'></span>
+                    <button onclick='zoomIn();'>
+                        <span class='fas fa-search-plus' title='Zoom in'></span>
                     </button>
-                    <button onclick="zoomOut();">
-                        <span class="fas fa-search-minus" title='Zoom out'></span>
+                    <button onclick='zoomOut();'>
+                        <span class='fas fa-search-minus' title='Zoom out'></span>
                     </button>
-                    <form id="region_form">
+                    <form id='region_form'>
                         <input name='region' id='region_field' type='text' size=20>
                         <input type='submit' title='Submit range'>
                     </form>
                 </div>
 
-                <div id="overview-container">
+                <div id='overview-container'>
                     <canvas id='overview-static'></canvas>
                 </div>
             </div>
@@ -41,16 +45,21 @@
     </head>
 
     <body>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/overview.js')}}"></script>
+        <script type='text/javascript' src='{{ url_for('static', filename='js/overview.js')}}'></script>
 
         <script>
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
+            // Hide non-rendered content
+            window.onload = (event) => {
+                document.getElementById('grid-container').style.visibility = 'hidden';
+            };
+
             // FLASK VALUES //
             let logRMedian = {{ median }};
-            let title = "{{ title }}";
+            let title = '{{ title }}';
 
-            let callChrom = "{{ call_chrom }}";
+            let callChrom = '{{ call_chrom }}';
             let callStart = {{ call_start }};
             let callEnd   = {{ call_end }};
 
@@ -92,7 +101,7 @@
                 boxHeight: 130, // Height of one box
                 x: null, // X-position for box
                 y: 20, // Y-position for box
-                numChrom: 1, // Number of displayable chromosomes
+                numChrom: 20, // Number of displayable chromosomes
                 rowMargin: 30, // margin between rows
                 titleMargin: 10, // Margin between box and title
                 xMargin: 2, // margin for x-axis in graph
@@ -225,7 +234,9 @@
                                 result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
                                 baf.yStart, baf.yEnd, baf.step,
                                 result['x_pos'] < oc.leftmostPoint);
-                        drawGraphLines(oc.scene, result['x_pos'], result['y_pos'], baf.yStart, baf.yEnd, baf.step, oc.yMargin, oc.boxWidth, oc.boxHeight);
+                        drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
+                                baf.yStart, baf.yEnd, baf.step, oc.yMargin,
+                                oc.boxWidth, oc.boxHeight);
 
                         // Draw LogR
                         createGraph(oc.scene, staticCanvas,
@@ -246,8 +257,17 @@
                         if (++drawnChrom == oc.numChrom) {
                             // Render scene and transfer to visible canvas
                             oc.renderer.render(oc.scene, oc.camera);
-                            oc.staticCanvas.getContext('2d').drawImage(oc.contentCanvas.transferToImageBitmap(), 0, 0);
+                            oc.staticCanvas.getContext('2d').drawImage(
+                                    oc.contentCanvas.transferToImageBitmap(), 0, 0);
+                            document.getElementById('progress-bar').remove();
+                            document.getElementById('progress-container').remove();
+                            document.getElementById('grid-container').style.visibility =
+                                'visible';
+                        } else {
+                            document.getElementById('progress-bar').value =
+                                drawnChrom / oc.numChrom;
                         }
+
                     });
                     chrom++;
                 }
@@ -272,7 +292,8 @@
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
-                ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(0, ic.y + 2, ic.width, ic.height);
+                ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
+                        0, ic.y + 2, ic.width, ic.height);
                 if (!ic.disallowDrag) {
                     dragStart = {
                         x: event.pageX - ic.contentCanvas.offsetLeft,
