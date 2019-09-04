@@ -93,15 +93,13 @@
                 // Canvas variables
                 width: $(document).innerWidth(), // Canvas width
                 height: 800, // Canvas height
-                resStart: 0, // Start value for overview graph
-                resEnd: 245000000, // End value for overview graph
 
                 // Box variables
                 boxWidth: 120, // Width of one box
                 boxHeight: 130, // Height of one box
                 x: null, // X-position for box
                 y: 20, // Y-position for box
-                numChrom: 20, // Number of displayable chromosomes
+                numChrom: 24, // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
                 rowMargin: 30, // margin between rows
                 titleMargin: 10, // Margin between box and title
                 xMargin: 2, // margin for x-axis in graph
@@ -213,7 +211,7 @@
                 for (let xPos = oc.x; (xPos + oc.boxWidth < $(document).innerWidth()) && (chrom <= oc.numChrom); xPos += oc.boxWidth) {
                     // Draw data
                     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
-                        region: chrom + ':' + oc.resStart + '-' + oc.resEnd,
+                        region: chrom + ':0-None',
                         median: logRMedian,
                         xpos: xPos + oc.xMargin,
                         ypos: yPos,
@@ -254,6 +252,7 @@
                         drawData(oc.scene, result['baf'], '#FF0000');
                         drawData(oc.scene, result['data'], '#000000');
 
+                    }).done(function (result){
                         if (++drawnChrom == oc.numChrom) {
                             // Render scene and transfer to visible canvas
                             oc.renderer.render(oc.scene, oc.camera);
@@ -267,7 +266,8 @@
                             document.getElementById('progress-bar').value =
                                 drawnChrom / oc.numChrom;
                         }
-
+                    }).fail(function (result){
+                        drawnChrom++;
                     });
                     chrom++;
                 }

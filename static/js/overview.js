@@ -170,7 +170,7 @@ function drawInteractiveContent () {
     xpos: ic.x + ic.xMargin,
     ypos: ic.y,
     boxHeight: ic.boxHeight,
-    extraBoxWidth: ic.extraWidth,
+    extra_box_width: ic.extraWidth,
     y_margin: ic.yMargin,
     x_ampl: ic.xAmpl
   }, function (result) {
