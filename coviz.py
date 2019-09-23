@@ -207,7 +207,7 @@ def parse_region_str(region):
         chrom.lstrip('chr')
 
     if end_pos == 'None':
-        resolution = 'd'
+        resolution = 'a'
     else:
         start_pos = int(start_pos)
         end_pos = int(end_pos)
