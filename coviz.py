@@ -4,7 +4,7 @@ Whole genome visualization of BAF and log R ratio
 
 import json
 import math
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, CalledProcessError
 from flask import Flask, request, render_template, jsonify, abort, Response
 
 APP = Flask(__name__)
@@ -25,13 +25,7 @@ def coverage_view():
     if not parsed_region:
         return abort(416)
 
-    res, chrom, start_pos, end_pos = parsed_region
-
-    cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    records = list(tabix_query(cov_file, res + '_' + chrom, int(start_pos), int(end_pos)))
-
-    baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
+    _, chrom, start_pos, end_pos = parsed_region
 
     # Get sample information
     sample_file = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
@@ -40,9 +34,9 @@ def coverage_view():
     median = float(sample_data['median_depth'])
     title = sample_data['sample_name']
 
-    return render_template('cov.html', chrom=chrom, start=start_pos,
-            end=end_pos, call_chrom=call_chrom, call_start=call_start,
-            call_end=call_end, median=median, title=title)
+    return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
+                           call_chrom=call_chrom, call_start=call_start,
+                           call_end=call_end, median=median, title=title)
 
 @APP.route('/_getoverviewcov', methods=['GET'])
 def get_overview_cov():
@@ -143,11 +137,9 @@ def get_overview_cov():
         print('No records')
         return abort(404)
 
-    return Response(json.dumps({'data':logr_records, 'baf':baf_records,
-                                'chrom':chrom, 'x_pos':xpos + left_extra_width, 'y_pos':ypos,
-                                'start':start_pos, 'end':end_pos,
-                                'left_extra_width':left_extra_width
-                               }), mimetype='application/json')
+    return jsonify(data=logr_records, baf=baf_records, status="ok",
+                   chrom=chrom, x_pos=xpos + left_extra_width, y_pos=ypos,
+                   start=start_pos, end=end_pos, left_extra_width=left_extra_width)
 
 ### Help functions ###
 
@@ -155,8 +147,8 @@ def parse_region_str(region):
     '''
     Parses a region string
     '''
-    if ":" in region and "-" in region:
-        try:
+    try:
+        if ":" in region and "-" in region:
             chrom, pos_range = region.split(':')
             pos = pos_range.split('-')
 
@@ -170,15 +162,11 @@ def parse_region_str(region):
             # Positive values and correct format
             else:
                 start_pos, end_pos = pos
-        except ValueError:
-            return None
-    else:
-        try:
+        else:
             chrom, start_pos, end_pos = region.split()
-        except ValueError:
-            return None
-    if "chr" in chrom:
-        chrom.lstrip('chr')
+    except ValueError:
+        return None
+    chrom.replace('chr', '')
 
     if end_pos == 'None':
         resolution = 'a'
@@ -207,7 +195,7 @@ def tabix_query(filename, chrom, start=None, end=None):
         query = '{}:{}-{}'.format(chrom, start, end)
     try:
         process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
-    except:
+    except CalledProcessError:
         print('Could not open ' + filename)
     else:
         for line in process.stdout:
