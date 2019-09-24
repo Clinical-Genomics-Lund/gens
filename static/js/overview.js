@@ -52,7 +52,9 @@ function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, he
 
   for (let step = yStart; step >= yEnd; step -= drawStep) {
     // Draw horizontal line
-    drawLine(scene, x, y + yMargin + (yStart - step) * ampl, x + width,
+    drawLine(scene, x,
+      y + yMargin + (yStart - step) * ampl,
+      x + width - 2 * lineThickness,
       y + yMargin + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
   }
 }
@@ -130,13 +132,15 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 
 // Draw static content for interactive canvas
 function drawStaticContent() {
+  let linePadding = 2;
   // Fill background colour
   ic.staticCanvas.getContext('2d').fillStyle = "white";
   ic.staticCanvas.getContext('2d').fillRect(0, 0, ic.width, ic.height);
 
   // Make content area visible
-  ic.staticCanvas.getContext('2d').clearRect(ic.x + 1, ic.y + 1, ic.boxWidth, ic.width);
-  ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.y + 2);
+  ic.staticCanvas.getContext('2d').clearRect(ic.x + linePadding, ic.y + linePadding,
+                                             ic.boxWidth, ic.width);
+  ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.y + linePadding);
 
   // Draw rotated y-axis legends
   drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,

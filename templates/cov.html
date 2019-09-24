@@ -267,6 +267,7 @@
                                 drawnChrom / oc.numChrom;
                         }
                     }).fail(function (result){
+                        console.log(result['responseText'])
                         drawnChrom++;
                     });
                     chrom++;

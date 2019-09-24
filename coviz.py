@@ -44,36 +44,6 @@ def coverage_view():
             end=end_pos, call_chrom=call_chrom, call_start=call_start,
             call_end=call_end, median=median, title=title)
 
-@APP.route('/_getcov', methods=['GET'])
-def get_cov():
-    '''
-    Method for redrawing region on button change
-    '''
-    region = request.args.get('region', '1:100000-200000')
-    median = float(request.args.get('median', 1))
-
-    parsed_region = parse_region_str(region)
-    if not parsed_region:
-        return abort(416)
-
-    res, chrom, start_pos, end_pos = parsed_region
-
-    cov_file = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-    records = list(tabix_query(cov_file, res+'_'+chrom, int(start_pos), int(end_pos)))
-
-    baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
-    baf_records = list(tabix_query(baf_file, chrom, int(start_pos), int(end_pos)))
-
-    #  Normalize and calculate the Log R Ratio
-    records = [[record[0], record[1], record[2], str(math.log(float(record[3]) / median + 1, 2))]
-               for record in records]
-
-    if not records or not baf_records:
-        return abort(404)
-
-    return jsonify(data=records, baf=baf_records, status="ok", chrom=chrom,
-                   start=start_pos, end=end_pos)
-
 @APP.route('/_getoverviewcov', methods=['GET'])
 def get_overview_cov():
     '''
@@ -140,6 +110,10 @@ def get_overview_cov():
     baf_file = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
     logr_list = list(tabix_query(cov_file, res + '_' + chrom, new_start_pos, new_end_pos))
     baf_list = list(tabix_query(baf_file, chrom, new_start_pos, new_end_pos))
+
+    if not logr_list or not baf_list:
+        print('Data for chromosome {} not available'.format(chrom))
+        return abort(Response('Data for chromosome {} not available'.format(chrom)))
 
     # Set end position now that data is loaded
     if not new_end_pos:
