@@ -4,6 +4,7 @@ Whole genome visualization of BAF and log R ratio
 
 import json
 import math
+import os
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from flask import Flask, request, render_template, jsonify, abort, Response
@@ -11,11 +12,11 @@ from flask import Flask, request, render_template, jsonify, abort, Response
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
-REQUEST = namedtuple('request', ('region', 'median', 'ypos', 'box_height',
-                                 'extra_box_width', 'y_margin'))
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
+REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
+REQUEST = namedtuple('request', ('region', 'median', 'x_pos', 'y_pos', 'box_height', 'y_margin'))
 
+SAMPLE_FILE = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
 COV_FILE = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
 BAF_FILE = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
 
@@ -37,8 +38,7 @@ def coverage_view():
     _, chrom, start_pos, end_pos = parsed_region
 
     # Get sample information
-    sample_file = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
-    with open(sample_file) as data_file:
+    with open(SAMPLE_FILE) as data_file:
         sample_data = json.load(data_file)
     median = float(sample_data['median_depth'])
     title = sample_data['sample_name']
@@ -47,37 +47,26 @@ def coverage_view():
                            call_chrom=call_chrom, call_start=call_start,
                            call_end=call_end, median=median, title=title)
 
-def get_request_var():
+# Set graph-specific values
+def set_graph_values(box_height, ypos, y_margin):
     '''
-    Fetches request variables and crunches graph and region variables
+    Returns graph-specific values as named tuple
     '''
-    req = REQUEST(
-        request.args.get('region', '1:100000-200000'),
-        float(request.args.get('median', 1)),
-        float(request.args.get('ypos', 1)),
-        float(request.args.get('boxHeight', 1)),
-        float(request.args.get('extra_box_width', 0)),
-        float(request.args.get('y_margin', 1))
-    )
-    xpos = float(request.args.get('xpos', 1))
-    x_ampl = float(request.args.get('x_ampl', 1))
-
-    # Set graph-specific values
-    graph = GRAPH(
-        req.box_height - 2 * req.y_margin,
-        (req.box_height - req.y_margin * 2) / 8,
-        req.ypos + req.box_height - req.y_margin,
-        req.ypos + 1.5 * req.box_height
+    return GRAPH(
+        box_height - 2 * y_margin,
+        (box_height - y_margin * 2) / 8,
+        ypos + box_height - y_margin,
+        ypos + 1.5 * box_height
     )
 
-    parsed_region = parse_region_str(req.region)
-    if not parsed_region:
-        print('No parsed region')
-        return abort(416)
-
+def set_region_values(parsed_region, x_ampl):
+    '''
+    Sets region values
+    '''
+    extra_box_width = float(request.args.get('extra_box_width', 0))
     res, chrom, start_pos, end_pos = parsed_region
 
-    # Move start position and end_pos to positive values
+    # Move negative start and end position to positive values
     if start_pos != 'None' and int(start_pos) < 0:
         end_pos += start_pos
         start_pos = 0
@@ -88,12 +77,11 @@ def get_request_var():
     elif chrom == '24':
         chrom = 'Y'
 
-    # If no range is defined, fetch all available data
+
+    # If no range is defined, set to fetch all available data
     if end_pos == 'None':
-        new_start_pos = None
-        new_end_pos = None
-        left_extra_width = 0
-        extra_box_width = 0
+        new_start_pos = new_end_pos = None
+        extra_box_width = left_extra_width = 0
     else:
         # Add extra data to edges
         new_start_pos = int(start_pos - extra_box_width * ((end_pos - start_pos) / x_ampl)) \
@@ -101,55 +89,48 @@ def get_request_var():
         new_end_pos = int(end_pos + extra_box_width * ((end_pos - start_pos) / x_ampl))
         left_extra_width = extra_box_width
 
-        # No extra data
-        if new_start_pos == 0:
-            left_extra_width = 0
         # Move negative position to zero
-        elif new_start_pos < 0:
+        if new_start_pos <= 0:
             new_start_pos = 0
-            left_extra_width = start_pos / ((end_pos - start_pos) / x_ampl)
-            if left_extra_width < 0:
-                left_extra_width = 0
+            left_extra_width = 0
 
-    # X ampl contains the total width to plot x data on
     x_ampl += left_extra_width + extra_box_width
-    x_ampl = x_ampl / (new_end_pos - new_start_pos)
-    xpos -= left_extra_width
+    return REGION(res, chrom, start_pos, end_pos), \
+           new_start_pos, new_end_pos, x_ampl, left_extra_width
 
-    return REGION(res, chrom, start_pos, end_pos), req, graph, xpos, x_ampl, \
-            start_pos, new_start_pos, new_end_pos, left_extra_width
-
-@APP.route('/_getoverviewcov', methods=['GET'])
-def get_overview_cov():
+def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
-    Reads and computes LogR and BAF values for overview graph
+    Loads in data for LogR and BAF
     '''
-
-    region, req, graph, xpos, x_ampl, start_pos, new_start_pos, new_end_pos, \
-            left_extra_width = get_request_var()
-
     # Fetch data with the defined range
-    logr_list = list(tabix_query(COV_FILE, region.res + '_' + region.chrom,
+    logr_list = list(tabix_query(COV_FILE, reg.res + '_' + reg.chrom,
                                  new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(BAF_FILE, region.chrom, new_start_pos, new_end_pos))
+    baf_list = list(tabix_query(BAF_FILE, reg.chrom, new_start_pos, new_end_pos))
 
     if not logr_list or not baf_list:
-        print('Data for chromosome {} not available'.format(region.chrom))
-        return abort(Response('Data for chromosome {} not available'.format(region.chrom)))
+        print('Data for chromosome {} not available'.format(reg.chrom))
+        return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
 
     # Set end position now that data is loaded
     if not new_end_pos:
-        start_pos = new_start_pos = 0
-        end_pos = new_end_pos = max(int(logr_list[len(logr_list) - 1][1]),
-                                    int(baf_list[len(baf_list) - 1][1]))
-    print(end_pos)
+        new_start_pos = 0
+        new_end_pos = max(int(logr_list[len(logr_list) - 1][1]),
+                          int(baf_list[len(baf_list) - 1][1]))
 
+    # X ampl contains the total width to plot x data on
+    x_ampl = x_ampl / (new_end_pos - new_start_pos)
+    return logr_list, baf_list, new_start_pos, x_ampl
+
+def set_data(graph, logr_list, baf_list, xpos, new_start_pos, x_ampl, median):
+    '''
+    Edits data for LogR and BAF
+    '''
     #  Normalize and calculate the Log R Ratio
     logr_records = []
     for record in logr_list:
         logr_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
                              graph.logr_ypos - graph.logr_ampl *
-                             math.log(float(record[3]) / req.median + 1, 2), 0])
+                             math.log(float(record[3]) / median + 1, 2), 0])
 
     # Gather the BAF records
     baf_records = []
@@ -157,13 +138,47 @@ def get_overview_cov():
         baf_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
                             graph.baf_ypos - graph.baf_ampl * float(record[3]), 0])
 
+    return logr_records, baf_records
+
+
+@APP.route('/_getoverviewcov', methods=['GET'])
+def get_overview_cov():
+    '''
+    Reads and computes LogR and BAF values for overview graph
+    '''
+    req = REQUEST(
+        request.args.get('region', '1:100000-200000'),
+        float(request.args.get('median', 1)),
+        float(request.args.get('xpos', 1)),
+        float(request.args.get('ypos', 1)),
+        float(request.args.get('boxHeight', 1)),
+        float(request.args.get('y_margin', 1))
+    )
+    x_ampl = float(request.args.get('x_ampl', 1))
+
+    graph = set_graph_values(req.box_height, req.y_pos, req.y_margin)
+
+    parsed_region = parse_region_str(req.region)
+    if not parsed_region:
+        print('No parsed region')
+        return abort(416)
+
+    reg, new_start_pos, new_end_pos, x_ampl, left_extra_width = \
+        set_region_values(parsed_region, x_ampl)
+
+    logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
+                                                           new_end_pos, x_ampl)
+    logr_records, baf_records = set_data(graph, logr_list, baf_list,
+                                         req.x_pos - left_extra_width, new_start_pos,
+                                         x_ampl, req.median)
+
     if not logr_records or not baf_records:
         print('No records')
         return abort(404)
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
-                   chrom=region.chrom, x_pos=xpos + left_extra_width, y_pos=req.ypos,
-                   start=start_pos, end=end_pos, left_extra_width=left_extra_width)
+                   chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos, start=reg.start_pos,
+                   end=reg.end_pos, left_extra_width=left_extra_width)
 
 ### Help functions ###
 
@@ -224,68 +239,3 @@ def tabix_query(filename, chrom, start=None, end=None):
     else:
         for line in process.stdout:
             yield line.strip().decode('utf-8').split()
-
-def test_get_cov(xpos, ypos, region, x_ampl, baf_ampl, logr_ampl, baf_ypos,
-                 logr_ypos, extra_box_width):
-    '''
-    Function for mocking if data is not present,
-    only for test purposes
-    '''
-    parsed_region = parse_region_str(region)
-    left_extra_width = 0
-    if not parsed_region:
-        return abort(416)
-
-    _, chrom, start_pos, end_pos = parsed_region
-    if not end_pos or end_pos == 'None':
-        end_pos = 200000
-    start_pos = int(start_pos)
-
-    logr_records = []
-    baf_records = []
-    intensity = 0.0
-
-    # Handle X and Y chromosome input
-    if chrom == '23':
-        chrom = 'X'
-    elif chrom == '24':
-        chrom = 'Y'
-
-    # If no range is defined, fetch all available data
-    if end_pos == 'None':
-        new_start_pos = start_pos
-        new_end_pos = 200000
-        left_extra_width = 0
-        extra_box_width = 0
-    else:
-        # Add extra data to edges
-        new_start_pos = int(start_pos - extra_box_width * ((end_pos - start_pos) / x_ampl)) if start_pos > 0 else 0
-        new_end_pos = int(end_pos + extra_box_width * ((end_pos - start_pos) / x_ampl))
-        left_extra_width = extra_box_width
-
-        # No extra data
-        if new_start_pos == 0:
-            left_extra_width = 0
-        # Move negative position to zero
-        elif new_start_pos < 0:
-            new_start_pos = 0
-            left_extra_width = start_pos / ((end_pos - start_pos) / x_ampl)
-            if left_extra_width < 0:
-                left_extra_width = 0
-
-    x_ampl += left_extra_width + extra_box_width
-    x_ampl = x_ampl / (new_end_pos - new_start_pos)
-    xpos -= left_extra_width
-
-    for i in range(int(start_pos), int(end_pos), 100):
-        if (i == 140000):
-            intensity = 1
-        logr_records.extend([xpos + x_ampl * (i - new_start_pos),
-                             logr_ypos - logr_ampl * intensity, 0])
-        baf_records.extend([xpos + x_ampl * (i - new_start_pos),
-                            baf_ypos - baf_ampl * intensity, 0])
-
-
-    return jsonify(data=logr_records, baf=baf_records, status="ok",
-                   chrom=chrom, x_pos=xpos + left_extra_width, y_pos=ypos,
-                   start=start_pos, end=end_pos, left_extra_width=left_extra_width)
