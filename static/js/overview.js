@@ -142,6 +142,7 @@ function drawStaticContent() {
                                              ic.boxWidth, ic.width);
   ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.y + linePadding);
 
+  ic.staticCanvas.getContext('2d').fillStyle = "black";
   // Draw rotated y-axis legends
   drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
     ic.y + ic.boxHeight / 2, -Math.PI / 2);
