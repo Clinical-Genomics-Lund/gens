@@ -287,7 +287,7 @@ function keyMapper (options) {
       return;
     }
 
-    if (event.keyCode === 13 &&
+    if (key === 'Enter' &&
             currentTime - state.lastKeyTime < keystrokeDelay) {
       // Enter was pressed, process previous key presses.
       if (state.buffer < 24 && state.buffer > 0) {
@@ -297,17 +297,17 @@ function keyMapper (options) {
       }
     } else if (!isFinite(key)) {
       // Arrow keys for moving graph
-      switch (event.keyCode) {
-        case 37: // Left arrow
+      switch (key) {
+        case 'ArrowLeft':
           left();
           break;
-        case 39: // Right arrow
+        case 'ArrowRight':
           right();
           break;
-        case 38: // Up arrow
+        case '+':
           zoomIn();
           break;
-        case 40: // Down arrow
+        case '-':
           zoomOut();
           break;
         default:
