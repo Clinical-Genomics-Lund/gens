@@ -82,56 +82,6 @@
                 step: 1.0 // Step value for drawing ticks along y-axis
             };
 
-            // Overview canvas values
-            // The null-values are set later since they use values set here
-            let oc = {
-                // Canvases
-                contentCanvas: null,
-                staticCanvas: document.getElementById('overview-static'),
-                context: null,
-
-                // Canvas variables
-                width: $(document).innerWidth(), // Canvas width
-                height: 500, // Canvas height
-
-                // Box variables
-                boxWidth: 120, // Width of one box
-                boxHeight: 100, // Height of one box
-                x: null, // X-position for box
-                y: 20, // Y-position for box
-                numChrom: 24, // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
-                rowMargin: 30, // margin between rows
-                titleMargin: 10, // Margin between box and title
-                leftMargin: 0.05 * $(document).innerWidth(), // Margin between graphs and page
-                xMargin: 2, // margin for x-axis in graph
-                yMargin: 5, // margin for top and bottom in graph
-                leftmostPoint: 0, // Draw y-values for graph left of this point
-                xAmpl: null, // Part of amplitude for scaling x-axis to fill whole width
-
-                // WebGL scene variables
-                scene: new THREE.Scene(),
-                camera: null,
-                renderer: null
-            };
-
-            // Set canvas height
-            oc.height = oc.y + oc.titleMargin + oc.rowMargin + 4 * (oc.xMargin + oc.boxHeight)
-
-            // Set dimensions of overview canvases
-            oc.staticCanvas.width = oc.width;
-            oc.staticCanvas.height = oc.height;
-
-            // Set null values
-            oc.contentCanvas = new OffscreenCanvas(oc.width, oc.height);
-            oc.context = oc.contentCanvas.getContext('webgl2');
-            oc.camera = new THREE.OrthographicCamera(oc.width / -2, oc.width / 2,
-                                                     oc.height / -2, oc.height / 2,
-                                                     near, far);
-            oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
-                context: oc.context, antialiasing: true });
-            oc.y = lineMargin * 2;
-            oc.xAmpl = oc.boxWidth - 2 * oc.xMargin;
-
             // Interactive canvas values
             // The null-values are set later since they use values set here
             let ic = {
@@ -187,10 +137,60 @@
             ic.camera = new THREE.OrthographicCamera(ic.width / -2, ic.width / 2, ic.height / -2, ic.height / 2, near, far);
             ic.renderer = new THREE.WebGLRenderer({ canvas: ic.drawCanvas, context: ic.context, antialiasing: true });
             ic.x = ic.width / 2 - ic.boxWidth / 2;
-            oc.x = ic.x;
-            oc.leftmostPoint = oc.x + 10;
             ic.y += lineMargin * 2 + ic.titleMargin;
             ic.xAmpl = ic.boxWidth - 2 * ic.xMargin;
+
+            // Overview canvas values
+            // The null-values are set later since they use values set here
+            let oc = {
+                // Canvases
+                contentCanvas: null,
+                staticCanvas: document.getElementById('overview-static'),
+                context: null,
+
+                // Canvas variables
+                width: $(document).innerWidth(), // Canvas width
+                height: 500, // Canvas height
+
+                // Box variables
+                boxWidth: 120, // Width of one box
+                boxHeight: 100, // Height of one box
+                x: null, // X-position for box
+                y: 20, // Y-position for box
+                numChrom: 24, // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
+                rowMargin: 30, // margin between rows
+                titleMargin: 10, // Margin between box and title
+                leftMargin: 0.05 * $(document).innerWidth(), // Margin between graphs and page
+                xMargin: 2, // margin for x-axis in graph
+                yMargin: 5, // margin for top and bottom in graph
+                leftmostPoint: 0, // Draw y-values for graph left of this point
+                xAmpl: null, // Part of amplitude for scaling x-axis to fill whole width
+
+                // WebGL scene variables
+                scene: new THREE.Scene(),
+                camera: null,
+                renderer: null
+            };
+
+            // Set canvas height
+            oc.height = oc.y + oc.titleMargin + oc.rowMargin + 4 * (oc.xMargin + oc.boxHeight)
+
+            // Set dimensions of overview canvases
+            oc.staticCanvas.width = oc.width;
+            oc.staticCanvas.height = oc.height;
+
+            // Set null values
+            oc.contentCanvas = new OffscreenCanvas(oc.width, oc.height);
+            oc.context = oc.contentCanvas.getContext('webgl2');
+            oc.camera = new THREE.OrthographicCamera(oc.width / -2, oc.width / 2,
+                                                     oc.height / -2, oc.height / 2,
+                                                     near, far);
+            oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
+                context: oc.context, antialiasing: true });
+            oc.x = ic.x;
+            oc.y = lineMargin * 2;
+            oc.xAmpl = oc.boxWidth - 2 * oc.xMargin;
+            oc.leftmostPoint = oc.x + 10;
 
             // Listener values
             var drag = false;
