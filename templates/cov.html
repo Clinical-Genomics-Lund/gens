@@ -105,7 +105,7 @@
                 xMargin: 2, // margin for x-axis in graph
                 yMargin: 5, // margin for top and bottom in graph
                 xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
-                extraWidth: 200, // Width for loading in extra edge data
+                extraWidth: 400, // Width for loading in extra edge data
                 moveImg: null, // Placeholder for image copy of contentCanvas
 
                 // Data values
@@ -121,7 +121,15 @@
             };
 
             // Set canvas height
+            ic.width = Math.max(ic.boxWidth + 2 * ic.extraWidth, ic.width);
             ic.height += ic.y + ic.titleMargin + 2 * (ic.xMargin + ic.boxHeight + lineMargin);
+
+            // Adjust canvas margins to compensate for extra hidden data
+            let adjustedMargin = Math.min(0, $(document).innerWidth() - ic.width) / 2;
+            document.getElementById('interactive-container').style.marginLeft =
+                adjustedMargin + 'px';
+            document.getElementById('overview-container').style.marginLeft =
+                adjustedMargin + 'px';
 
             // Set dimensions of overview canvases
             ic.staticCanvas.width = ic.width;
