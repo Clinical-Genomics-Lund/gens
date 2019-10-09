@@ -163,7 +163,7 @@
                 // Box variables
                 boxWidth: 120, // Width of one box
                 boxHeight: 100, // Height of one box
-                x: null, // X-position for box
+                x: ic.x, // X-position for box
                 y: 20, // Y-position for box
                 numChrom: 24, // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
                 rowMargin: 30, // margin between rows
@@ -181,7 +181,11 @@
             };
 
             // Set canvas height
-            oc.height = oc.y + oc.titleMargin + oc.rowMargin + 4 * (oc.xMargin + oc.boxHeight)
+            let rightMargin = ($(document).innerWidth() - oc.x - adjustedMargin);
+            let numRows = Math.ceil(oc.numChrom  / ((rightMargin - oc.x) / oc.boxWidth));
+            let rowHeight = (oc.titleMargin + oc.rowMargin + 2 * (oc.xMargin + oc.boxHeight));
+            oc.y = lineMargin * 2;
+            oc.height = oc.y + numRows * rowHeight;
 
             // Set dimensions of overview canvases
             oc.staticCanvas.width = oc.width;
@@ -195,8 +199,6 @@
                                                      near, far);
             oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
                 context: oc.context, antialiasing: true });
-            oc.x = ic.x;
-            oc.y = lineMargin * 2;
             oc.xAmpl = oc.boxWidth - 2 * oc.xMargin;
             oc.leftmostPoint = oc.x + 10;
 
@@ -226,7 +228,9 @@
             let yPos = oc.y + oc.rowMargin;
             while (chrom <= oc.numChrom) {
                 // Fill row with graphs, start on new row when full
-                for (let xPos = oc.x; (xPos + oc.boxWidth < ($(document).innerWidth() - oc.x)) && (chrom <= oc.numChrom); xPos += oc.boxWidth) {
+                for (let xPos = oc.x;
+                    (xPos + oc.boxWidth < rightMargin) && (chrom <= oc.numChrom);
+                    xPos += oc.boxWidth) {
                     // Draw data
                     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
                         region: chrom + ':0-None',
