@@ -1,0 +1,108 @@
+html, body {
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+staticCanvas
+#grid-container {
+    display: grid;
+    visibility: hidden;
+}
+
+#progress-container {
+    width: 100%;
+    height: 100%;
+}
+
+#progress-bar {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+}
+
+#info-icon {
+    position: absolute;
+}
+
+#button-container {
+    text-align: center;
+    grid-row: 1;
+    grid-column: 3;
+}
+
+#region_form {
+    display: inline;
+}
+
+#interactive-container {
+    display: grid;
+    grid-row: 1;
+    grid-column: 2;
+}
+
+#interactive-static{
+    z-index: 1;
+    pointer-events: none;
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#interactive-content {
+    z-index: 0;
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#overview-container {
+    display: grid;
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#overview-static {
+    top: 0;
+    left: 0;
+    z-index: 0;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+#staticCanvas {
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+#dataCanvas {
+    top: 0;
+    left: 0;
+    z-index: -1;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+#drawCanvas {
+    top: 0;
+    left: 0;
+    visibility: hidden;
+}
+
+#staticOverviewCanvas {
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+#drawOverviewCanvas {
+    top: 0;
+    left: 0;
+    visibility: hidden;
+}
