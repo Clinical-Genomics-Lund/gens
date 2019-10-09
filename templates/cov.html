@@ -121,6 +121,7 @@
             };
 
             // Set canvas height
+            ic.boxWidth -= ic.legendMargin;
             ic.width = Math.max(ic.boxWidth + 2 * ic.extraWidth, ic.width);
             ic.height += ic.y + ic.titleMargin + 2 * (ic.xMargin + ic.boxHeight + lineMargin);
 
