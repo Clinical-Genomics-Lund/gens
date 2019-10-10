@@ -4,7 +4,6 @@ Whole genome visualization of BAF and log R ratio
 
 import json
 import math
-import os
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from flask import Flask, request, render_template, jsonify, abort, Response
@@ -81,22 +80,15 @@ def set_region_values(parsed_region, x_ampl):
     # If no range is defined, set to fetch all available data
     if end_pos == 'None':
         new_start_pos = new_end_pos = None
-        extra_box_width = left_extra_width = 0
+        extra_box_width = 0
     else:
         # Add extra data to edges
-        new_start_pos = int(start_pos - extra_box_width * ((end_pos - start_pos) / x_ampl)) \
-            if start_pos > 0 else 0
+        new_start_pos = int(start_pos - extra_box_width * ((end_pos - start_pos) / x_ampl))
         new_end_pos = int(end_pos + extra_box_width * ((end_pos - start_pos) / x_ampl))
-        left_extra_width = extra_box_width
 
-        # Move negative position to zero
-        if new_start_pos <= 0:
-            new_start_pos = 0
-            left_extra_width = 0
-
-    x_ampl += left_extra_width + extra_box_width
+    x_ampl += 2 * extra_box_width
     return REGION(res, chrom, start_pos, end_pos), \
-           new_start_pos, new_end_pos, x_ampl, left_extra_width
+           new_start_pos, new_end_pos, x_ampl, extra_box_width
 
 def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
@@ -121,25 +113,24 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     x_ampl = x_ampl / (new_end_pos - new_start_pos)
     return logr_list, baf_list, new_start_pos, x_ampl
 
-def set_data(graph, logr_list, baf_list, xpos, new_start_pos, x_ampl, median):
+def set_data(graph, logr_list, baf_list, x_pos, new_start_pos, x_ampl, median):
     '''
     Edits data for LogR and BAF
     '''
     #  Normalize and calculate the Log R Ratio
     logr_records = []
     for record in logr_list:
-        logr_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
+        logr_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                              graph.logr_ypos - graph.logr_ampl *
                              math.log(float(record[3]) / median + 1, 2), 0])
 
     # Gather the BAF records
     baf_records = []
     for record in baf_list:
-        baf_records.extend([xpos + x_ampl * (float(record[1]) - new_start_pos),
+        baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                             graph.baf_ypos - graph.baf_ampl * float(record[3]), 0])
 
     return logr_records, baf_records
-
 
 @APP.route('/_getoverviewcov', methods=['GET'])
 def get_overview_cov():
@@ -163,13 +154,13 @@ def get_overview_cov():
         print('No parsed region')
         return abort(416)
 
-    reg, new_start_pos, new_end_pos, x_ampl, left_extra_width = \
+    reg, new_start_pos, new_end_pos, x_ampl, extra_box_width = \
         set_region_values(parsed_region, x_ampl)
 
     logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
                                                            new_end_pos, x_ampl)
     logr_records, baf_records = set_data(graph, logr_list, baf_list,
-                                         req.x_pos - left_extra_width, new_start_pos,
+                                         req.x_pos - extra_box_width, new_start_pos,
                                          x_ampl, req.median)
 
     if not logr_records or not baf_records:
@@ -177,8 +168,8 @@ def get_overview_cov():
         return abort(404)
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
-                   chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos, start=reg.start_pos,
-                   end=reg.end_pos, left_extra_width=left_extra_width)
+                   chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
+                   start=reg.start_pos, end=reg.end_pos)
 
 ### Help functions ###
 

@@ -48,7 +48,6 @@ function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width, drawStep, 
 function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
-  let lineWidth = 4;
 
   for (let step = yStart; step >= yEnd; step -= drawStep) {
     // Draw horizontal line
