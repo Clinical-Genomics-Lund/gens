@@ -99,15 +99,17 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
                                  new_start_pos, new_end_pos))
     baf_list = list(tabix_query(BAF_FILE, reg.chrom, new_start_pos, new_end_pos))
 
-    if not logr_list or not baf_list:
+    if not new_start_pos and not logr_list and not baf_list:
         print('Data for chromosome {} not available'.format(reg.chrom))
         return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
 
     # Set end position now that data is loaded
     if not new_end_pos:
         new_start_pos = 0
-        new_end_pos = max(int(logr_list[len(logr_list) - 1][1]),
-                          int(baf_list[len(baf_list) - 1][1]))
+        if logr_list:
+            new_end_pos = int(logr_list[len(logr_list) - 1][1])
+        if baf_list:
+            new_end_pos = max(new_end_pos, int(baf_list[len(baf_list) - 1][1]))
 
     # X ampl contains the total width to plot x data on
     x_ampl = x_ampl / (new_end_pos - new_start_pos)
@@ -163,7 +165,7 @@ def get_overview_cov():
                                          req.x_pos - extra_box_width, new_start_pos,
                                          x_ampl, req.median)
 
-    if not logr_records or not baf_records:
+    if not new_start_pos and not logr_records and not baf_records:
         print('No records')
         return abort(404)
 

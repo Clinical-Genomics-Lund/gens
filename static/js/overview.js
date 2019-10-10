@@ -203,7 +203,7 @@ function drawInteractiveContent () {
     drawText(ic.contentCanvas,
       result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
       result['y_pos'] - ic.titleMargin,
-      'Chromosome ' + result['chrom'], 15, 'center');
+      'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
     // Transfer image to visible canvas
     ic.contentCanvas.getContext('2d').drawImage(
@@ -289,7 +289,7 @@ function keyMapper (options) {
     if (key === 'Enter' &&
             currentTime - state.lastKeyTime < keystrokeDelay) {
       // Enter was pressed, process previous key presses.
-      if (state.buffer < 24 && state.buffer > 0) {
+      if (state.buffer <= oc.numChrom && state.buffer > 0) {
         // Display new chromosome
         ic.chromosome = state.buffer;
         redraw();
