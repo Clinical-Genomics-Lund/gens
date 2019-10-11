@@ -130,18 +130,18 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 }
 
 // Draw static content for interactive canvas
-function drawStaticContent() {
+function drawStaticContent () {
   let linePadding = 2;
   // Fill background colour
-  ic.staticCanvas.getContext('2d').fillStyle = "white";
+  ic.staticCanvas.getContext('2d').fillStyle = 'white';
   ic.staticCanvas.getContext('2d').fillRect(0, 0, ic.width, ic.height);
 
   // Make content area visible
   ic.staticCanvas.getContext('2d').clearRect(ic.x + linePadding, ic.y + linePadding,
-                                             ic.boxWidth, ic.width);
+    ic.boxWidth, ic.width);
   ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.y + linePadding);
 
-  ic.staticCanvas.getContext('2d').fillStyle = "black";
+  ic.staticCanvas.getContext('2d').fillStyle = 'black';
   // Draw rotated y-axis legends
   drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
     ic.y + ic.boxHeight / 2, -Math.PI / 2);
@@ -183,7 +183,7 @@ function drawInteractiveContent () {
       ic.contentCanvas.width, ic.contentCanvas.height);
 
     // Draw ticks for x-axis
-    let ampl = (ic.boxWidth) / (result['start'] - result['end'])
+    let ampl = (ic.boxWidth) / (result['start'] - result['end']);
     drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y, result['start'],
       result['end'], ic.boxWidth, Math.floor((result['end'] - result['start']) / 20),
       ampl);
