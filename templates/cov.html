@@ -45,15 +45,11 @@
     </head>
 
     <body>
-        <script type='text/javascript' src='{{ url_for('static', filename='js/overview.js')}}'></script>
+        <script type='module'>
+            import { InteractiveCanvas } from '{{ url_for('modules', filename='/interactive.mjs') }}';
+            import { OverviewCanvas } from '{{ url_for('modules', filename='/overview.mjs') }}';
 
-        <script>
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
-            // Hide non-rendered content
-            window.onload = (event) => {
-                document.getElementById('grid-container').style.visibility = 'hidden';
-            };
 
             // FLASK VALUES //
             let logRMedian = {{ median }};
@@ -67,6 +63,12 @@
             let near = 0.1;
             let far = 100;
             let lineMargin = 2; // Margin for line thickness
+
+            // Listener values
+            let drag = false;
+            let dragStart;
+            let dragEnd;
+            let inputField = document.getElementById('region_field');
 
             // BAF values
             let baf = {
@@ -82,48 +84,19 @@
                 step: 1.0 // Step value for drawing ticks along y-axis
             };
 
-            // Interactive canvas values
-            // The null-values are set later since they use values set here
-            let ic = {
-                // Canvases
-                drawCanvas: null,
-                contentCanvas: document.getElementById('interactive-content'),
-                staticCanvas: document.getElementById('interactive-static'),
-                context: null,
 
-                // Canvas variables
-                width: $(document).innerWidth(), // Canvas width
-                height: 2, // Canvas height
-
-                // Box variables
-                boxWidth: 0.9 * $(document).innerWidth(), // Width of one box
-                boxHeight: 180, // Height of one box
-                x: null, // X-position for first box
-                y: 10, // Y-position for first box
-                titleMargin: 60, // Margin between box and title
-                legendMargin: 45, // Margin between legend and box
-                xMargin: 2, // margin for x-axis in graph
-                yMargin: 5, // margin for top and bottom in graph
-                xAmpl: null, // Part of amplitude for scaling x-axis to fill whole box width
-                extraWidth: $(document).innerWidth(), // Width for loading in extra edge data
-                moveImg: null, // Placeholder for image copy of contentCanvas
-
-                // Data values
-                chromosome: null,
-                start: null,
-                end: null,
-                disallowDrag: false,
-
-                // WebGL scene variables
-                scene: new THREE.Scene(),
-                camera: null,
-                renderer: null
+            // Hide non-rendered content
+            window.onload = (event) => {
+                document.getElementById('grid-container').style.visibility = 'hidden';
             };
 
-            // Set canvas height
-            ic.boxWidth -= ic.legendMargin;
-            ic.width = Math.max(ic.boxWidth + 2 * ic.extraWidth, ic.width);
-            ic.height += ic.y + ic.titleMargin + 2 * (ic.xMargin + ic.boxHeight + lineMargin);
+            // Set first input field value for ic
+            document.getElementById('region_field').placeholder = '1:100000-200000';
+
+            // Initiate and draw interactive canvas
+            let ic = InteractiveCanvas(inputField, lineMargin, near, far);
+            ic.drawStaticContent(baf, logr);
+            ic.drawInteractiveContent(baf, logr, logRMedian);
 
             // Adjust canvas margins to compensate for extra hidden data
             let adjustedMargin = Math.min(0, $(document).innerWidth() - ic.width) / 2;
@@ -132,238 +105,65 @@
             document.getElementById('overview-container').style.marginLeft =
                 adjustedMargin + 'px';
 
-            // Set dimensions of overview canvases
-            ic.staticCanvas.width = ic.width;
-            ic.staticCanvas.height = ic.height;
-            ic.contentCanvas.width = ic.width;
-            ic.contentCanvas.height = ic.height;
-
-            ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width, ic.height);
-
-            // Set null values
-            ic.drawCanvas = new OffscreenCanvas(ic.width, ic.height);
-            ic.context = ic.drawCanvas.getContext('webgl2');
-            ic.camera = new THREE.OrthographicCamera(ic.width / -2, ic.width / 2, ic.height / -2, ic.height / 2, near, far);
-            ic.renderer = new THREE.WebGLRenderer({ canvas: ic.drawCanvas, context: ic.context, antialiasing: true });
-            ic.x = ic.width / 2 - ic.boxWidth / 2;
-            ic.y += lineMargin * 2 + ic.titleMargin;
-            ic.xAmpl = ic.boxWidth - 2 * ic.xMargin;
-
-            // Overview canvas values
-            // The null-values are set later since they use values set here
-            let oc = {
-                // Canvases
-                contentCanvas: null,
-                staticCanvas: document.getElementById('overview-static'),
-                context: null,
-
-                // Canvas variables
-                width: $(document).innerWidth(), // Canvas width
-                height: 500, // Canvas height
-
-                // Box variables
-                boxWidth: 120, // Width of one box
-                boxHeight: 100, // Height of one box
-                x: ic.x, // X-position for box
-                y: 20, // Y-position for box
-                numChrom: 24, // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
-                rowMargin: 30, // margin between rows
-                titleMargin: 10, // Margin between box and title
-                leftMargin: 0.05 * $(document).innerWidth(), // Margin between graphs and page
-                xMargin: 2, // margin for x-axis in graph
-                yMargin: 5, // margin for top and bottom in graph
-                leftmostPoint: 0, // Draw y-values for graph left of this point
-                xAmpl: null, // Part of amplitude for scaling x-axis to fill whole width
-
-                // WebGL scene variables
-                scene: new THREE.Scene(),
-                camera: null,
-                renderer: null
-            };
-
-            // Set canvas height
-            let rightMargin = ($(document).innerWidth() - oc.x - adjustedMargin);
-            let numRows = Math.ceil(oc.numChrom  / ((rightMargin - oc.x) / oc.boxWidth));
-            let rowHeight = (oc.titleMargin + oc.rowMargin + 2 * (oc.xMargin + oc.boxHeight));
-            oc.y = lineMargin * 2;
-            oc.height = oc.y + numRows * rowHeight;
-
-            // Set dimensions of overview canvases
-            oc.staticCanvas.width = oc.width;
-            oc.staticCanvas.height = oc.height;
-
-            // Set null values
-            oc.contentCanvas = new OffscreenCanvas(oc.width, oc.height);
-            oc.context = oc.contentCanvas.getContext('webgl2');
-            oc.camera = new THREE.OrthographicCamera(oc.width / -2, oc.width / 2,
-                                                     oc.height / -2, oc.height / 2,
-                                                     near, far);
-            oc.renderer = new THREE.WebGLRenderer({ canvas: oc.contentCanvas,
-                context: oc.context, antialiasing: true });
-            oc.xAmpl = oc.boxWidth - 2 * oc.xMargin;
-            oc.leftmostPoint = oc.x + 10;
-
-            // Listener values
-            var drag = false;
-            var dragStart;
-            var dragEnd;
-            let inputField = document.getElementById('region_field');
-
-            // Set first input field value for ic
-            document.getElementById('region_field').placeholder = '1:100000-200000';
-
-            // Only want to see fourth quadrant of scene
-            oc.camera.position.x = oc.width / 2 - lineMargin;
-            oc.camera.position.y = oc.height / 2 - lineMargin;
-            oc.camera.position.z = 1;
-            ic.camera.position.x = ic.width / 2 - lineMargin;
-            ic.camera.position.y = ic.height / 2 - lineMargin;
-            ic.camera.position.z = 1;
-
-            // Draw interactive canvas
-            drawStaticContent();
-            drawInteractiveContent();
-
-            let chrom = 1; // First chromosome
-            let drawnChrom = 0; // Amount of async drawn chromosomes
-            let yPos = oc.y + oc.rowMargin;
-            while (chrom <= oc.numChrom) {
-                // Fill row with graphs, start on new row when full
-                for (let xPos = oc.x;
-                    (xPos + oc.boxWidth < rightMargin) && (chrom <= oc.numChrom);
-                    xPos += oc.boxWidth) {
-                    // Draw data
-                    $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
-                        region: chrom + ':0-None',
-                        median: logRMedian,
-                        xpos: xPos + oc.xMargin,
-                        ypos: yPos,
-                        boxHeight: oc.boxHeight,
-                        y_margin: oc.yMargin,
-                        x_ampl: oc.xAmpl
-                    }, function (result) {
-                        let staticCanvas = document.getElementById('overview-static');
-                        // Draw chromosome title
-                        drawText(staticCanvas,
-                                result['x_pos'] - oc.xMargin + oc.boxWidth / 2,
-                                result['y_pos'] - oc.titleMargin,
-                                result['chrom'], 10, 'center');
-
-                        // Draw BAF
-                        createGraph(oc.scene, staticCanvas,
-                                result['x_pos'] - oc.xMargin,
-                                result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
-                                baf.yStart, baf.yEnd, baf.step,
-                                result['x_pos'] < oc.leftmostPoint);
-                        drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
-                                baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-                                oc.boxWidth, oc.boxHeight);
-
-                        // Draw LogR
-                        createGraph(oc.scene, staticCanvas,
-                                result['x_pos'] - oc.xMargin,
-                                result['y_pos'] + oc.boxHeight, oc.boxWidth,
-                                oc.boxHeight, oc.yMargin, logr.yStart,
-                                logr.yEnd, logr.step,
-                                result['x_pos'] < oc.leftmostPoint);
-                        drawGraphLines(oc.scene, result['x_pos'],
-                                result['y_pos'] + oc.boxHeight, logr.yStart,
-                                logr.yEnd, logr.step, oc.yMargin,
-                                oc.boxWidth, oc.boxHeight);
-
-                        // Plot scatter data
-                        drawData(oc.scene, result['baf'], '#FF0000');
-                        drawData(oc.scene, result['data'], '#000000');
-
-                    }).done(function (result){
-                        if (++drawnChrom == oc.numChrom) {
-                            // Render scene and transfer to visible canvas
-                            oc.renderer.render(oc.scene, oc.camera);
-                            oc.staticCanvas.getContext('2d').drawImage(
-                                    oc.contentCanvas.transferToImageBitmap(), 0, 0);
-                            document.getElementById('progress-bar').remove();
-                            document.getElementById('progress-container').remove();
-                            document.getElementById('grid-container').style.visibility =
-                                'visible';
-                        } else {
-                            document.getElementById('progress-bar').value =
-                                drawnChrom / oc.numChrom;
-                        }
-                    }).fail(function (result){
-                        console.log(result['responseText'])
-                        drawnChrom++;
-                    });
-                    chrom++;
-                }
-                // Start on new row
-                yPos += 2 * oc.boxHeight + oc.rowMargin;
-            }
-
-            // Only want to see fourth quadrant
-            oc.camera.position.x = oc.width / 2 - lineMargin;
-            oc.camera.position.y = oc.height / 2 - lineMargin;
-            oc.camera.position.z = 1;
-            ic.camera.position.x = ic.width / 2 - lineMargin;
-            ic.camera.position.y = ic.height / 2 - lineMargin;
-            ic.camera.position.z = 1;
+            // Initiate and draw overview canvas
+            let oc = OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
+            oc.drawOverviewContent(baf, logr, logRMedian);
 
             // LISTENERS
-
             document.getElementById('region_form').addEventListener('submit',
-                    function (event) {
+                function (event) {
                 event.preventDefault();
-                drawInteractiveContent();
-            });
+                ic.drawInteractiveContent(baf, logr);
+                });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
                 ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
-                        0, ic.y + 2, ic.width, ic.height);
+                0, ic.y + 2, ic.width, ic.height);
                 if (!ic.disallowDrag) {
-                    dragStart = {
-                        x: event.pageX - ic.contentCanvas.offsetLeft,
-                        y: event.pageY - ic.contentCanvas.offsetTop
-                    };
-                    dragEnd = {
-                        x: event.pageX - ic.contentCanvas.offsetLeft,
-                        y: event.pageY - ic.contentCanvas.offsetTop
-                    };
-                    drag = true;
+                dragStart = {
+                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                    y: event.pageY - ic.contentCanvas.offsetTop
+                };
+                dragEnd = {
+                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                    y: event.pageY - ic.contentCanvas.offsetTop
+                };
+                drag = true;
                 }
             });
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
                 if (drag && !ic.disallowDrag) {
-                    dragEnd = {
-                        x: event.pageX - ic.contentCanvas.offsetLeft,
-                        y: event.pageY - ic.contentCanvas.offsetTop
-                    };
+                dragEnd = {
+                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                    y: event.pageY - ic.contentCanvas.offsetTop
+                };
 
+                // Clear whole content canvas
+                ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
+                    ic.contentCanvas.width, ic.contentCanvas.height);
 
-                    // Clear whole content canvas
-                    ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
-                            ic.contentCanvas.width, ic.contentCanvas.height);
-
-                    // Copy draw image to content Canvas
-                    ic.contentCanvas.getContext('2d').putImageData(
-                        ic.moveImg,
-                        dragEnd.x - dragStart.x,
-                        ic.y + 2);
+                // Copy draw image to content Canvas
+                ic.contentCanvas.getContext('2d').putImageData(
+                    ic.moveImg,
+                    dragEnd.x - dragStart.x,
+                    ic.y + 2);
                 }
             });
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
-                    ic.moveImg = null;
-                    drag = false;
-                    let scale = ic.boxWidth / (ic.end - ic.start);
-                    let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                    if (ic.start + moveDist < 0) {
-                        moveDist -= (ic.start + moveDist);
-                    }
-                    ic.start += moveDist;
-                    ic.end += moveDist;
-                    ic.disallowDrag = true;
-                    redraw();
+                ic.moveImg = null;
+                drag = false;
+                let scale = ic.boxWidth / (ic.end - ic.start);
+                let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                if (ic.start + moveDist < 0) {
+                    moveDist -= (ic.start + moveDist);
+                }
+                ic.start += moveDist;
+                ic.end += moveDist;
+                ic.disallowDrag = true;
+                ic.redraw();
                 }
             });
 
@@ -371,11 +171,11 @@
                 'use strict';
 
                 const options = {
-                    eventType: 'keydown',
-                    keystrokeDelay: 1000
+                eventType: 'keydown',
+                keystrokeDelay: 1000
                 };
 
-                keyMapper(options);
+                ic.keyMapper(options);
             });
         </script>
     </body>
