@@ -1,5 +1,5 @@
 // Draw data points
-export function drawData (scene, data, color) {
+function drawData (scene, data, color) {
   var geometry = new THREE.BufferGeometry();
 
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
@@ -14,7 +14,7 @@ export function drawData (scene, data, color) {
 // Draws vertical tick marks for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-export function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width,
+function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width,
   drawStep, ampl, yMargin) {
   let lineThickness = 2;
   let lineWidth = 5;
@@ -34,7 +34,7 @@ export function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width,
 // Draws horizontal lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-export function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
+function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
 
@@ -48,7 +48,7 @@ export function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, wi
 }
 
 // Creates a graph for one chromosome data type
-export function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
+function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   yEnd, step, addTicks) {
   // Draw tick marks
   if (addTicks) {
@@ -59,36 +59,37 @@ export function createGraph (scene, canvas, x, y, width, height, yMargin, yStart
   drawBox(scene, x, y, width, height, 2);
 }
 
-export function left (ic) {
+function left (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw();
+  ic.redraw (ic, baf, logr, logRMedian);
 }
 
-export function right (ic) {
+function right (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw();
+  ic.redraw (ic, baf, logr, logRMedian);
 }
 
-export function zoomIn (ic) {
+function zoomIn (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw();
+  ic.redraw (ic, baf, logr, logRMedian);
 }
 
-export function zoomOut (ic) {
+function zoomOut (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
   ic.end += Math.floor(size * 0.5);
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw();
+  ic.redraw (ic, baf, logr, logRMedian);
 }
+
 
 //                //
 // HELP FUNCTIONS //

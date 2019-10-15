@@ -19,16 +19,16 @@
                 </div>
 
                 <div id='button-container'>
-                    <button onclick='left();'>
+                    <button onclick='left(ic, baf, logr, logRMedian);'>
                         <span class='fas fa-arrow-left' title='Left'></span>
                     </button>
-                    <button onclick='right();'>
+                    <button onclick='right(ic, baf, logr, logRMedian);'>
                         <span class='fas fa-arrow-right' title='Right'></span>
                     </button>
-                    <button onclick='zoomIn();'>
+                    <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
                         <span class='fas fa-search-plus' title='Zoom in'></span>
                     </button>
-                    <button onclick='zoomOut();'>
+                    <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
                         <span class='fas fa-search-minus' title='Zoom out'></span>
                     </button>
                     <form id='region_form'>
@@ -45,9 +45,10 @@
     </head>
 
     <body>
-        <script type='module'>
-            import { InteractiveCanvas } from '{{ url_for('modules', filename='/interactive.mjs') }}';
-            import { OverviewCanvas } from '{{ url_for('modules', filename='/overview.mjs') }}';
+        <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
+        <script>
 
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
@@ -94,26 +95,26 @@
             document.getElementById('region_field').placeholder = '1:100000-200000';
 
             // Initiate and draw interactive canvas
-            let ic = InteractiveCanvas(inputField, lineMargin, near, far);
-            ic.drawStaticContent(baf, logr);
-            ic.drawInteractiveContent(baf, logr, logRMedian);
+            let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
+            ic.drawStaticContent(ic, baf, logr);
+            ic.drawInteractiveContent(ic, baf, logr, logRMedian);
 
             // Adjust canvas margins to compensate for extra hidden data
-            let adjustedMargin = Math.min(0, $(document).innerWidth() - ic.width) / 2;
+            let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
             document.getElementById('interactive-container').style.marginLeft =
                 adjustedMargin + 'px';
             document.getElementById('overview-container').style.marginLeft =
                 adjustedMargin + 'px';
 
             // Initiate and draw overview canvas
-            let oc = OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
-            oc.drawOverviewContent(baf, logr, logRMedian);
+            let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
+            oc.drawOverviewContent(oc, baf, logr, logRMedian);
 
             // LISTENERS
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ic.drawInteractiveContent(baf, logr);
+                ic.drawInteractiveContent(ic, baf, logr, logRMedian);
                 });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
@@ -163,9 +164,74 @@
                 ic.start += moveDist;
                 ic.end += moveDist;
                 ic.disallowDrag = true;
-                ic.redraw();
+                ic.redraw (ic, baf, logr, logRMedian);
                 }
             });
+
+            function keyMapper (options) {
+                const keystrokeDelay = options.keystrokeDelay || 1000;
+
+                let state = {
+                buffer: '',
+                lastKeyTime: Date.now()
+                };
+
+                document.addEventListener('keydown', event => {
+                const key = event.key;
+                const currentTime = Date.now();
+                const eventType = window.event;
+                const target = eventType.target || eventType.scrElement;
+                const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
+                let buffer = '';
+
+                // Do not listen to keydown events for active fields
+                if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+                    return;
+                }
+
+                if (key === 'Enter' &&
+                        currentTime - state.lastKeyTime < keystrokeDelay) {
+                    // Enter was pressed, process previous key presses.
+                    if (state.buffer <= oc.numChrom && state.buffer > 0) {
+                    // Display new chromosome
+                    ic.chromosome = state.buffer;
+                    ic.redraw (ic, baf, logr, logRMedian);
+                    }
+                } else if (!isFinite(key)) {
+                    // Arrow keys for moving graph
+                    switch (key) {
+                    case 'ArrowLeft':
+                        left(ic, baf, logr, logRMedian);
+                        break;
+                    case 'ArrowRight':
+                        right(ic, baf, logr, logRMedian);
+                        break;
+                    case '+':
+                        zoomIn(ic, baf, logr, logRMedian);
+                        break;
+                    case '-':
+                        zoomOut(ic, baf, logr, logRMedian);
+                        break;
+                    default:
+                        return;
+                    }
+                } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+                    // Reset buffer
+                    buffer = key;
+                } else {
+                    if (state.buffer.length > 1) {
+                    // Buffer contains more than two digits, keep the last digit
+                    buffer = state.buffer[state.buffer.length - 1] + key;
+                    } else {
+                    // Add new digit to buffer
+                    buffer = state.buffer + key;
+                    }
+                }
+
+                // Save current state
+                state = { buffer: buffer, lastKeyTime: currentTime };
+                });
+            }
 
             document.addEventListener('DOMContentLoaded', () => {
                 'use strict';
@@ -175,7 +241,7 @@
                 keystrokeDelay: 1000
                 };
 
-                ic.keyMapper(options);
+                keyMapper(options);
             });
         </script>
     </body>
