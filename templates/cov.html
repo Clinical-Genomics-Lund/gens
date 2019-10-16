@@ -92,7 +92,7 @@
             };
 
             // Set first input field value for ic
-            document.getElementById('region_field').placeholder = '1:100000-200000';
+            inputField.placeholder = '1:100000-200000';
 
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
@@ -113,8 +113,10 @@
             // LISTENERS
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
-                event.preventDefault();
-                ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+                    event.preventDefault();
+                    inputField.placeholder = inputField.value;
+                    inputField.value = '';
+                    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
                 });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
