@@ -172,64 +172,64 @@
                 const keystrokeDelay = options.keystrokeDelay || 1000;
 
                 let state = {
-                buffer: '',
-                lastKeyTime: Date.now()
+                    buffer: '',
+                    lastKeyTime: Date.now()
                 };
 
                 document.addEventListener('keydown', event => {
-                const key = event.key;
-                const currentTime = Date.now();
-                const eventType = window.event;
-                const target = eventType.target || eventType.scrElement;
-                const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
-                let buffer = '';
+                    const key = event.key;
+                    const currentTime = Date.now();
+                    const eventType = window.event;
+                    const target = eventType.target || eventType.scrElement;
+                    const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
+                    let buffer = '';
 
-                // Do not listen to keydown events for active fields
-                if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-                    return;
-                }
-
-                if (key === 'Enter' &&
-                        currentTime - state.lastKeyTime < keystrokeDelay) {
-                    // Enter was pressed, process previous key presses.
-                    if (state.buffer <= oc.numChrom && state.buffer > 0) {
-                    // Display new chromosome
-                    ic.chromosome = state.buffer;
-                    ic.redraw (ic, baf, logr, logRMedian);
-                    }
-                } else if (!isFinite(key)) {
-                    // Arrow keys for moving graph
-                    switch (key) {
-                    case 'ArrowLeft':
-                        left(ic, baf, logr, logRMedian);
-                        break;
-                    case 'ArrowRight':
-                        right(ic, baf, logr, logRMedian);
-                        break;
-                    case '+':
-                        zoomIn(ic, baf, logr, logRMedian);
-                        break;
-                    case '-':
-                        zoomOut(ic, baf, logr, logRMedian);
-                        break;
-                    default:
+                    // Do not listen to keydown events for active fields
+                    if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
                         return;
                     }
-                } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
-                    // Reset buffer
-                    buffer = key;
-                } else {
-                    if (state.buffer.length > 1) {
-                    // Buffer contains more than two digits, keep the last digit
-                    buffer = state.buffer[state.buffer.length - 1] + key;
-                    } else {
-                    // Add new digit to buffer
-                    buffer = state.buffer + key;
-                    }
-                }
 
-                // Save current state
-                state = { buffer: buffer, lastKeyTime: currentTime };
+                    if (key === 'Enter' &&
+                            currentTime - state.lastKeyTime < keystrokeDelay) {
+                        // Enter was pressed, process previous key presses.
+                        if (state.buffer <= oc.numChrom && state.buffer > 0) {
+                            // Display new chromosome
+                            ic.chromosome = state.buffer;
+                            ic.redraw (ic, baf, logr, logRMedian);
+                        }
+                    } else if (!isFinite(key)) {
+                        // Arrow keys for moving graph
+                        switch (key) {
+                        case 'ArrowLeft':
+                            left(ic, baf, logr, logRMedian);
+                            break;
+                        case 'ArrowRight':
+                            right(ic, baf, logr, logRMedian);
+                            break;
+                        case '+':
+                            zoomIn(ic, baf, logr, logRMedian);
+                            break;
+                        case '-':
+                            zoomOut(ic, baf, logr, logRMedian);
+                            break;
+                        default:
+                            return;
+                        }
+                    } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+                        // Reset buffer
+                        buffer = key;
+                    } else {
+                        if (state.buffer.length > 1) {
+                            // Buffer contains more than two digits, keep the last digit
+                            buffer = state.buffer[state.buffer.length - 1] + key;
+                        } else {
+                            // Add new digit to buffer
+                            buffer = state.buffer + key;
+                        }
+                    }
+
+                    // Save current state
+                    state = { buffer: buffer, lastKeyTime: currentTime };
                 });
             }
 
@@ -237,8 +237,8 @@
                 'use strict';
 
                 const options = {
-                eventType: 'keydown',
-                keystrokeDelay: 1000
+                    eventType: 'keydown',
+                    keystrokeDelay: 1000
                 };
 
                 keyMapper(options);

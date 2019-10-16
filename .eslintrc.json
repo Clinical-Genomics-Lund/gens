@@ -10,7 +10,13 @@
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly",
         "THREE": "readonly",
-        "$SCRIPT_ROOT": "readonly"
+        "$SCRIPT_ROOT": "readonly",
+        "drawRotatedText": "readonly",
+        "createGraph": "readonly"
+    },
+    "exported": {
+        "InteractiveCanvas",
+        "OverviewCanvas"
     },
     "parserOptions": {
         "ecmaVersion": 2018
