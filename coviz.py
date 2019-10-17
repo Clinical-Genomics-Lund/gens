@@ -231,4 +231,4 @@ def tabix_query(filename, chrom, start=None, end=None):
         print('Could not open ' + filename)
     else:
         for line in process.stdout:
-            yield line.strip().decode('utf-8').split()
+            yield line.strip().split()
