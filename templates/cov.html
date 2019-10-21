@@ -13,33 +13,37 @@
             </div>
 
             <div id='grid-container'>
-                <div id='interactive-container'>
-                    <canvas id='interactive-annotation'></canvas>
-                    <canvas id='interactive-content'></canvas>
-                    <canvas id='interactive-static'></canvas>
+                <div id='annotation-container'>
+                    <canvas id='annotation'></canvas>
                 </div>
+                <div id='visualization-container'>
+                    <div id='interactive-container'>
+                        <canvas id='interactive-content'></canvas>
+                        <canvas id='interactive-static'></canvas>
+                    </div>
 
-                <div id='button-container'>
-                    <button onclick='left(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-arrow-left' title='Left'></span>
-                    </button>
-                    <button onclick='right(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-arrow-right' title='Right'></span>
-                    </button>
-                    <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-search-plus' title='Zoom in'></span>
-                    </button>
-                    <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-search-minus' title='Zoom out'></span>
-                    </button>
-                    <form id='region_form'>
-                        <input name='region' id='region_field' type='text' size=20>
-                        <input type='submit' title='Submit range'>
-                    </form>
-                </div>
+                    <div id='button-container'>
+                        <button onclick='left(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-arrow-left' title='Left'></span>
+                        </button>
+                        <button onclick='right(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-arrow-right' title='Right'></span>
+                        </button>
+                        <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-search-plus' title='Zoom in'></span>
+                        </button>
+                        <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-search-minus' title='Zoom out'></span>
+                        </button>
+                        <form id='region_form'>
+                            <input name='region' id='region_field' type='text' size=20>
+                            <input type='submit' title='Submit range'>
+                        </form>
+                    </div>
 
-                <div id='overview-container'>
-                    <canvas id='overview-static'></canvas>
+                    <div id='overview-container'>
+                        <canvas id='overview-static'></canvas>
+                    </div>
                 </div>
             </div>
         </html>
@@ -104,11 +108,7 @@
 
             // Adjust canvas margins to compensate for extra hidden data
             let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
-            document.getElementById('overview-container').style.marginLeft =
-                adjustedMargin + 'px';
-            document.getElementById('interactive-content').style.marginLeft =
-                adjustedMargin + 'px';
-            document.getElementById('interactive-static').style.marginLeft =
+            document.getElementById('visualization-container').style.marginLeft =
                 adjustedMargin + 'px';
 
             // Initiate and draw overview canvas

@@ -2,12 +2,12 @@ html, body {
     max-width: 100%;
     width: 100%;
     height: 100%;
-    overflow-x: hidden;
 }
 staticCanvas
 #grid-container {
     display: grid;
     visibility: hidden;
+    pointer-events: none;
 }
 
 #progress-container {
@@ -43,10 +43,17 @@ staticCanvas
     grid-column: 2;
 }
 
-#interactive-annotation {
+#visualization-container {
+    z-index: 1;
+    pointer-events: none;
+    grid-row: 1;
+    grid-column: 1;
+}
+
+#annotation-container {
     z-index: 2;
     pointer-events: none;
-    grid-row: 2;
+    grid-row: 1;
     grid-column: 1;
 }
 
