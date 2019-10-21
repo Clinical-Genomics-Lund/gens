@@ -43,6 +43,13 @@ staticCanvas
     grid-column: 2;
 }
 
+#interactive-annotation {
+    z-index: 2;
+    pointer-events: none;
+    grid-row: 2;
+    grid-column: 1;
+}
+
 #interactive-static{
     z-index: 1;
     pointer-events: none;
@@ -51,7 +58,7 @@ staticCanvas
 }
 
 #interactive-content {
-    z-index: 0;
+    z-index: 1;
     grid-row: 2;
     grid-column: 1;
 }

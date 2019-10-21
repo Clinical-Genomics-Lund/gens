@@ -14,6 +14,7 @@
 
             <div id='grid-container'>
                 <div id='interactive-container'>
+                    <canvas id='interactive-annotation'></canvas>
                     <canvas id='interactive-content'></canvas>
                     <canvas id='interactive-static'></canvas>
                 </div>
@@ -46,6 +47,7 @@
 
     <body>
         <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
         <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
         <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
@@ -87,7 +89,6 @@
                 color: '#000000' // Viz color
             };
 
-
             // Hide non-rendered content
             window.onload = (event) => {
                 document.getElementById('grid-container').style.visibility = 'hidden';
@@ -103,9 +104,11 @@
 
             // Adjust canvas margins to compensate for extra hidden data
             let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
-            document.getElementById('interactive-container').style.marginLeft =
-                adjustedMargin + 'px';
             document.getElementById('overview-container').style.marginLeft =
+                adjustedMargin + 'px';
+            document.getElementById('interactive-content').style.marginLeft =
+                adjustedMargin + 'px';
+            document.getElementById('interactive-static').style.marginLeft =
                 adjustedMargin + 'px';
 
             // Initiate and draw overview canvas
@@ -122,6 +125,14 @@
                 });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
+                // Only act on left mouse button click
+                if (event.which != 1) {
+                    return
+                }
+
+                // Check annotation intersection
+                ac.intersectAnnotation(event.clientX, event.clientY);
+
                 ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
                 0, ic.y + 2, ic.width, ic.height);
                 if (!ic.disallowDrag) {
@@ -136,6 +147,16 @@
                 drag = true;
                 }
             });
+
+            // Initiate annotation canvas
+            let ac = new Annotation();
+
+            // Add annotation when content canvas is clicked
+            ic.contentCanvas.addEventListener('contextmenu',
+                    function(event) {
+                event.preventDefault();
+                return ac.addAnnotation(event.clientX, event.clientY);
+            }, false);
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
                 if (drag && !ic.disallowDrag) {

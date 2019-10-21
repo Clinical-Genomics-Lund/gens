@@ -45,12 +45,10 @@ class InteractiveCanvas {
     this.camera.position.z = 1;
 
     // Set dimensions of overview canvases
-    this.staticCanvas.width = this.width;
-    this.staticCanvas.height = this.height;
-    this.contentCanvas.width = this.width;
-    this.contentCanvas.height = this.height;
-
-    this.staticCanvas.getContext('2d').clearRect(0, 0, this.width, this.height); // TODO: remove this?
+    this.staticCanvas.width =
+      this.contentCanvas.width = this.width;
+    this.staticCanvas.height =
+      this.contentCanvas.height =  this.height;
   }
 
   // Draw static content for interactive canvas
