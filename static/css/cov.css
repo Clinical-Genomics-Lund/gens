@@ -57,6 +57,31 @@ staticCanvas
     grid-column: 1;
 }
 
+#annotation-texts {
+    grid-row: 1;
+    grid-column: 2;
+}
+
+#annotation-textarea {
+    position: absolute;
+    z-index: 10;
+    width: 200px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+#textarea-close {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+#textarea-delete {
+    position: absolute;
+    bottom: 10px;
+    right: 5px;
+}
+
 #interactive-static{
     z-index: 1;
     pointer-events: none;

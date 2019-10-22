@@ -28,7 +28,8 @@ class Annotation {
   }
 
   drawAnnotation (rect) {
-    this.ctx.rect(rect.x, rect.y, rect.w, rect.h);
+    // Make it point at cursor tip
+    this.ctx.rect(rect.x - 10, rect.y - 10, rect.w, rect.h);
     this.ctx.fillStyle = "blue";
     this.ctx.fill();
   }
@@ -44,10 +45,6 @@ class Annotation {
   }
 
   addAnnotation (x, y) {
-    // Make it point at cursor tip
-    x -= 10;
-    y -= 10;
-
     // If annotation already exists, do not add it
     if (this.ctx.isPointInPath(x, y)) {
       return;
@@ -56,5 +53,25 @@ class Annotation {
     let rect = {x: x, y: y, w: this.rw, h: this.rh};
     this.rects.push(rect);
     this.drawAnnotation(rect);
+
+    // Add associated text area
+    let div = document.getElementById('annotation-texts');
+    let textArea = document.createElement('textarea');
+    textArea.setAttribute('id', 'annotation-textarea');
+    textArea.style.left = x + 'px';
+    textArea.style.top = y + 'px';
+    div.appendChild(textArea);
+
+    // Add close area
+    let close = document.createElement('button');
+    close.setAttribute('id', 'textarea-close');
+    close.setAttribute('class', 'far fa-window-close');
+    textArea.appendChild(close);
+
+    // Add delete button
+    let del= document.createElement('button');
+    del.setAttribute('id', 'textarea-delete');
+    del.setAttribute('class', 'fas fa-trash-alt');
+    textArea.appendChild(del);
   }
 }
