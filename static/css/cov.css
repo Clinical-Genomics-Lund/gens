@@ -7,7 +7,6 @@ staticCanvas
 #grid-container {
     display: grid;
     visibility: hidden;
-    pointer-events: none;
 }
 
 #progress-container {
@@ -45,7 +44,6 @@ staticCanvas
 
 #visualization-container {
     z-index: 1;
-    pointer-events: none;
     grid-row: 1;
     grid-column: 1;
 }

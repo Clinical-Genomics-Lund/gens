@@ -110,7 +110,6 @@ class OverviewCanvas {
             document.getElementById('grid-container').style.visibility =
                 'visible';
             document.getElementById('grid-container').style.display = 'grid';
-            document.getElementById('grid-container').style.pointerEvents = 'none';
           } else {
             document.getElementById('progress-bar').value =
                 drawnChrom / oc.numChrom;

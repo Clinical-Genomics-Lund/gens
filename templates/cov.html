@@ -124,6 +124,16 @@
                     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
                 });
 
+            // Initiate annotation canvas
+            let ac = new Annotation();
+
+            // Add annotation when content canvas is clicked
+            ic.contentCanvas.addEventListener('contextmenu',
+                    function(event) {
+                event.preventDefault();
+                return ac.addAnnotation(event.pageX, event.pageY);
+            }, false);
+
             ic.contentCanvas.addEventListener('mousedown', function (event) {
                 // Only act on left mouse button click
                 if (event.which != 1) {
@@ -131,7 +141,7 @@
                 }
 
                 // Check annotation intersection
-                ac.intersectAnnotation(event.clientX, event.clientY);
+                ac.intersectAnnotation(event.pageX, event.pageY);
 
                 ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
                 0, ic.y + 2, ic.width, ic.height);
@@ -147,16 +157,6 @@
                 drag = true;
                 }
             });
-
-            // Initiate annotation canvas
-            let ac = new Annotation();
-
-            // Add annotation when content canvas is clicked
-            ic.contentCanvas.addEventListener('contextmenu',
-                    function(event) {
-                event.preventDefault();
-                return ac.addAnnotation(event.clientX, event.clientY);
-            }, false);
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
                 if (drag && !ic.disallowDrag) {
