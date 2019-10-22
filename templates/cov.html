@@ -128,10 +128,10 @@
             // LISTENERS
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
-                    event.preventDefault();
-                    inputField.placeholder = inputField.value;
-                    inputField.value = '';
-                    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+                event.preventDefault();
+                inputField.placeholder = inputField.value;
+                inputField.value = '';
+                ic.drawInteractiveContent(ic, baf, logr, logRMedian);
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
@@ -160,36 +160,36 @@
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
                 if (drag && !ic.disallowDrag) {
-                dragEnd = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
+                    dragEnd = {
+                        x: event.pageX - ic.contentCanvas.offsetLeft,
+                        y: event.pageY - ic.contentCanvas.offsetTop
+                    };
 
-                // Clear whole content canvas
-                ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
-                    ic.contentCanvas.width, ic.contentCanvas.height);
+                    // Clear whole content canvas
+                    ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
+                        ic.contentCanvas.width, ic.contentCanvas.height);
 
-                // Copy draw image to content Canvas
-                ic.contentCanvas.getContext('2d').putImageData(
-                    ic.moveImg,
-                    dragEnd.x - dragStart.x,
-                    ic.y + 2);
+                    // Copy draw image to content Canvas
+                    ic.contentCanvas.getContext('2d').putImageData(
+                        ic.moveImg,
+                        dragEnd.x - dragStart.x,
+                        ic.y + 2);
                 }
             });
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
-                ic.moveImg = null;
-                drag = false;
-                let scale = ic.boxWidth / (ic.end - ic.start);
-                let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                if (ic.start + moveDist < 0) {
-                    moveDist -= (ic.start + moveDist);
-                }
-                ic.start += moveDist;
-                ic.end += moveDist;
-                ic.disallowDrag = true;
-                ic.redraw (ic, baf, logr, logRMedian);
+                    ic.moveImg = null;
+                    drag = false;
+                    let scale = ic.boxWidth / (ic.end - ic.start);
+                    let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                    if (ic.start + moveDist < 0) {
+                        moveDist -= (ic.start + moveDist);
+                    }
+                    ic.start += moveDist;
+                    ic.end += moveDist;
+                    ic.disallowDrag = true;
+                    ic.redraw (ic, baf, logr, logRMedian);
                 }
             });
 
