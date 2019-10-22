@@ -1,10 +1,10 @@
 class Annotation {
-  constructor () {
+  constructor (height) {
     this.rects = this.loadAnnotations(null);
     this.annotationCanvas = document.getElementById('annotation');
     this.ctx = this.annotationCanvas.getContext('2d');
     this.annotationCanvas.width = $(document).innerWidth();
-    this.annotationCanvas.height =  $(document).innerHeight();
+    this.annotationCanvas.height =  height;
     this.drawAnnotations(null, this.annotationCanvas);
     this.rw = 4;
     this.rh = 4;

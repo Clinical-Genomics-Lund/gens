@@ -5,8 +5,9 @@ html, body {
 }
 staticCanvas
 #grid-container {
+    height: min-content;
     display: grid;
-    visibility: hidden;
+    visibility: visible;
 }
 
 #progress-container {
@@ -43,6 +44,7 @@ staticCanvas
 }
 
 #visualization-container {
+    height: min-content;
     z-index: 1;
     grid-row: 1;
     grid-column: 1;

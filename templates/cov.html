@@ -115,17 +115,8 @@
             let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
             oc.drawOverviewContent(oc, baf, logr, logRMedian);
 
-            // LISTENERS
-            document.getElementById('region_form').addEventListener('submit',
-                function (event) {
-                    event.preventDefault();
-                    inputField.placeholder = inputField.value;
-                    inputField.value = '';
-                    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-                });
-
             // Initiate annotation canvas
-            let ac = new Annotation();
+            let ac = new Annotation(document.getElementById('visualization-container').clientHeight);
 
             // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu',
@@ -133,6 +124,15 @@
                 event.preventDefault();
                 return ac.addAnnotation(event.pageX, event.pageY);
             }, false);
+
+            // LISTENERS
+            document.getElementById('region_form').addEventListener('submit',
+                function (event) {
+                    event.preventDefault();
+                    inputField.placeholder = inputField.value;
+                    inputField.value = '';
+                    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+            });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
                 // Only act on left mouse button click
