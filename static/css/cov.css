@@ -71,6 +71,21 @@ staticCanvas
     height: 100px;
     overflow-y: auto;
     resize: both;
+    border: 1px solid rgba(50, 50, 50, 0.5);
+}
+
+#annotation-overlay::-webkit-scrollbar {
+    width: 6px;
+}
+
+#annotation-overlay::-webkit-scrollbar-track {
+    border-radius: 10px;
+}
+
+#annotation-overlay::-webkit-scrollbar-thumb {
+    background: rgba(50, 50, 50, 0.5);
+    border-radius: 15px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 #annotation-span:focus {
