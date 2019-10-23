@@ -57,29 +57,28 @@ staticCanvas
     grid-column: 1;
 }
 
-#annotation-texts {
+#annotation-overlays {
     grid-row: 1;
-    grid-column: 2;
+    grid-column: 1;
 }
 
-#annotation-textarea {
-    position: absolute;
+#annotation-overlay {
     z-index: 10;
+    display: inline-block;
+    position: absolute;
+    background-color: rgba(240, 240, 240, 0.5);
     width: 200px;
     height: 100px;
-    background-color: rgba(255, 255, 255, 0.5);
+    overflow-y: auto;
+    resize: both;
 }
 
-#textarea-close {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
+#annotation-span:focus {
+    outline: 0px solid transparent;
 }
 
-#textarea-delete {
-    position: absolute;
-    bottom: 10px;
-    right: 5px;
+#annotation-button {
+    float: right;
 }
 
 #interactive-static{

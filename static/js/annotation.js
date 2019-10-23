@@ -40,7 +40,7 @@ class Annotation {
     let y = cly - 10;
 
     if (this.ctx.isPointInPath(x, y)) {
-      console.log('Pointin path!!!');
+      // Intersection
     }
   }
 
@@ -55,23 +55,46 @@ class Annotation {
     this.drawAnnotation(rect);
 
     // Add associated text area
-    let div = document.getElementById('annotation-texts');
-    let textArea = document.createElement('textarea');
-    textArea.setAttribute('id', 'annotation-textarea');
-    textArea.style.left = x + 'px';
-    textArea.style.top = y + 'px';
-    div.appendChild(textArea);
+    let div = document.createElement('div');
+    div.setAttribute('id', x + '' + y);
+    div.setAttribute('id', 'annotation-overlay');
+    div.style.left = x + 'px';
+    div.style.top = y + 'px';
+    document.getElementById('annotation-overlays').appendChild(div);
 
     // Add close area
     let close = document.createElement('button');
-    close.setAttribute('id', 'textarea-close');
+    close.setAttribute('id', 'annotation-button');
     close.setAttribute('class', 'far fa-window-close');
-    textArea.appendChild(close);
+    div.appendChild(close);
+
+    close.onclick = function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      // TODO: Do logic for closing div
+    }
 
     // Add delete button
     let del= document.createElement('button');
-    del.setAttribute('id', 'textarea-delete');
+    del.setAttribute('id', 'annotation-button');
     del.setAttribute('class', 'fas fa-trash-alt');
-    textArea.appendChild(del);
+    div.appendChild(del);
+
+    del.onclick = function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      // TODO: Do logic for removing div
+    }
+
+    // Text span
+    let textSpan = document.createElement('span');
+    textSpan.setAttribute('id', 'annotation-span');
+    textSpan.setAttribute('contenteditable', 'true');
+    div.appendChild(textSpan);
+
+    // When clicking on div, put focus on the text span
+    div.onclick = function (event) {
+      textSpan.focus();
+    }
   }
 }
