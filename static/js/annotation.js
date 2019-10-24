@@ -54,7 +54,7 @@ class Annotation {
     this.rects.push(rect);
     this.drawAnnotation(rect);
 
-    // Add associated text area
+    // Annotation box
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);
     div.setAttribute('id', 'annotation-overlay');
@@ -62,10 +62,10 @@ class Annotation {
     div.style.top = y + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
-    // Add close area
+    // Add close button
     let close = document.createElement('button');
     close.setAttribute('id', 'annotation-button');
-    close.setAttribute('class', 'far fa-window-close');
+    close.setAttribute('class', 'fas fa-times');
     div.appendChild(close);
 
     close.onclick = function (event) {
@@ -77,7 +77,7 @@ class Annotation {
     // Add delete button
     let del= document.createElement('button');
     del.setAttribute('id', 'annotation-button');
-    del.setAttribute('class', 'fas fa-trash-alt');
+    del.setAttribute('class', 'far fa-trash-alt');
     div.appendChild(del);
 
     del.onclick = function (event) {
@@ -88,7 +88,7 @@ class Annotation {
 
     // Text span
     let textSpan = document.createElement('span');
-    textSpan.setAttribute('id', 'annotation-span');
+    textSpan.setAttribute('id', 'annotation-text');
     textSpan.setAttribute('contenteditable', 'true');
     div.appendChild(textSpan);
 

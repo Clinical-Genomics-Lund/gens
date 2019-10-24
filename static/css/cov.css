@@ -88,12 +88,15 @@ staticCanvas
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-#annotation-span:focus {
+#annotation-text:focus {
     outline: 0px solid transparent;
 }
 
 #annotation-button {
     float: right;
+    background: none;
+    border: none;
+    font-size: 10px;
 }
 
 #interactive-static{
