@@ -44,6 +44,16 @@ class Annotation {
     }
   }
 
+  removeAnnotation (id) {
+    for (let i = 0; i < this.rects.length; i++) {
+      let rect = this.rects[i];
+      if ( id == rect.x + '' + rect.y) {
+        this.rects.splice(i, 1);
+        break;
+      }
+    }
+  }
+
   addAnnotation (x, y) {
     // If annotation already exists, do not add it
     if (this.ctx.isPointInPath(x, y)) {
@@ -57,7 +67,7 @@ class Annotation {
     // Annotation box
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);
-    div.setAttribute('id', 'annotation-overlay');
+    div.setAttribute('class', 'annotation-overlay');
     div.style.left = x + 'px';
     div.style.top = y + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
@@ -83,7 +93,21 @@ class Annotation {
     del.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
-      // TODO: Do logic for removing div
+      // TODO: Get correct language phrase?
+      if(confirm('Delete annotation?')) {
+        let parent = event.srcElement.closest('.annotation-overlay')
+
+        // Delete annotation from database
+        ac.removeAnnotation(parent.id);
+
+        // Delete annotation from screen
+        while (parent.firstChild) {
+          parent.removeChild(parent.firstChild)
+        }
+        parent.remove();
+
+        // TODO: trigger redraw so that point is removed from canvas
+      }
     }
 
     // Text span
