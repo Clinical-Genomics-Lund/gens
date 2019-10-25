@@ -5,7 +5,7 @@ class Annotation {
     this.ctx = this.annotationCanvas.getContext('2d');
     this.annotationCanvas.width = $(document).innerWidth();
     this.annotationCanvas.height =  height;
-    this.drawAnnotations(null, this.annotationCanvas);
+    this.drawAnnotations();
     this.rw = 4;
     this.rh = 4;
   }
@@ -17,19 +17,18 @@ class Annotation {
     ];
   }
 
-  drawAnnotations (annotations, canvas) {
+  drawAnnotations () {
     let i = 0;
     let r;
 
-    // render initial rects.
-    while (r = this.rects[i++]) {
-      this.drawAnnotation(r);
-    }
-  }
+    // Clear canvas
+    this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
 
-  drawAnnotation (rect) {
-    // Make it point at cursor tip
-    this.ctx.rect(rect.x - 10, rect.y - 10, rect.w, rect.h);
+    // render initial rects.
+    this.ctx.beginPath();
+    while (r = this.rects[i++]) {
+      this.ctx.rect(r.x - 10, r.y - 10, r.w, r.h);
+    }
     this.ctx.fillStyle = "blue";
     this.ctx.fill();
   }
@@ -62,7 +61,7 @@ class Annotation {
 
     let rect = {x: x, y: y, w: this.rw, h: this.rh};
     this.rects.push(rect);
-    this.drawAnnotation(rect);
+    this.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
@@ -106,7 +105,9 @@ class Annotation {
         }
         parent.remove();
 
-        // TODO: trigger redraw so that point is removed from canvas
+        // Clear and redraw annotation canvas
+        ac.drawAnnotations();
+
       }
     }
 
