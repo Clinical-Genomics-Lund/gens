@@ -169,6 +169,10 @@
                         y: event.pageY - ic.contentCanvas.offsetTop
                     };
 
+                    // Hide annotations
+                    ac.annotationCanvas.style.visibility = 'hidden';
+                    document.querySelector('.annotation-overlay').style.visibility = 'hidden';
+
                     // Clear whole content canvas
                     ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
                         ic.contentCanvas.width, ic.contentCanvas.height);
@@ -183,6 +187,9 @@
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
+                    // Show annotations
+                    ac.annotationCanvas.style.visibility = 'visible';
+
                     ic.moveImg = null;
                     drag = false;
                     let scale = ic.boxWidth / (ic.end - ic.start);
