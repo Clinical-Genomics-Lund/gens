@@ -144,21 +144,21 @@
                     return
                 }
 
-                // Check annotation intersection
-                ac.intersectAnnotation(event.pageX, event.pageY);
-
-                ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
-                0, ic.y + 2, ic.width, ic.height);
-                if (!ic.disallowDrag) {
-                dragStart = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
-                dragEnd = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
-                drag = true;
+                // Do not move interactive canvas if an annotation is present
+                if (!ac.intersectsAnnotation(event.pageX, event.pageY)) {
+                    ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
+                    0, ic.y + 2, ic.width, ic.height);
+                    if (!ic.disallowDrag) {
+                        dragStart = {
+                            x: event.pageX - ic.contentCanvas.offsetLeft,
+                            y: event.pageY - ic.contentCanvas.offsetTop
+                        };
+                        dragEnd = {
+                            x: event.pageX - ic.contentCanvas.offsetLeft,
+                            y: event.pageY - ic.contentCanvas.offsetTop
+                        };
+                        drag = true;
+                    }
                 }
             });
 

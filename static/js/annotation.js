@@ -8,6 +8,7 @@ class Annotation {
     this.drawAnnotations();
     this.rw = 4;
     this.rh = 4;
+    this.mouseOffset = 10;
   }
 
   loadAnnotations (range) {
@@ -27,20 +28,27 @@ class Annotation {
     // render initial rects.
     this.ctx.beginPath();
     while (r = this.rects[i++]) {
-      this.ctx.rect(r.x - 10, r.y - 10, r.w, r.h);
+      this.ctx.rect(r.x - this.mouseOffset, r.y - this.mouseOffset, r.w, r.h);
     }
     this.ctx.fillStyle = "blue";
     this.ctx.fill();
   }
 
-  intersectAnnotation (clx, cly) {
+  intersectsAnnotation (clx, cly) {
     let rect = this.annotationCanvas.getBoundingClientRect();
-    let x = clx - 10;
-    let y = cly - 10;
+    let x = clx;
+    let y = cly;
 
-    if (this.ctx.isPointInPath(x, y)) {
-      // Intersection
+    if (this.ctx.isPointInPath(x - this.mouseOffset, y - this.mouseOffset)) {
+      for (let i = 0; i < this.rects.length; i++) {
+        let rect = this.rects[i];
+        if (x - rect.x <= this.rw && y - rect.y <= this.rh) {
+          document.getElementById(rect.x + '' + rect.y).style.visibility = 'visible';
+          return true;
+        }
+      }
     }
+    return false;
   }
 
   removeAnnotation (id) {
@@ -80,7 +88,7 @@ class Annotation {
     close.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
-      // TODO: Do logic for closing div
+      event.srcElement.closest('.annotation-overlay').style.visibility = 'hidden';
     }
 
     // Add delete button
