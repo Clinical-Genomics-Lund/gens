@@ -63,21 +63,21 @@ function left (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian);
 }
 
 function right (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian);
 }
 
 function zoomIn (ic, baf, logr, logRMedian) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian);
 }
 
 function zoomOut (ic, baf, logr, logRMedian) {
@@ -87,7 +87,7 @@ function zoomOut (ic, baf, logr, logRMedian) {
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian);
 }
 
 

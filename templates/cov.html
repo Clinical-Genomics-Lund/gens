@@ -171,7 +171,10 @@
 
                     // Hide annotations
                     ac.annotationCanvas.style.visibility = 'hidden';
-                    document.querySelector('.annotation-overlay').style.visibility = 'hidden';
+                    let annotation = document.querySelector('.annotation-overlay');
+                    if (annotation) {
+                        annotation.style.visibility = 'hidden';
+                    }
 
                     // Clear whole content canvas
                     ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
@@ -200,7 +203,7 @@
                     ic.start += moveDist;
                     ic.end += moveDist;
                     ic.disallowDrag = true;
-                    ic.redraw (ic, baf, logr, logRMedian);
+                    ic.redraw (ic, ac, baf, logr, logRMedian);
                 }
             });
 
@@ -231,7 +234,7 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, baf, logr, logRMedian);
+                            ic.redraw (ic, ac, baf, logr, logRMedian);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph

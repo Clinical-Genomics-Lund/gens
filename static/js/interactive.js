@@ -154,9 +154,10 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, baf, logr, logRMedian) {
+  redraw (ic, ac, baf, logr, logRMedian) {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+    ac.saveAnnotations();
   }
 }

@@ -185,6 +185,15 @@ def get_overview_cov():
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
                    start=reg.start_pos, end=reg.end_pos)
 
+@APP.route('/_saveannotations', methods=['GET'])
+def save_annotations():
+    '''
+    Saves new annotations
+    '''
+    annotations = request.args.get('annotationCoords', 1)
+    text = request.args.get('text', 1)
+    return jsonify(status='ok')
+
 ### Help functions ###
 
 def parse_region_str(region):

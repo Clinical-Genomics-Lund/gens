@@ -1,6 +1,7 @@
 class Annotation {
   constructor (height) {
-    this.rects = this.loadAnnotations(null);
+    this.annotations = this.loadAnnotations(null);
+    this.newAnnotations = [];
     this.annotationCanvas = document.getElementById('annotation');
     this.ctx = this.annotationCanvas.getContext('2d');
     this.annotationCanvas.width = $(document).innerWidth();
@@ -12,22 +13,30 @@ class Annotation {
   }
 
   loadAnnotations (range) {
-    return [
-      {x: 250, y: 250, w: 4, h: 4},
-      {x: 400, y: 370, w: 4, h: 4}
-    ];
+    return [];
+  }
+
+  saveAnnotations () {
+    if (this.newAnnotations.length > 0) {
+      $.getJSON($SCRIPT_ROOT + '/_saveannotations', {
+        annotationCoords: '5',
+        text: '3'
+      }, function(result) {
+      });
+      this.newAnnotations = [];
+    }
   }
 
   drawAnnotations () {
     let i = 0;
-    let r;
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
 
-    // render initial rects.
+    // render initial annotations.
     this.ctx.beginPath();
-    while (r = this.rects[i++]) {
+    for (let i = 0; i < this.annotations.length; i++) {
+      let r = this.annotations[i];
       this.ctx.rect(r.x - this.mouseOffset, r.y - this.mouseOffset, r.w, r.h);
     }
     this.ctx.fillStyle = "blue";
@@ -35,11 +44,9 @@ class Annotation {
   }
 
   intersectsAnnotation (x, y) {
-    let rect = this.annotationCanvas.getBoundingClientRect();
-
     if (this.ctx.isPointInPath(x - this.mouseOffset + this.rw, y - this.mouseOffset + this.rh)) {
-      for (let i = 0; i < this.rects.length; i++) {
-        let rect = this.rects[i];
+      for (let i = 0; i < this.annotations.length; i++) {
+        let rect = this.annotations[i];
         if (Math.abs(x - rect.x) <= this.rw && Math.abs(y - rect.y) <= this.rh) {
           document.getElementById(rect.x + '' + rect.y).style.visibility = 'visible';
           return true;
@@ -50,10 +57,10 @@ class Annotation {
   }
 
   removeAnnotation (id) {
-    for (let i = 0; i < this.rects.length; i++) {
-      let rect = this.rects[i];
+    for (let i = 0; i < this.annotations.length; i++) {
+      let rect = this.annotations[i];
       if ( id == rect.x + '' + rect.y) {
-        this.rects.splice(i, 1);
+        this.annotations.splice(i, 1);
         break;
       }
     }
@@ -67,7 +74,8 @@ class Annotation {
     }
 
     let rect = {x: x, y: y, w: this.rw, h: this.rh};
-    this.rects.push(rect);
+    this.annotations.push(rect);
+    this.newAnnotations.push(rect);
     this.drawAnnotations();
 
     // Annotation box
