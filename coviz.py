@@ -124,7 +124,7 @@ def set_data(graph, logr_list, baf_list, x_pos, new_start_pos, x_ampl, median):
     for record in logr_list:
         logr_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                              graph.logr_ypos - graph.logr_ampl *
-                             math.log(float(record[3]) / median + 1, 2), 0])
+                             (math.log(float(record[3]) / median + 1, 2) - 1), 0])
 
     # Gather the BAF records
     baf_records = []
