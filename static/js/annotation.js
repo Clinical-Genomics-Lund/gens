@@ -5,10 +5,10 @@ class Annotation {
     this.ctx = this.annotationCanvas.getContext('2d');
     this.annotationCanvas.width = $(document).innerWidth();
     this.annotationCanvas.height =  height;
-    this.drawAnnotations();
     this.rw = 4;
     this.rh = 4;
     this.mouseOffset = 10;
+    this.drawAnnotations();
   }
 
   loadAnnotations (range) {
