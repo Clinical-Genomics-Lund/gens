@@ -61,7 +61,8 @@ class Annotation {
 
   addAnnotation (x, y) {
     // If annotation already exists, do not add it
-    if (this.ctx.isPointInPath(x, y)) {
+    if (this.ctx.isPointInPath(x - this.mouseOffset + this.rw,
+                               y - this.mouseOffset + this.rh)) {
       return;
     }
 
@@ -98,7 +99,7 @@ class Annotation {
     del.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
-      // TODO: Get correct language phrase?
+      // TODO: Add different language options?
       if(confirm('Delete annotation?')) {
         let parent = event.srcElement.closest('.annotation-overlay')
 
@@ -123,7 +124,7 @@ class Annotation {
     textSpan.setAttribute('contenteditable', 'true');
     div.appendChild(textSpan);
 
-    // When clicking on div, put focus on the text span
+    // When clicking on div, make the text span focused
     div.onclick = function (event) {
       textSpan.focus();
     }
