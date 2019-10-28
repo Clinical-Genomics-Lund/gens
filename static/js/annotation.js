@@ -34,15 +34,13 @@ class Annotation {
     this.ctx.fill();
   }
 
-  intersectsAnnotation (clx, cly) {
+  intersectsAnnotation (x, y) {
     let rect = this.annotationCanvas.getBoundingClientRect();
-    let x = clx;
-    let y = cly;
 
-    if (this.ctx.isPointInPath(x - this.mouseOffset, y - this.mouseOffset)) {
+    if (this.ctx.isPointInPath(x - this.mouseOffset + this.rw, y - this.mouseOffset + this.rh)) {
       for (let i = 0; i < this.rects.length; i++) {
         let rect = this.rects[i];
-        if (x - rect.x <= this.rw && y - rect.y <= this.rh) {
+        if (Math.abs(x - rect.x) <= this.rw && Math.abs(y - rect.y) <= this.rh) {
           document.getElementById(rect.x + '' + rect.y).style.visibility = 'visible';
           return true;
         }
