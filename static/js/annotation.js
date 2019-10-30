@@ -8,7 +8,6 @@ class Annotation {
     this.annotationCanvas.height =  height;
     this.rw = 4;
     this.rh = 4;
-    this.mouseOffset = 10;
     this.drawAnnotations();
   }
 
@@ -37,14 +36,14 @@ class Annotation {
     this.ctx.beginPath();
     for (let i = 0; i < this.annotations.length; i++) {
       let r = this.annotations[i];
-      this.ctx.rect(r.x - this.mouseOffset, r.y - this.mouseOffset, r.w, r.h);
+      this.ctx.rect(r.x, r.y, r.w, r.h);
     }
     this.ctx.fillStyle = "blue";
     this.ctx.fill();
   }
 
   intersectsAnnotation (x, y) {
-    if (this.ctx.isPointInPath(x - this.mouseOffset + this.rw, y - this.mouseOffset + this.rh)) {
+    if (this.ctx.isPointInPath(x, y)) {
       for (let i = 0; i < this.annotations.length; i++) {
         let rect = this.annotations[i];
         if (Math.abs(x - rect.x) <= this.rw && Math.abs(y - rect.y) <= this.rh) {
@@ -66,24 +65,23 @@ class Annotation {
     }
   }
 
-  addAnnotation (x, y) {
+  addAnnotation (x, y, xOffset, yOffset) {
     // If annotation already exists, do not add it
-    if (this.ctx.isPointInPath(x - this.mouseOffset + this.rw,
-                               y - this.mouseOffset + this.rh)) {
+    if (this.ctx.isPointInPath(x, y)) {
       return;
     }
 
-    let rect = {x: x, y: y, w: this.rw, h: this.rh};
+    let rect = {x: x - xOffset, y: y - yOffset, w: this.rw, h: this.rh};
     this.annotations.push(rect);
     this.newAnnotations.push(rect);
     this.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
-    div.setAttribute('id', x + '' + y);
+    div.setAttribute('id', (x - xOffset) + '' + (y - yOffset));
     div.setAttribute('class', 'annotation-overlay');
-    div.style.left = x + 'px';
-    div.style.top = y + 'px';
+    div.style.left = x + 1 + 'px';
+    div.style.top = y + 1 + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
     // Add close button
