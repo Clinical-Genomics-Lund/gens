@@ -58,7 +58,15 @@ class Annotation {
   removeAnnotation (id) {
     for (let i = 0; i < this.annotations.length; i++) {
       let rect = this.annotations[i];
-      if ( id == rect.x + '' + rect.y) {
+      let newrect = this.newAnnotations[i];
+
+      // Remove from list of new annotations
+      if ( newrect && id == newrect.x + '' + newrect.y) {
+        this.newAnnotations.splice(i, 1);
+      }
+
+      // Remove from list of all loaded annotations
+      if ( rect && id == rect.x + '' + rect.y) {
         this.annotations.splice(i, 1);
         break;
       }
