@@ -173,9 +173,9 @@
 
                     // Hide annotations
                     ac.annotationCanvas.style.visibility = 'hidden';
-                    let annotation = document.querySelector('.annotation-overlay');
-                    if (annotation) {
-                        annotation.style.visibility = 'hidden';
+                    let annotation = document.querySelectorAll('.annotation-overlay');
+                    for (let i = 0; i < annotation.length; i++) {
+                        annotation[i].style.visibility = 'hidden';
                     }
 
                     // Clear whole content canvas
