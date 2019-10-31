@@ -185,13 +185,26 @@ def get_overview_cov():
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
                    start=reg.start_pos, end=reg.end_pos)
 
-@APP.route('/_saveannotations', methods=['GET'])
-def save_annotations():
+@APP.route('/_saveannotation', methods=['GET'])
+def save_annotation():
     '''
     Saves new annotations
     '''
-    annotations = request.args.get('annotationCoords', 1)
+    x_pos = request.args.get('xPos', 1)
+    y_pos = request.args.get('yPos', 1)
     text = request.args.get('text', 1)
+
+    # Save into mongo database
+
+    return jsonify(status='ok')
+
+@APP.route('/_loadannotation', methods=['GET'])
+def load_annotation():
+    '''
+    Loads new annotations
+    '''
+    # Load from mongo database
+
     return jsonify(status='ok')
 
 ### Help functions ###

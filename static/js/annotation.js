@@ -15,14 +15,31 @@ class Annotation {
     return [];
   }
 
-  saveAnnotations () {
-    if (this.newAnnotations.length > 0) {
-      $.getJSON($SCRIPT_ROOT + '/_saveannotations', {
-        annotationCoords: '5',
-        text: '3'
+  saveAnnotations (canvas) {
+    for (let i = 0; i < this.newAnnotations.length; i++) {
+      let annotation = this.newAnnotations[i];
+      let text = document.getElementById(annotation.x + '' + annotation.y).getElementsByTagName('span')[0].innerHTML;
+
+      // Convert y coordinate
+      let datay = canvas.toDataCoord(0, annotation.y);
+      let backy = canvas.toScreenCoord(0, datay);
+      console.log(annotation.x, annotation.y);
+
+      // ca(180.000, 0.6) BAF
+      console.log('data coord ', canvas.toDataCoord(1461, 147));
+      console.log('screen coord ', canvas.toScreenCoord(180000, 0.6, true));
+
+      // ca(180.000, 0.0) LogR
+      console.log('data coord ', canvas.toDataCoord(1461, 344));
+      console.log('screen coord ', canvas.toScreenCoord(180000, 0.0, false));
+
+      $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
+        region: document.getElementById('region_field').placeholder,
+        xPos: annotation.x,
+        yPos: annotation.y,
+        text: text
       }, function(result) {
       });
-      this.newAnnotations = [];
     }
   }
 

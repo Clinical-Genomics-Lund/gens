@@ -51,6 +51,37 @@ class InteractiveCanvas {
       this.contentCanvas.height =  this.height;
   }
 
+  // Convert screen coordinates to data coordinates
+  toDataCoord (xPos, yPos) {
+    // Calculate x position
+    let x = 0;
+    if (yPos <= (this.y + this.boxHeight)) {
+      // Calculate y position for BAF
+      let y = (this.y + this.boxHeight - this.yMargin - yPos) /
+        (this.boxHeight - 2 * this.yMargin);
+      return [x, y, true];
+    } else {
+      // Calculate y position for LogR
+      let y = (this.y + 1.5 * this.boxHeight - yPos) / (this.boxHeight - 2 * this.yMargin);
+      return [x, y, false];
+    }
+  }
+
+  // Convert data coordinates to screen coordinates
+  toScreenCoord (xPos, yPos, baf) {
+    // Calculate x position
+    let x = 0;
+    if (baf) {
+      // Calculate y position for BAF
+      let y = this.y + this.boxHeight - this.yMargin - yPos * (this.boxHeight - 2 * this.yMargin);
+      return [x, y];
+    } else {
+      // Calculate y position for LogR
+      let y = this.y + 1.5 * this.boxHeight - yPos * (this.boxHeight - 2 * this.yMargin);
+      return [x, y];
+    }
+  }
+
   // Draw static content for interactive canvas
   drawStaticContent (ic, baf, logr) {
     let linePadding = 2;
@@ -158,6 +189,6 @@ class InteractiveCanvas {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations();
+    ac.saveAnnotations(ic);
   }
 }
