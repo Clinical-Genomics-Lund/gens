@@ -52,9 +52,10 @@ class InteractiveCanvas {
   }
 
   // Convert screen coordinates to data coordinates
-  toDataCoord (xPos, yPos) {
+  toDataCoord (xPos, yPos, start, end) {
+    let adjustedXPos = this.x + adjustedMargin;
     // Calculate x position
-    let x = 0;
+    let x = start + (end - start) * ((xPos - adjustedXPos) / this.boxWidth);
     if (yPos <= (this.y + this.boxHeight)) {
       // Calculate y position for BAF
       let y = (this.y + this.boxHeight - this.yMargin - yPos) /
@@ -68,9 +69,10 @@ class InteractiveCanvas {
   }
 
   // Convert data coordinates to screen coordinates
-  toScreenCoord (xPos, yPos, baf) {
+  toScreenCoord (xPos, yPos, start, end, baf) {
+    let adjustedXPos = this.x + adjustedMargin;
     // Calculate x position
-    let x = 0;
+    let x = this.boxWidth * (xPos - start) / (end - start) + adjustedXPos
     if (baf) {
       // Calculate y position for BAF
       let y = this.y + this.boxHeight - this.yMargin - yPos * (this.boxHeight - 2 * this.yMargin);
@@ -185,10 +187,10 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, logRMedian) {
+  redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations(ic);
+    ac.saveAnnotations(ic, ic.start, ic.end, adjustedMargin);
   }
 }
