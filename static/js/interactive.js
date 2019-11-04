@@ -186,6 +186,16 @@ class InteractiveCanvas {
     });
   }
 
+  // Check if coordinates is inside the graph
+  insideGraph (x, y) {
+    if (x < (this.x + adjustedMargin + this.boxWidth) && x > this.x + adjustedMargin &&
+      y < (this.y + 2 * this.boxHeight) && y > this.y) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // Redraw interactive canvas
   redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;

@@ -16,7 +16,8 @@ class OverviewCanvas {
 
     // Set canvas height
     this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin);
-    let numRows = Math.ceil(this.numChrom / ((this.rightMargin - this.x) / this.boxWidth));
+    this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
+    let numRows = Math.ceil(this.numChrom / this.chromPerRow);
     let rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
 
     // Canvas variables
@@ -123,5 +124,23 @@ class OverviewCanvas {
       // Start on new row
       yPos += 2 * oc.boxHeight + oc.rowMargin;
     }
+  }
+
+  // Check if coordinates is inside the graph
+  insideGraph (x, y) {
+    let yPos = 2 * this.y + this.staticCanvas.offsetTop;
+    for (let i = 0; i < this.numChrom; i++) {
+      // Take new row into account
+      if (i > 0 && i % this.chromPerRow == 0) {
+        yPos += 2 * this.boxHeight + this.rowMargin;
+      }
+      console.log(y, yPos);
+      if (x > this.x + adjustedMargin + (i % this.chromPerRow) * this.boxWidth &&
+          x < this.x + adjustedMargin + ((i % this.chromPerRow) + 1) * this.boxWidth &&
+          y > yPos && y < yPos + 2 * this.boxHeight) {
+        return true;
+      }
+    }
+    return false;
   }
 }
