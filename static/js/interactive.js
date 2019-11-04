@@ -120,8 +120,8 @@ class InteractiveCanvas {
         logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.width, ic.boxHeight);
 
       // Plot scatter data
-      drawData(ic.scene, result['baf'], '#FF0000');
-      drawData(ic.scene, result['data'], '#000000');
+      drawData(ic.scene, result['baf'], baf.color);
+      drawData(ic.scene, result['data'], logr.color);
       ic.renderer.render(ic.scene, ic.camera);
 
       // Draw chromosome title

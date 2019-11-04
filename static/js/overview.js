@@ -93,8 +93,8 @@ class OverviewCanvas {
             oc.boxWidth, oc.boxHeight);
 
           // Plot scatter data
-          drawData(oc.scene, result['baf'], '#FF0000');
-          drawData(oc.scene, result['data'], '#000000');
+          drawData(oc.scene, result['baf'], baf.color);
+          drawData(oc.scene, result['data'], logr.color);
         }).done(function (result) {
           if (++drawnChrom === oc.numChrom) {
             // Render scene and transfer to visible canvas
