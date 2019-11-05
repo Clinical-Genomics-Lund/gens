@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 '''
 Whole genome visualization of BAF and log R ratio
 '''
@@ -188,20 +189,31 @@ def get_overview_cov():
 @APP.route('/_saveannotation', methods=['GET'])
 def save_annotation():
     '''
-    Saves new annotations
+    Inserts annotation into database
     '''
+    text = request.args.get('text', None)
     x_pos = request.args.get('xPos', 1)
     y_pos = request.args.get('yPos', 1)
-    text = request.args.get('text', 1)
+    baf = request.args.get('baf', None)
 
-    # Save into mongo database
+    # Check that record does not already exist
+    update = COLLECTION.update_one({'x': x_pos, 'y':y_pos},
+                                   {'$set': {'text': text}})
+    if update.matched_count == 0:
+        # Insert new record
+        COLLECTION.insert_one({
+            'text': text,
+            'x': x_pos,
+            'y': y_pos,
+            'baf': baf
+        })
 
     return jsonify(status='ok')
 
 @APP.route('/_loadannotation', methods=['GET'])
 def load_annotation():
     '''
-    Loads new annotations
+    Loads annotations within requested range
     '''
     # Load from mongo database
 
@@ -254,7 +266,9 @@ def parse_region_str(region):
     return resolution, chrom, start_pos, end_pos
 
 def tabix_query(filename, chrom, start=None, end=None):
-    """Call tabix and generate an array of strings for each line it returns."""
+    """
+    Call tabix and generate an array of strings for each line it returns.
+    """
     if not start and not end:
         query = chrom
     else:

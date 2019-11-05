@@ -134,7 +134,6 @@ class OverviewCanvas {
       if (i > 0 && i % this.chromPerRow == 0) {
         yPos += 2 * this.boxHeight + this.rowMargin;
       }
-      console.log(y, yPos);
       if (x > this.x + adjustedMargin + (i % this.chromPerRow) * this.boxWidth &&
           x < this.x + adjustedMargin + ((i % this.chromPerRow) + 1) * this.boxWidth &&
           y > yPos && y < yPos + 2 * this.boxHeight) {

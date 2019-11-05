@@ -20,11 +20,19 @@ class Annotation {
       let annotation = this.newAnnotations[i];
       let text = document.getElementById(annotation.x + '' + annotation.y).getElementsByTagName('span')[0].innerHTML;
 
+      // Do not save empty annotations
+      if (text == '') {
+        continue;
+      }
+
+      let dataCoords = canvas.toDataCoord(annotation.x, annotation.y);
+
       $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
         region: document.getElementById('region_field').placeholder,
-        xPos: annotation.x,
-        yPos: annotation.y,
-        text: text
+        text: text,
+        xPos: dataCoords[0],
+        yPos: dataCoords[1],
+        baf: dataCoords[2],
       }, function(result) {
       });
     }
