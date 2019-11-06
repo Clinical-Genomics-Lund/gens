@@ -61,7 +61,11 @@ class OverviewCanvas {
           ypos: yPos,
           boxHeight: oc.boxHeight,
           y_margin: oc.yMargin,
-          x_ampl: oc.xAmpl
+          x_ampl: oc.xAmpl,
+          baf_y_start: baf.yStart,
+          baf_y_end: baf.yEnd,
+          logr_y_start: logr.yStart,
+          logr_y_end: logr.yEnd
         }, function (result) {
           let staticCanvas = document.getElementById('overview-static');
           // Draw chromosome title

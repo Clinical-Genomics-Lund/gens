@@ -13,7 +13,9 @@ APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
-REQUEST = namedtuple('request', ('region', 'median', 'x_pos', 'y_pos', 'box_height', 'y_margin'))
+REQUEST = namedtuple('request', ('region', 'median', 'x_pos', 'y_pos',
+                                 'box_height', 'y_margin', 'baf_y_start',
+                                 'baf_y_end', 'logr_y_start', 'logr_y_end'))
 
 SAMPLE_FILE = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
 COV_FILE = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
@@ -115,20 +117,26 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     x_ampl = x_ampl / (new_end_pos - new_start_pos)
     return logr_list, baf_list, new_start_pos, x_ampl
 
-def set_data(graph, logr_list, baf_list, x_pos, new_start_pos, x_ampl, median):
+def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl, median):
     '''
     Edits data for LogR and BAF
     '''
     #  Normalize and calculate the Log R Ratio
     logr_records = []
     for record in logr_list:
+        # Cap values to end points
+        ypos = math.log((float(record[3]) + 1) / median, 2)
+        ypos = req.logr_y_start + 0.2 if ypos > req.logr_y_start else ypos
+        ypos = req.logr_y_end - 0.2 if ypos < req.logr_y_end else ypos
+
         logr_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                             graph.logr_ypos - graph.logr_ampl *
-                             (math.log((float(record[3]) + 1) / median, 2)), 0])
+                             graph.logr_ypos - graph.logr_ampl * ypos, 0])
 
     # Gather the BAF records
     baf_records = []
     for record in baf_list:
+        ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
+        ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
         baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                             graph.baf_ypos - graph.baf_ampl * float(record[3]), 0])
 
@@ -145,7 +153,11 @@ def get_overview_cov():
         float(request.args.get('xpos', 1)),
         float(request.args.get('ypos', 1)),
         float(request.args.get('boxHeight', 1)),
-        float(request.args.get('y_margin', 1))
+        float(request.args.get('y_margin', 1)),
+        float(request.args.get('baf_y_start', 0)),
+        float(request.args.get('baf_y_end', 0)),
+        float(request.args.get('logr_y_start', 0)),
+        float(request.args.get('logr_y_end', 0))
     )
     x_ampl = float(request.args.get('x_ampl', 1))
 
@@ -161,7 +173,7 @@ def get_overview_cov():
 
     logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
                                                            new_end_pos, x_ampl)
-    logr_records, baf_records = set_data(graph, logr_list, baf_list,
+    logr_records, baf_records = set_data(graph, req, logr_list, baf_list,
                                          req.x_pos - extra_box_width, new_start_pos,
                                          x_ampl, req.median)
 

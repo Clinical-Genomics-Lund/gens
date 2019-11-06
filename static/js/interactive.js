@@ -101,7 +101,11 @@ class InteractiveCanvas {
       boxHeight: ic.boxHeight,
       extra_box_width: ic.extraWidth,
       y_margin: ic.yMargin,
-      x_ampl: ic.xAmpl
+      x_ampl: ic.xAmpl,
+      baf_y_start: baf.yStart,
+      baf_y_end: baf.yEnd,
+      logr_y_start: logr.yStart,
+      logr_y_end: logr.yEnd
     }, function (result) {
       // Clear canvas
       ic.contentCanvas.getContext('2d').clearRect(0, 0,
