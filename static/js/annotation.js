@@ -15,7 +15,7 @@ class Annotation {
     return [];
   }
 
-  saveAnnotations (canvas, start, end, adjustedMargin) {
+  saveAnnotations (canvas, start, end, adjustedMargin, sampleName) {
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let annotation = this.newAnnotations[i];
       let text = document.getElementById(annotation.x + '' + annotation.y).getElementsByTagName('span')[0].innerHTML;
@@ -33,6 +33,7 @@ class Annotation {
         xPos: dataCoords[0],
         yPos: dataCoords[1],
         baf: dataCoords[2],
+        sample_name: sampleName
       }, function(result) {
       });
     }

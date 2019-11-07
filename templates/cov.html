@@ -64,7 +64,7 @@
 
             // FLASK VALUES //
             let logRMedian = {{ median }};
-            let title = '{{ title }}';
+            let sampleName = '{{ sample_name }}';
 
             let callChrom = '{{ call_chrom }}';
             let callStart = {{ call_start }};
@@ -218,7 +218,7 @@
                     ic.start += moveDist;
                     ic.end += moveDist;
                     ic.disallowDrag = true;
-                    ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+                    ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin, sampleName);
                 }
             });
 
@@ -249,22 +249,23 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+                            ic.redraw (ic, ac, baf, logr, logRMedian,
+                                    adjustedMargin, sampleName);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
                         switch (key) {
                         case 'ArrowLeft':
-                            left(ic, baf, logr, logRMedian);
+                            left(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case 'ArrowRight':
-                            right(ic, baf, logr, logRMedian);
+                            right(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case '+':
-                            zoomIn(ic, baf, logr, logRMedian);
+                            zoomIn(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case '-':
-                            zoomOut(ic, baf, logr, logRMedian);
+                            zoomOut(ic, baf, logr, logRMedian, sampleName);
                             break;
                         default:
                             return;

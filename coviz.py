@@ -8,9 +8,13 @@ import math
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from flask import Flask, request, render_template, jsonify, abort, Response
+from pymongo import MongoClient
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+CLIENT = MongoClient()
+COVIZ_DB = CLIENT['coviz']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
@@ -43,11 +47,11 @@ def coverage_view():
     with open(SAMPLE_FILE) as data_file:
         sample_data = json.load(data_file)
     median = float(sample_data['median_depth'])
-    title = sample_data['sample_name']
+    sample_name = sample_data['sample_name']
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
                            call_chrom=call_chrom, call_start=call_start,
-                           call_end=call_end, median=median, title=title)
+                           call_end=call_end, median=median, sample_name=sample_name)
 
 # Set graph-specific values
 def set_graph_values(box_height, ypos, y_margin):
@@ -195,13 +199,20 @@ def save_annotation():
     x_pos = request.args.get('xPos', 1)
     y_pos = request.args.get('yPos', 1)
     baf = request.args.get('baf', None)
+    sample_name = request.args.get('sample_name', None)
+
+    if sample_name is None:
+        return abort(404)
+
+    # Set collection
+    collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
-    update = COLLECTION.update_one({'x': x_pos, 'y':y_pos},
+    update = collection.update_one({'x': x_pos, 'y':y_pos},
                                    {'$set': {'text': text}})
     if update.matched_count == 0:
         # Insert new record
-        COLLECTION.insert_one({
+        collection.insert_one({
             'text': text,
             'x': x_pos,
             'y': y_pos,
