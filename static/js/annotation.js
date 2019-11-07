@@ -25,7 +25,7 @@ class Annotation {
         continue;
       }
 
-      let dataCoords = canvas.toDataCoord(annotation.x, annotation.y);
+      let dataCoords = canvas.toDataCoord(annotation.x, annotation.y, start, end);
 
       $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
         region: document.getElementById('region_field').placeholder,

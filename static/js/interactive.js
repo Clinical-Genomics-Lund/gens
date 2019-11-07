@@ -54,6 +54,7 @@ class InteractiveCanvas {
   // Convert screen coordinates to data coordinates
   toDataCoord (xPos, yPos, start, end) {
     let adjustedXPos = this.x + adjustedMargin;
+
     // Calculate x position
     let x = start + (end - start) * ((xPos - adjustedXPos) / this.boxWidth);
     if (yPos <= (this.y + this.boxHeight)) {
