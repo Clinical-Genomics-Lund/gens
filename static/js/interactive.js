@@ -61,11 +61,11 @@ class InteractiveCanvas {
       // Calculate y position for BAF
       let y = (this.y + this.boxHeight - this.yMargin - yPos) /
         (this.boxHeight - 2 * this.yMargin);
-      return [x, y, true];
+      return [x, y, true, this.chromosome];
     } else {
       // Calculate y position for LogR
       let y = (this.y + 1.5 * this.boxHeight - yPos) / (this.boxHeight - 2 * this.yMargin);
-      return [x, y, false];
+      return [x, y, false, this.chromosome];
     }
   }
 

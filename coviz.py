@@ -196,26 +196,28 @@ def save_annotation():
     Inserts annotation into database
     '''
     text = request.args.get('text', None)
-    x_pos = request.args.get('xPos', 1)
-    y_pos = request.args.get('yPos', 1)
+    x_pos = float(request.args.get('xPos', 1))
+    y_pos = float(request.args.get('yPos', 1))
+    chrom = request.args.get('chrom', None)
     baf = request.args.get('baf', None)
     sample_name = request.args.get('sample_name', None)
 
-    if sample_name is None:
+    if sample_name is None or chrom is None:
         return abort(404)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
-    update = collection.update_one({'x': x_pos, 'y':y_pos},
-                                   {'$set': {'text': text}})
+    update = collection.update_one({'x': int(x_pos), 'y': y_pos,
+                                    'chrom': chrom}, {'$set': {'text': text}})
     if update.matched_count == 0:
         # Insert new record
         collection.insert_one({
             'text': text,
-            'x': x_pos,
+            'x': int(x_pos),
             'y': y_pos,
+            'chrom': chrom,
             'baf': baf
         })
 
@@ -227,8 +229,19 @@ def load_annotation():
     Loads annotations within requested range
     '''
     # Load from mongo database
+    sample_name = request.args.get('sample_name', None)
+    region = request.args.get('region', None)
 
-    return jsonify(status='ok')
+    if sample_name is None or region is None:
+        return abort(404)
+
+    collection = COVIZ_DB[sample_name]
+    _, chrom, start_pos, end_pos = parse_region_str(region)
+
+    annotations = list(collection.find({'x': {'$gte': start_pos, '$lte': end_pos},
+                                        'chrom': chrom}, {'_id': False}))
+
+    return jsonify(status='ok', annotations=annotations, start_pos=start_pos, end_pos=end_pos)
 
 ### Help functions ###
 

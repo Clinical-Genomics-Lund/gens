@@ -121,6 +121,7 @@
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById('visualization-container').clientHeight);
+            ac.loadAnnotations(ac, ic, sampleName, inputField.placeholder);
 
             // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu', function(event) {
@@ -128,8 +129,7 @@
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
                 if (ic.insideGraph(x, y)) {
-                    return ac.addAnnotation(event.pageX, event.pageY,
-                        ac.annotationCanvas.offsetLeft, ac.annotationCanvas.offsetTop);
+                    return ac.addAnnotation(event.pageX, event.pageY);
                 }
             }, false);
 

@@ -1,6 +1,6 @@
 class Annotation {
   constructor (height) {
-    this.annotations = this.loadAnnotations(null);
+    this.annotations = [];
     this.newAnnotations = [];
     this.annotationCanvas = document.getElementById('annotation');
     this.ctx = this.annotationCanvas.getContext('2d');
@@ -8,24 +8,36 @@ class Annotation {
     this.annotationCanvas.height =  height;
     this.rw = 4;
     this.rh = 4;
-    this.drawAnnotations();
+    this.xOffset = this.annotationCanvas.offsetLeft;
+    this.yOffset = this.annotationCanvas.offsetTop;
   }
 
-  loadAnnotations (range) {
-    return [];
+  loadAnnotations (ac, canvas, sampleName, region) {
+      $.getJSON($SCRIPT_ROOT + '/_loadannotation', {
+        sample_name: sampleName,
+        region: region
+      }, function(result) {
+        let annotations = result['annotations'];
+        for (let i = 0; i < annotations.length; i++) {
+          let canvasCoords = canvas.toScreenCoord(annotations[i]['x'],
+            annotations[i]['y'], result['start_pos'], result['end_pos'],
+            annotations[i]['baf']);
+          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text']);
+        }
+      });
   }
 
   saveAnnotations (canvas, start, end, adjustedMargin, sampleName) {
     for (let i = 0; i < this.newAnnotations.length; i++) {
-      let annotation = this.newAnnotations[i];
-      let text = document.getElementById(annotation.x + '' + annotation.y).getElementsByTagName('span')[0].innerHTML;
+      let annot = this.newAnnotations[i];
+      let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
 
       // Do not save empty annotations
       if (text == '') {
         continue;
       }
 
-      let dataCoords = canvas.toDataCoord(annotation.x, annotation.y, start, end);
+      let dataCoords = canvas.toDataCoord(annot.x, annot.y, start, end);
 
       $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
         region: document.getElementById('region_field').placeholder,
@@ -33,6 +45,7 @@ class Annotation {
         xPos: dataCoords[0],
         yPos: dataCoords[1],
         baf: dataCoords[2],
+        chrom: dataCoords[3],
         sample_name: sampleName
       }, function(result) {
       });
@@ -86,20 +99,20 @@ class Annotation {
     }
   }
 
-  addAnnotation (x, y, xOffset, yOffset) {
+  addAnnotation (x, y, text='') {
     // If annotation already exists, do not add it
     if (this.ctx.isPointInPath(x, y)) {
       return;
     }
 
-    let rect = {x: x - xOffset, y: y - yOffset, w: this.rw, h: this.rh};
+    let rect = {x: x - this.xOffset, y: y - this.yOffset, w: this.rw, h: this.rh};
     this.annotations.push(rect);
     this.newAnnotations.push(rect);
     this.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
-    div.setAttribute('id', (x - xOffset) + '' + (y - yOffset));
+    div.setAttribute('id', (x - this.xOffset) + '' + (y - this.yOffset));
     div.setAttribute('class', 'annotation-overlay');
     div.style.left = x + 1 + 'px';
     div.style.top = y + 1 + 'px';
@@ -147,8 +160,9 @@ class Annotation {
 
     // Text span
     let textSpan = document.createElement('span');
-    textSpan.setAttribute('id', 'annotation-text');
-    textSpan.setAttribute('contenteditable', 'true');
+    textSpan.id = 'annotation-text';
+    textSpan.contentEditable = 'true';
+    textSpan.textContent = text;
     div.appendChild(textSpan);
 
     // When clicking on div, make the text span focused
