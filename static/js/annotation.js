@@ -1,5 +1,5 @@
 class Annotation {
-  constructor (height) {
+  constructor (height, sampleName) {
     this.annotations = [];
     this.newAnnotations = [];
     this.annotationCanvas = document.getElementById('annotation');
@@ -10,11 +10,12 @@ class Annotation {
     this.rh = 4;
     this.xOffset = this.annotationCanvas.offsetLeft;
     this.yOffset = this.annotationCanvas.offsetTop;
+    this.sampleName = sampleName;
   }
 
-  loadAnnotations (ac, canvas, sampleName, region) {
+  loadAnnotations (ac, canvas, region) {
       $.getJSON($SCRIPT_ROOT + '/_loadannotation', {
-        sample_name: sampleName,
+        sample_name: this.sampleName,
         region: region
       }, function(result) {
         let annotations = result['annotations'];
@@ -27,7 +28,7 @@ class Annotation {
       });
   }
 
-  saveAnnotations (canvas, start, end, adjustedMargin, sampleName) {
+  saveAnnotations (canvas, start, end, adjustedMargin) {
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let annot = this.newAnnotations[i];
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
@@ -46,7 +47,7 @@ class Annotation {
         yPos: dataCoords[1],
         baf: dataCoords[2],
         chrom: dataCoords[3],
-        sample_name: sampleName
+        sample_name: this.sampleName
       }, function(result) {
       });
     }

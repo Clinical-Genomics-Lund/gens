@@ -198,10 +198,10 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, logRMedian, adjustedMargin, sampleName) {
+  redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations(ic, ic.start, ic.end, adjustedMargin, sampleName);
+    ac.saveAnnotations(ic, ic.start, ic.end, adjustedMargin);
   }
 }

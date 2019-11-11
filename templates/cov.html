@@ -120,8 +120,9 @@
             oc.drawOverviewContent(oc, baf, logr, logRMedian);
 
             // Initiate annotation canvas
-            let ac = new Annotation(document.getElementById('visualization-container').clientHeight);
-            ac.loadAnnotations(ac, ic, sampleName, inputField.placeholder);
+            let ac = new Annotation(document.getElementById('visualization-container').clientHeight,
+                    sampleName);
+            ac.loadAnnotations(ac, ic, inputField.placeholder);
 
             // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu', function(event) {
@@ -218,7 +219,7 @@
                     ic.start += moveDist;
                     ic.end += moveDist;
                     ic.disallowDrag = true;
-                    ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin, sampleName);
+                    ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
                 }
             });
 
@@ -249,8 +250,7 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, logRMedian,
-                                    adjustedMargin, sampleName);
+                            ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
