@@ -241,7 +241,7 @@ def load_annotation():
     annotations = list(collection.find({'x': {'$gte': start_pos, '$lte': end_pos},
                                         'chrom': chrom}, {'_id': False}))
 
-    return jsonify(status='ok', annotations=annotations, start_pos=start_pos, end_pos=end_pos)
+    return jsonify(status='ok', annotations=annotations)
 
 ### Help functions ###
 

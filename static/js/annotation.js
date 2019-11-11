@@ -21,14 +21,13 @@ class Annotation {
         let annotations = result['annotations'];
         for (let i = 0; i < annotations.length; i++) {
           let canvasCoords = canvas.toScreenCoord(annotations[i]['x'],
-            annotations[i]['y'], result['start_pos'], result['end_pos'],
-            annotations[i]['baf']);
+            annotations[i]['y'], annotations[i]['baf']);
           ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text']);
         }
       });
   }
 
-  saveAnnotations (canvas, start, end, adjustedMargin) {
+  saveAnnotations (canvas, adjustedMargin) {
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let annot = this.newAnnotations[i];
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
@@ -38,7 +37,7 @@ class Annotation {
         continue;
       }
 
-      let dataCoords = canvas.toDataCoord(annot.x, annot.y, start, end);
+      let dataCoords = canvas.toDataCoord(annot.x, annot.y);
 
       $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
         region: document.getElementById('region_field').placeholder,

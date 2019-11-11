@@ -24,9 +24,10 @@ class InteractiveCanvas {
     this.staticCanvas = document.getElementById('interactive-static');
 
     // Data values
-    this.chromosome = null;
-    this.start = null;
-    this.end = null;
+    let input = inputField.placeholder.split(/:|-/);
+    this.chromosome = input[0];
+    this.start = input[1];
+    this.end = input[2];
     this.disallowDrag = false;
 
     // WebGL scene variables
@@ -52,11 +53,11 @@ class InteractiveCanvas {
   }
 
   // Convert screen coordinates to data coordinates
-  toDataCoord (xPos, yPos, start, end) {
+  toDataCoord (xPos, yPos) {
     let adjustedXPos = this.x + adjustedMargin;
 
     // Calculate x position
-    let x = start + (end - start) * ((xPos - adjustedXPos) / this.boxWidth);
+    let x = this.start + (this.end - this.start) * ((xPos - adjustedXPos) / this.boxWidth);
     if (yPos <= (this.y + this.boxHeight)) {
       // Calculate y position for BAF
       let y = (this.y + this.boxHeight - this.yMargin - yPos) /
@@ -70,10 +71,11 @@ class InteractiveCanvas {
   }
 
   // Convert data coordinates to screen coordinates
-  toScreenCoord (xPos, yPos, start, end, baf) {
+  toScreenCoord (xPos, yPos, baf) {
     let adjustedXPos = this.x + adjustedMargin;
+
     // Calculate x position
-    let x = this.boxWidth * (xPos - start) / (end - start) + adjustedXPos
+    let x = this.boxWidth * (xPos - this.start) / (this.end - this.start) + adjustedXPos
     if (baf) {
       // Calculate y position for BAF
       let y = this.y + this.boxHeight - this.yMargin - yPos * (this.boxHeight - 2 * this.yMargin);
@@ -202,6 +204,6 @@ class InteractiveCanvas {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations(ic, ic.start, ic.end, adjustedMargin);
+    ac.saveAnnotations(ic, adjustedMargin);
   }
 }
