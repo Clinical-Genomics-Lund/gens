@@ -223,6 +223,26 @@ def save_annotation():
 
     return jsonify(status='ok')
 
+@APP.route('/_removeannotation', methods=['GET'])
+def remove_annotation():
+    '''
+    Inserts annotation into database
+    '''
+    x_pos = float(request.args.get('xPos', 1))
+    y_pos = float(request.args.get('yPos', 1))
+    chrom = request.args.get('chrom', None)
+    sample_name = request.args.get('sample_name', None)
+
+    if sample_name is None or chrom is None:
+        return abort(404)
+
+    # Set collection
+    collection = COVIZ_DB[sample_name]
+
+    # Check that record does not already exist
+    collection.remove({'x': int(x_pos), 'y': y_pos, 'chrom': chrom})
+    return jsonify(status='ok')
+
 @APP.route('/_loadannotation', methods=['GET'])
 def load_annotation():
     '''

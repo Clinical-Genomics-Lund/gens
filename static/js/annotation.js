@@ -22,7 +22,7 @@ class Annotation {
         for (let i = 0; i < annotations.length; i++) {
           let canvasCoords = canvas.toScreenCoord(annotations[i]['x'],
             annotations[i]['y'], annotations[i]['baf']);
-          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text']);
+          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas);
         }
       });
   }
@@ -81,26 +81,39 @@ class Annotation {
     return false;
   }
 
-  removeAnnotation (id) {
+  removeAnnotation (id, canvas) {
     for (let i = 0; i < this.annotations.length; i++) {
-      let rect = this.annotations[i];
-      let newrect = this.newAnnotations[i];
+      let annotation = this.annotations[i];
+      let newAnnotation = this.newAnnotations[i];
 
       // Remove from list of new annotations
-      if ( newrect && id == newrect.x + '' + newrect.y) {
+      if ( newAnnotation && id == newAnnotation.x + '' + newAnnotation.y) {
         this.newAnnotations.splice(i, 1);
       }
 
       // Remove from list of all loaded annotations
-      if ( rect && id == rect.x + '' + rect.y) {
+      if ( annotation && id == annotation.x + '' + annotation.y) {
         this.annotations.splice(i, 1);
         break;
       }
     }
+
+    let annotation = document.getElementById(id);
+    let dataCoords = canvas.toDataCoord(parseFloat(annotation.style.left) - this.xOffset,
+      parseFloat(annotation.style.top) - this.yOffset);
+
+    // Remove from database
+    $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
+      region: document.getElementById('region_field').placeholder,
+      xPos: dataCoords[0],
+      yPos: dataCoords[1],
+      chrom: dataCoords[3],
+      sample_name: this.sampleName
+    });
   }
 
-  addAnnotation (x, y, text='') {
-    // If annotation already exists, do not add it
+  addAnnotation (x, y, text, canvas) {
+    // If annotation already exists in this point, do not add a new one
     if (this.ctx.isPointInPath(x, y)) {
       return;
     }
@@ -145,7 +158,7 @@ class Annotation {
         let parent = event.srcElement.closest('.annotation-overlay')
 
         // Delete annotation from database
-        ac.removeAnnotation(parent.id);
+        ac.removeAnnotation(parent.id, canvas);
 
         // Delete annotation from screen
         while (parent.firstChild) {
