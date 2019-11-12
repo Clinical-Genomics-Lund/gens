@@ -82,6 +82,7 @@ class Annotation {
   }
 
   removeAnnotation (id, canvas) {
+    let removedAnnot = null;
     for (let i = 0; i < this.annotations.length; i++) {
       let annotation = this.annotations[i];
       let newAnnotation = this.newAnnotations[i];
@@ -93,14 +94,19 @@ class Annotation {
 
       // Remove from list of all loaded annotations
       if ( annotation && id == annotation.x + '' + annotation.y) {
+        removedAnnot = this.annotations[i];
         this.annotations.splice(i, 1);
         break;
       }
     }
 
-    let annotation = document.getElementById(id);
-    let dataCoords = canvas.toDataCoord(parseFloat(annotation.style.left) - this.xOffset,
-      parseFloat(annotation.style.top) - this.yOffset);
+    if (removedAnnot == null) {
+      return;
+    }
+
+    let dataCoords = canvas.toDataCoord(removedAnnot.x, removedAnnot.y);
+    let offsetDataCoords = canvas.toDataCoord(removedAnnot.x - 1, removedAnnot.y - 1);
+    let text = document.getElementById(removedAnnot.x + '' + removedAnnot.y).getElementsByTagName('span')[0].innerHTML;
 
     // Remove from database
     $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
@@ -108,6 +114,9 @@ class Annotation {
       xPos: dataCoords[0],
       yPos: dataCoords[1],
       chrom: dataCoords[3],
+      x_distance: Math.abs(offsetDataCoords[0] - dataCoords[0]),
+      y_distance: Math.abs(offsetDataCoords[1] - dataCoords[1]),
+      text: text,
       sample_name: this.sampleName
     });
   }

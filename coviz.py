@@ -228,19 +228,24 @@ def remove_annotation():
     '''
     Inserts annotation into database
     '''
-    x_pos = float(request.args.get('xPos', 1))
+    x_pos = int(float(request.args.get('xPos', 1)))
     y_pos = float(request.args.get('yPos', 1))
     chrom = request.args.get('chrom', None)
+    x_distance = float(request.args.get('x_distance', 0))
+    y_distance = float(request.args.get('y_distance', 0))
+    text = request.args.get('text', None)
     sample_name = request.args.get('sample_name', None)
 
-    if sample_name is None or chrom is None:
+    if sample_name is None or chrom is None or text is None:
         return abort(404)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
-    collection.remove({'x': int(x_pos), 'y': y_pos, 'chrom': chrom})
+    collection.remove({'x': {'$gte': x_pos - x_distance, '$lte': x_pos + x_distance},
+                       'y': {'$gte': y_pos - y_distance, '$lte': y_pos + y_distance},
+                       'text': text, 'chrom': chrom})
     return jsonify(status='ok')
 
 @APP.route('/_loadannotation', methods=['GET'])
