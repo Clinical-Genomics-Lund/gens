@@ -105,17 +105,18 @@ class Annotation {
       return;
     }
 
-    let rect = {x: x - this.xOffset, y: y - this.yOffset, w: this.rw, h: this.rh};
+    let rect = {x: x, y: y, w: this.rw, h: this.rh};
     this.annotations.push(rect);
     this.newAnnotations.push(rect);
     this.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
-    div.setAttribute('id', (x - this.xOffset) + '' + (y - this.yOffset));
+    div.setAttribute('id', x + '' + y);
     div.setAttribute('class', 'annotation-overlay');
-    div.style.left = x + 1 + 'px';
-    div.style.top = y + 1 + 'px';
+    // Add offset since annotation box has absolute position
+    div.style.left = x + this.xOffset + 1 + 'px';
+    div.style.top = y + this.yOffset + 1 + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
     // Add close button

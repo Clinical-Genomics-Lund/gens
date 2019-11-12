@@ -130,7 +130,7 @@
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
                 if (ic.insideGraph(x, y)) {
-                    return ac.addAnnotation(event.pageX, event.pageY);
+                    return ac.addAnnotation(x, y, '', ic);
                 }
             }, false);
 
