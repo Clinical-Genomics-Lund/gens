@@ -11,6 +11,8 @@ class Annotation {
     this.xOffset = this.annotationCanvas.offsetLeft;
     this.yOffset = this.annotationCanvas.offsetTop;
     this.sampleName = sampleName;
+    this.saveInterval = 2000;
+    this.typingTimer;
   }
 
   loadAnnotations (ac, canvas, region) {
@@ -27,7 +29,7 @@ class Annotation {
       });
   }
 
-  saveAnnotations (canvas, adjustedMargin) {
+  saveAnnotations (canvas) {
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let annot = this.newAnnotations[i];
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
@@ -141,6 +143,19 @@ class Annotation {
     div.style.top = y + this.yOffset + 1 + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
+    // Add typing timer, when typing has stopped save the content
+    div.addEventListener('input', function() {
+      clearTimeout(ac.typingTimer);
+      // Calculate which canvas div belong to
+      let y_pos = parseFloat(this.style.top);
+
+      if (y_pos < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
+        ac.typingTimer = setTimeout(function() {ac.saveAnnotations(ic)}, ac.saveInterval);
+      } else {
+        // TODO: Save annotations for overview graph
+      }
+    });
+
     // Add close button
     let close = document.createElement('button');
     close.setAttribute('id', 'annotation-button');
@@ -154,7 +169,7 @@ class Annotation {
     }
 
     // Add delete button
-    let del= document.createElement('button');
+    let del = document.createElement('button');
     del.setAttribute('id', 'annotation-button');
     del.setAttribute('class', 'far fa-trash-alt');
     div.appendChild(del);

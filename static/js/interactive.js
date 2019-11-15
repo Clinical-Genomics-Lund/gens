@@ -204,6 +204,6 @@ class InteractiveCanvas {
     ic.disallowDrag = false;
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations(ic, adjustedMargin);
+    ac.saveAnnotations(ic);
   }
 }
