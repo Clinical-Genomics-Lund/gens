@@ -201,6 +201,11 @@ class Annotation {
     textSpan.id = 'annotation-text';
     textSpan.contentEditable = 'true';
     textSpan.textContent = text;
+
+    // Don't register keypress for other events while textspan is focused
+    textSpan.onkeydown = function(event) {
+      event.stopPropagation();
+    };
     div.appendChild(textSpan);
 
     // When clicking on div, make the text span focused
