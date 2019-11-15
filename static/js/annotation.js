@@ -207,6 +207,7 @@ class Annotation {
       event.stopPropagation();
     };
     div.appendChild(textSpan);
+    textSpan.focus();
 
     // When clicking on div, make the text span focused
     div.onclick = function (event) {
