@@ -76,7 +76,7 @@ class InteractiveCanvas {
 
     // Calculate x position
     let x = this.boxWidth * (xPos - this.start) / (this.end - this.start) + adjustedXPos
-    if (baf) {
+    if (baf == 'true') {
       // Calculate y position for BAF
       let y = this.y + this.boxHeight - this.yMargin - yPos * (this.boxHeight - 2 * this.yMargin);
       return [x, y];
