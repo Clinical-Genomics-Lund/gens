@@ -11,7 +11,7 @@ class Annotation {
     this.xOffset = this.annotationCanvas.offsetLeft;
     this.yOffset = this.annotationCanvas.offsetTop;
     this.sampleName = sampleName;
-    this.saveInterval = 2000;
+    this.saveInterval = 1000;
     this.typingTimer;
   }
 
@@ -52,6 +52,13 @@ class Annotation {
       }, function(result) {
       });
     }
+  }
+
+  clearAnnotations() {
+    $('.annotation-overlay').remove();
+    this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
+    this.annotations = [];
+    this.newAnnotations = [];
   }
 
   drawAnnotations () {
@@ -123,6 +130,14 @@ class Annotation {
     });
   }
 
+  delFromScreen(annot) {
+    // Delete annotation from screen
+    while (annot.firstChild) {
+      annot.removeChild(annot.firstChild)
+    }
+    annot.remove();
+  }
+
   addAnnotation (x, y, text, canvas) {
     // If annotation already exists in this point, do not add a new one
     if (this.ctx.isPointInPath(x, y)) {
@@ -179,16 +194,12 @@ class Annotation {
       event.stopPropagation();
       // TODO: Add different language options?
       if(confirm('Delete annotation?')) {
-        let parent = event.srcElement.closest('.annotation-overlay')
+        let annot = event.srcElement.closest('.annotation-overlay')
 
         // Delete annotation from database
-        ac.removeAnnotation(parent.id, canvas);
+        ac.removeAnnotation(annot.id, canvas);
 
-        // Delete annotation from screen
-        while (parent.firstChild) {
-          parent.removeChild(parent.firstChild)
-        }
-        parent.remove();
+        ac.delFromScreen(annot);
 
         // Clear and redraw annotation canvas
         ac.drawAnnotations();

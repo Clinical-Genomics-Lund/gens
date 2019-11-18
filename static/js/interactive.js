@@ -202,8 +202,13 @@ class InteractiveCanvas {
   // Redraw interactive canvas
   redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;
+
+    // Clear annotations
+    ac.clearAnnotations();
+
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.saveAnnotations(ic);
+    ac.loadAnnotations(ac, ic, ic.inputField.placeholder);
+    ac.drawAnnotations();
   }
 }

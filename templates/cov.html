@@ -206,7 +206,7 @@
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
                 if (drag) {
-                    // Show annotations
+                    // Reload annotations
                     ac.annotationCanvas.style.visibility = 'visible';
 
                     ic.moveImg = null;
@@ -219,6 +219,7 @@
                     ic.start += moveDist;
                     ic.end += moveDist;
                     ic.disallowDrag = true;
+
                     ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
                 }
             });
