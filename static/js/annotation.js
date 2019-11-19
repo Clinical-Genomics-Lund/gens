@@ -152,9 +152,9 @@ class Annotation {
     div.setAttribute('class', 'annotation-overlay');
     div.setAttribute('data-index', (this.annotations.length - 1));
 
-    // Add offset since annotation box has absolute position
-    div.style.left = x + this.xOffset + 1 + 'px';
-    div.style.top = y + this.yOffset + 1 + 'px';
+    // Center annotation box's left corner on annotation point
+    div.style.left = x + this.rw / 2 + 'px';
+    div.style.top = y + this.rh / 2 + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
     // Add typing timer, when typing has stopped save the content
