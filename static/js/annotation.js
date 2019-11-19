@@ -1,7 +1,6 @@
 class Annotation {
   constructor (height, sampleName) {
     this.annotations = [];
-    this.newAnnotations = [];
     this.annotationCanvas = document.getElementById('annotation');
     this.ctx = this.annotationCanvas.getContext('2d');
     this.annotationCanvas.width = $(document).innerWidth();
@@ -30,8 +29,8 @@ class Annotation {
   }
 
   saveAnnotations (canvas) {
-    for (let i = 0; i < this.newAnnotations.length; i++) {
-      let annot = this.newAnnotations[i];
+    for (let i = 0; i < this.annotations.length; i++) {
+      let annot = this.annotations[i];
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
 
       // Do not save empty annotations
@@ -58,7 +57,6 @@ class Annotation {
     $('.annotation-overlay').remove();
     this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
     this.annotations = [];
-    this.newAnnotations = [];
   }
 
   drawAnnotations () {
@@ -94,12 +92,6 @@ class Annotation {
     let removedAnnot = null;
     for (let i = 0; i < this.annotations.length; i++) {
       let annotation = this.annotations[i];
-      let newAnnotation = this.newAnnotations[i];
-
-      // Remove from list of new annotations
-      if ( newAnnotation && id == newAnnotation.x + '' + newAnnotation.y) {
-        this.newAnnotations.splice(i, 1);
-      }
 
       // Remove from list of all loaded annotations
       if ( annotation && id == annotation.x + '' + annotation.y) {
@@ -146,7 +138,6 @@ class Annotation {
 
     let rect = {x: x, y: y, w: this.rw, h: this.rh};
     this.annotations.push(rect);
-    this.newAnnotations.push(rect);
     this.drawAnnotations();
 
     // Annotation box
@@ -165,7 +156,7 @@ class Annotation {
       let y_pos = parseFloat(this.style.top);
 
       if (y_pos < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
-        ac.typingTimer = setTimeout(function() {ac.saveAnnotations(ic)}, ac.saveInterval);
+        ac.typingTimer = setTimeout(function() { ac.saveAnnotations(ic); }, ac.saveInterval);
       } else {
         // TODO: Save annotations for overview graph
       }
@@ -203,7 +194,6 @@ class Annotation {
 
         // Clear and redraw annotation canvas
         ac.drawAnnotations();
-
       }
     }
 
