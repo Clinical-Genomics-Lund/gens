@@ -145,6 +145,11 @@
             }, false);
 
             // LISTENERS
+
+            window.addEventListener("beforeunload", function(e){
+                ac.saveAnnotations(ic);
+            }, false);
+
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
@@ -158,6 +163,9 @@
                 if (event.which != 1) {
                     return
                 }
+
+                // Save annotations
+                ac.saveAnnotations(ic);
 
                 // Do not move interactive canvas if an annotation is present
                 if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
@@ -220,7 +228,7 @@
                     ic.end += moveDist;
                     ic.disallowDrag = true;
 
-                    ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+                    ic.redraw(ic, ac, baf, logr, logRMedian, adjustedMargin);
                 }
             });
 

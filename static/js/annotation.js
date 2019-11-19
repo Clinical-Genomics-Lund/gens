@@ -30,9 +30,11 @@ class Annotation {
   }
 
   saveAnnotations (canvas) {
+    clearTimeout(ac.typingTimer);
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let index = this.newAnnotations[i];
       let annot = this.annotations[index];
+
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
 
       // Do not save empty annotations
@@ -60,6 +62,7 @@ class Annotation {
     $('.annotation-overlay').remove();
     this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
     this.annotations = [];
+    this.newAnnotations = [];
   }
 
   drawAnnotations () {
@@ -147,7 +150,7 @@ class Annotation {
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);
     div.setAttribute('class', 'annotation-overlay');
-    div.setAttribute('data-index', this.annotations.length - 1);
+    div.setAttribute('data-index', (this.annotations.length - 1));
 
     // Add offset since annotation box has absolute position
     div.style.left = x + this.xOffset + 1 + 'px';

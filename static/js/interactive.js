@@ -203,6 +203,8 @@ class InteractiveCanvas {
   redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;
 
+    ac.saveAnnotations(ic);
+
     // Clear annotations
     ac.clearAnnotations();
 
