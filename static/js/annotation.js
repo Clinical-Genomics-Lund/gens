@@ -1,5 +1,6 @@
 class Annotation {
   constructor (height, sampleName) {
+    this.newAnnotations = [];
     this.annotations = [];
     this.annotationCanvas = document.getElementById('annotation');
     this.ctx = this.annotationCanvas.getContext('2d');
@@ -29,8 +30,9 @@ class Annotation {
   }
 
   saveAnnotations (canvas) {
-    for (let i = 0; i < this.annotations.length; i++) {
-      let annot = this.annotations[i];
+    for (let i = 0; i < this.newAnnotations.length; i++) {
+      let index = this.newAnnotations[i];
+      let annot = this.annotations[index];
       let text = document.getElementById(annot.x + '' + annot.y).getElementsByTagName('span')[0].innerHTML;
 
       // Do not save empty annotations
@@ -51,6 +53,7 @@ class Annotation {
       }, function(result) {
       });
     }
+    this.newAnnotations = [];
   }
 
   clearAnnotations() {
@@ -144,6 +147,8 @@ class Annotation {
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);
     div.setAttribute('class', 'annotation-overlay');
+    div.setAttribute('data-index', this.annotations.length - 1);
+
     // Add offset since annotation box has absolute position
     div.style.left = x + this.xOffset + 1 + 'px';
     div.style.top = y + this.yOffset + 1 + 'px';
@@ -152,11 +157,16 @@ class Annotation {
     // Add typing timer, when typing has stopped save the content
     div.addEventListener('input', function() {
       clearTimeout(ac.typingTimer);
+
+      ac.newAnnotations.push(parseInt(this.dataset.index));
+
       // Calculate which canvas div belong to
       let y_pos = parseFloat(this.style.top);
 
       if (y_pos < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
-        ac.typingTimer = setTimeout(function() { ac.saveAnnotations(ic); }, ac.saveInterval);
+        ac.typingTimer = setTimeout(function() {
+          ac.saveAnnotations(ic);
+        }, ac.saveInterval);
       } else {
         // TODO: Save annotations for overview graph
       }
