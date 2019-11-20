@@ -229,7 +229,7 @@ html, body {
 }
 
 input:checked + .slider {
-    background-color: blue;
+    background-color: gray;
 }
 
 input:focus + .slider {

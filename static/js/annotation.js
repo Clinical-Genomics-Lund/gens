@@ -77,7 +77,7 @@ class Annotation {
       let r = this.annotations[i];
       this.ctx.rect(r.x, r.y, r.w, r.h);
     }
-    this.ctx.fillStyle = "blue";
+    this.ctx.fillStyle = "gray";
     this.ctx.fill();
   }
 
