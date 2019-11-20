@@ -81,12 +81,14 @@ class Annotation {
     this.ctx.fill();
   }
 
-  intersectsAnnotation (x, y) {
+  intersectsAnnotation (x, y, visibility) {
     if (this.ctx.isPointInPath(x, y)) {
       for (let i = 0; i < this.annotations.length; i++) {
         let rect = this.annotations[i];
         if (Math.abs(x - rect.x) <= this.rw && Math.abs(y - rect.y) <= this.rh) {
-          document.getElementById(rect.x + '' + rect.y).style.visibility = 'visible';
+          if (visibility) {
+            document.getElementById(rect.x + '' + rect.y).style.visibility = 'visible';
+          }
           return true;
         }
       }

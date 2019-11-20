@@ -208,7 +208,7 @@
 
                 // Do not move interactive canvas if an annotation is present
                 if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
-                        event.pageY - ac.annotationCanvas.offsetTop)) {
+                        event.pageY - ac.annotationCanvas.offsetTop, true)) {
                     ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
                     0, ic.y + 2, ic.width, ic.height);
                     if (!ic.disallowDrag) {
@@ -226,6 +226,13 @@
             });
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
+
+                if (ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                        event.pageY - ac.annotationCanvas.offsetTop, false)) {
+                    ic.contentCanvas.style.cursor = 'pointer';
+                } else {
+                    ic.contentCanvas.style.cursor = 'default';
+                }
                 if (drag && !ic.disallowDrag) {
                     dragEnd = {
                         x: event.pageX - ic.contentCanvas.offsetLeft,
