@@ -12,6 +12,12 @@
                 <progress value="0" max="1" id='progress-bar'></progress>
             </div>
 
+            <div id='interactive-options'>
+                <label class="switch" id='toggle-annotation' title='Annotations visible'>
+                    <input type="checkbox" id='annotation-checkbox' checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
             <div id='grid-container'>
                 <div id='annotation-overlays'></div>
 
@@ -102,6 +108,27 @@
                 document.getElementById('grid-container').style.visibility = 'hidden';
             };
 
+            document.getElementById('toggle-annotation').addEventListener('click',
+                function (event) {
+                event.preventDefault();
+                let overlay = document.getElementById("annotation-overlays");
+                let container = document.getElementById("annotation-container");
+                let checkbox = document.getElementById("annotation-checkbox");
+                let toggle = document.getElementById('toggle-annotation');
+
+                if (overlay.style.visibility === "hidden") {
+                    overlay.style.visibility = "visible";
+                    container.style.visibility = "visible";
+                    toggle.title = 'Annotations visible';
+                    checkbox.checked = true;
+                } else {
+                    overlay.style.visibility = "hidden";
+                    container.style.visibility = "hidden";
+                    toggle.title = 'Annotations hidden';
+                    checkbox.checked = false;
+                }
+            });
+
             // Set first input field value for ic
             inputField.placeholder = '1:100000-200000';
 
@@ -127,6 +154,12 @@
             // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu', function(event) {
                 event.preventDefault();
+                let annotOverlay = document.getElementById("annotation-overlays");
+                // Do not add new annotations if it's hidden
+                if (annotOverlay.style.visibility === "hidden") {
+                    return;
+                }
+
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
                 if (ic.insideGraph(x, y)) {
@@ -137,6 +170,12 @@
             // Add annotation when content canvas is clicked
             oc.staticCanvas.addEventListener('contextmenu', function(event) {
                 event.preventDefault();
+                let annotOverlay = document.getElementById("annotation-overlays");
+                // Do not add new annotations if it's hidden
+                if (annotOverlay.style.visibility === "hidden") {
+                    return;
+                }
+
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
                 if (oc.insideGraph(x, y)) {
