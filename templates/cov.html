@@ -109,6 +109,11 @@
                 document.title = '{{ sample_name }}'
             };
 
+            // Reload page on window resize
+            window.onresize = (event) => {
+                window.location.reload(false);
+            };
+
             document.getElementById('toggle-annotation').addEventListener('click',
                 function (event) {
                 event.preventDefault();
