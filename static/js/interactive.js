@@ -14,7 +14,6 @@ class InteractiveCanvas {
     this.width = Math.max(this.boxWidth + 2 * this.extraWidth, $(document).innerWidth()); // Canvas width
     this.height = 2 + this.y + 2 * (this.xMargin + this.boxHeight); // Canvas height
     this.x = this.width / 2 - this.boxWidth / 2; // X-position for first box
-    this.xAmpl = this.boxWidth - 2 * this.xMargin; // Part of amplitude for scaling x-axis to fill whole box width
     this.moveImg = null; // Placeholder for image copy of contentCanvas
 
     // Canvases
@@ -133,9 +132,10 @@ class InteractiveCanvas {
       xpos: ic.x + ic.xMargin,
       ypos: ic.y,
       boxHeight: ic.boxHeight,
+      boxWidth: ic.boxWidth,
       extra_box_width: ic.extraWidth,
       y_margin: ic.yMargin,
-      x_ampl: ic.xAmpl,
+      x_margin: 2 * ic.xMargin,
       baf_y_start: baf.yStart,
       baf_y_end: baf.yEnd,
       logr_y_start: logr.yStart,

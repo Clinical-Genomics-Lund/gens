@@ -12,7 +12,6 @@ class OverviewCanvas {
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.xAmpl = this.boxWidth - 2 * this.xMargin; // Part of amplitude for scaling x-axis to fill whole width
 
     // Set canvas height
     this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin);
@@ -54,6 +53,7 @@ class OverviewCanvas {
       for (let xPos = oc.x;
         (xPos + oc.boxWidth < oc.rightMargin) && (chrom <= oc.numChrom);
         xPos += oc.boxWidth) {
+
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
@@ -61,8 +61,9 @@ class OverviewCanvas {
           xpos: xPos + oc.xMargin,
           ypos: yPos,
           boxHeight: oc.boxHeight,
+          boxWidth: oc.boxWidth,
           y_margin: oc.yMargin,
-          x_ampl: oc.xAmpl,
+          x_margin: 2 * oc.xMargin,
           baf_y_start: baf.yStart,
           baf_y_end: baf.yEnd,
           logr_y_start: logr.yStart,
@@ -71,31 +72,31 @@ class OverviewCanvas {
           let staticCanvas = document.getElementById('overview-static');
           // Draw chromosome title
           drawText(staticCanvas,
-            result['x_pos'] - oc.xMargin + oc.boxWidth / 2,
+            result['x_pos'] - oc.xMargin + result['box_width'] / 2,
             result['y_pos'] - oc.titleMargin,
             result['chrom'], 10, 'center');
 
           // Draw BAF
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
+            result['y_pos'], result['box_width'], oc.boxHeight, oc.yMargin,
             baf.yStart, baf.yEnd, baf.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
             baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-            oc.boxWidth, oc.boxHeight);
+            result['box_width'], oc.boxHeight);
 
           // Draw LogR
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'] + oc.boxHeight, oc.boxWidth,
+            result['y_pos'] + oc.boxHeight, result['box_width'],
             oc.boxHeight, oc.yMargin, logr.yStart,
             logr.yEnd, logr.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'],
             result['y_pos'] + oc.boxHeight, logr.yStart,
             logr.yEnd, logr.step, oc.yMargin,
-            oc.boxWidth, oc.boxHeight);
+            result['box_width'], oc.boxHeight);
 
           // Plot scatter data
           drawData(oc.scene, result['baf'], baf.color);
