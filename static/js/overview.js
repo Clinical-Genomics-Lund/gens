@@ -14,7 +14,7 @@ class OverviewCanvas {
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
 
     // Set canvas height
-    this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin);
+    this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin - 10);
     this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
     let rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
@@ -44,59 +44,68 @@ class OverviewCanvas {
   }
 
   drawOverviewContent (oc, baf, logr, logRMedian) {
-    let chrom = 1; // First chromosome
     let drawnChrom = 0; // Amount of async drawn chromosomes
-    let yPos = oc.y + oc.rowMargin;
 
-    while (chrom <= oc.numChrom) {
-      // Fill row with graphs, start on new row when full
-      for (let xPos = oc.x;
-        (xPos + oc.boxWidth < oc.rightMargin) && (chrom <= oc.numChrom);
-        xPos += oc.boxWidth) {
-
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      num_chrom: oc.numChrom,
+      x_pos: oc.x,
+      y_pos: oc.y + oc.rowMargin,
+      box_width: oc.boxWidth,
+      right_margin: oc.rightMargin,
+      row_height: 2 * oc.boxHeight + oc.rowMargin,
+      x_margin: 2 * ic.xMargin
+    }).done(function (result) {
+      let dims = result['chrom_dims']
+      for (let chrom = 1; chrom <= dims.length &&
+        chrom <= oc.numChrom; chrom++) {
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
           median: logRMedian,
-          xpos: xPos + oc.xMargin,
-          ypos: yPos,
+          xpos: dims[chrom - 1]['x_pos'] + oc.xMargin,
+          ypos: dims[chrom - 1]['y_pos'],
           boxHeight: oc.boxHeight,
-          boxWidth: oc.boxWidth,
           y_margin: oc.yMargin,
-          x_margin: 2 * oc.xMargin,
+          x_ampl: dims[chrom - 1]['width'] - 2 * oc.xMargin,
           baf_y_start: baf.yStart,
           baf_y_end: baf.yEnd,
           logr_y_start: logr.yStart,
           logr_y_end: logr.yEnd
         }, function (result) {
           let staticCanvas = document.getElementById('overview-static');
+          let chrom = result['chrom']
+          if (chrom == 'X') chrom = 23;
+          if (chrom == 'Y') chrom = 24;
+          chrom = parseInt(chrom);
+          let width = dims[chrom - 1]['width']
+
           // Draw chromosome title
           drawText(staticCanvas,
-            result['x_pos'] - oc.xMargin + result['box_width'] / 2,
+            result['x_pos'] - oc.xMargin + width / 2,
             result['y_pos'] - oc.titleMargin,
             result['chrom'], 10, 'center');
 
           // Draw BAF
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'], result['box_width'], oc.boxHeight, oc.yMargin,
+            result['y_pos'], width, oc.boxHeight, oc.yMargin,
             baf.yStart, baf.yEnd, baf.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
             baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-            result['box_width'], oc.boxHeight);
+            width, oc.boxHeight);
 
           // Draw LogR
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'] + oc.boxHeight, result['box_width'],
+            result['y_pos'] + oc.boxHeight, width,
             oc.boxHeight, oc.yMargin, logr.yStart,
             logr.yEnd, logr.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'],
             result['y_pos'] + oc.boxHeight, logr.yStart,
             logr.yEnd, logr.step, oc.yMargin,
-            result['box_width'], oc.boxHeight);
+            width, oc.boxHeight);
 
           // Plot scatter data
           drawData(oc.scene, result['baf'], baf.color);
@@ -120,11 +129,8 @@ class OverviewCanvas {
           console.log(result['responseText']);
           drawnChrom++;
         });
-        chrom++;
       }
-      // Start on new row
-      yPos += 2 * oc.boxHeight + oc.rowMargin;
-    }
+    });
   }
 
   // Check if coordinates is inside the graph

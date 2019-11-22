@@ -19,9 +19,8 @@ COVIZ_DB = CLIENT['coviz']
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
 REQUEST = namedtuple('request', ('region', 'median', 'x_pos', 'y_pos',
-                                 'box_height', 'box_width', 'y_margin',
-                                 'baf_y_start', 'baf_y_end', 'logr_y_start',
-                                 'logr_y_end'))
+                                 'box_height', 'y_margin', 'baf_y_start',
+                                 'baf_y_end', 'logr_y_start', 'logr_y_end'))
 
 SAMPLE_FILE = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
 COV_FILE = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
@@ -66,7 +65,7 @@ def set_graph_values(box_height, ypos, y_margin):
         ypos + 1.5 * box_height
     )
 
-def set_region_values(parsed_region, box_width):
+def set_region_values(parsed_region, x_ampl):
     '''
     Sets region values
     '''
@@ -84,9 +83,6 @@ def set_region_values(parsed_region, box_width):
     elif chrom == '24':
         chrom = 'Y'
 
-    adjust_width = True if end_pos == 'None' else False
-    box_width, x_ampl = get_chrom_width(chrom, box_width, adjust_width)
-
     # If no range is defined, set to fetch all available data
     if end_pos == 'None':
         new_start_pos = new_end_pos = None
@@ -98,7 +94,7 @@ def set_region_values(parsed_region, box_width):
 
     x_ampl += 2 * extra_box_width
     return REGION(res, chrom, start_pos, end_pos), \
-           new_start_pos, new_end_pos, x_ampl, extra_box_width, box_width
+           new_start_pos, new_end_pos, x_ampl, extra_box_width
 
 def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
@@ -161,13 +157,13 @@ def get_overview_cov():
         float(request.args.get('xpos', 1)),
         float(request.args.get('ypos', 1)),
         float(request.args.get('boxHeight', 1)),
-        float(request.args.get('boxWidth', 1)),
         float(request.args.get('y_margin', 1)),
         float(request.args.get('baf_y_start', 0)),
         float(request.args.get('baf_y_end', 0)),
         float(request.args.get('logr_y_start', 0)),
         float(request.args.get('logr_y_end', 0))
     )
+    x_ampl = float(request.args.get('x_ampl', 1))
 
     graph = set_graph_values(req.box_height, req.y_pos, req.y_margin)
 
@@ -176,8 +172,8 @@ def get_overview_cov():
         print('No parsed region')
         return abort(416)
 
-    reg, new_start_pos, new_end_pos, x_ampl, extra_box_width, box_width = \
-        set_region_values(parsed_region, req.box_width)
+    reg, new_start_pos, new_end_pos, x_ampl, extra_box_width = \
+        set_region_values(parsed_region, x_ampl)
 
     logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
                                                            new_end_pos, x_ampl)
@@ -191,7 +187,7 @@ def get_overview_cov():
 
     return jsonify(data=logr_records, baf=baf_records, status="ok",
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
-                   start=reg.start_pos, end=reg.end_pos, box_width=box_width)
+                   start=reg.start_pos, end=reg.end_pos)
 
 @APP.route('/_saveannotation', methods=['GET'])
 def save_annotation():
@@ -271,24 +267,46 @@ def load_annotation():
 
     return jsonify(status='ok', annotations=annotations)
 
+@APP.route('/_overviewchromdim', methods=['GET'])
+def overview_chrom_dim():
+    '''
+    Calculates the position for each chromosome in the overview canvas
+    '''
+    num_chrom = int(request.args.get('num_chrom', 0))
+    x_pos = first_x_pos = float(request.args.get('x_pos', 0))
+    y_pos = float(request.args.get('y_pos', 0))
+    box_width = float(request.args.get('box_width', 0))
+    right_margin = float(request.args.get('right_margin', 0))
+    row_height = float(request.args.get('row_height', 0))
+    x_margin = float(request.args.get('x_margin', 1))
+
+    chrom_dims = []
+    for chrom in range(1, num_chrom + 1):
+        chrom_width = get_chrom_width(chrom, box_width, x_margin)
+        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos, 'width': chrom_width})
+        x_pos += chrom_width
+        if x_pos > right_margin:
+            y_pos += row_height
+            x_pos = first_x_pos
+
+    return jsonify(status='ok', chrom_dims=chrom_dims)
+
 ### Help functions ###
 
-def get_chrom_width(chrom, full_width, adjust_width):
+def get_chrom_width(chrom, full_width, x_margin):
     '''
     Calculates overview width of chromosome
     '''
-    x_margin = float(request.args.get('x_margin', 1))
-
     collection = COVIZ_DB['chromsizes']
-    chrom_data = collection.find_one({'chrom': chrom})
+    chrom_data = collection.find_one({'chrom': str(chrom)})
 
-    # Only adjust width for overview graphs
-    if adjust_width:
+    if chrom_data:
         chrom_width = full_width * float(chrom_data['scale'])
-    else:
-        chrom_width = full_width
 
-    return chrom_width, chrom_width - x_margin
+        return chrom_width - x_margin
+
+    print('Chromosome width not available')
+    return full_width, full_width
 
 def parse_region_str(region):
     '''
