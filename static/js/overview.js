@@ -12,9 +12,10 @@ class OverviewCanvas {
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
+    this.adjustedMargin = adjustedMargin;
 
     // Set canvas height
-    this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin - 10);
+    this.rightMargin = ($(document).innerWidth() - this.x - this.adjustedMargin - 10);
     this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
     let rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
@@ -53,7 +54,7 @@ class OverviewCanvas {
       box_width: oc.boxWidth,
       right_margin: oc.rightMargin,
       row_height: 2 * oc.boxHeight + oc.rowMargin,
-      x_margin: 2 * ic.xMargin
+      x_margin: 2 * oc.xMargin
     }).done(function (result) {
       let dims = result['chrom_dims']
       for (let chrom = 1; chrom <= dims.length &&
@@ -133,6 +134,58 @@ class OverviewCanvas {
     });
   }
 
+  // Convert screen coordinates to data coordinates
+  toDataCoord (xPos, yPos) {
+    let adjustedXPos = this.x + adjustedMargin;
+
+    // Calculate x position
+    let x = this.start + (this.end - this.start) * ((xPos - adjustedXPos) / this.boxWidth);
+    if (yPos <= (this.y + this.boxHeight)) {
+      // Calculate y position for BAF
+      let y = (this.y + this.boxHeight - this.yMargin - yPos) /
+        (this.boxHeight - 2 * this.yMargin);
+      return [x, y, true, this.chromosome];
+    } else {
+      // Calculate y position for LogR
+      let y = (this.y + 1.5 * this.boxHeight - yPos) / (this.boxHeight - 2 * this.yMargin);
+      return [x, y, false, this.chromosome];
+    }
+  }
+
+  // Convert data coordinates to screen coordinates
+  toScreenCoord (xPos, yPos, baf, chrom) {
+    // Set the global configs to synchronous
+    $.ajaxSetup({
+      async: false
+    });
+
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      num_chrom: this.numChrom,
+      x_pos: this.x,
+      y_pos: this.y + this.rowMargin,
+      box_width: this.boxWidth,
+      right_margin: this.rightMargin,
+      row_height: 2 * this.boxHeight + this.rowMargin,
+      x_margin: 2 * this.xMargin
+    }).done(function (result) {
+      console.log(result);
+      let dims = result['chrom_dims'][chrom];
+      console.log(xPos, yPos, baf, dims['x_pos'], dims['y_pos'],
+        dims['size'], 0, dims['width'], oc.boxHeight, oc.yMargin);
+      return dataToScreen(xPos, yPos, baf, dims['x_pos'], dims['y_pos'],
+        dims['size'], 0, dims['width'], oc.boxHeight, oc.yMargin);
+    }).fail(function (result){
+      console.log('failed');
+      return null;
+    });
+    console.log('hej');
+
+    // Set the global configs to synchronous
+    $.ajaxSetup({
+      async: true
+    });
+  }
+
   // Check if coordinates is inside the graph
   insideGraph (x, y) {
     let yPos = 2 * this.y + this.staticCanvas.offsetTop;
@@ -141,8 +194,8 @@ class OverviewCanvas {
       if (i > 0 && i % this.chromPerRow == 0) {
         yPos += 2 * this.boxHeight + this.rowMargin;
       }
-      if (x > this.x + adjustedMargin + (i % this.chromPerRow) * this.boxWidth &&
-          x < this.x + adjustedMargin + ((i % this.chromPerRow) + 1) * this.boxWidth &&
+      if (x > this.x + this.adjustedMargin + (i % this.chromPerRow) * this.boxWidth &&
+          x < this.x + this.adjustedMargin + ((i % this.chromPerRow) + 1) * this.boxWidth &&
           y > yPos && y < yPos + 2 * this.boxHeight) {
         return true;
       }

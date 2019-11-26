@@ -189,7 +189,7 @@ class InteractiveCanvas {
 
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.loadAnnotations(ac, ic, ic.inputField.placeholder);
+    ac.loadAnnotations(ac, ic, oc, ic.inputField.placeholder);
     ac.drawAnnotations();
   }
 }

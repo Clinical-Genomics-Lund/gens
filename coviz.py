@@ -280,10 +280,14 @@ def overview_chrom_dim():
     row_height = float(request.args.get('row_height', 0))
     x_margin = float(request.args.get('x_margin', 1))
 
+    collection = COVIZ_DB['chromsizes']
+
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
         chrom_width = get_chrom_width(chrom, box_width, x_margin)
-        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos, 'width': chrom_width})
+        chrom_data = collection.find_one({'chrom': str(chrom)})
+        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos, 'width': chrom_width,
+            'size': chrom_data['size']})
         x_pos += chrom_width
         if x_pos > right_margin:
             y_pos += row_height

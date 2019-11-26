@@ -15,16 +15,19 @@ class Annotation {
     this.typingTimer;
   }
 
-  loadAnnotations (ac, canvas, region) {
+  loadAnnotations (ac, canvas1, canvas2, region) {
       $.getJSON($SCRIPT_ROOT + '/_loadannotation', {
         sample_name: this.sampleName,
         region: region
       }, function(result) {
         let annotations = result['annotations'];
         for (let i = 0; i < annotations.length; i++) {
-          let canvasCoords = canvas.toScreenCoord(annotations[i]['x'],
+          let canvasCoords = canvas1.toScreenCoord(annotations[i]['x'],
             annotations[i]['y'], annotations[i]['baf']);
-          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas);
+          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas1);
+          canvasCoords = canvas2.toScreenCoord(annotations[i]['x'],
+            annotations[i]['y'], annotations[i]['baf']);
+          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas2);
         }
       });
   }
