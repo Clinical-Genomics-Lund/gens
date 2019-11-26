@@ -55,35 +55,15 @@ class InteractiveCanvas {
   toDataCoord (xPos, yPos) {
     let adjustedXPos = this.x + adjustedMargin;
 
-    // Calculate x position
-    let x = this.start + (this.end - this.start) * ((xPos - adjustedXPos) / this.boxWidth);
-    if (yPos <= (this.y + this.boxHeight)) {
-      // Calculate y position for BAF
-      let y = (this.y + this.boxHeight - this.yMargin - yPos) /
-        (this.boxHeight - 2 * this.yMargin);
-      return [x, y, true, this.chromosome];
-    } else {
-      // Calculate y position for LogR
-      let y = (this.y + 1.5 * this.boxHeight - yPos) / (this.boxHeight - 2 * this.yMargin);
-      return [x, y, false, this.chromosome];
-    }
+    return screenToData(xPos, yPos, adjustedXPos, this.y, this.start, this.end, this.boxWidth, this.boxHeight, this.yMargin, this.chromosome);
   }
 
   // Convert data coordinates to screen coordinates
   toScreenCoord (xPos, yPos, baf) {
     let adjustedXPos = this.x + adjustedMargin;
 
-    // Calculate x position
-    let x = this.boxWidth * (xPos - this.start) / (this.end - this.start) + adjustedXPos
-    if (baf == 'true') {
-      // Calculate y position for BAF
-      let y = this.y + this.boxHeight - this.yMargin - yPos * (this.boxHeight - 2 * this.yMargin);
-      return [x, y];
-    } else {
-      // Calculate y position for LogR
-      let y = this.y + 1.5 * this.boxHeight - yPos * (this.boxHeight - 2 * this.yMargin);
-      return [x, y];
-    }
+    return dataToScreen(xPos, yPos, baf, adjustedXPos, this.y, this.start, this.end,
+      this.boxWidth, this.boxHeight, this.yMargin)
   }
 
   // Draw static content for interactive canvas

@@ -170,3 +170,32 @@ function drawBox (scene, x, y, width, height, lineWidth) {
 function numberWithCommas (x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+function screenToData (screenX, screenY, xPos, yPos, start, end, width, height,
+    yMargin, chromosome) {
+    // Calculate x position
+    let x = start + (end - start) * ((screenX - xPos) / width);
+    if (screenY <= (yPos + height)) {
+      // Calculate y position for BAF
+      let y = (yPos + height - yMargin - screenY) / (height - 2 * yMargin);
+      return [x, y, true, chromosome];
+    } else {
+      // Calculate y position for LogR
+      let y = (yPos + 1.5 * height - screenY) / (height - 2 * yMargin);
+      return [x, y, false, chromosome];
+    }
+}
+
+function dataToScreen (dataX, dataY, baf, xPos, yPos, start, end, width, height,
+    yMargin) {
+  let x = width * (dataX - start) / (end - start) + xPos
+  if (baf == 'true') {
+    // Calculate y position for BAF
+    let y = yPos + height - yMargin - dataY * (height - 2 * yMargin);
+    return [x, y];
+  } else {
+    // Calculate y position for LogR
+    let y = yPos + 1.5 * height - dataY * (height - 2 * yMargin);
+    return [x, y];
+  }
+}
