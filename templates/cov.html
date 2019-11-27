@@ -155,7 +155,9 @@
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById('visualization-container').clientHeight,
                     sampleName);
-            ac.loadAnnotations(ac, ic, oc, inputField.placeholder);
+            ic.loadAnnotations(ac, ic, inputField.placeholder,
+                    adjustedMargin);
+            oc.loadAnnotations(ac, oc, adjustedMargin);
 
             // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu', function(event) {

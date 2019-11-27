@@ -15,23 +15,6 @@ class Annotation {
     this.typingTimer;
   }
 
-  loadAnnotations (ac, canvas1, canvas2, region) {
-      $.getJSON($SCRIPT_ROOT + '/_loadannotation', {
-        sample_name: this.sampleName,
-        region: region
-      }, function(result) {
-        let annotations = result['annotations'];
-        for (let i = 0; i < annotations.length; i++) {
-          let canvasCoords = canvas1.toScreenCoord(annotations[i]['x'],
-            annotations[i]['y'], annotations[i]['baf']);
-          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas1);
-          canvasCoords = canvas2.toScreenCoord(annotations[i]['x'],
-            annotations[i]['y'], annotations[i]['baf']);
-          ac.addAnnotation(canvasCoords[0], canvasCoords[1], annotations[i]['text'], canvas2);
-        }
-      });
-  }
-
   saveAnnotations (canvas) {
     clearTimeout(ac.typingTimer);
     for (let i = 0; i < this.newAnnotations.length; i++) {
@@ -45,16 +28,19 @@ class Annotation {
         continue;
       }
 
-      let dataCoords = canvas.toDataCoord(annot.x, annot.y);
-
+      // TODO: save coordinates from overview aswell by splitting up annotation in which canvas to use, and maybe doing a bit extra with the functions
       $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
         region: document.getElementById('region_field').placeholder,
         text: text,
-        xPos: dataCoords[0],
-        yPos: dataCoords[1],
-        baf: dataCoords[2],
-        chrom: dataCoords[3],
-        sample_name: this.sampleName
+        xPos: annot.x,
+        yPos: annot.y,
+        sample_name: this.sampleName,
+        top: canvas.y,
+        left: canvas.x + adjustedMargin,
+        width: canvas.boxWidth,
+        height: canvas.boxHeight,
+        y_margin: canvas.yMargin,
+
       }, function(result) {
       });
     }
@@ -116,21 +102,43 @@ class Annotation {
       return;
     }
 
-    let dataCoords = canvas.toDataCoord(removedAnnot.x, removedAnnot.y);
-    let offsetDataCoords = canvas.toDataCoord(removedAnnot.x - 1, removedAnnot.y - 1);
     let text = document.getElementById(removedAnnot.x + '' + removedAnnot.y).getElementsByTagName('span')[0].innerHTML;
 
-    // Remove from database
-    $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
-      region: document.getElementById('region_field').placeholder,
-      xPos: dataCoords[0],
-      yPos: dataCoords[1],
-      chrom: dataCoords[3],
-      x_distance: Math.abs(offsetDataCoords[0] - dataCoords[0]),
-      y_distance: Math.abs(offsetDataCoords[1] - dataCoords[1]),
-      text: text,
-      sample_name: this.sampleName
-    });
+    // Check if annotation belongs to interactive or overview canvas
+    if (removedAnnot.y < (oc.staticCanvas.offsetTop - this.yOffset)) {
+      // Remove from database
+      $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
+        region: document.getElementById('region_field').placeholder,
+        xPos: removedAnnot.x,
+        yPos: removedAnnot.y,
+        text: text,
+        sample_name: this.sampleName,
+        overview: false,
+        top: ic.y,
+        left: ic.x + adjustedMargin,
+        width: ic.boxWidth,
+        height: ic.boxHeight,
+        y_margin: ic.yMargin
+      });
+    } else {
+      // TODO: set correct chromosome
+      // Remove from database
+      $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
+        region: document.getElementById('region_field').placeholder,
+        xPos: removedAnnot.x,
+        yPos: removedAnnot.y,
+        chrom: 1,
+        text: text,
+        sample_name: this.sampleName,
+        overview: true,
+        top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
+        left: oc.x + adjustedMargin,
+        width: oc.boxWidth,
+        height: oc.boxHeight,
+        y_margin: oc.yMargin,
+      });
+    }
+
   }
 
   delFromScreen(annot) {

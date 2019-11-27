@@ -51,19 +51,21 @@ class InteractiveCanvas {
       this.contentCanvas.height =  this.height;
   }
 
-  // Convert screen coordinates to data coordinates
-  toDataCoord (xPos, yPos) {
-    let adjustedXPos = this.x + adjustedMargin;
-
-    return screenToData(xPos, yPos, adjustedXPos, this.y, this.start, this.end, this.boxWidth, this.boxHeight, this.yMargin, this.chromosome);
-  }
-
-  // Convert data coordinates to screen coordinates
-  toScreenCoord (xPos, yPos, baf) {
-    let adjustedXPos = this.x + adjustedMargin;
-
-    return dataToScreen(xPos, yPos, baf, adjustedXPos, this.y, this.start, this.end,
-      this.boxWidth, this.boxHeight, this.yMargin)
+  loadAnnotations (ac, ic, region, adjustedMargin) {
+    $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
+      sample_name: ac.sampleName,
+      region: region,
+      top: ic.y,
+      left: ic.x + adjustedMargin,
+      width: ic.boxWidth,
+      height: ic.boxHeight,
+      y_margin: ic.yMargin
+    }, function(result) {
+      let annotations = result['annotations'];
+      for (let i = 0; i < annotations.length; i++) {
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], ic);
+      }
+    });
   }
 
   // Draw static content for interactive canvas
@@ -189,7 +191,7 @@ class InteractiveCanvas {
 
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-    ac.loadAnnotations(ac, ic, oc, ic.inputField.placeholder);
+    ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
     ac.drawAnnotations();
   }
 }

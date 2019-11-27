@@ -194,15 +194,23 @@ def save_annotation():
     '''
     Inserts annotation into database
     '''
+    region = request.args.get('region', None)
     text = request.args.get('text', None)
     x_pos = float(request.args.get('xPos', 1))
     y_pos = float(request.args.get('yPos', 1))
-    chrom = request.args.get('chrom', None)
-    baf = request.args.get('baf', None)
     sample_name = request.args.get('sample_name', None)
+    top = float(request.args.get('top', 1))
+    left = float(request.args.get('left', 1))
+    width = float(request.args.get('width', 1))
+    height = float(request.args.get('height', 1))
+    y_margin = float(request.args.get('y_margin', 1))
 
-    if sample_name is None or chrom is None:
+    if sample_name is None or region is None:
         return abort(404)
+
+    _, chrom, start, end = parse_region_str(region)
+
+    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, left, top, start, end, width, height, y_margin)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
@@ -227,34 +235,110 @@ def remove_annotation():
     '''
     Inserts annotation into database
     '''
+    region = request.args.get('region', None)
     x_pos = int(float(request.args.get('xPos', 1)))
     y_pos = float(request.args.get('yPos', 1))
     chrom = request.args.get('chrom', None)
-    x_distance = float(request.args.get('x_distance', 0))
-    y_distance = float(request.args.get('y_distance', 0))
     text = request.args.get('text', None)
     sample_name = request.args.get('sample_name', None)
+    overview = request.args.get('overview', 'false')
+    top = float(request.args.get('top', 1))
+    left = float(request.args.get('left', 1))
+    width = float(request.args.get('width', 1))
+    height = float(request.args.get('height', 1))
+    y_margin = float(request.args.get('y_margin', 1))
+    start = float(request.args.get('start', 1))
+    end = float(request.args.get('end', 1))
 
-    if sample_name is None or chrom is None or text is None:
+    # Overview variables
+    num_chrom = int(request.args.get('num_chrom', -1))
+    right_margin = float(request.args.get('right_margin', 1))
+    row_height = float(request.args.get('row_height', 1))
+    x_margin = float(request.args.get('x_margin', 1))
+
+    if sample_name is None or text is None:
         return abort(404)
+
+    if overview == 'true':
+        chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
+                                        right_margin, row_height, x_margin)
+        chrom_dim = chrom_dims[chrom - 1]
+        x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
+                                        chrom_dim['y_pos'], 0,
+                                        chrom_dim['size'],
+                                        chrom_dim['width'], height,
+                                        y_margin)
+    else:
+        _, chrom, start, end = parse_region_str(region)
+        x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, left, top, start,
+                                        end, width, height, y_margin)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
-    collection.remove({'x': {'$gte': x_pos - x_distance, '$lte': x_pos + x_distance},
-                       'y': {'$gte': y_pos - y_distance, '$lte': y_pos + y_distance},
+    x_distance = 100
+    y_distance = 0.001
+    collection.remove({'x': {'$gte': x_pos - x_distance,
+                             '$lte': x_pos + x_distance},
+                       'y': {'$gte': y_pos - y_distance,
+                             '$lte': y_pos + y_distance},
                        'text': text, 'chrom': chrom})
     return jsonify(status='ok')
 
-@APP.route('/_loadannotation', methods=['GET'])
-def load_annotation():
+@APP.route('/_loadallannotations', methods=['GET'])
+def load_all_annotations():
+    '''
+    Loads all available annotations for the sample
+    '''
+    sample_name = request.args.get('sample_name', None)
+    num_chrom = int(request.args.get('num_chrom', -1))
+    left = float(request.args.get('left', 1))
+    top = float(request.args.get('top', 1))
+    width = float(request.args.get('width', 1))
+    height = float(request.args.get('height', 1))
+    row_height = float(request.args.get('row_height', 1))
+    right_margin = float(request.args.get('right_margin', 1))
+    x_margin = float(request.args.get('x_margin', 1))
+    y_margin = float(request.args.get('y_margin', 1))
+    chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
+                                    right_margin, row_height, x_margin)
+
+    collection = COVIZ_DB[sample_name]
+
+    all_annotations = []
+    for chrom in range(1, num_chrom + 1):
+        chrom_dim = chrom_dims[chrom - 1]
+        annotations = list(collection.find({'x': {'$gte': 0,
+                                                  '$lte': chrom_dim['size']},
+                                            'chrom': str(chrom)},
+                                           {'_id': False}))
+        for annotation in annotations:
+            annotation['x'], annotation['y'] = \
+                to_screen_coord(annotation['x'],
+                                annotation['y'],
+                                annotation['baf'], chrom_dim['x_pos'],
+                                chrom_dim['y_pos'], 0,
+                                chrom_dim['size'], chrom_dim['width'],
+                                height, y_margin)
+        if annotations:
+            all_annotations = all_annotations + annotations
+
+    return jsonify(status='ok', annotations=all_annotations)
+
+@APP.route('/_loadannotationrange', methods=['GET'])
+def load_annotation_range():
     '''
     Loads annotations within requested range
     '''
     # Load from mongo database
     sample_name = request.args.get('sample_name', None)
     region = request.args.get('region', None)
+    top = float(request.args.get('top', 1))
+    left = float(request.args.get('left', 1))
+    width = float(request.args.get('width', 1))
+    height = float(request.args.get('height', 1))
+    y_margin = float(request.args.get('y_margin', 1))
 
     if sample_name is None or region is None:
         return abort(404)
@@ -262,38 +346,84 @@ def load_annotation():
     collection = COVIZ_DB[sample_name]
     _, chrom, start_pos, end_pos = parse_region_str(region)
 
-    annotations = list(collection.find({'x': {'$gte': start_pos, '$lte': end_pos},
-                                        'chrom': chrom}, {'_id': False}))
+    annotations = list(collection.find({'x': {'$gte': start_pos,
+                                              '$lte': end_pos},
+                                        'chrom': str(chrom)},
+                                        {'_id': False}))
+    for annotation in annotations:
+        annotation['x'], annotation['y'] = \
+                to_screen_coord(annotation['x'], annotation['y'],
+                                annotation['baf'], left, top, start_pos,
+                                end_pos, width, height, y_margin)
 
     return jsonify(status='ok', annotations=annotations)
 
+def to_data_coord(screen_x_pos, screen_y_pos, left, top, start, end, width,
+                  height, y_margin):
+    '''
+    Convert screen coordinates to data coordinates
+    '''
+    # Calculate x position
+    x_pos = start + (end - start) * ((screen_x_pos - left) / width)
+    if screen_y_pos <= (top + height):
+        # Calculate y position for BAF
+        y_pos = (top + height - y_margin - screen_y_pos) / (height - 2 * y_margin)
+        return [x_pos, y_pos, 'true']
+    else:
+        # Calculate y position for LogR
+        y_pos = (top + 1.5 * height - screen_y_pos) / (height - 2 * y_margin)
+        return [x_pos, y_pos, 'false']
+
+def to_screen_coord(data_x_pos, data_y_pos, baf, left, top, start, end,
+                    width, height, y_margin):
+    '''
+    Convert data coordinates to screen coordinates
+    '''
+    x_pos = width * (data_x_pos - start) / (end - start) + left
+    if baf == 'true':
+        # Calculate y position for BAF
+        y_pos = top + height - y_margin - data_y_pos * (height - 2 * y_margin)
+        return [x_pos, y_pos]
+    else:
+        # Calculate y position for LogR
+        y_pos = top + 1.5 * height - data_y_pos * (height - 2 * y_margin)
+        return [x_pos, y_pos]
+
 @APP.route('/_overviewchromdim', methods=['GET'])
-def overview_chrom_dim():
-    '''
-    Calculates the position for each chromosome in the overview canvas
-    '''
+def call_overview_chrom_dim():
     num_chrom = int(request.args.get('num_chrom', 0))
-    x_pos = first_x_pos = float(request.args.get('x_pos', 0))
+    x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
     box_width = float(request.args.get('box_width', 0))
     right_margin = float(request.args.get('right_margin', 0))
     row_height = float(request.args.get('row_height', 0))
     x_margin = float(request.args.get('x_margin', 1))
 
+    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width,
+                                    right_margin, row_height, x_margin)
+    return jsonify(status='ok', chrom_dims=chrom_dims)
+
+def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
+                       row_height, x_margin):
+    '''
+    Calculates the position for each chromosome in the overview canvas
+    '''
+
     collection = COVIZ_DB['chromsizes']
 
+    first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
         chrom_width = get_chrom_width(chrom, box_width, x_margin)
         chrom_data = collection.find_one({'chrom': str(chrom)})
-        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos, 'width': chrom_width,
-            'size': chrom_data['size']})
+        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
+                           'width': chrom_width, 'size': chrom_data['size']})
         x_pos += chrom_width
         if x_pos > right_margin:
             y_pos += row_height
             x_pos = first_x_pos
 
-    return jsonify(status='ok', chrom_dims=chrom_dims)
+    return chrom_dims
 
 ### Help functions ###
 
