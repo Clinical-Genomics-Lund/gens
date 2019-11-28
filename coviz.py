@@ -260,9 +260,10 @@ def remove_annotation():
         return abort(404)
 
     if overview == 'true':
-        chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
-                                        right_margin, row_height, x_margin)
-        chrom_dim = chrom_dims[chrom - 1]
+        chrom_dims, chrom = overview_chrom_dim(num_chrom, left, top, width,
+                                               right_margin, row_height, x_margin,
+                                               x_pos, y_pos)
+        chrom_dim = chrom_dims[int(chrom) - 1]
         x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
                                         chrom_dim['y_pos'], 0,
                                         chrom_dim['size'],
@@ -301,8 +302,8 @@ def load_all_annotations():
     right_margin = float(request.args.get('right_margin', 1))
     x_margin = float(request.args.get('x_margin', 1))
     y_margin = float(request.args.get('y_margin', 1))
-    chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
-                                    right_margin, row_height, x_margin)
+    chrom_dims, _ = overview_chrom_dim(num_chrom, left, top, width,
+                                    right_margin, row_height, x_margin, None, None)
 
     collection = COVIZ_DB[sample_name]
 
@@ -399,18 +400,19 @@ def call_overview_chrom_dim():
     row_height = float(request.args.get('row_height', 0))
     x_margin = float(request.args.get('x_margin', 1))
 
-    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width,
-                                    right_margin, row_height, x_margin)
+    chrom_dims, _ = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width,
+                                    right_margin, row_height, x_margin, None, None)
     return jsonify(status='ok', chrom_dims=chrom_dims)
 
 def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
-                       row_height, x_margin):
+                       row_height, x_margin, current_x, current_y):
     '''
     Calculates the position for each chromosome in the overview canvas
     '''
 
     collection = COVIZ_DB['chromsizes']
 
+    current_chrom = None
     first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
@@ -418,12 +420,18 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
         chrom_data = collection.find_one({'chrom': str(chrom)})
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})
+
+        if current_x and current_y and \
+                current_x <= (x_pos + chrom_width) and \
+                current_y <= (y_pos + row_height):
+            current_chrom = chrom
+
         x_pos += chrom_width
         if x_pos > right_margin:
             y_pos += row_height
             x_pos = first_x_pos
 
-    return chrom_dims
+    return chrom_dims, current_chrom
 
 ### Help functions ###
 

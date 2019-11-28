@@ -121,13 +121,10 @@ class Annotation {
         y_margin: ic.yMargin
       });
     } else {
-      // TODO: set correct chromosome
       // Remove from database
       $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
-        region: document.getElementById('region_field').placeholder,
         xPos: removedAnnot.x,
         yPos: removedAnnot.y,
-        chrom: 1,
         text: text,
         sample_name: this.sampleName,
         overview: true,
@@ -136,6 +133,10 @@ class Annotation {
         width: oc.boxWidth,
         height: oc.boxHeight,
         y_margin: oc.yMargin,
+        num_chrom: oc.numChrom,
+        right_margin: oc.rightMargin,
+        row_height: 2 * oc.boxHeight + oc.rowMargin,
+        x_margin: oc.xMargin
       });
     }
 
