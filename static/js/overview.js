@@ -149,7 +149,7 @@ class OverviewCanvas {
     }, function(result) {
       let annotations = result['annotations'];
       for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], oc);
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], oc, 'overview');
       }
     });
   }

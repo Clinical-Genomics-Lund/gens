@@ -63,7 +63,7 @@ class InteractiveCanvas {
     }, function(result) {
       let annotations = result['annotations'];
       for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], ic);
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], ic, 'interactive');
       }
     });
   }
@@ -187,7 +187,7 @@ class InteractiveCanvas {
     ac.saveAnnotations(ic);
 
     // Clear annotations
-    ac.clearAnnotations();
+    ac.clearAnnotations(ic.height);
 
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);

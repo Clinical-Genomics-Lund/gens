@@ -47,18 +47,15 @@ class Annotation {
     this.newAnnotations = [];
   }
 
-  clearAnnotations() {
+  clearAnnotations(height) {
     $('.annotation-overlay').remove();
-    this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
+    this.ctx.clearRect(0, 0, this.annotationCanvas.width, height);
     this.annotations = [];
     this.newAnnotations = [];
   }
 
   drawAnnotations () {
     let i = 0;
-
-    // Clear canvas
-    this.ctx.clearRect(0, 0, this.annotationCanvas.width, this.annotationCanvas.height);
 
     // render initial annotations.
     this.ctx.beginPath();
@@ -139,7 +136,6 @@ class Annotation {
         x_margin: oc.xMargin
       });
     }
-
   }
 
   delFromScreen(annot) {
@@ -150,7 +146,7 @@ class Annotation {
     annot.remove();
   }
 
-  addAnnotation (x, y, text, canvas) {
+  addAnnotation (x, y, text, canvas, dataType) {
     // If annotation already exists in this point, do not add a new one
     if (this.ctx.isPointInPath(x, y)) {
       return;
@@ -165,6 +161,7 @@ class Annotation {
     div.setAttribute('id', x + '' + y);
     div.setAttribute('class', 'annotation-overlay');
     div.setAttribute('data-index', (this.annotations.length - 1));
+    div.setAttribute('data-type', dataType);
 
     // Center annotation box's left corner on annotation point
     div.style.left = x + this.rw / 2 + 'px';
