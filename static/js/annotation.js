@@ -14,8 +14,12 @@ class Annotation {
     this.saveInterval = 1000;
     this.typingTimer;
   }
+      // Calculate which canvas div belong to
+      // let y_pos = parseFloat(this.style.top);
 
-  saveAnnotations (canvas) {
+      // if (y_pos < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
+
+  saveAnnotations () {
     clearTimeout(ac.typingTimer);
     for (let i = 0; i < this.newAnnotations.length; i++) {
       let index = this.newAnnotations[i];
@@ -28,21 +32,36 @@ class Annotation {
         continue;
       }
 
-      // TODO: save coordinates from overview aswell by splitting up annotation in which canvas to use, and maybe doing a bit extra with the functions
-      $.getJSON($SCRIPT_ROOT + '/_saveannotation', {
-        region: document.getElementById('region_field').placeholder,
-        text: text,
-        xPos: annot.x,
-        yPos: annot.y,
-        sample_name: this.sampleName,
-        top: canvas.y,
-        left: canvas.x + adjustedMargin,
-        width: canvas.boxWidth,
-        height: canvas.boxHeight,
-        y_margin: canvas.yMargin,
-
-      }, function(result) {
-      });
+      if (annot.y < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
+        $.getJSON($SCRIPT_ROOT + '/_saveinteractiveannotation', {
+          region: document.getElementById('region_field').placeholder,
+          text: text,
+          xPos: annot.x,
+          yPos: annot.y,
+          sample_name: this.sampleName,
+          top: ic.y,
+          left: ic.x + adjustedMargin,
+          width: ic.boxWidth,
+          height: ic.boxHeight,
+          y_margin: ic.yMargin
+        });
+      } else {
+        $.getJSON($SCRIPT_ROOT + '/_saveoverviewannotation', {
+          text: text,
+          xPos: annot.x,
+          yPos: annot.y,
+          sample_name: this.sampleName,
+          top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
+          left: oc.x + adjustedMargin,
+          width: oc.boxWidth,
+          height: oc.boxHeight,
+          y_margin: oc.yMargin,
+          num_chrom: oc.numChrom,
+          right_margin: oc.rightMargin + adjustedMargin,
+          row_height: oc.rowHeight,
+          x_margin: 2 * oc.xMargin
+        });
+      }
     }
     this.newAnnotations = [];
   }
@@ -131,9 +150,9 @@ class Annotation {
         height: oc.boxHeight,
         y_margin: oc.yMargin,
         num_chrom: oc.numChrom,
-        right_margin: oc.rightMargin,
-        row_height: 2 * oc.boxHeight + oc.rowMargin,
-        x_margin: oc.xMargin
+        right_margin: oc.rightMargin + adjustedMargin,
+        row_height: oc.rowHeight,
+        x_margin: 2 * oc.xMargin
       });
     }
   }
@@ -174,16 +193,9 @@ class Annotation {
 
       ac.newAnnotations.push(parseInt(this.dataset.index));
 
-      // Calculate which canvas div belong to
-      let y_pos = parseFloat(this.style.top);
-
-      if (y_pos < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
-        ac.typingTimer = setTimeout(function() {
-          ac.saveAnnotations(ic);
-        }, ac.saveInterval);
-      } else {
-        // TODO: Save annotations for overview graph
-      }
+      ac.typingTimer = setTimeout(function() {
+        ac.saveAnnotations();
+      }, ac.saveInterval);
     });
 
     // Add close button

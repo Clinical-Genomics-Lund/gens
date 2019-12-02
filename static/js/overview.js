@@ -18,11 +18,11 @@ class OverviewCanvas {
     this.rightMargin = ($(document).innerWidth() - this.x - this.adjustedMargin - 10);
     this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
-    let rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
+    this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
 
     // Canvas variables
     this.width = $(document).innerWidth(); // Canvas width
-    this.height = this.y + numRows * rowHeight; // Canvas height
+    this.height = this.y + numRows * this.rowHeight; // Canvas height
     this.contentCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.contentCanvas.getContext('webgl2');
@@ -53,10 +53,10 @@ class OverviewCanvas {
       y_pos: oc.y + oc.rowMargin,
       box_width: oc.boxWidth,
       right_margin: oc.rightMargin,
-      row_height: 2 * oc.boxHeight + oc.rowMargin,
+      row_height: oc.rowHeight,
       x_margin: 2 * oc.xMargin
     }).done(function (result) {
-      let dims = result['chrom_dims']
+      let dims = result['chrom_dims'];
       for (let chrom = 1; chrom <= dims.length &&
         chrom <= oc.numChrom; chrom++) {
         // Draw data
@@ -143,8 +143,8 @@ class OverviewCanvas {
       width: oc.boxWidth,
       height: oc.boxHeight,
       row_height: oc.rowHeight,
-      right_margin: oc.right_margin,
-      x_margin: oc.xMargin,
+      right_margin: oc.rightMargin + adjustedMargin,
+      x_margin: 2 * oc.xMargin,
       y_margin: oc.yMargin,
     }, function(result) {
       let annotations = result['annotations'];
@@ -155,19 +155,22 @@ class OverviewCanvas {
   }
 
   // Check if coordinates is inside the graph
-  insideGraph (x, y) {
-    let yPos = 2 * this.y + this.staticCanvas.offsetTop;
-    for (let i = 0; i < this.numChrom; i++) {
-      // Take new row into account
-      if (i > 0 && i % this.chromPerRow == 0) {
-        yPos += 2 * this.boxHeight + this.rowMargin;
+  insideGraph (x, y, callback) {
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      num_chrom: oc.numChrom,
+      x_pos: oc.x + adjustedMargin,
+      y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
+      box_width: oc.boxWidth,
+      right_margin: oc.rightMargin + adjustedMargin,
+      row_height: oc.rowHeight,
+      x_margin: 2 * oc.xMargin,
+      current_x: x,
+      current_y: y,
+    }).done(function (result) {
+      if (result['current_chrom'] == null) {
+        return false;
       }
-      if (x > this.x + this.adjustedMargin + (i % this.chromPerRow) * this.boxWidth &&
-          x < this.x + this.adjustedMargin + ((i % this.chromPerRow) + 1) * this.boxWidth &&
-          y > yPos && y < yPos + 2 * this.boxHeight) {
-        return true;
-      }
-    }
-    return false;
+      return callback;
+    });
   }
 }

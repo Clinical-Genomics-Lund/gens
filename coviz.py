@@ -189,8 +189,60 @@ def get_overview_cov():
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
                    start=reg.start_pos, end=reg.end_pos)
 
-@APP.route('/_saveannotation', methods=['GET'])
-def save_annotation():
+@APP.route('/_saveoverviewannotation', methods=['GET'])
+def save_overview_annotation():
+    '''
+    Inserts annotation into database
+    '''
+    text = request.args.get('text', None)
+    x_pos = float(request.args.get('xPos', 1))
+    y_pos = float(request.args.get('yPos', 1))
+    sample_name = request.args.get('sample_name', None)
+    top = float(request.args.get('top', 1))
+    left = float(request.args.get('left', 1))
+    width = float(request.args.get('width', 1))
+    height = float(request.args.get('height', 1))
+    y_margin = float(request.args.get('y_margin', 1))
+
+    # Overview variables
+    num_chrom = int(request.args.get('num_chrom', -1))
+    right_margin = float(request.args.get('right_margin', 1))
+    row_height = float(request.args.get('row_height', 1))
+    x_margin = float(request.args.get('x_margin', 1))
+
+    if sample_name is None:
+        return abort(404)
+
+    chrom_dims, chrom = overview_chrom_dim(num_chrom, left, top, width,
+                                           right_margin, row_height,
+                                           x_margin, x_pos, y_pos)
+    chrom_dim = chrom_dims[int(chrom) - 1]
+    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
+                                      chrom_dim['y_pos'], 0,
+                                      chrom_dim['size'],
+                                      chrom_dim['width'], height,
+                                      y_margin)
+
+    # Set collection
+    collection = COVIZ_DB[sample_name]
+
+    # Check that record does not already exist
+    update = collection.update_one({'x': int(x_pos), 'y': y_pos,
+                                    'chrom': chrom}, {'$set': {'text': text}})
+    if update.matched_count == 0:
+        # Insert new record
+        collection.insert_one({
+            'text': text,
+            'x': int(x_pos),
+            'y': y_pos,
+            'chrom': chrom,
+            'baf': baf
+        })
+
+    return jsonify(status='ok')
+
+@APP.route('/_saveinteractiveannotation', methods=['GET'])
+def save_interactive_annotation():
     '''
     Inserts annotation into database
     '''
@@ -209,8 +261,8 @@ def save_annotation():
         return abort(404)
 
     _, chrom, start, end = parse_region_str(region)
-
-    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, left, top, start, end, width, height, y_margin)
+    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, left, top, start,
+                                      end, width, height, y_margin)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
@@ -399,10 +451,18 @@ def call_overview_chrom_dim():
     right_margin = float(request.args.get('right_margin', 0))
     row_height = float(request.args.get('row_height', 0))
     x_margin = float(request.args.get('x_margin', 1))
+    current_x = request.args.get('current_x', None)
+    current_y = request.args.get('current_y', None)
+    current_x = current_x if current_x is None else float(current_x)
+    current_y = current_y if current_y is None else float(current_y)
 
-    chrom_dims, _ = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width,
-                                    right_margin, row_height, x_margin, None, None)
-    return jsonify(status='ok', chrom_dims=chrom_dims)
+    chrom_dims, current_chrom = overview_chrom_dim(num_chrom, x_pos, y_pos,
+                                                   box_width, right_margin,
+                                                   row_height, x_margin,
+                                                   current_x, current_y)
+
+    return jsonify(status='ok', chrom_dims=chrom_dims, \
+                   current_chrom=current_chrom)
 
 def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
                        row_height, x_margin, current_x, current_y):
@@ -413,6 +473,7 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
     collection = COVIZ_DB['chromsizes']
 
     current_chrom = None
+    chrom_found = False
     first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
@@ -421,10 +482,11 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})
 
-        if current_x and current_y and \
+        if not chrom_found and current_x and current_y and \
                 current_x <= (x_pos + chrom_width) and \
                 current_y <= (y_pos + row_height):
             current_chrom = chrom
+            chrom_found = True
 
         x_pos += chrom_width
         if x_pos > right_margin:

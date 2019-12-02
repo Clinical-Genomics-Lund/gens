@@ -172,7 +172,7 @@
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
                 if (ic.insideGraph(x, y)) {
-                    return ac.addAnnotation(x, y, '', ic);
+                    return ac.addAnnotation(x, y, '', ic, 'interactive');
                 }
             }, false);
 
@@ -187,9 +187,7 @@
 
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
-                if (oc.insideGraph(x, y)) {
-                    // TODO: add canvas annotation
-                }
+                oc.insideGraph(x, y, ac.addAnnotation(x, y, '', oc, 'overview'));
             }, false);
 
             oc.staticCanvas.addEventListener('mousemove', function (event) {
@@ -212,7 +210,7 @@
             });
 
             window.addEventListener("beforeunload", function(e){
-                ac.saveAnnotations(ic);
+                ac.saveAnnotations();
             }, false);
 
             document.getElementById('region_form').addEventListener('submit',
@@ -230,7 +228,7 @@
                 }
 
                 // Save annotations
-                ac.saveAnnotations(ic);
+                ac.saveAnnotations();
 
                 // Do not move interactive canvas if an annotation is present
                 if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
