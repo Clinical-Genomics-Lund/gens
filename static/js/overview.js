@@ -169,8 +169,9 @@ class OverviewCanvas {
     }).done(function (result) {
       if (result['current_chrom'] == null) {
         return false;
+      } else {
+        return callback(x, y, '', oc, 'overview');
       }
-      return callback;
     });
   }
 }

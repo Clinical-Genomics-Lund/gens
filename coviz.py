@@ -228,14 +228,14 @@ def save_overview_annotation():
 
     # Check that record does not already exist
     update = collection.update_one({'x': int(x_pos), 'y': y_pos,
-                                    'chrom': chrom}, {'$set': {'text': text}})
+                                    'chrom': str(chrom)}, {'$set': {'text': text}})
     if update.matched_count == 0:
         # Insert new record
         collection.insert_one({
             'text': text,
             'x': int(x_pos),
             'y': y_pos,
-            'chrom': chrom,
+            'chrom': str(chrom),
             'baf': baf
         })
 
@@ -276,7 +276,7 @@ def save_interactive_annotation():
             'text': text,
             'x': int(x_pos),
             'y': y_pos,
-            'chrom': chrom,
+            'chrom': str(chrom),
             'baf': baf
         })
 
@@ -315,6 +315,9 @@ def remove_annotation():
         chrom_dims, chrom = overview_chrom_dim(num_chrom, left, top, width,
                                                right_margin, row_height, x_margin,
                                                x_pos, y_pos)
+        if not chrom:
+            return abort(404)
+
         chrom_dim = chrom_dims[int(chrom) - 1]
         x_diff, y_diff, _ = to_data_coord(x_pos + 1, y_pos + 1, chrom_dim['x_pos'],
                                           chrom_dim['y_pos'], 0,
@@ -343,7 +346,7 @@ def remove_annotation():
                              '$lte': x_pos + x_distance},
                        'y': {'$gte': y_pos - y_distance,
                              '$lte': y_pos + y_distance},
-                       'text': text, 'chrom': chrom})
+                       'text': text, 'chrom': str(chrom)})
     return jsonify(status='ok')
 
 @APP.route('/_loadallannotations', methods=['GET'])
@@ -370,7 +373,7 @@ def load_all_annotations():
     for chrom in range(1, num_chrom + 1):
         chrom_dim = chrom_dims[chrom - 1]
         annotations = list(collection.find({'x': {'$gte': 0,
-                                                  '$lte': chrom_dim['size']},
+                                                  '$lte': int(chrom_dim['size'])},
                                             'chrom': str(chrom)},
                                            {'_id': False}))
         for annotation in annotations:
@@ -409,7 +412,7 @@ def load_annotation_range():
     annotations = list(collection.find({'x': {'$gte': start_pos,
                                               '$lte': end_pos},
                                         'chrom': str(chrom)},
-                                        {'_id': False}))
+                                       {'_id': False}))
     for annotation in annotations:
         annotation['x'], annotation['y'] = \
                 to_screen_coord(annotation['x'], annotation['y'],

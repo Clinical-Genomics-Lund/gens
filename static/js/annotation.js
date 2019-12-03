@@ -167,24 +167,24 @@ class Annotation {
 
   addAnnotation (x, y, text, canvas, dataType) {
     // If annotation already exists in this point, do not add a new one
-    if (this.ctx.isPointInPath(x, y)) {
+    if (ac.ctx.isPointInPath(x, y)) {
       return;
     }
 
-    let rect = {x: x, y: y, w: this.rw, h: this.rh};
-    this.annotations.push(rect);
-    this.drawAnnotations();
+    let rect = {x: x, y: y, w: ac.rw, h: ac.rh};
+    ac.annotations.push(rect);
+    ac.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);
     div.setAttribute('class', 'annotation-overlay');
-    div.setAttribute('data-index', (this.annotations.length - 1));
+    div.setAttribute('data-index', (ac.annotations.length - 1));
     div.setAttribute('data-type', dataType);
 
     // Center annotation box's left corner on annotation point
-    div.style.left = x + this.rw / 2 + 'px';
-    div.style.top = y + this.rh / 2 + 'px';
+    div.style.left = x + ac.rw / 2 + 'px';
+    div.style.top = y + ac.rh / 2 + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
 
     // Add typing timer, when typing has stopped save the content

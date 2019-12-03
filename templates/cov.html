@@ -153,8 +153,8 @@
             oc.drawOverviewContent(oc, baf, logr, logRMedian);
 
             // Initiate annotation canvas
-            let ac = new Annotation(document.getElementById('visualization-container').clientHeight,
-                    sampleName);
+            let ac = new Annotation(document.getElementById(
+                        'visualization-container').clientHeight, sampleName);
             ic.loadAnnotations(ac, ic, inputField.placeholder, adjustedMargin);
             oc.loadAnnotations(ac, oc, adjustedMargin);
 
@@ -187,7 +187,7 @@
 
                 let x = event.pageX - ac.annotationCanvas.offsetLeft;
                 let y = event.pageY - ac.annotationCanvas.offsetTop;
-                oc.insideGraph(x, y, ac.addAnnotation(x, y, '', oc, 'overview'));
+                oc.insideGraph(x, y, ac.addAnnotation);
             }, false);
 
             oc.staticCanvas.addEventListener('mousemove', function (event) {
