@@ -316,6 +316,11 @@ def remove_annotation():
                                                right_margin, row_height, x_margin,
                                                x_pos, y_pos)
         chrom_dim = chrom_dims[int(chrom) - 1]
+        x_diff, y_diff, _ = to_data_coord(x_pos + 1, y_pos + 1, chrom_dim['x_pos'],
+                                          chrom_dim['y_pos'], 0,
+                                          chrom_dim['size'],
+                                          chrom_dim['width'], height,
+                                          y_margin)
         x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
                                         chrom_dim['y_pos'], 0,
                                         chrom_dim['size'],
@@ -323,6 +328,8 @@ def remove_annotation():
                                         y_margin)
     else:
         _, chrom, start, end = parse_region_str(region)
+        x_diff, y_diff, _ = to_data_coord(x_pos + 1, y_pos + 1, left, top, start,
+                                          end, width, height, y_margin)
         x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, left, top, start,
                                         end, width, height, y_margin)
 
@@ -330,8 +337,8 @@ def remove_annotation():
     collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
-    x_distance = 100
-    y_distance = 0.001
+    x_distance = abs(x_diff - x_pos)
+    y_distance = abs(y_diff - y_pos)
     collection.remove({'x': {'$gte': x_pos - x_distance,
                              '$lte': x_pos + x_distance},
                        'y': {'$gte': y_pos - y_distance,
