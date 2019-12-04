@@ -59,7 +59,6 @@ class Annotation {
           num_chrom: oc.numChrom,
           right_margin: oc.rightMargin + adjustedMargin,
           row_height: oc.rowHeight,
-          x_margin: 2 * oc.xMargin
         });
       }
     }
@@ -151,8 +150,7 @@ class Annotation {
         y_margin: oc.yMargin,
         num_chrom: oc.numChrom,
         right_margin: oc.rightMargin + adjustedMargin,
-        row_height: oc.rowHeight,
-        x_margin: 2 * oc.xMargin
+        row_height: oc.rowHeight
       });
     }
   }

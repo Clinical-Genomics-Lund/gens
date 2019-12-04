@@ -208,14 +208,13 @@ def save_overview_annotation():
     num_chrom = int(request.args.get('num_chrom', -1))
     right_margin = float(request.args.get('right_margin', 1))
     row_height = float(request.args.get('row_height', 1))
-    x_margin = float(request.args.get('x_margin', 1))
 
     if sample_name is None:
         return abort(404)
 
-    chrom_dims, chrom = overview_chrom_dim(num_chrom, left, top, width,
-                                           right_margin, row_height,
-                                           x_margin, x_pos, y_pos)
+    chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
+                                    right_margin, row_height)
+    chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height, x_pos, y_pos, 0)
     chrom_dim = chrom_dims[int(chrom) - 1]
     x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
                                       chrom_dim['y_pos'], 0,
@@ -306,15 +305,15 @@ def remove_annotation():
     num_chrom = int(request.args.get('num_chrom', -1))
     right_margin = float(request.args.get('right_margin', 1))
     row_height = float(request.args.get('row_height', 1))
-    x_margin = float(request.args.get('x_margin', 1))
 
     if sample_name is None or text is None:
         return abort(404)
 
     if overview == 'true':
-        chrom_dims, chrom = overview_chrom_dim(num_chrom, left, top, width,
-                                               right_margin, row_height, x_margin,
-                                               x_pos, y_pos)
+        chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
+                                        row_height)
+        chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height, x_pos, y_pos, 0)
+
         if not chrom:
             return abort(404)
 
@@ -362,11 +361,9 @@ def load_all_annotations():
     height = float(request.args.get('height', 1))
     row_height = float(request.args.get('row_height', 1))
     right_margin = float(request.args.get('right_margin', 1))
-    x_margin = float(request.args.get('x_margin', 1))
     y_margin = float(request.args.get('y_margin', 1))
-    chrom_dims, _ = overview_chrom_dim(num_chrom, left, top, width,
-                                    right_margin, row_height, x_margin, None, None)
-
+    chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
+                                    row_height)
     collection = COVIZ_DB[sample_name]
 
     all_annotations = []
@@ -460,54 +457,64 @@ def call_overview_chrom_dim():
     box_width = float(request.args.get('box_width', 0))
     right_margin = float(request.args.get('right_margin', 0))
     row_height = float(request.args.get('row_height', 0))
-    x_margin = float(request.args.get('x_margin', 1))
+    margin = float(request.args.get('margin', 0))
     current_x = request.args.get('current_x', None)
     current_y = request.args.get('current_y', None)
-    current_x = current_x if current_x is None else float(current_x)
-    current_y = current_y if current_y is None else float(current_y)
+    current_chrom = None
 
-    chrom_dims, current_chrom = overview_chrom_dim(num_chrom, x_pos, y_pos,
-                                                   box_width, right_margin,
-                                                   row_height, x_margin,
-                                                   current_x, current_y)
+    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
+                                    row_height)
+
+    if current_x and current_y:
+        current_chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height,
+                                          float(current_x), float(current_y), margin)
 
     return jsonify(status='ok', chrom_dims=chrom_dims, \
                    current_chrom=current_chrom)
 
+def find_chrom_at_pos(chrom_dims, num_chrom, row_height, current_x, current_y, margin):
+    '''
+    Returns the related chromosome to the position
+    '''
+    current_chrom = None
+
+    for chrom in range(1, int(num_chrom) + 1):
+        x_pos = chrom_dims[chrom - 1]['x_pos']
+        y_pos = chrom_dims[chrom - 1]['y_pos']
+        width = chrom_dims[chrom - 1]['width']
+        if x_pos + margin <= current_x <= (x_pos + width) and \
+           y_pos + margin <= current_y <= (y_pos + row_height):
+            current_chrom = chrom
+            break
+
+    return current_chrom
+
 def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
-                       row_height, x_margin, current_x, current_y):
+                       row_height):
     '''
     Calculates the position for each chromosome in the overview canvas
     '''
 
     collection = COVIZ_DB['chromsizes']
 
-    current_chrom = None
-    chrom_found = False
     first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
-        chrom_width = get_chrom_width(chrom, box_width, x_margin)
+        chrom_width = get_chrom_width(chrom, box_width)
         chrom_data = collection.find_one({'chrom': str(chrom)})
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})
-
-        if not chrom_found and current_x and current_y and \
-                x_pos <= current_x <= (x_pos + chrom_width) and \
-                y_pos <= current_y <= (y_pos + row_height):
-            current_chrom = chrom
-            chrom_found = True
 
         x_pos += chrom_width
         if x_pos > right_margin:
             y_pos += row_height
             x_pos = first_x_pos
 
-    return chrom_dims, current_chrom
+    return chrom_dims
 
 ### Help functions ###
 
-def get_chrom_width(chrom, full_width, x_margin):
+def get_chrom_width(chrom, full_width):
     '''
     Calculates overview width of chromosome
     '''
@@ -517,7 +524,7 @@ def get_chrom_width(chrom, full_width, x_margin):
     if chrom_data:
         chrom_width = full_width * float(chrom_data['scale'])
 
-        return chrom_width - x_margin
+        return chrom_width
 
     print('Chromosome width not available')
     return full_width, full_width

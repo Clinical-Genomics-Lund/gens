@@ -54,7 +54,6 @@ class OverviewCanvas {
       box_width: oc.boxWidth,
       right_margin: oc.rightMargin,
       row_height: oc.rowHeight,
-      x_margin: 2 * oc.xMargin
     }).done(function (result) {
       let dims = result['chrom_dims'];
       for (let chrom = 1; chrom <= dims.length &&
@@ -144,7 +143,6 @@ class OverviewCanvas {
       height: oc.boxHeight,
       row_height: oc.rowHeight,
       right_margin: oc.rightMargin + adjustedMargin,
-      x_margin: 2 * oc.xMargin,
       y_margin: oc.yMargin,
     }, function(result) {
       let annotations = result['annotations'];
@@ -163,7 +161,7 @@ class OverviewCanvas {
       box_width: oc.boxWidth,
       right_margin: oc.rightMargin + adjustedMargin,
       row_height: oc.rowHeight,
-      x_margin: 2 * oc.xMargin,
+      margin: oc.xMargin,
       current_x: x,
       current_y: y,
     }).done(function (result) {
