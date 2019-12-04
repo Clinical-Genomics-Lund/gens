@@ -493,8 +493,8 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
                            'width': chrom_width, 'size': chrom_data['size']})
 
         if not chrom_found and current_x and current_y and \
-                current_x <= (x_pos + chrom_width) and \
-                current_y <= (y_pos + row_height):
+                x_pos <= current_x <= (x_pos + chrom_width) and \
+                y_pos <= current_y <= (y_pos + row_height):
             current_chrom = chrom
             chrom_found = True
 
