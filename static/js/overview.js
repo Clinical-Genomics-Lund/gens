@@ -52,6 +52,7 @@ class OverviewCanvas {
       x_pos: oc.x,
       y_pos: oc.y + oc.rowMargin,
       box_width: oc.boxWidth,
+      box_height: 2 * oc.boxHeight,
       right_margin: oc.rightMargin,
       row_height: oc.rowHeight,
     }).done(function (result) {
@@ -159,6 +160,7 @@ class OverviewCanvas {
       x_pos: oc.x + adjustedMargin,
       y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
       box_width: oc.boxWidth,
+      box_height: oc.boxHeight,
       right_margin: oc.rightMargin + adjustedMargin,
       row_height: oc.rowHeight,
       margin: oc.xMargin,

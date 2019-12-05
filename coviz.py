@@ -214,7 +214,8 @@ def save_overview_annotation():
 
     chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
                                     right_margin, row_height)
-    chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height, x_pos, y_pos, 0)
+    chrom = find_chrom_at_pos(chrom_dims, num_chrom, 2 * height, x_pos,
+                              y_pos, 0)
     chrom_dim = chrom_dims[int(chrom) - 1]
     x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
                                       chrom_dim['y_pos'], 0,
@@ -312,7 +313,7 @@ def remove_annotation():
     if overview == 'true':
         chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
                                         row_height)
-        chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height, x_pos, y_pos, 0)
+        chrom = find_chrom_at_pos(chrom_dims, num_chrom, 2 * height, x_pos, y_pos, 0)
 
         if not chrom:
             return abort(404)
@@ -455,6 +456,7 @@ def call_overview_chrom_dim():
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
     box_width = float(request.args.get('box_width', 0))
+    box_height = float(request.args.get('box_height', 0))
     right_margin = float(request.args.get('right_margin', 0))
     row_height = float(request.args.get('row_height', 0))
     margin = float(request.args.get('margin', 0))
@@ -466,13 +468,14 @@ def call_overview_chrom_dim():
                                     row_height)
 
     if current_x and current_y:
-        current_chrom = find_chrom_at_pos(chrom_dims, num_chrom, row_height,
-                                          float(current_x), float(current_y), margin)
+        current_chrom = find_chrom_at_pos(chrom_dims, num_chrom,
+                                          2 * box_height, float(current_x),
+                                          float(current_y), margin)
 
     return jsonify(status='ok', chrom_dims=chrom_dims, \
                    current_chrom=current_chrom)
 
-def find_chrom_at_pos(chrom_dims, num_chrom, row_height, current_x, current_y, margin):
+def find_chrom_at_pos(chrom_dims, num_chrom, height, current_x, current_y, margin):
     '''
     Returns the related chromosome to the position
     '''
@@ -483,7 +486,7 @@ def find_chrom_at_pos(chrom_dims, num_chrom, row_height, current_x, current_y, m
         y_pos = chrom_dims[chrom - 1]['y_pos']
         width = chrom_dims[chrom - 1]['width']
         if x_pos + margin <= current_x <= (x_pos + width) and \
-           y_pos + margin <= current_y <= (y_pos + row_height):
+           y_pos + margin <= current_y <= (y_pos + height):
             current_chrom = chrom
             break
 
