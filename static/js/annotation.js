@@ -173,52 +173,6 @@ class Annotation {
     ac.annotations.push(rect);
     ac.drawAnnotations();
 
-    // Add annotation box
-    ac.addAnnotationBox(x, y, text, canvas, dataType);
-
-    if (dataType == 'overview') {
-      // Add annotation box for interactive graph
-      $.getJSON($SCRIPT_ROOT + '/_convertbetweenviews', {
-        ovr_x_pos: x,
-        ovr_y_pos: y,
-        ovr_left: oc.x + adjustedMargin,
-        ovr_top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-        ovr_width: oc.boxWidth,
-        ovr_height: oc.boxHeight,
-        num_chrom: oc.numChrom,
-        ovr_right_margin: oc.rightMargin + adjustedMargin,
-        ovr_row_height: oc.rowHeight,
-        in_left: ic.x + adjustedMargin,
-        in_top: ic.y,
-        in_start: ic.start,
-        in_end: ic.end,
-        in_width: ic.boxWidth,
-        in_height: ic.boxHeight,
-        in_y_margin: ic.yMargin
-      }, function(result) {
-        ac.addAnnotationBox(result['x_pos'], result['y_pos'], text, ic,
-          dataType);
-      });
-    } else {
-      // Add annotation box for overview graph
-      $.getJSON($SCRIPT_ROOT + '/_convertbetweenviews', {
-        x_pos: x,
-        y_pos: y,
-        left: ic.x + adjustedMargin,
-        top: ic.y,
-        start: ic.start,
-        end: ic.end,
-        width: ic.boxWidth,
-        height: ic.boxHeight,
-        y_margin: ic.yMargin
-      }, function(result) {
-        ac.addAnnotationBox(result['x_pos'], result['y_pos'], text, ic,
-          dataType);
-      });
-    }
-  }
-
-  addAnnotationBox(x, y, text, canvas, dataType) {
     // Annotation box
     let div = document.createElement('div');
     div.setAttribute('id', x + '' + y);

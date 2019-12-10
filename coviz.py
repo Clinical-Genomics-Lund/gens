@@ -450,50 +450,6 @@ def to_screen_coord(data_x_pos, data_y_pos, baf, left, top, start, end,
         y_pos = top + 1.5 * height - data_y_pos * (height - 2 * y_margin)
         return [x_pos, y_pos]
 
-@APP.route('/_convertbetweenviews', methods=['GET'])
-def convertBetweenViews():
-    '''
-    Convert between overview and interactive graph
-    '''
-    chrom_dims = overview_chrom_dim(
-        int(request.args.get('num_chrom', 0)),
-        float(request.args.get('ovr_left', 0)),
-        float(request.args.get('ovr_top', 0)),
-        float(request.args.get('ovr_width', 0)),
-        float(request.args.get('ovr_right_margin', 0)),
-        float(request.args.get('ovr_row_height', 0)))
-    chrom = find_chrom_at_pos(
-        chrom_dims,
-        int(request.args.get('num_chrom', 0)),
-        2 * float(request.args.get('ovr_height', 0)),
-        float(request.args.get('ovr_x_pos', 0)),
-        float(request.args.get('ovr_y_pos', 0)),
-        0)
-
-    x_pos, y_pos, baf = to_data_coord(
-        float(request.args.get('ovr_x_pos', 0)),
-        float(request.args.get('ovr_y_pos', 0)),
-        chrom_dims[chrom]['x_pos'],
-        chrom_dims[chrom]['y_pos'],
-        0,
-        chrom_dims[chrom]['size'],
-        chrom_dims[chrom]['width'],
-        float(request.args.get('in_height', 0)),
-        float(request.args.get('in_y_margin', 0)))
-
-    int_x, int_y = to_screen_coord(
-        x_pos,
-        y_pos,
-        baf,
-        float(request.args.get('in_left', 0)),
-        float(request.args.get('in_top', 0)),
-        float(request.args.get('in_start', 0)),
-        float(request.args.get('in_end', 0)),
-        float(request.args.get('in_width', 0)),
-        float(request.args.get('in_height', 0)),
-        float(request.args.get('in_y_margin', 0)))
-    return jsonify(status='ok', x_pos=int_x, y_pos=int_y)
-
 @APP.route('/_overviewchromdim', methods=['GET'])
 def call_overview_chrom_dim():
     num_chrom = int(request.args.get('num_chrom', 0))
