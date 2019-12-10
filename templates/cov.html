@@ -216,9 +216,15 @@
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
+                ac.saveAnnotations();
+
+                // Clear annotations
+                ac.clearAnnotations(ic.height);
                 inputField.placeholder = inputField.value;
                 inputField.value = '';
                 ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+                ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
+                ac.drawAnnotations();
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {

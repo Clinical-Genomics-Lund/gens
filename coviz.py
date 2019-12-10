@@ -26,7 +26,7 @@ SAMPLE_FILE = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
 COV_FILE = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
 BAF_FILE = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
 
-@APP.route('/', methods=['POST', 'GET'])
+@APP.route('/', methods=['GET'])
 def coverage_view():
     '''
     Method for displaying a region
