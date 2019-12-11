@@ -59,11 +59,15 @@ class InteractiveCanvas {
       left: ic.x + adjustedMargin,
       width: ic.boxWidth,
       height: ic.boxHeight,
+      logr_height: Math.abs(logr.yStart - logr.yEnd),
+      baf_height: Math.abs(baf.yStart - baf.yEnd),
       y_margin: ic.yMargin
     }, function(result) {
       let annotations = result['annotations'];
       for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], ic, 'interactive');
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
+          annotations[i]['width'], annotations[i]['height'],
+          annotations[i]['text'], ic, 'interactive');
       }
     });
   }

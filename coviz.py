@@ -250,6 +250,10 @@ def save_interactive_annotation():
     text = request.args.get('text', None)
     x_pos = float(request.args.get('xPos', 1))
     y_pos = float(request.args.get('yPos', 1))
+    annot_width = float(request.args.get('annot_width', 4))
+    annot_height = float(request.args.get('annot_height', 4))
+    logr_height = float(request.args.get('logr_height', 1))
+    baf_height = float(request.args.get('baf_height', 1))
     sample_name = request.args.get('sample_name', None)
     top = float(request.args.get('top', 1))
     left = float(request.args.get('left', 1))
@@ -263,12 +267,19 @@ def save_interactive_annotation():
     _, chrom, start, end = parse_region_str(region)
     x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, left, top, start,
                                       end, width, height, y_margin)
+    annot_width = annot_width / (width / (end - start))
+
+    if baf:
+        annot_height = annot_height / (height / baf_height)
+    else:
+        annot_height = annot_height / (height / logr_height)
 
     # Set collection
     collection = COVIZ_DB[sample_name]
 
     # Check that record does not already exist
     update = collection.update_one({'x': int(x_pos), 'y': y_pos,
+                                    'width': annot_width, 'height': annot_height,
                                     'chrom': chrom}, {'$set': {'text': text}})
     if update.matched_count == 0:
         # Insert new record
@@ -276,6 +287,8 @@ def save_interactive_annotation():
             'text': text,
             'x': int(x_pos),
             'y': y_pos,
+            'width': annot_width,
+            'height': annot_height,
             'chrom': str(chrom),
             'baf': baf
         })
@@ -399,6 +412,8 @@ def load_annotation_range():
     left = float(request.args.get('left', 1))
     width = float(request.args.get('width', 1))
     height = float(request.args.get('height', 1))
+    logr_height = float(request.args.get('logr_height', 1))
+    baf_height = float(request.args.get('baf_height', 1))
     y_margin = float(request.args.get('y_margin', 1))
 
     if sample_name is None or region is None:
@@ -416,6 +431,11 @@ def load_annotation_range():
                 to_screen_coord(annotation['x'], annotation['y'],
                                 annotation['baf'], left, top, start_pos,
                                 end_pos, width, height, y_margin)
+        annotation['width'] = annotation['width'] * (width / (end_pos - start_pos))
+        if annotation['baf'] == 'true':
+            annotation['height'] = float(annotation['height']) * (height / baf_height)
+        else:
+            annotation['height'] = float(annotation['height']) * (height / logr_height)
 
     return jsonify(status='ok', annotations=annotations)
 

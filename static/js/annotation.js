@@ -39,6 +39,10 @@ class Annotation {
           text: text,
           xPos: annot.x,
           yPos: annot.y,
+          annot_width: annot.w,
+          annot_height: annot.h,
+          logr_height: Math.abs(logr.yStart - logr.yEnd),
+          baf_height: Math.abs(baf.yStart - baf.yEnd),
           sample_name: this.sampleName,
           top: ic.y,
           left: ic.x + adjustedMargin,
@@ -164,7 +168,7 @@ class Annotation {
     annot.remove();
   }
 
-  addAnnotation (x, y, width, height, text, canvas, dataType, eventHandler) {
+  addAnnotation (x, y, width, height, text, canvas, dataType) {
     // If annotation already exists in this point, do not add a new one
     if (ac.ctx.isPointInPath(x, y)) {
       return;
