@@ -13,6 +13,7 @@ class Annotation {
     this.sampleName = sampleName;
     this.saveInterval = 1000;
     this.typingTimer;
+    this.addingAnnot = false;
   }
       // Calculate which canvas div belong to
       // let y_pos = parseFloat(this.style.top);
@@ -81,7 +82,7 @@ class Annotation {
       let r = this.annotations[i];
       this.ctx.rect(r.x, r.y, r.w, r.h);
     }
-    this.ctx.fillStyle = 'gray';
+    this.ctx.fillStyle = 'rgba(155, 155, 155, 0.5)';
     this.ctx.fill();
   }
 
@@ -163,13 +164,16 @@ class Annotation {
     annot.remove();
   }
 
-  addAnnotation (x, y, text, canvas, dataType) {
+  addAnnotation (x, y, width, height, text, canvas, dataType, eventHandler) {
     // If annotation already exists in this point, do not add a new one
     if (ac.ctx.isPointInPath(x, y)) {
       return;
     }
 
-    let rect = {x: x, y: y, w: ac.rw, h: ac.rh};
+    width = width < ac.rw ? ac.rw : width;
+    height = height < ac.rh ? ac.rh : height;
+
+    let rect = {x: x, y: y, w: width, h: height};
     ac.annotations.push(rect);
     ac.drawAnnotations();
 
@@ -179,11 +183,19 @@ class Annotation {
     div.setAttribute('class', 'annotation-overlay');
     div.setAttribute('data-index', (ac.annotations.length - 1));
     div.setAttribute('data-type', dataType);
+    div.setAttribute('pointer-events', 'none');
 
     // Center annotation box's left corner on annotation point
-    div.style.left = x + ac.rw / 2 + 'px';
-    div.style.top = y + ac.rh / 2 + 'px';
+    div.style.left = x + 'px';
+    div.style.top = y + height + 'px';
     document.getElementById('annotation-overlays').appendChild(div);
+
+    div.addEventListener('contextmenu', function(event) {
+      if (ac.addingAnnot == true) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    })
 
     // Add typing timer, when typing has stopped save the content
     div.addEventListener('input', function() {

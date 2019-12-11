@@ -158,22 +158,8 @@
             ic.loadAnnotations(ac, ic, inputField.placeholder, adjustedMargin);
             <!-- oc.loadAnnotations(ac, oc, adjustedMargin); -->
 
-            // LISTENERS
-
-            // Add annotation when content canvas is clicked
             ic.contentCanvas.addEventListener('contextmenu', function(event) {
                 event.preventDefault();
-                let annotOverlay = document.getElementById("annotation-overlays");
-                // Do not add new annotations if it's hidden
-                if (annotOverlay.style.visibility === "hidden") {
-                    return;
-                }
-
-                let x = event.pageX - ac.annotationCanvas.offsetLeft;
-                let y = event.pageY - ac.annotationCanvas.offsetTop;
-                if (ic.insideGraph(x, y)) {
-                    return ac.addAnnotation(x, y, '', ic, 'interactive');
-                }
             }, false);
 
             // Add annotation when content canvas is clicked
@@ -228,87 +214,163 @@
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
-                // Only act on left mouse button click
-                if (event.which != 1) {
-                    return
-                }
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        // Save annotations
+                        ac.saveAnnotations();
 
-                // Save annotations
-                ac.saveAnnotations();
+                        // Do not move interactive canvas if an annotation is present
+                        if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                                event.pageY - ac.annotationCanvas.offsetTop, true)) {
+                            ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
+                            0, ic.y + 2, ic.width, ic.height);
+                            if (!ic.disallowDrag) {
+                                dragStart = {
+                                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                                    y: event.pageY - ic.contentCanvas.offsetTop
+                                };
+                                dragEnd = {
+                                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                                    y: event.pageY - ic.contentCanvas.offsetTop
+                                };
+                                drag = true;
+                            }
+                        }
+                        break;
+                    case 3: // Right click
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
 
-                // Do not move interactive canvas if an annotation is present
-                if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
-                        event.pageY - ac.annotationCanvas.offsetTop, true)) {
-                    ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
-                    0, ic.y + 2, ic.width, ic.height);
-                    if (!ic.disallowDrag) {
-                        dragStart = {
-                            x: event.pageX - ic.contentCanvas.offsetLeft,
-                            y: event.pageY - ic.contentCanvas.offsetTop
-                        };
-                        dragEnd = {
-                            x: event.pageX - ic.contentCanvas.offsetLeft,
-                            y: event.pageY - ic.contentCanvas.offsetTop
-                        };
-                        drag = true;
-                    }
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ic.insideGraph(x, y)) {
+                            ac.addingAnnot = true;
+                            dragStart = {
+                                x: x,
+                                y: y
+                            };
+                            dragEnd = {
+                                x: x,
+                                y: y
+                            };
+                        } else {
+                            ac.addingAnnot = false;
+                        }
+                    break;
                 }
             });
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        if (ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                                event.pageY - ac.annotationCanvas.offsetTop, false)) {
+                            ic.contentCanvas.style.cursor = 'pointer';
+                        } else {
+                            ic.contentCanvas.style.cursor = 'default';
+                        }
+                        if (drag && !ic.disallowDrag) {
+                            dragEnd = {
+                                x: event.pageX - ic.contentCanvas.offsetLeft,
+                                y: event.pageY - ic.contentCanvas.offsetTop
+                            };
 
-                if (ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
-                        event.pageY - ac.annotationCanvas.offsetTop, false)) {
-                    ic.contentCanvas.style.cursor = 'pointer';
-                } else {
-                    ic.contentCanvas.style.cursor = 'default';
-                }
-                if (drag && !ic.disallowDrag) {
-                    dragEnd = {
-                        x: event.pageX - ic.contentCanvas.offsetLeft,
-                        y: event.pageY - ic.contentCanvas.offsetTop
-                    };
+                            // Hide interactive annotations
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
+                            let annotation = document.querySelectorAll("[data-type='interactive']");
+                            for (let i = 0; i < annotation.length; i++) {
+                                annotation[i].style.visibility = 'hidden';
+                            }
 
-                    // Hide interactive annotations
-                    ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
-                    let annotation = document.querySelectorAll("[data-type='interactive']");
-                    for (let i = 0; i < annotation.length; i++) {
-                        annotation[i].style.visibility = 'hidden';
-                    }
+                            // Clear whole content canvas
+                            ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
+                                ic.contentCanvas.width, ic.contentCanvas.height);
 
-                    // Clear whole content canvas
-                    ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
-                        ic.contentCanvas.width, ic.contentCanvas.height);
+                            // Copy draw image to content Canvas
+                            ic.contentCanvas.getContext('2d').putImageData(
+                                ic.moveImg,
+                                dragEnd.x - dragStart.x,
+                                ic.y + 2);
+                        }
+                        break;
+                    case 3: // Right click
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
 
-                    // Copy draw image to content Canvas
-                    ic.contentCanvas.getContext('2d').putImageData(
-                        ic.moveImg,
-                        dragEnd.x - dragStart.x,
-                        ic.y + 2);
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ac.addingAnnot && ic.insideGraph(x, y)) {
+                            dragEnd = {
+                                x: x,
+                                y: y
+                            };
+                        }
+                    break;
                 }
             });
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
-                if (drag) {
-                    // Hide interactive annotations
-                    ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
-                    let annotation = document.querySelectorAll("[data-type='interactive']");
-                    for (let i = 0; i < annotation.length; i++) {
-                        annotation[i].style.visibility = 'visible';
-                    }
+                event.preventDefault();
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        if (drag) {
+                            // Hide interactive annotations
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
+                            let annotation = document.querySelectorAll("[data-type='interactive']");
+                            for (let i = 0; i < annotation.length; i++) {
+                                annotation[i].style.visibility = 'visible';
+                            }
 
-                    ic.moveImg = null;
-                    drag = false;
-                    let scale = ic.boxWidth / (ic.end - ic.start);
-                    let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                    if (ic.start + moveDist < 0) {
-                        moveDist -= (ic.start + moveDist);
-                    }
-                    ic.start += moveDist;
-                    ic.end += moveDist;
-                    ic.disallowDrag = true;
+                            ic.moveImg = null;
+                            drag = false;
+                            let scale = ic.boxWidth / (ic.end - ic.start);
+                            let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                            if (ic.start + moveDist < 0) {
+                                moveDist -= (ic.start + moveDist);
+                            }
+                            ic.start += moveDist;
+                            ic.end += moveDist;
+                            ic.disallowDrag = true;
 
-                    ic.redraw(ic, ac, baf, logr, logRMedian, adjustedMargin);
+                            ic.redraw(ic, ac, baf, logr, logRMedian, adjustedMargin);
+                        }
+                        break;
+                    case 3: // Right click
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
+
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ac.addingAnnot) {
+                            if (ic.insideGraph(x, y)) {
+                                dragEnd = {
+                                    x: x,
+                                    y: y
+                                };
+                            }
+                            let width = Math.abs(dragEnd.x - dragStart.x);
+                            let height = Math.abs(dragEnd.y - dragStart.y);
+                            let x_pos = dragEnd.x - dragStart.x >= 0 ?
+                                dragStart.x : dragEnd.x;
+                            let y_pos = dragEnd.y - dragStart.y >= 0 ?
+                                dragStart.y : dragEnd.y;
+                            ac.addAnnotation(x_pos, y_pos, width, height, '', ic, 'interactive');
+                        }
+                        setTimeout(function(){ac.addingAnnot = false;}, 10);
+                    break;
                 }
             });
 
