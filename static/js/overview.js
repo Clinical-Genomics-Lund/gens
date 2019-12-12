@@ -147,9 +147,11 @@ class OverviewCanvas {
       y_margin: oc.yMargin,
     }, function(result) {
       let annotations = result['annotations'];
+      ac.ctx.clearRect(0, 0, 0, ac.annotationCanvas.width);
       for (let i = 0; i < annotations.length; i++) {
         ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], oc, 'overview');
       }
+      ac.drawAnnotations();
     });
   }
 

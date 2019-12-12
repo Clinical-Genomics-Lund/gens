@@ -367,7 +367,9 @@
                                 dragStart.x : dragEnd.x;
                             let y_pos = dragEnd.y - dragStart.y >= 0 ?
                                 dragStart.y : dragEnd.y;
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
                             ac.addAnnotation(x_pos, y_pos, width, height, '', ic, 'interactive');
+                            ac.drawAnnotations();
                         }
                         setTimeout(function(){ac.addingAnnot = false;}, 10);
                     break;

@@ -64,11 +64,13 @@ class InteractiveCanvas {
       y_margin: ic.yMargin
     }, function(result) {
       let annotations = result['annotations'];
+      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
       for (let i = 0; i < annotations.length; i++) {
         ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
           annotations[i]['width'], annotations[i]['height'],
           annotations[i]['text'], ic, 'interactive');
       }
+      ac.drawAnnotations();
     });
   }
 

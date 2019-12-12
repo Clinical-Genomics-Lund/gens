@@ -179,7 +179,6 @@ class Annotation {
 
     let rect = {x: x, y: y, w: width, h: height};
     ac.annotations.push(rect);
-    ac.drawAnnotations();
 
     // Annotation box
     let div = document.createElement('div');
