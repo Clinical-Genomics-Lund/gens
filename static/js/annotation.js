@@ -242,6 +242,7 @@ class Annotation {
         ac.delFromScreen(annot);
 
         // Clear and redraw annotation canvas
+        ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ac.annotationCanvas.height);
         ac.drawAnnotations();
       }
     }
