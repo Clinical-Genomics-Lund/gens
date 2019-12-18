@@ -92,7 +92,7 @@
                 yStart: 1.0, // Start value for y axis
                 yEnd: 0.0, // End value for y axis
                 step: 0.2, // Step value for drawing ticks along y-axis
-                color: '#FF0000' // Viz color
+                color: '#000000' // Viz color
             };
 
             // LOGR values
@@ -158,9 +158,9 @@
             ic.loadAnnotations(ac, ic, inputField.placeholder, adjustedMargin);
             <!-- oc.loadAnnotations(ac, oc, adjustedMargin); -->
 
-            ic.contentCanvas.addEventListener('contextmenu', function(event) {
-                event.preventDefault();
-            }, false);
+            <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
+                <!-- event.preventDefault(); -->
+            <!-- }, false); -->
 
             // Add annotation when content canvas is clicked
             oc.staticCanvas.addEventListener('contextmenu', function(event) {
@@ -239,6 +239,8 @@
                         }
                         break;
                     case 3: // Right click
+                        ac.addingAnnot = false;
+                        break;
                         let annotOverlay = document.getElementById("annotation-overlays");
                         // Do not add new annotations if it's hidden
                         if (annotOverlay.style.visibility === "hidden") {
@@ -260,7 +262,6 @@
                         } else {
                             ac.addingAnnot = false;
                         }
-                    break;
                 }
             });
 
