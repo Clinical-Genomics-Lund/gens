@@ -12,12 +12,6 @@
                 <progress value="0" max="1" id='progress-bar'></progress>
             </div>
 
-            <div id='interactive-options'>
-                <label class="switch" id='toggle-annotation' title='Annotations visible'>
-                    <input type="checkbox" id='annotation-checkbox' checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
             <div id='grid-container'>
                 <div id='annotation-overlays'></div>
 
@@ -113,27 +107,6 @@
             window.onresize = (event) => {
                 window.location.reload(false);
             };
-
-            document.getElementById('toggle-annotation').addEventListener('click',
-                function (event) {
-                event.preventDefault();
-                let overlay = document.getElementById("annotation-overlays");
-                let container = document.getElementById("annotation-container");
-                let checkbox = document.getElementById("annotation-checkbox");
-                let toggle = document.getElementById('toggle-annotation');
-
-                if (overlay.style.visibility === "hidden") {
-                    overlay.style.visibility = "visible";
-                    container.style.visibility = "visible";
-                    toggle.title = 'Annotations visible';
-                    checkbox.checked = true;
-                } else {
-                    overlay.style.visibility = "hidden";
-                    container.style.visibility = "hidden";
-                    toggle.title = 'Annotations hidden';
-                    checkbox.checked = false;
-                }
-            });
 
             // Set first input field value for ic
             inputField.placeholder = '1:100000-200000';
