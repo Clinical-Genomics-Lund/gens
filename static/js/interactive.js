@@ -14,7 +14,6 @@ class InteractiveCanvas {
     this.width = Math.max(this.boxWidth + 2 * this.extraWidth, $(document).innerWidth()); // Canvas width
     this.height = 2 + this.y + 2 * (this.xMargin + this.boxHeight); // Canvas height
     this.x = this.width / 2 - this.boxWidth / 2; // X-position for first box
-    this.xAmpl = this.boxWidth - 2 * this.xMargin; // Part of amplitude for scaling x-axis to fill whole box width
     this.moveImg = null; // Placeholder for image copy of contentCanvas
 
     // Canvases
@@ -24,9 +23,10 @@ class InteractiveCanvas {
     this.staticCanvas = document.getElementById('interactive-static');
 
     // Data values
-    this.chromosome = null;
-    this.start = null;
-    this.end = null;
+    let input = inputField.placeholder.split(/:|-/);
+    this.chromosome = input[0];
+    this.start = input[1];
+    this.end = input[2];
     this.disallowDrag = false;
 
     // WebGL scene variables
@@ -45,12 +45,33 @@ class InteractiveCanvas {
     this.camera.position.z = 1;
 
     // Set dimensions of overview canvases
-    this.staticCanvas.width = this.width;
-    this.staticCanvas.height = this.height;
-    this.contentCanvas.width = this.width;
-    this.contentCanvas.height = this.height;
+    this.staticCanvas.width =
+      this.contentCanvas.width = this.width;
+    this.staticCanvas.height =
+      this.contentCanvas.height =  this.height;
+  }
 
-    this.staticCanvas.getContext('2d').clearRect(0, 0, this.width, this.height); // TODO: remove this?
+  loadAnnotations (ac, ic, region, adjustedMargin) {
+    $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
+      sample_name: ac.sampleName,
+      region: region,
+      top: ic.y,
+      left: ic.x + adjustedMargin,
+      width: ic.boxWidth,
+      height: ic.boxHeight,
+      logr_height: Math.abs(logr.yStart - logr.yEnd),
+      baf_height: Math.abs(baf.yStart - baf.yEnd),
+      y_margin: ic.yMargin
+    }, function(result) {
+      let annotations = result['annotations'];
+      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
+      for (let i = 0; i < annotations.length; i++) {
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
+          annotations[i]['width'], annotations[i]['height'],
+          annotations[i]['text'], ic, 'interactive');
+      }
+      ac.drawAnnotations();
+    });
   }
 
   // Draw static content for interactive canvas
@@ -101,7 +122,7 @@ class InteractiveCanvas {
       boxHeight: ic.boxHeight,
       extra_box_width: ic.extraWidth,
       y_margin: ic.yMargin,
-      x_ampl: ic.xAmpl,
+      x_ampl: ic.boxWidth - 2 * ic.xMargin,
       baf_y_start: baf.yStart,
       baf_y_end: baf.yEnd,
       logr_y_start: logr.yStart,
@@ -155,10 +176,28 @@ class InteractiveCanvas {
     });
   }
 
+  // Check if coordinates is inside the graph
+  insideGraph (x, y) {
+    if (x < (this.x + adjustedMargin + this.boxWidth) && x > this.x + adjustedMargin &&
+      y < (this.y + 2 * this.boxHeight) && y > this.y) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   // Redraw interactive canvas
-  redraw (ic, baf, logr, logRMedian) {
+  redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
     ic.disallowDrag = false;
+
+    ac.saveAnnotations();
+
+    // Clear annotations
+    ac.clearAnnotations(ic.height);
+
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+    ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
+    ac.drawAnnotations();
   }
 }

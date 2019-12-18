@@ -12,16 +12,17 @@ class OverviewCanvas {
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.xAmpl = this.boxWidth - 2 * this.xMargin; // Part of amplitude for scaling x-axis to fill whole width
+    this.adjustedMargin = adjustedMargin;
 
     // Set canvas height
-    this.rightMargin = ($(document).innerWidth() - this.x - adjustedMargin);
-    let numRows = Math.ceil(this.numChrom / ((this.rightMargin - this.x) / this.boxWidth));
-    let rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
+    this.rightMargin = ($(document).innerWidth() - this.x - this.adjustedMargin - 10);
+    this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
+    let numRows = Math.ceil(this.numChrom / this.chromPerRow);
+    this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
 
     // Canvas variables
     this.width = $(document).innerWidth(); // Canvas width
-    this.height = this.y + numRows * rowHeight; // Canvas height
+    this.height = this.y + numRows * this.rowHeight; // Canvas height
     this.contentCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.contentCanvas.getContext('webgl2');
@@ -44,57 +45,68 @@ class OverviewCanvas {
   }
 
   drawOverviewContent (oc, baf, logr, logRMedian) {
-    let chrom = 1; // First chromosome
     let drawnChrom = 0; // Amount of async drawn chromosomes
-    let yPos = oc.y + oc.rowMargin;
 
-    while (chrom <= oc.numChrom) {
-      // Fill row with graphs, start on new row when full
-      for (let xPos = oc.x;
-        (xPos + oc.boxWidth < oc.rightMargin) && (chrom <= oc.numChrom);
-        xPos += oc.boxWidth) {
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      num_chrom: oc.numChrom,
+      x_pos: oc.x,
+      y_pos: oc.y + oc.rowMargin,
+      box_width: oc.boxWidth,
+      box_height: 2 * oc.boxHeight,
+      right_margin: oc.rightMargin,
+      row_height: oc.rowHeight,
+    }).done(function (result) {
+      let dims = result['chrom_dims'];
+      for (let chrom = 1; chrom <= dims.length &&
+        chrom <= oc.numChrom; chrom++) {
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
           median: logRMedian,
-          xpos: xPos + oc.xMargin,
-          ypos: yPos,
+          xpos: dims[chrom - 1]['x_pos'] + oc.xMargin,
+          ypos: dims[chrom - 1]['y_pos'],
           boxHeight: oc.boxHeight,
           y_margin: oc.yMargin,
-          x_ampl: oc.xAmpl,
+          x_ampl: dims[chrom - 1]['width'] - 2 * oc.xMargin,
           baf_y_start: baf.yStart,
           baf_y_end: baf.yEnd,
           logr_y_start: logr.yStart,
           logr_y_end: logr.yEnd
         }, function (result) {
           let staticCanvas = document.getElementById('overview-static');
+          let chrom = result['chrom']
+          if (chrom == 'X') chrom = 23;
+          if (chrom == 'Y') chrom = 24;
+          chrom = parseInt(chrom);
+          let width = dims[chrom - 1]['width']
+
           // Draw chromosome title
           drawText(staticCanvas,
-            result['x_pos'] - oc.xMargin + oc.boxWidth / 2,
+            result['x_pos'] - oc.xMargin + width / 2,
             result['y_pos'] - oc.titleMargin,
             result['chrom'], 10, 'center');
 
           // Draw BAF
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'], oc.boxWidth, oc.boxHeight, oc.yMargin,
+            result['y_pos'], width, oc.boxHeight, oc.yMargin,
             baf.yStart, baf.yEnd, baf.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
             baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-            oc.boxWidth, oc.boxHeight);
+            width, oc.boxHeight);
 
           // Draw LogR
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'] + oc.boxHeight, oc.boxWidth,
+            result['y_pos'] + oc.boxHeight, width,
             oc.boxHeight, oc.yMargin, logr.yStart,
             logr.yEnd, logr.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'],
             result['y_pos'] + oc.boxHeight, logr.yStart,
             logr.yEnd, logr.step, oc.yMargin,
-            oc.boxWidth, oc.boxHeight);
+            width, oc.boxHeight);
 
           // Plot scatter data
           drawData(oc.scene, result['baf'], baf.color);
@@ -109,6 +121,7 @@ class OverviewCanvas {
             document.getElementById('progress-container').remove();
             document.getElementById('grid-container').style.visibility =
                 'visible';
+            document.getElementById('grid-container').style.display = 'grid';
           } else {
             document.getElementById('progress-bar').value =
                 drawnChrom / oc.numChrom;
@@ -117,10 +130,50 @@ class OverviewCanvas {
           console.log(result['responseText']);
           drawnChrom++;
         });
-        chrom++;
       }
-      // Start on new row
-      yPos += 2 * oc.boxHeight + oc.rowMargin;
-    }
+    });
+  }
+
+  loadAnnotations (ac, oc, adjustedMargin) {
+    $.getJSON($SCRIPT_ROOT + '/_loadallannotations', {
+      sample_name: ac.sampleName,
+      num_chrom: oc.numChrom,
+      left: oc.x + adjustedMargin,
+      top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
+      width: oc.boxWidth,
+      height: oc.boxHeight,
+      row_height: oc.rowHeight,
+      right_margin: oc.rightMargin + adjustedMargin,
+      y_margin: oc.yMargin,
+    }, function(result) {
+      let annotations = result['annotations'];
+      ac.ctx.clearRect(0, 0, 0, ac.annotationCanvas.width);
+      for (let i = 0; i < annotations.length; i++) {
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], oc, 'overview');
+      }
+      ac.drawAnnotations();
+    });
+  }
+
+  // Check if coordinates is inside the graph
+  insideGraph (x, y, callback) {
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      num_chrom: oc.numChrom,
+      x_pos: oc.x + adjustedMargin,
+      y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
+      box_width: oc.boxWidth,
+      box_height: oc.boxHeight,
+      right_margin: oc.rightMargin + adjustedMargin,
+      row_height: oc.rowHeight,
+      margin: oc.xMargin,
+      current_x: x,
+      current_y: y,
+    }).done(function (result) {
+      if (result['current_chrom'] == null) {
+        return false;
+      } else {
+        return callback(x, y, '', oc, 'overview');
+      }
+    });
   }
 }

@@ -5,7 +5,7 @@ function drawData (scene, data, color) {
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
   geometry.computeBoundingSphere();
 
-  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 0.3 });
+  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 1 });
   var points = new THREE.Points(geometry, material);
 
   scene.add(points);
@@ -59,35 +59,35 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2);
 }
 
-function left (ic, baf, logr, logRMedian) {
+function left (ic, baf, logr, logRMedian, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
 }
 
-function right (ic, baf, logr, logRMedian) {
+function right (ic, baf, logr, logRMedian, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
 }
 
-function zoomIn (ic, baf, logr, logRMedian) {
+function zoomIn (ic, baf, logr, logRMedian, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
 }
 
-function zoomOut (ic, baf, logr, logRMedian) {
+function zoomOut (ic, baf, logr, logRMedian, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
   ic.end += Math.floor(size * 0.5);
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (ic, baf, logr, logRMedian);
+  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
 }
 
 

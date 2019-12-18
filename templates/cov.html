@@ -13,32 +13,41 @@
             </div>
 
             <div id='grid-container'>
-                <div id='interactive-container'>
-                    <canvas id='interactive-content'></canvas>
-                    <canvas id='interactive-static'></canvas>
+                <div id='annotation-overlays'></div>
+
+                <div id='annotation-container'>
+                    <canvas id='annotation'></canvas>
                 </div>
 
-                <div id='button-container'>
-                    <button onclick='left(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-arrow-left' title='Left'></span>
-                    </button>
-                    <button onclick='right(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-arrow-right' title='Right'></span>
-                    </button>
-                    <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-search-plus' title='Zoom in'></span>
-                    </button>
-                    <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
-                        <span class='fas fa-search-minus' title='Zoom out'></span>
-                    </button>
-                    <form id='region_form'>
-                        <input name='region' id='region_field' type='text' size=20>
-                        <input type='submit' title='Submit range'>
-                    </form>
-                </div>
+                <div id='visualization-container'>
+                    <div id='interactive-container'>
+                        <canvas id='interactive-content'></canvas>
+                        <canvas id='interactive-static'></canvas>
+                    </div>
 
-                <div id='overview-container'>
-                    <canvas id='overview-static'></canvas>
+
+                    <div id='button-container'>
+                        <button onclick='left(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-arrow-left' title='Left'></span>
+                        </button>
+                        <button onclick='right(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-arrow-right' title='Right'></span>
+                        </button>
+                        <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-search-plus' title='Zoom in'></span>
+                        </button>
+                        <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
+                            <span class='fas fa-search-minus' title='Zoom out'></span>
+                        </button>
+                        <form id='region_form'>
+                            <input name='region' id='region_field' type='text' size=20>
+                            <input type='submit' title='Submit range'>
+                        </form>
+                    </div>
+
+                    <div id='overview-container'>
+                        <canvas id='overview-static'></canvas>
+                    </div>
                 </div>
             </div>
         </html>
@@ -46,6 +55,7 @@
 
     <body>
         <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
         <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
         <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
@@ -54,7 +64,7 @@
 
             // FLASK VALUES //
             let logRMedian = {{ median }};
-            let title = '{{ title }}';
+            let sampleName = '{{ sample_name }}';
 
             let callChrom = '{{ call_chrom }}';
             let callStart = {{ call_start }};
@@ -76,7 +86,7 @@
                 yStart: 1.0, // Start value for y axis
                 yEnd: 0.0, // End value for y axis
                 step: 0.2, // Step value for drawing ticks along y-axis
-                color: '#FF0000' // Viz color
+                color: '#000000' // Viz color
             };
 
             // LOGR values
@@ -87,10 +97,15 @@
                 color: '#000000' // Viz color
             };
 
-
             // Hide non-rendered content
             window.onload = (event) => {
                 document.getElementById('grid-container').style.visibility = 'hidden';
+                document.title = '{{ sample_name }}'
+            };
+
+            // Reload page on window resize
+            window.onresize = (event) => {
+                window.location.reload(false);
             };
 
             // Set first input field value for ic
@@ -103,72 +118,235 @@
 
             // Adjust canvas margins to compensate for extra hidden data
             let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
-            document.getElementById('interactive-container').style.marginLeft =
-                adjustedMargin + 'px';
-            document.getElementById('overview-container').style.marginLeft =
+            document.getElementById('visualization-container').style.marginLeft =
                 adjustedMargin + 'px';
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
             oc.drawOverviewContent(oc, baf, logr, logRMedian);
 
-            // LISTENERS
+            // Initiate annotation canvas
+            let ac = new Annotation(document.getElementById(
+                        'visualization-container').clientHeight, sampleName);
+            ic.loadAnnotations(ac, ic, inputField.placeholder, adjustedMargin);
+            <!-- oc.loadAnnotations(ac, oc, adjustedMargin); -->
+
+            <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
+                <!-- event.preventDefault(); -->
+            <!-- }, false); -->
+
+            // Add annotation when content canvas is clicked
+            oc.staticCanvas.addEventListener('contextmenu', function(event) {
+                event.preventDefault();
+                let annotOverlay = document.getElementById("annotation-overlays");
+                // Do not add new annotations if it's hidden
+                if (annotOverlay.style.visibility === "hidden") {
+                    return;
+                }
+
+                <!-- let x = event.pageX - ac.annotationCanvas.offsetLeft; -->
+                <!-- let y = event.pageY - ac.annotationCanvas.offsetTop; -->
+                <!-- oc.insideGraph(x, y, ac.addAnnotation); -->
+            }, false);
+
+            oc.staticCanvas.addEventListener('mousemove', function (event) {
+                if (ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                        event.pageY - ac.annotationCanvas.offsetTop, false)) {
+                    oc.staticCanvas.style.cursor = 'pointer';
+                } else {
+                    oc.staticCanvas.style.cursor = 'default';
+                }
+            });
+
+            oc.staticCanvas.addEventListener('mousedown', function (event) {
+                // Only act on left mouse button click
+                if (event.which != 1) {
+                    return
+                }
+
+                ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                        event.pageY - ac.annotationCanvas.offsetTop, true);
+            });
+
+            window.addEventListener("beforeunload", function(e){
+                ac.saveAnnotations();
+            }, false);
+
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
-                    event.preventDefault();
-                    inputField.placeholder = inputField.value;
-                    inputField.value = '';
-                    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
-                });
+                event.preventDefault();
+                ac.saveAnnotations();
+
+                // Clear annotations
+                ac.clearAnnotations(ic.height);
+                inputField.placeholder = inputField.value;
+                inputField.value = '';
+                ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+                ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
+                ac.drawAnnotations();
+            });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
-                ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
-                0, ic.y + 2, ic.width, ic.height);
-                if (!ic.disallowDrag) {
-                dragStart = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
-                dragEnd = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
-                drag = true;
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        // Save annotations
+                        ac.saveAnnotations();
+
+                        // Do not move interactive canvas if an annotation is present
+                        if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                                event.pageY - ac.annotationCanvas.offsetTop, true)) {
+                            ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
+                            0, ic.y + 2, ic.width, ic.height);
+                            if (!ic.disallowDrag) {
+                                dragStart = {
+                                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                                    y: event.pageY - ic.contentCanvas.offsetTop
+                                };
+                                dragEnd = {
+                                    x: event.pageX - ic.contentCanvas.offsetLeft,
+                                    y: event.pageY - ic.contentCanvas.offsetTop
+                                };
+                                drag = true;
+                            }
+                        }
+                        break;
+                    case 3: // Right click
+                        ac.addingAnnot = false;
+                        break;
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
+
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ic.insideGraph(x, y)) {
+                            ac.addingAnnot = true;
+                            dragStart = {
+                                x: x,
+                                y: y
+                            };
+                            dragEnd = {
+                                x: x,
+                                y: y
+                            };
+                        } else {
+                            ac.addingAnnot = false;
+                        }
                 }
             });
 
             ic.contentCanvas.addEventListener('mousemove', function (event) {
-                if (drag && !ic.disallowDrag) {
-                dragEnd = {
-                    x: event.pageX - ic.contentCanvas.offsetLeft,
-                    y: event.pageY - ic.contentCanvas.offsetTop
-                };
+                event.preventDefault();
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        if (ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
+                                event.pageY - ac.annotationCanvas.offsetTop, false)) {
+                            ic.contentCanvas.style.cursor = 'pointer';
+                        } else {
+                            ic.contentCanvas.style.cursor = 'default';
+                        }
+                        if (drag && !ic.disallowDrag) {
+                            dragEnd = {
+                                x: event.pageX - ic.contentCanvas.offsetLeft,
+                                y: event.pageY - ic.contentCanvas.offsetTop
+                            };
 
-                // Clear whole content canvas
-                ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
-                    ic.contentCanvas.width, ic.contentCanvas.height);
+                            // Hide interactive annotations
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
+                            let annotation = document.querySelectorAll("[data-type='interactive']");
+                            for (let i = 0; i < annotation.length; i++) {
+                                annotation[i].style.visibility = 'hidden';
+                            }
 
-                // Copy draw image to content Canvas
-                ic.contentCanvas.getContext('2d').putImageData(
-                    ic.moveImg,
-                    dragEnd.x - dragStart.x,
-                    ic.y + 2);
+                            // Clear whole content canvas
+                            ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
+                                ic.contentCanvas.width, ic.contentCanvas.height);
+
+                            // Copy draw image to content Canvas
+                            ic.contentCanvas.getContext('2d').putImageData(
+                                ic.moveImg,
+                                dragEnd.x - dragStart.x,
+                                ic.y + 2);
+                        }
+                        break;
+                    case 3: // Right click
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
+
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ac.addingAnnot && ic.insideGraph(x, y)) {
+                            dragEnd = {
+                                x: x,
+                                y: y
+                            };
+                        }
+                    break;
                 }
             });
 
             ic.contentCanvas.addEventListener('mouseup', function (event) {
-                if (drag) {
-                ic.moveImg = null;
-                drag = false;
-                let scale = ic.boxWidth / (ic.end - ic.start);
-                let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-                if (ic.start + moveDist < 0) {
-                    moveDist -= (ic.start + moveDist);
-                }
-                ic.start += moveDist;
-                ic.end += moveDist;
-                ic.disallowDrag = true;
-                ic.redraw (ic, baf, logr, logRMedian);
+                event.preventDefault();
+                event.stopPropagation();
+                switch (event.which) {
+                    case 1: // Left mouse click
+                        if (drag) {
+                            // Hide interactive annotations
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.contentCanvas.height);
+                            let annotation = document.querySelectorAll("[data-type='interactive']");
+                            for (let i = 0; i < annotation.length; i++) {
+                                annotation[i].style.visibility = 'visible';
+                            }
+
+                            ic.moveImg = null;
+                            drag = false;
+                            let scale = ic.boxWidth / (ic.end - ic.start);
+                            let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+                            if (ic.start + moveDist < 0) {
+                                moveDist -= (ic.start + moveDist);
+                            }
+                            ic.start += moveDist;
+                            ic.end += moveDist;
+                            ic.disallowDrag = true;
+
+                            ic.redraw(ic, ac, baf, logr, logRMedian, adjustedMargin);
+                        }
+                        break;
+                    case 3: // Right click
+                        let annotOverlay = document.getElementById("annotation-overlays");
+                        // Do not add new annotations if it's hidden
+                        if (annotOverlay.style.visibility === "hidden") {
+                            return;
+                        }
+
+                        let x = event.pageX - ac.annotationCanvas.offsetLeft;
+                        let y = event.pageY - ac.annotationCanvas.offsetTop;
+                        if (ac.addingAnnot) {
+                            if (ic.insideGraph(x, y)) {
+                                dragEnd = {
+                                    x: x,
+                                    y: y
+                                };
+                            }
+                            let width = Math.abs(dragEnd.x - dragStart.x);
+                            let height = Math.abs(dragEnd.y - dragStart.y);
+                            let x_pos = dragEnd.x - dragStart.x >= 0 ?
+                                dragStart.x : dragEnd.x;
+                            let y_pos = dragEnd.y - dragStart.y >= 0 ?
+                                dragStart.y : dragEnd.y;
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
+                            ac.addAnnotation(x_pos, y_pos, width, height, '', ic, 'interactive');
+                            ac.drawAnnotations();
+                        }
+                        setTimeout(function(){ac.addingAnnot = false;}, 10);
+                    break;
                 }
             });
 
@@ -199,22 +377,22 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, baf, logr, logRMedian);
+                            ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
                         switch (key) {
                         case 'ArrowLeft':
-                            left(ic, baf, logr, logRMedian);
+                            left(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case 'ArrowRight':
-                            right(ic, baf, logr, logRMedian);
+                            right(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case '+':
-                            zoomIn(ic, baf, logr, logRMedian);
+                            zoomIn(ic, baf, logr, logRMedian, sampleName);
                             break;
                         case '-':
-                            zoomOut(ic, baf, logr, logRMedian);
+                            zoomOut(ic, baf, logr, logRMedian, sampleName);
                             break;
                         default:
                             return;
