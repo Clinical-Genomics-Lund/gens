@@ -25,6 +25,9 @@
                         <canvas id='interactive-static'></canvas>
                     </div>
 
+                    <div id='track-container'>
+                        <canvas id='track-canvas'></canvas>
+                    </div>
 
                     <div id='button-container'>
                         <button onclick='left(ic, baf, logr, logRMedian);'>
@@ -57,6 +60,7 @@
         <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
         <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
         <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/track.js') }}'></script>
         <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
 
@@ -120,6 +124,10 @@
             let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
             document.getElementById('visualization-container').style.marginLeft =
                 adjustedMargin + 'px';
+
+            // Initiate and draw track canvas
+            document.getElementById('track-container').style.marginLeft = ic.x + 'px';
+            let tc = new TrackCanvas(ic.x + adjustedMargin, ic.boxWidth);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
