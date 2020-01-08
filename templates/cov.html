@@ -128,6 +128,7 @@
             // Initiate and draw track canvas
             document.getElementById('track-container').style.marginLeft = ic.x + 'px';
             let tc = new TrackCanvas(ic.x + adjustedMargin, ic.boxWidth);
+            tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);

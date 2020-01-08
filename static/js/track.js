@@ -14,4 +14,14 @@ class TrackCanvas {
     this.trackCanvas.width = this.collapsedWidth;
     this.trackCanvas.height = this.collapsedHeight;
   }
+
+  drawTracks (region) {
+    $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
+      region: region,
+      width: this.trackCanvas.width,
+    }, function(result) {
+      // Go through results and draw appropriate symbols
+      console.log(result['tracks'])
+    })
+  }
 }

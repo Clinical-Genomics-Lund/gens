@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
+from pymongo import ASCENDING
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -535,6 +536,33 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
             x_pos = first_x_pos
 
     return chrom_dims
+
+@APP.route('/_gettrackdata', methods=['GET'])
+def get_track_data():
+    '''
+    Gets track data in region and converts data coordinates to screen coordinates
+    '''
+    region = request.args.get('region', None)
+    width = int(request.args.get('width', 0))
+
+    _, chrom, start_pos, end_pos = parse_region_str(region)
+
+    collection = COVIZ_DB['tracks']
+    tracks = collection.find({'seqname': str(chrom),
+                              'start': {'$gte': start_pos,
+                                        '$lte': end_pos}},
+                             {'_id': False}).sort((['start', ASCENDING],
+                                                   ['transcript_id', ASCENDING]))
+
+    # Convert position to screen coordinates
+    transformed_tracks = []
+    for track in tracks:
+        track['start'] -= start_pos
+        track['end'] -= start_pos
+        transformed_tracks.append(track)
+
+    return jsonify(status='ok', tracks=list(transformed_tracks))
+
 
 ### Help functions ###
 

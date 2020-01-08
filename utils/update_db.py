@@ -47,15 +47,17 @@ class UpdateMongo:
         with open(self.input_file) as track_file:
             tracks = read_gtf(track_file)
 
-            for gene_name, start, end, strand, transcript_id, transcript_biotype, exon_number \
-                in zip(tracks['gene_name'], tracks['start'], tracks['end'],
-                       tracks['strand'], tracks['transcript_id'],
+            for seqname, gene_name, start, end, strand, transcript_id, \
+                transcript_biotype, exon_number \
+                in zip(tracks['seqname'], tracks['gene_name'], tracks['start'],
+                       tracks['end'], tracks['strand'], tracks['transcript_id'],
                        tracks['transcript_biotype'], tracks['exon_number']):
                 if transcript_biotype != 'protein_coding':
                     continue
 
                 #  Insert track in DB
                 self.collection.insert_one({
+                    'seqname': seqname,
                     'gene_name': gene_name,
                     'start': start,
                     'end': end,
