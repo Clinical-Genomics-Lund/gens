@@ -139,10 +139,11 @@ def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl, medi
     # Gather the BAF records
     baf_records = []
     for record in baf_list:
+        ypos = float(record[3])
         ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
         baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                            graph.baf_ypos - graph.baf_ampl * float(record[3]), 0])
+                            graph.baf_ypos - graph.baf_ampl * ypos, 0])
 
     return logr_records, baf_records
 
