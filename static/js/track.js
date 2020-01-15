@@ -4,6 +4,7 @@ class TrackCanvas {
     this.collapsedWidth = width;
     this.collapsedHeight = 100;
     this.trackColor =  0x0000ff;
+    this.arrowWidth = 4;
 
     // Canvases
     this.drawCanvas = new OffscreenCanvas(this.collapsedWidth, this.collapsedHeight);
@@ -31,23 +32,70 @@ class TrackCanvas {
       this.collapsedHeight / 2 - lineMargin, 1);
   }
 
+  clearTracks() {
+    this.trackContext.clearRect(0, 0, this.collapsedWidth, this.collapsedHeight);
+  }
+
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
       region: region,
       width: this.trackCanvas.width,
     }, function(result) {
+      let featureHeight = 20;
+      let featureMargin = 2;
+      let yPos = featureHeight / 2;
+      let scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
+
       // Go through results and draw appropriate symbols
-      console.log(result['tracks'])
+      for (let i = 0; i < result['tracks'].length; i++) {
+        let track = result['tracks'][i];
+        let height_order = track['height_order']
+        let strand = track['strand']
+        let start = track['start']
+        let end = track['end']
+
+        let adjustedYPos = yPos + (height_order - 1) * (featureHeight + featureMargin);
+
+        tc.drawTrackLen(scale * (start - result['start_pos']),
+          scale * (end - result['start_pos']), adjustedYPos);
+
+        let latestFeaturePos = start;
+        for (let j = 0; j < track['features'].length; j++) {
+          let feature = track['features'][j];
+
+          // Draw arrows
+          let diff = feature['start'] - latestFeaturePos;
+          if (scale * diff >= tc.arrowWidth) {
+            let direction = strand == '+' ? 1 : -1;
+            tc.drawArrow(scale * (latestFeaturePos - result['start_pos'] + diff / 2),
+              adjustedYPos, direction, featureHeight / 2);
+          }
+          latestFeaturePos = feature['end'];
+
+          switch(feature['feature']) {
+            case 'exon':
+              tc.drawBand(scale * (feature['start'] - result['start_pos']),
+                adjustedYPos, scale * (feature['end'] - feature['start']), featureHeight);
+              break;
+            case 'three_prime_utr':
+              tc.drawBand(scale * (feature['start'] - result['start_pos']),
+                adjustedYPos, scale * (feature['end'] - feature['start']), featureHeight / 2);
+              break;
+          }
+        }
+      }
+
       tc.renderer.render(tc.scene, tc.camera);
 
       // Transfer image to visible canvas
       tc.trackContext.drawImage(tc.drawCanvas.transferToImageBitmap(), 0, 0);
+
+      // Clear draw canvas
+      ic.scene.remove.apply(tc.scene, tc.scene.children);
     })
   }
 
-  drawGeneLen (xStart, xStop, yPos) {
-    let lineWidth = 2;
-
+  drawTrackLen (xStart, xStop, yPos) {
     // Draw exon at input center position
     var line = new THREE.Geometry();
     line.vertices.push(
@@ -55,44 +103,46 @@ class TrackCanvas {
       new THREE.Vector3(xStop, yPos, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({ color: this.trackColor, linewidth: lineWidth });
+    var material = new THREE.LineBasicMaterial({color: this.trackColor});
     line = new THREE.Line(line, material);
     this.scene.add(line);
   }
 
-  drawExon (xpos, ypos) {
-    let height = 10;
-    let lineWidth = 2;
-
+  drawBand (xpos, ypos, width, height) {
     // Draw exon at input center position
-    var line = new THREE.Geometry();
-    line.vertices.push(
-      new THREE.Vector3(xpos, ypos + height / 2, 0),
-      new THREE.Vector3(xpos, ypos - height / 2, 0)
+    var rectangle = new THREE.Geometry();
+    rectangle.vertices.push(
+      new THREE.Vector3(xpos, ypos - height / 2, 0),
+      new THREE.Vector3(xpos + width, ypos - height / 2, 0),
+      new THREE.Vector3(xpos + width, ypos + height / 2, 0),
+      new THREE.Vector3(xpos, ypos + height / 2, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({ color: this.trackColor, linewidth: lineWidth });
-    line = new THREE.Line(line, material);
-    this.scene.add(line);
+    rectangle.faces.push(
+      new THREE.Face3(0, 3, 1),
+      new THREE.Face3(1, 3, 2),
+    );
+
+    var material = new THREE.MeshBasicMaterial({color: this.trackColor});
+    rectangle = new THREE.Mesh(rectangle, material);
+    this.scene.add(rectangle);
   }
 
   // Draw an arrow in desired direction
   // Forward arrow: direction = 1
   // Reverse arrow: direction = -1
-  drawArrow (xpos, ypos, direction) {
-    let width = direction * 4;
-    let height = 10;
-    let lineWidth = 2;
+  drawArrow (xpos, ypos, direction, height) {
+    let width = direction * this.arrowWidth;
 
     // Draw arrow symbol at around center position
     var line = new THREE.Geometry();
     line.vertices.push(
-      new THREE.Vector3(xpos - width, ypos - height / 2, 0),
-      new THREE.Vector3(xpos, ypos, 0),
-      new THREE.Vector3(xpos - width, ypos + height / 2, 0)
+      new THREE.Vector3(xpos - width / 2, ypos - height / 2, 0),
+      new THREE.Vector3(xpos + width / 2, ypos, 0),
+      new THREE.Vector3(xpos - width / 2, ypos + height / 2, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({ color: this.trackColor, linewidth: lineWidth });
+    var material = new THREE.LineBasicMaterial({color: this.trackColor});
     line = new THREE.Line(line, material);
     this.scene.add(line);
   }

@@ -548,20 +548,23 @@ def get_track_data():
     _, chrom, start_pos, end_pos = parse_region_str(region)
 
     collection = COVIZ_DB['tracks']
+
+    # Get tracks within span
     tracks = collection.find({'seqname': str(chrom),
-                              'start': {'$gte': start_pos,
-                                        '$lte': end_pos}},
-                             {'_id': False}).sort((['start', ASCENDING],
-                                                   ['transcript_id', ASCENDING]))
+                              'start': {'$gte': start_pos},
+                              'end': {'$lte': end_pos}},
+                             {'_id': False})
 
-    # Convert position to screen coordinates
-    transformed_tracks = []
-    for track in tracks:
-        track['start'] -= start_pos
-        track['end'] -= start_pos
-        transformed_tracks.append(track)
+    # Get tracks that go over the whole span
+    tracks2 = collection.find({'seqname': str(chrom),
+                               'start': {'$lte': start_pos},
+                               'end': {'$gte': end_pos}},
+                              {'_id': False})
 
-    return jsonify(status='ok', tracks=list(transformed_tracks))
+    tracks = list(tracks) + list(tracks2)
+
+    return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
+                   end_pos=end_pos)
 
 
 ### Help functions ###
