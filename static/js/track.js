@@ -36,19 +36,39 @@ class TrackCanvas {
     this.trackContext.clearRect(0, 0, this.collapsedWidth, this.collapsedHeight);
   }
 
+  drawGeneName(geneName, xPos, yPos) {
+    this.trackContext.save();
+    this.trackContext.font = 'bold 10px Arial';
+    this.trackContext.fillStyle = 'black';
+
+    // Center text
+    let textWidth = this.trackContext.measureText(geneName).width;
+    xPos = xPos - textWidth / 2;
+
+    // Cap text to outer edges
+    xPos = xPos < 0 ? 0 : xPos;
+    if (xPos >= this.collapsedWidth - textWidth) {
+      xPos = this.collapsedWidth - textWidth;
+    }
+
+    this.trackContext.fillText(geneName, xPos, yPos);
+    this.trackContext.restore();
+  }
+
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
       region: region,
       width: this.trackCanvas.width,
     }, function(result) {
       let featureHeight = 20;
-      let featureMargin = 2;
+      let featureMargin = 14;
       let yPos = featureHeight / 2;
       let scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
         let track = result['tracks'][i];
+        let geneName = track['gene_name']
         let height_order = track['height_order']
         let strand = track['strand']
         let start = track['start']
@@ -58,6 +78,9 @@ class TrackCanvas {
 
         tc.drawTrackLen(scale * (start - result['start_pos']),
           scale * (end - result['start_pos']), adjustedYPos);
+
+        tc.drawGeneName(geneName, scale * ((start + end) / 2 - result['start_pos']),
+          adjustedYPos + featureHeight);
 
         let latestFeaturePos = start;
         for (let j = 0; j < track['features'].length; j++) {
