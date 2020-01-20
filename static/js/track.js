@@ -16,6 +16,11 @@ class TrackCanvas {
     this.trackCanvas.width = this.collapsedWidth;
     this.trackCanvas.height = this.collapsedHeight;
 
+    // Setup track div
+    this.trackTitle = document.getElementById('track-titles');
+    this.trackTitle.style.width = this.collapsedWidth + 'px';
+    this.trackTitle.style.height = this.collapsedHeight + 'px';
+
     // Scene variables
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(this.collapsedWidth / -2,
@@ -37,8 +42,9 @@ class TrackCanvas {
   }
 
   drawGeneName(geneName, xPos, yPos) {
+    const textHeight = 10;
     this.trackContext.save();
-    this.trackContext.font = 'bold 10px Arial';
+    this.trackContext.font = 'bold ' + textHeight + 'px Arial';
     this.trackContext.fillStyle = 'black';
 
     // Center text
@@ -53,6 +59,19 @@ class TrackCanvas {
 
     this.trackContext.fillText(geneName, xPos, yPos);
     this.trackContext.restore();
+    return textHeight;
+  }
+
+  insertTitle(text, left, top, width, height, zIndex) {
+		let title = document.createElement('div');
+		title.title = text;
+		title.style.left = left;
+		title.style.top = top;
+		title.style.width = width;
+		title.style.height = height;
+		title.style.position = 'absolute';
+		title.style.zIndex = zIndex;
+		this.trackTitle.appendChild(title);
   }
 
   drawTracks (region) {
@@ -60,27 +79,39 @@ class TrackCanvas {
       region: region,
       width: this.trackCanvas.width,
     }, function(result) {
-      let featureHeight = 20;
-      let featureMargin = 14;
-      let yPos = featureHeight / 2;
-      let scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
+      const featureHeight = 20;
+      const featureMargin = 14;
+      const yPos = featureHeight / 2;
+      const scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
+      const titleMargin = 2;
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
-        let track = result['tracks'][i];
-        let geneName = track['gene_name']
-        let height_order = track['height_order']
-        let strand = track['strand']
-        let start = track['start']
-        let end = track['end']
+        const track = result['tracks'][i];
+        const geneName = track['gene_name']
+        const transcriptID = track['transcript_id']
+        const seqname = track['seqname']
+        const height_order = track['height_order']
+        const strand = track['strand']
+        const start = track['start']
+        const end = track['end']
 
-        let adjustedYPos = yPos + (height_order - 1) * (featureHeight + featureMargin);
+        const adjustedYPos = yPos + (height_order - 1) * (featureHeight + featureMargin);
 
         tc.drawTrackLen(scale * (start - result['start_pos']),
           scale * (end - result['start_pos']), adjustedYPos);
 
-        tc.drawGeneName(geneName, scale * ((start + end) / 2 - result['start_pos']),
+        const textHeight = tc.drawGeneName(geneName, scale * ((start + end) / 2 - result['start_pos']),
           adjustedYPos + featureHeight);
+
+        // Add title text for whole gene
+        const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
+        tc.insertTitle(geneText,
+          titleMargin + scale * (start - result['start_pos']) + 'px',
+          titleMargin + adjustedYPos - featureHeight / 2 + 'px',
+          scale * (end - start) + 'px',
+          featureHeight + textHeight + 'px',
+          0);
 
         let latestFeaturePos = start;
         for (let j = 0; j < track['features'].length; j++) {
@@ -97,6 +128,16 @@ class TrackCanvas {
 
           switch(feature['feature']) {
             case 'exon':
+              let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
+                '\nchr' + seqname + ':' + feature['start'] + '-' + feature['end'];
+              // Add title text for whole gene
+              tc.insertTitle(exonText,
+                titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
+                titleMargin + adjustedYPos - featureHeight / 2 + 'px',
+                scale * (feature['end'] - feature['start']) + 'px',
+                featureHeight + 'px',
+                1);
+
               tc.drawBand(scale * (feature['start'] - result['start_pos']),
                 adjustedYPos, scale * (feature['end'] - feature['start']), featureHeight);
               break;

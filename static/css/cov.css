@@ -136,12 +136,21 @@ html, body {
     grid-column: 1;
 }
 
-#trackCanvas {
+#track-canvas {
     top: 0;
     left: 0;
     z-index: 0;
     grid-row: 1;
     grid-column: 1;
+}
+
+#track-titles {
+    top: 0;
+    left: 0;
+    z-index: 1;
+    grid-row: 1;
+    grid-column: 1;
+    position: relative;
 }
 
 #overview-container {
