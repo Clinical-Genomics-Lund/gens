@@ -7,11 +7,13 @@ class TrackCanvas {
     this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
     this.trackColor =  0x0000ff;
     this.arrowWidth = 4;
+    this.expanded = false;
 
     // Dimensions of track canvas
     this.width = width; // Width of canvas
     this.maxHeight = this.tracksYPos(67); // Max height of canvas, height_order <= 66
-    this.minHeight = 100; // Collapsed height of canvas
+    this.visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
+    this.minHeight = 35; // Minimized height
 
     // Canvases
     this.drawCanvas = new OffscreenCanvas(this.width, this.maxHeight);
@@ -42,6 +44,18 @@ class TrackCanvas {
     // Change to fourth quadrant of scene
     this.camera.position.set(this.width / 2 - lineMargin,
       this.maxHeight / 2 - lineMargin, 1);
+
+    // Setup context menu
+    this.trackContainer = document.getElementById('track-container');
+    this.trackContainer.addEventListener('contextmenu',
+      function(event) {
+        event.preventDefault();
+
+        // Toggle between expanded/collapsed view
+        tc.expanded = !tc.expanded;
+        tc.clearTracks();
+        tc.drawTracks(inputField.placeholder);
+      }, false);
   }
 
   clearTracks() {
@@ -93,9 +107,17 @@ class TrackCanvas {
       const scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;
 
-      // Set needed height of visibile canvas and transcript tooltips
-      tc.trackCanvas.height = tc.tracksYPos(result['max_height_order'] + 1);
-      tc.trackTitle.style.height = tc.tracksYPos(result['max_height_order'] + 1) + 'px';
+      // Set needed height of visible canvas and transcript tooltips
+      if (tc.expanded) {
+        const maxYPos = tc.tracksYPos(result['max_height_order'] + 1);
+        tc.trackCanvas.height = maxYPos;
+        tc.trackTitle.style.height = maxYPos + 'px';
+        tc.trackContainer.style.height = tc.visibleHeight + 'px';
+      } else {
+        tc.trackCanvas.height = tc.minHeight;
+        tc.trackTitle.style.height = tc.minHeight + 'px';
+        tc.trackContainer.style.height = tc.minHeight + 'px';
+      }
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
@@ -107,6 +129,10 @@ class TrackCanvas {
         const strand = track['strand'];
         const start = track['start'];
         const end = track['end'];
+
+        // Only draw visible tracks
+        if (!tc.expanded && height_order != 1)
+          continue
 
         const adjustedYPos = tc.tracksYPos(height_order);
 
