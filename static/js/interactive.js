@@ -192,12 +192,14 @@ class InteractiveCanvas {
 
     ac.saveAnnotations();
 
-    // Clear annotations
+    // Clear annotations and tracks
     ac.clearAnnotations(ic.height);
+    tc.clearTracks();
 
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     ic.drawInteractiveContent(ic, baf, logr, logRMedian);
     ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
     ac.drawAnnotations();
+    tc.drawTracks(ic.inputField.placeholder);
   }
 }
