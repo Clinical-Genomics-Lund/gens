@@ -543,7 +543,11 @@ def get_track_data():
     '''
     region = request.args.get('region', None)
 
-    _, chrom, start_pos, end_pos = parse_region_str(region)
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    if res in ('a', 'b'):
+        return jsonify(status='ok', tracks=[], start_pos=start_pos,
+                       end_pos=end_pos, max_height_order=0)
 
     collection = COVIZ_DB['tracks']
 
@@ -567,7 +571,7 @@ def get_track_data():
             max_height_order = track['height_order']
 
     return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
-                   end_pos=end_pos, max_height_order=max_height_order)
+                   end_pos=end_pos, max_height_order=max_height_order, res=res)
 
 
 ### Help functions ###

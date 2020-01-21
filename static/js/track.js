@@ -66,8 +66,7 @@ class TrackCanvas {
     $('#track-titles').empty();
   }
 
-  drawGeneName(geneName, xPos, yPos) {
-    const textHeight = 10;
+  drawGeneName(geneName, xPos, yPos, textHeight) {
     this.trackContext.save();
     this.trackContext.font = 'bold ' + textHeight + 'px Arial';
     this.trackContext.fillStyle = 'black';
@@ -84,7 +83,6 @@ class TrackCanvas {
 
     this.trackContext.fillText(geneName, xPos, yPos);
     this.trackContext.restore();
-    return textHeight;
   }
 
   insertTitle(text, left, top, width, height, zIndex) {
@@ -108,7 +106,12 @@ class TrackCanvas {
       const titleMargin = 2;
 
       // Set needed height of visible canvas and transcript tooltips
-      if (tc.expanded) {
+      if (result['max_height_order'] == 0) {
+        // No results, do not show tracks
+        tc.trackCanvas.height = 0;
+        tc.trackTitle.style.height = 0 + 'px';
+        tc.trackContainer.style.height = 0 + 'px';
+      } else if (tc.expanded) {
         const maxYPos = tc.tracksYPos(result['max_height_order'] + 1);
         tc.trackCanvas.height = maxYPos;
         tc.trackTitle.style.height = maxYPos + 'px';
@@ -135,14 +138,19 @@ class TrackCanvas {
           continue
 
         const adjustedYPos = tc.tracksYPos(height_order);
+        const textHeight = 10;
 
         tc.drawTrackLen(scale * (start - result['start_pos']),
           scale * (end - result['start_pos']), adjustedYPos);
 
-        const textHeight = tc.drawGeneName(geneName, scale * ((start + end) / 2 - result['start_pos']),
-          adjustedYPos + tc.featureHeight);
+        // Draw gene name
+        if (result['res'] == 'd') {
+          tc.drawGeneName(geneName,
+            scale * ((start + end) / 2 - result['start_pos']),
+            adjustedYPos + tc.featureHeight, textHeight);
+        }
 
-        // Add title text for whole gene
+        // Add tooltip title for whole gene
         const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
         tc.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
@@ -168,7 +176,8 @@ class TrackCanvas {
             case 'exon':
               let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
                 '\nchr' + seqname + ':' + feature['start'] + '-' + feature['end'];
-              // Add title text for whole gene
+
+              // Add tooltip title for whole gene
               tc.insertTitle(exonText,
                 titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
                 titleMargin + adjustedYPos - tc.featureHeight / 2 + 'px',
