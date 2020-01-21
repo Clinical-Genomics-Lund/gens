@@ -1,31 +1,38 @@
 class TrackCanvas {
   constructor (x, width, near, far) {
     // Track variables
-    this.collapsedWidth = width;
-    this.collapsedHeight = 100;
+    this.featureHeight = 20; // Max height for feature
+    this.featureMargin = 14; // Margin for fitting gene name under track
+    this.yPos = this.featureHeight / 2; // First y-position
+    this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
     this.trackColor =  0x0000ff;
     this.arrowWidth = 4;
 
+    // Dimensions of track canvas
+    this.width = width; // Width of canvas
+    this.maxHeight = this.tracksYPos(67); // Max height of canvas, height_order <= 66
+    this.minHeight = 100; // Collapsed height of canvas
+
     // Canvases
-    this.drawCanvas = new OffscreenCanvas(this.collapsedWidth, this.collapsedHeight);
+    this.drawCanvas = new OffscreenCanvas(this.width, this.maxHeight);
     this.context = this.drawCanvas.getContext('webgl2');
     this.trackCanvas = document.getElementById('track-canvas');
     this.trackContext = this.trackCanvas.getContext('2d');
 
     // Setup initial track Canvas
-    this.trackCanvas.width = this.collapsedWidth;
-    this.trackCanvas.height = this.collapsedHeight;
+    this.trackCanvas.width = this.width;
+    this.trackCanvas.height = this.minHeight;
 
     // Setup track div
     this.trackTitle = document.getElementById('track-titles');
-    this.trackTitle.style.width = this.collapsedWidth + 'px';
-    this.trackTitle.style.height = this.collapsedHeight + 'px';
+    this.trackTitle.style.width = this.width + 'px';
+    this.trackTitle.style.height = this.minHeight + 'px';
 
     // Scene variables
     this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(this.collapsedWidth / -2,
-      this.collapsedWidth / 2, this.collapsedHeight / -2,
-      this.collapsedHeight / 2, near, far);
+    this.camera = new THREE.OrthographicCamera(this.width / -2,
+      this.width / 2, this.maxHeight / -2,
+      this.maxHeight / 2, near, far);
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.drawCanvas,
       context: this.context,
@@ -33,12 +40,16 @@ class TrackCanvas {
     });
 
     // Change to fourth quadrant of scene
-    this.camera.position.set(this.collapsedWidth / 2 - lineMargin,
-      this.collapsedHeight / 2 - lineMargin, 1);
+    this.camera.position.set(this.width / 2 - lineMargin,
+      this.maxHeight / 2 - lineMargin, 1);
   }
 
   clearTracks() {
-    this.trackContext.clearRect(0, 0, this.collapsedWidth, this.collapsedHeight);
+    // Clear canvas
+    this.trackContext.clearRect(0, 0, this.trackCanvas.width, this.trackCanvas.height);
+
+    // Clear tooltip titles
+    $('#track-titles').empty();
   }
 
   drawGeneName(geneName, xPos, yPos) {
@@ -53,8 +64,8 @@ class TrackCanvas {
 
     // Cap text to outer edges
     xPos = xPos < 0 ? 0 : xPos;
-    if (xPos >= this.collapsedWidth - textWidth) {
-      xPos = this.collapsedWidth - textWidth;
+    if (xPos >= this.trackCanvas.width - textWidth) {
+      xPos = this.trackCanvas.width - textWidth;
     }
 
     this.trackContext.fillText(geneName, xPos, yPos);
@@ -79,38 +90,39 @@ class TrackCanvas {
       region: region,
       width: this.trackCanvas.width,
     }, function(result) {
-      const featureHeight = 20;
-      const featureMargin = 14;
-      const yPos = featureHeight / 2;
       const scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;
+
+      // Set needed height of visibile canvas and transcript tooltips
+      tc.trackCanvas.height = tc.tracksYPos(result['max_height_order'] + 1);
+      tc.trackTitle.style.height = tc.tracksYPos(result['max_height_order'] + 1) + 'px';
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
         const track = result['tracks'][i];
-        const geneName = track['gene_name']
-        const transcriptID = track['transcript_id']
-        const seqname = track['seqname']
-        const height_order = track['height_order']
-        const strand = track['strand']
-        const start = track['start']
-        const end = track['end']
+        const geneName = track['gene_name'];
+        const transcriptID = track['transcript_id'];
+        const seqname = track['seqname'];
+        const height_order = track['height_order'];
+        const strand = track['strand'];
+        const start = track['start'];
+        const end = track['end'];
 
-        const adjustedYPos = yPos + (height_order - 1) * (featureHeight + featureMargin);
+        const adjustedYPos = tc.tracksYPos(height_order);
 
         tc.drawTrackLen(scale * (start - result['start_pos']),
           scale * (end - result['start_pos']), adjustedYPos);
 
         const textHeight = tc.drawGeneName(geneName, scale * ((start + end) / 2 - result['start_pos']),
-          adjustedYPos + featureHeight);
+          adjustedYPos + tc.featureHeight);
 
         // Add title text for whole gene
         const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
         tc.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
-          titleMargin + adjustedYPos - featureHeight / 2 + 'px',
+          titleMargin + adjustedYPos - tc.featureHeight / 2 + 'px',
           scale * (end - start) + 'px',
-          featureHeight + textHeight + 'px',
+          tc.featureHeight + textHeight + 'px',
           0);
 
         let latestFeaturePos = start;
@@ -122,7 +134,7 @@ class TrackCanvas {
           if (scale * diff >= tc.arrowWidth) {
             let direction = strand == '+' ? 1 : -1;
             tc.drawArrow(scale * (latestFeaturePos - result['start_pos'] + diff / 2),
-              adjustedYPos, direction, featureHeight / 2);
+              adjustedYPos, direction, tc.featureHeight / 2);
           }
           latestFeaturePos = feature['end'];
 
@@ -133,17 +145,17 @@ class TrackCanvas {
               // Add title text for whole gene
               tc.insertTitle(exonText,
                 titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
-                titleMargin + adjustedYPos - featureHeight / 2 + 'px',
+                titleMargin + adjustedYPos - tc.featureHeight / 2 + 'px',
                 scale * (feature['end'] - feature['start']) + 'px',
-                featureHeight + 'px',
+                tc.featureHeight + 'px',
                 1);
 
               tc.drawBand(scale * (feature['start'] - result['start_pos']),
-                adjustedYPos, scale * (feature['end'] - feature['start']), featureHeight);
+                adjustedYPos, scale * (feature['end'] - feature['start']), tc.featureHeight);
               break;
             case 'three_prime_utr':
               tc.drawBand(scale * (feature['start'] - result['start_pos']),
-                adjustedYPos, scale * (feature['end'] - feature['start']), featureHeight / 2);
+                adjustedYPos, scale * (feature['end'] - feature['start']), tc.featureHeight / 2);
               break;
           }
         }
@@ -152,7 +164,9 @@ class TrackCanvas {
       tc.renderer.render(tc.scene, tc.camera);
 
       // Transfer image to visible canvas
-      tc.trackContext.drawImage(tc.drawCanvas.transferToImageBitmap(), 0, 0);
+      tc.trackContext.drawImage(tc.drawCanvas.transferToImageBitmap(),
+        0, 0, tc.trackCanvas.width, tc.trackCanvas.height,
+        0, 0, tc.trackCanvas.width, tc.trackCanvas.height);
 
       // Clear draw canvas
       ic.scene.remove.apply(tc.scene, tc.scene.children);

@@ -134,6 +134,8 @@ html, body {
     display: grid;
     grid-row: 2;
     grid-column: 1;
+    overflow: auto;
+    height: 100px;
 }
 
 #track-canvas {

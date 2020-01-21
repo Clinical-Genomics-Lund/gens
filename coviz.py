@@ -9,7 +9,6 @@ from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
-from pymongo import ASCENDING
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -562,8 +561,13 @@ def get_track_data():
 
     tracks = list(tracks) + list(tracks_over)
 
+    max_height_order = 1
+    for track in tracks:
+        if track['height_order'] > max_height_order:
+            max_height_order = track['height_order']
+
     return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
-                   end_pos=end_pos)
+                   end_pos=end_pos, max_height_order=max_height_order)
 
 
 ### Help functions ###
