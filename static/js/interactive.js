@@ -133,10 +133,8 @@ class InteractiveCanvas {
         ic.contentCanvas.width, ic.contentCanvas.height);
 
       // Draw ticks for x-axis
-      let ampl = (ic.boxWidth) / (result['start'] - result['end']);
       drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y,
-        result['start'], result['end'], ic.boxWidth,
-        Math.floor((result['end'] - result['start']) / 20), ampl, ic.yMargin);
+        result['start'], result['end'], ic.boxWidth, ic.yMargin);
 
       // Draw horizontal lines for BAF and LogR
       drawGraphLines(ic.scene, 0, result['y_pos'],

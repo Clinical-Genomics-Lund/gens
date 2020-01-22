@@ -12,16 +12,28 @@ function drawData (scene, data, color) {
 }
 
 // Draws vertical tick marks for selected values between
-// yStart and yEnd with step length.
+// xStart and xEnd with step length.
 // The amplitude scales the values to drawing size
-function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width,
-  drawStep, ampl, yMargin) {
-  let lineThickness = 2;
-  let lineWidth = 5;
+function drawVerticalTicks (scene, canvas, x, y, xStart, xEnd, width, yMargin) {
+  const lineThickness = 2;
+  const lineWidth = 5;
+  const scale = width / (xEnd - xStart);
+  const precison = 10;
+  const steps = 20;
 
-  for (let step = yStart; step <= yEnd; step += drawStep) {
-    let xStep = (yStart - step) * ampl;
+  let stepLength = (xEnd - xStart) / steps;
+  // Adjust start, stop and step to even numbers
+  if (stepLength > precison * precison) {
+    xStart = Math.ceil(xStart / precison) * precison;
+    xEnd = Math.floor(xEnd / precison) * precison;
+    x += scale * (xStart - xStart);
+    stepLength = Math.floor(stepLength / precison) * precison;
+  }
+
+  for (let step = xStart; step <= xEnd; step += stepLength) {
+    let xStep = scale * (step - xStart);
     let value = numberWithCommas(step.toFixed(0));
+
     // Draw text and ticks only for the leftmost box
     drawRotatedText(canvas, value, 10, x + xStep,
       y - value.length - 3 * yMargin, -Math.PI / 4);
@@ -34,11 +46,11 @@ function drawVerticalTicks (scene, canvas, x, y, yStart, yEnd, width,
 // Draws horizontal lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawGraphLines (scene, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
+function drawGraphLines (scene, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
 
-  for (let step = yStart; step >= yEnd; step -= drawStep) {
+  for (let step = yStart; step >= yEnd; step -= stepLength) {
     // Draw horizontal line
     drawLine(scene, x,
       y + yMargin + (yStart - step) * ampl,
@@ -98,12 +110,12 @@ function zoomOut (ic, baf, logr, logRMedian, sampleName) {
 // Draws tick marks for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, canvas, x, y, yStart, yEnd, drawStep, yMargin, width, height) {
+function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
   let lineWidth = 4;
 
-  for (let step = yStart; step >= yEnd; step -= drawStep) {
+  for (let step = yStart; step >= yEnd; step -= stepLength) {
     // TODO: fix correct centering
     drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
       step.toFixed(1), 10, 'right');
