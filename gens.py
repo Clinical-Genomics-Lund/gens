@@ -13,8 +13,8 @@ from pymongo import MongoClient
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-CLIENT = MongoClient()
-COVIZ_DB = CLIENT['coviz']
+CLIENT = MongoClient('10.0.224.63', 27017)
+GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
@@ -225,7 +225,7 @@ def save_overview_annotation():
                                       y_margin)
 
     # Set collection
-    collection = COVIZ_DB[sample_name]
+    collection = GENS_DB[sample_name]
 
     # Check that record does not already exist
     update = collection.update_one({'x': int(x_pos), 'y': y_pos,
@@ -276,7 +276,7 @@ def save_interactive_annotation():
         annot_height = annot_height / (height / logr_height)
 
     # Set collection
-    collection = COVIZ_DB[sample_name]
+    collection = GENS_DB[sample_name]
 
     # Check that record does not already exist
     update = collection.update_one({'x': int(x_pos), 'y': y_pos,
@@ -351,7 +351,7 @@ def remove_annotation():
                                         end, width, height, y_margin)
 
     # Set collection
-    collection = COVIZ_DB[sample_name]
+    collection = GENS_DB[sample_name]
 
     # Check that record does not already exist
     x_distance = abs(x_diff - x_pos)
@@ -379,7 +379,7 @@ def load_all_annotations():
     y_margin = float(request.args.get('y_margin', 1))
     chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
                                     row_height)
-    collection = COVIZ_DB[sample_name]
+    collection = GENS_DB[sample_name]
 
     all_annotations = []
     for chrom in range(1, num_chrom + 1):
@@ -420,7 +420,7 @@ def load_annotation_range():
     if sample_name is None or region is None:
         return abort(404)
 
-    collection = COVIZ_DB[sample_name]
+    collection = GENS_DB[sample_name]
     _, chrom, start_pos, end_pos = parse_region_str(region)
 
     annotations = list(collection.find({'x': {'$gte': start_pos,
@@ -519,7 +519,7 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
     Calculates the position for each chromosome in the overview canvas
     '''
 
-    collection = COVIZ_DB['chromsizes']
+    collection = GENS_DB['chromsizes']
 
     first_x_pos = x_pos
     chrom_dims = []
@@ -549,7 +549,7 @@ def get_track_data():
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
-    collection = COVIZ_DB['tracks']
+    collection = GENS_DB['tracks']
 
     # Get tracks within span [start_pos, end_pos]
     tracks = collection.find({'seqname': str(chrom),
@@ -580,7 +580,7 @@ def get_chrom_width(chrom, full_width):
     '''
     Calculates overview width of chromosome
     '''
-    collection = COVIZ_DB['chromsizes']
+    collection = GENS_DB['chromsizes']
     chrom_data = collection.find_one({'chrom': str(chrom)})
 
     if chrom_data:

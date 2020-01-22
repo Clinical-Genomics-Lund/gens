@@ -6,11 +6,11 @@ Write cromosome sizes to database
 import csv
 import argparse
 from functools import cmp_to_key
-from gtfparse import read_gtf
 from pymongo import MongoClient
+from gtfparse import read_gtf
 
-CLIENT = MongoClient()
-COVIZ_DB = CLIENT['coviz']
+CLIENT = MongoClient('10.0.224.63', 27017)
+GENS_DB = CLIENT['gens']
 
 class UpdateMongo:
     '''
@@ -18,7 +18,7 @@ class UpdateMongo:
     '''
     def __init__(self, input_file, collection_name):
         self.input_file = input_file
-        self.collection = COVIZ_DB[collection_name]
+        self.collection = GENS_DB[collection_name]
 
     def write_chromsizes(self):
         '''
