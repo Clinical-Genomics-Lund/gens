@@ -113,10 +113,10 @@ class InteractiveCanvas {
   }
 
   // Draw values for interactive canvas
-  drawInteractiveContent (ic, baf, logr, logRMedian) {
+  drawInteractiveContent (ic, baf, logr) {
     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
       region: document.getElementById('region_field').placeholder,
-      median: logRMedian,
+      sample_name: sampleName,
       xpos: ic.x + ic.xMargin,
       ypos: ic.y,
       boxHeight: ic.boxHeight,
@@ -185,7 +185,7 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, logRMedian, adjustedMargin) {
+  redraw (ic, ac, baf, logr, adjustedMargin) {
     ic.disallowDrag = false;
 
     ac.saveAnnotations();
@@ -195,7 +195,7 @@ class InteractiveCanvas {
     tc.clearTracks();
 
     ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
-    ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+    ic.drawInteractiveContent(ic, baf, logr);
     ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
     ac.drawAnnotations();
     tc.drawTracks(ic.inputField.placeholder);

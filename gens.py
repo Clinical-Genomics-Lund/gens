@@ -3,10 +3,10 @@
 Whole genome visualization of BAF and log R ratio
 '''
 
-import json
 import math
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
+from os import path
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
 
@@ -18,19 +18,31 @@ GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
-REQUEST = namedtuple('request', ('region', 'median', 'x_pos', 'y_pos',
-                                 'box_height', 'y_margin', 'baf_y_start',
-                                 'baf_y_end', 'logr_y_start', 'logr_y_end'))
+REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'box_height',
+                                 'y_margin', 'baf_y_start', 'baf_y_end',
+                                 'logr_y_start', 'logr_y_end'))
 
-SAMPLE_FILE = '/trannel/proj/wgs/sentieon/bam/sample_data.json'
-COV_FILE = "/trannel/proj/wgs/sentieon/bam/merged.cov.gz"
-BAF_FILE = "/trannel/proj/wgs/sentieon/bam/BAF.bed.gz"
+FILE_DIR = "/access/wgs/plotdata/"
+BAF_END = '.baf.bed.gz'
+COV_END = '.cov.bed.gz'
 
-@APP.route('/', methods=['GET'])
-def coverage_view():
+@APP.route('/', defaults={'sample_name': ''})
+@APP.route('/<path:sample_name>', methods=['GET'])
+def coverage_view(sample_name):
     '''
     Method for displaying a region
     '''
+    if not sample_name:
+        print('No sample requested')
+        abort(404)
+    # Check that BAF and LogR file exists
+    if not path.exists(FILE_DIR + sample_name + BAF_END):
+        print('BAF file not found')
+        abort(404)
+    if not path.exists(FILE_DIR + sample_name + COV_END):
+        print('LogR file not found')
+        abort(404)
+
     region = request.form.get('region', '1:100000-200000')
 
     call_chrom = 1
@@ -43,15 +55,9 @@ def coverage_view():
 
     _, chrom, start_pos, end_pos = parsed_region
 
-    # Get sample information
-    with open(SAMPLE_FILE) as data_file:
-        sample_data = json.load(data_file)
-    median = float(sample_data['median_depth'])
-    sample_name = sample_data['sample_name']
-
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
                            call_chrom=call_chrom, call_start=call_start,
-                           call_end=call_end, median=median, sample_name=sample_name)
+                           call_end=call_end, sample_name=sample_name)
 
 # Set graph-specific values
 def set_graph_values(box_height, ypos, y_margin):
@@ -100,10 +106,15 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
     Loads in data for LogR and BAF
     '''
+    sample_name = request.args.get('sample_name', None)
+
     # Fetch data with the defined range
-    logr_list = list(tabix_query(COV_FILE, reg.res + '_' + reg.chrom,
+    logr_list = list(tabix_query(FILE_DIR + sample_name + COV_END,
+                                 reg.res + '_' + reg.chrom,
                                  new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(BAF_FILE, reg.chrom, new_start_pos, new_end_pos))
+    baf_list = list(tabix_query(FILE_DIR + sample_name + BAF_END,
+                                reg.res + '_' + reg.chrom,
+                                new_start_pos, new_end_pos))
 
     if not new_start_pos and not logr_list and not baf_list:
         print('Data for chromosome {} not available'.format(reg.chrom))
@@ -121,7 +132,7 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     x_ampl = x_ampl / (new_end_pos - new_start_pos)
     return logr_list, baf_list, new_start_pos, x_ampl
 
-def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl, median):
+def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl):
     '''
     Edits data for LogR and BAF
     '''
@@ -129,7 +140,7 @@ def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl, medi
     logr_records = []
     for record in logr_list:
         # Cap values to end points
-        ypos = math.log((float(record[3]) + 1) / median, 2)
+        ypos = float(record[3])
         ypos = req.logr_y_start + 0.2 if ypos > req.logr_y_start else ypos
         ypos = req.logr_y_end - 0.2 if ypos < req.logr_y_end else ypos
 
@@ -139,6 +150,7 @@ def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl, medi
     # Gather the BAF records
     baf_records = []
     for record in baf_list:
+        # Cap values to end points
         ypos = float(record[3])
         ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
@@ -154,7 +166,6 @@ def get_overview_cov():
     '''
     req = REQUEST(
         request.args.get('region', '1:100000-200000'),
-        float(request.args.get('median', 1)),
         float(request.args.get('xpos', 1)),
         float(request.args.get('ypos', 1)),
         float(request.args.get('boxHeight', 1)),
@@ -180,7 +191,7 @@ def get_overview_cov():
                                                            new_end_pos, x_ampl)
     logr_records, baf_records = set_data(graph, req, logr_list, baf_list,
                                          req.x_pos - extra_box_width, new_start_pos,
-                                         x_ampl, req.median)
+                                         x_ampl)
 
     if not new_start_pos and not logr_records and not baf_records:
         print('No records')

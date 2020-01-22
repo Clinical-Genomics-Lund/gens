@@ -71,35 +71,35 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2);
 }
 
-function left (ic, baf, logr, logRMedian, sampleName) {
+function left (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin);
 }
 
-function right (ic, baf, logr, logRMedian, sampleName) {
+function right (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin);
 }
 
-function zoomIn (ic, baf, logr, logRMedian, sampleName) {
+function zoomIn (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin);
 }
 
-function zoomOut (ic, baf, logr, logRMedian, sampleName) {
+function zoomOut (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
   ic.end += Math.floor(size * 0.5);
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin);
 }
 
 

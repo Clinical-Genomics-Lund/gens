@@ -44,7 +44,7 @@ class OverviewCanvas {
     let _this = this;
   }
 
-  drawOverviewContent (oc, baf, logr, logRMedian) {
+  drawOverviewContent (oc, baf, logr) {
     let drawnChrom = 0; // Amount of async drawn chromosomes
 
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
@@ -62,7 +62,7 @@ class OverviewCanvas {
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
-          median: logRMedian,
+          sample_name: sampleName,
           xpos: dims[chrom - 1]['x_pos'] + oc.xMargin,
           ypos: dims[chrom - 1]['y_pos'],
           boxHeight: oc.boxHeight,

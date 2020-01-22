@@ -31,16 +31,16 @@
                     </div>
 
                     <div id='button-container'>
-                        <button onclick='left(ic, baf, logr, logRMedian);'>
+                        <button onclick='left(ic, baf, logr);'>
                             <span class='fas fa-arrow-left' title='Left'></span>
                         </button>
-                        <button onclick='right(ic, baf, logr, logRMedian);'>
+                        <button onclick='right(ic, baf, logr);'>
                             <span class='fas fa-arrow-right' title='Right'></span>
                         </button>
-                        <button onclick='zoomIn(ic, baf, logr, logRMedian);'>
+                        <button onclick='zoomIn(ic, baf, logr);'>
                             <span class='fas fa-search-plus' title='Zoom in'></span>
                         </button>
-                        <button onclick='zoomOut(ic, baf, logr, logRMedian);'>
+                        <button onclick='zoomOut(ic, baf, logr);'>
                             <span class='fas fa-search-minus' title='Zoom out'></span>
                         </button>
                         <form id='region_form'>
@@ -68,7 +68,6 @@
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
             // FLASK VALUES //
-            let logRMedian = {{ median }};
             let sampleName = '{{ sample_name }}';
 
             let callChrom = '{{ call_chrom }}';
@@ -119,7 +118,7 @@
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
             ic.drawStaticContent(ic, baf, logr);
-            ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+            ic.drawInteractiveContent(ic, baf, logr);
 
             // Adjust canvas margins to compensate for extra hidden data
             let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
@@ -133,7 +132,7 @@
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
-            oc.drawOverviewContent(oc, baf, logr, logRMedian);
+            oc.drawOverviewContent(oc, baf, logr);
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
@@ -191,7 +190,7 @@
                 ac.clearAnnotations(ic.height);
                 inputField.placeholder = inputField.value;
                 inputField.value = '';
-                ic.drawInteractiveContent(ic, baf, logr, logRMedian);
+                ic.drawInteractiveContent(ic, baf, logr);
                 ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
                 ac.drawAnnotations();
             });
@@ -326,7 +325,7 @@
                             ic.end += moveDist;
                             ic.disallowDrag = true;
 
-                            ic.redraw(ic, ac, baf, logr, logRMedian, adjustedMargin);
+                            ic.redraw(ic, ac, baf, logr, adjustedMargin);
                         }
                         break;
                     case 3: // Right click
@@ -387,22 +386,22 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, logRMedian, adjustedMargin);
+                            ic.redraw (ic, ac, baf, logr, adjustedMargin);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
                         switch (key) {
                         case 'ArrowLeft':
-                            left(ic, baf, logr, logRMedian, sampleName);
+                            left(ic, baf, logr, sampleName);
                             break;
                         case 'ArrowRight':
-                            right(ic, baf, logr, logRMedian, sampleName);
+                            right(ic, baf, logr, sampleName);
                             break;
                         case '+':
-                            zoomIn(ic, baf, logr, logRMedian, sampleName);
+                            zoomIn(ic, baf, logr, sampleName);
                             break;
                         case '-':
-                            zoomOut(ic, baf, logr, logRMedian, sampleName);
+                            zoomOut(ic, baf, logr, sampleName);
                             break;
                         default:
                             return;
