@@ -184,15 +184,8 @@
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ac.saveAnnotations();
-
-                // Clear annotations
-                ac.clearAnnotations(ic.height);
-                inputField.placeholder = inputField.value;
+                ic.redraw(ic, ac, baf, logr, adjustedMargin, inputField.value);
                 inputField.value = '';
-                ic.drawInteractiveContent(ic, baf, logr);
-                ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
-                ac.drawAnnotations();
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
@@ -325,7 +318,7 @@
                             ic.end += moveDist;
                             ic.disallowDrag = true;
 
-                            ic.redraw(ic, ac, baf, logr, adjustedMargin);
+                            ic.redraw(ic, ac, baf, logr, adjustedMargin, null);
                         }
                         break;
                     case 3: // Right click
@@ -386,7 +379,7 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, adjustedMargin);
+                            ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph

@@ -185,7 +185,7 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, adjustedMargin) {
+  redraw (ic, ac, baf, logr, adjustedMargin, inputValue) {
     ic.disallowDrag = false;
 
     ac.saveAnnotations();
@@ -194,7 +194,13 @@ class InteractiveCanvas {
     ac.clearAnnotations(ic.height);
     tc.clearTracks();
 
-    ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
+    // Set input field
+    if (inputValue) {
+      ic.inputField.placeholder = inputValue;
+    } else {
+      ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
+    }
+
     ic.drawInteractiveContent(ic, baf, logr);
     ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
     ac.drawAnnotations();

@@ -75,21 +75,21 @@ function left (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
 }
 
 function right (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
 }
 
 function zoomIn (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
 }
 
 function zoomOut (ic, baf, logr, sampleName) {
@@ -99,7 +99,7 @@ function zoomOut (ic, baf, logr, sampleName) {
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (ic, ac, baf, logr, adjustedMargin);
+  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
 }
 
 
