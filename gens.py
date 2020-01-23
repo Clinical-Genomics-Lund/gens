@@ -637,9 +637,9 @@ def parse_region_str(region):
         size = end_pos - start_pos
 
         resolution = 'd'
-        if size > 25000000:
+        if size > 20000000:
             resolution = 'a'
-        elif size > 3000000:
+        elif size > 1800000:
             resolution = 'b'
         elif size > 200000:
             resolution = 'c'
