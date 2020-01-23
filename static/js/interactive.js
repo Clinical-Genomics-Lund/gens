@@ -28,6 +28,7 @@ class InteractiveCanvas {
     this.start = input[1];
     this.end = input[2];
     this.disallowDrag = false;
+    this.disallowDraw = false;
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -166,6 +167,7 @@ class InteractiveCanvas {
       ic.end = result['end'];
       ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
     }).done(function () {
+      ic.disallowDraw = false;
       ic.inputField.blur();
     }).fail(function (result) {
       console.log('Bad input');
@@ -186,7 +188,11 @@ class InteractiveCanvas {
 
   // Redraw interactive canvas
   redraw (ic, ac, baf, logr, adjustedMargin, inputValue) {
+    if (ic.disallowDraw) {
+      return;
+    }
     ic.disallowDrag = false;
+    ic.disallowDraw = true;
 
     ac.saveAnnotations();
 
