@@ -89,14 +89,11 @@ def set_region_values(parsed_region, x_ampl):
     elif chrom == '24':
         chrom = 'Y'
 
-    # If no range is defined, set to fetch all available data
-    if end_pos == 'None':
-        new_start_pos = new_end_pos = None
-        extra_box_width = 0
-    else:
-        # Add extra data to edges
-        new_start_pos = int(start_pos - extra_box_width * ((end_pos - start_pos) / x_ampl))
-        new_end_pos = int(end_pos + extra_box_width * ((end_pos - start_pos) / x_ampl))
+    # Add extra data to edges
+    new_start_pos = int(start_pos - extra_box_width *
+                        ((end_pos - start_pos) / x_ampl))
+    new_end_pos = int(end_pos + extra_box_width *
+                      ((end_pos - start_pos) / x_ampl))
 
     x_ampl += 2 * extra_box_width
     return REGION(res, chrom, start_pos, end_pos), \
@@ -609,42 +606,38 @@ def parse_region_str(region):
     try:
         if ":" in region and "-" in region:
             chrom, pos_range = region.split(':')
-            pos = pos_range.split('-')
-
-            # Wrong format
-            if len(pos) > 3:
-                raise ValueError
-            # Negative start position
-            if pos[0] == '':
-                start_pos = 0
-                end_pos = int(pos[2]) + int(pos[1])
-            # Positive values and correct format
-            else:
-                start_pos, end_pos = pos
+            start, end = pos_range.split('-')
         else:
-            chrom, start_pos, end_pos = region.split()
+            chrom, start, end = region.split()
     except ValueError:
         return None
     chrom.replace('chr', '')
 
-    if end_pos == 'None':
+    # Get end position
+    collection = GENS_DB['chromsizes']
+    chrom_data = collection.find_one({'chrom': str(chrom)})
+
+    if end == 'None':
+        end = chrom_data['size']
+
+    start = int(start)
+    end = int(end)
+    size = end - start
+
+    # Do not go beyond end position
+    if end > chrom_data['size']:
+        start = max(0, start - size)
+        end = chrom_data['size']
+
+    resolution = 'd'
+    if size > 20000000:
         resolution = 'a'
-    else:
-        start_pos = int(start_pos)
-        end_pos = int(end_pos)
-        if start_pos < 0:
-            start_pos = 0
-        size = end_pos - start_pos
+    elif size > 1800000:
+        resolution = 'b'
+    elif size > 200000:
+        resolution = 'c'
 
-        resolution = 'd'
-        if size > 20000000:
-            resolution = 'a'
-        elif size > 1800000:
-            resolution = 'b'
-        elif size > 200000:
-            resolution = 'c'
-
-    return resolution, chrom, start_pos, end_pos
+    return resolution, chrom, start, end
 
 def tabix_query(filename, chrom, start=None, end=None):
     """

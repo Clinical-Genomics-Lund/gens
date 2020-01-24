@@ -310,6 +310,8 @@
                             drag = false;
                             let scale = ic.boxWidth / (ic.end - ic.start);
                             let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
+
+                            // Do not allow negative values
                             if (ic.start + moveDist < 0) {
                                 moveDist -= (ic.start + moveDist);
                             }
@@ -378,7 +380,8 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
+                            ic.redraw (ic, ac, baf, logr, adjustedMargin,
+                            ic.chromosome + ':0-None');
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
