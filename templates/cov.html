@@ -3,7 +3,6 @@
     <head>
         <meta charset=utf-8>
         <link rel='stylesheet' href='static/css/cov.css' type='text/css'>
-        <script src='https://use.fontawesome.com/releases/v5.10.2/js/all.js' data-auto-replace-svg='nest'></script>
         <link rel='icon' href='data:,'>
         <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
         <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
@@ -31,17 +30,17 @@
                     </div>
 
                     <div id='button-container'>
-                        <button onclick='left(ic, baf, logr);'>
-                            <span class='fas fa-arrow-left' title='Left'></span>
+                        <button onclick='left(ic, baf, logr);' class='icon'>
+                            <span class='icon' id='arrow-left' title='Left'></span>
                         </button>
-                        <button onclick='right(ic, baf, logr);'>
-                            <span class='fas fa-arrow-right' title='Right'></span>
+                        <button onclick='right(ic, baf, logr);' class='icon'>
+                            <span class='icon' id='arrow-right' title='Right'></span>
                         </button>
-                        <button onclick='zoomIn(ic, baf, logr);'>
-                            <span class='fas fa-search-plus' title='Zoom in'></span>
+                        <button onclick='zoomIn(ic, baf, logr);' class='icon'>
+                            <span class='icon' id='search-plus' title='Zoom in'></span>
                         </button>
-                        <button onclick='zoomOut(ic, baf, logr);'>
-                            <span class='fas fa-search-minus' title='Zoom out'></span>
+                        <button onclick='zoomOut(ic, baf, logr);' class='icon'>
+                            <span class='icon' id='search-minus' title='Zoom out'></span>
                         </button>
                         <form id='region_form'>
                             <input name='region' id='region_field' type='text' size=20>

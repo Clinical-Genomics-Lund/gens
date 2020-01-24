@@ -110,11 +110,19 @@ html, body {
     outline: 0px solid transparent;
 }
 
-#annotation-button {
+.annotation-button {
     float: right;
     background: none;
     border: none;
     font-size: 10px;
+}
+
+#times {
+    background: url(../svg/times-solid.svg) no-repeat top left;
+}
+
+#trash-alt {
+    background: url(../svg/trash-alt-regular.svg) no-repeat top left;
 }
 
 #interactive-static{
@@ -204,4 +212,31 @@ html, body {
     top: 0;
     left: 0;
     visibility: hidden;
+}
+
+span.icon {
+    background-size: contain;
+    display: inline-block;
+    width: 13.33px;
+    height: 13.33px;
+}
+
+button.icon {
+    height: 22px;
+}
+
+span#arrow-left {
+    background: url(../svg/arrow-left-solid.svg) no-repeat top left;
+}
+
+span#arrow-right {
+    background: url(../svg/arrow-right-solid.svg) no-repeat top left;
+}
+
+span#search-plus {
+    background: url(../svg/search-plus-solid.svg) no-repeat top left;
+}
+
+span#search-minus {
+    background: url(../svg/search-minus-solid.svg) no-repeat top left;
 }

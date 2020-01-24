@@ -213,8 +213,8 @@ class Annotation {
 
     // Add close button
     let close = document.createElement('button');
-    close.setAttribute('id', 'annotation-button');
-    close.setAttribute('class', 'fas fa-times');
+    close.setAttribute('class', 'annotation-button');
+    close.setAttribute('id', 'times');
     div.appendChild(close);
 
     close.onclick = function (event) {
@@ -225,8 +225,8 @@ class Annotation {
 
     // Add delete button
     let del = document.createElement('button');
-    del.setAttribute('id', 'annotation-button');
-    del.setAttribute('class', 'far fa-trash-alt');
+    del.setAttribute('class', 'annotation-button');
+    del.setAttribute('id', 'trash-alt');
     div.appendChild(del);
 
     del.onclick = function (event) {
