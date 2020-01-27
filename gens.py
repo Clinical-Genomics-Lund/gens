@@ -18,7 +18,7 @@ GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
-REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'box_height',
+REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
@@ -60,22 +60,22 @@ def coverage_view(sample_name):
                            call_end=call_end, sample_name=sample_name)
 
 # Set graph-specific values
-def set_graph_values(box_height, ypos, y_margin):
+def set_graph_values(plot_height, ypos, y_margin):
     '''
     Returns graph-specific values as named tuple
     '''
     return GRAPH(
-        box_height - 2 * y_margin,
-        (box_height - y_margin * 2) / 8,
-        ypos + box_height - y_margin,
-        ypos + 1.5 * box_height
+        plot_height - 2 * y_margin,
+        (plot_height - y_margin * 2) / 8,
+        ypos + plot_height - y_margin,
+        ypos + 1.5 * plot_height
     )
 
 def set_region_values(parsed_region, x_ampl):
     '''
     Sets region values
     '''
-    extra_box_width = float(request.args.get('extra_box_width', 0))
+    extra_plot_width = float(request.args.get('extra_plot_width', 0))
     res, chrom, start_pos, end_pos = parsed_region
 
     # Move negative start and end position to positive values
@@ -90,14 +90,14 @@ def set_region_values(parsed_region, x_ampl):
         chrom = 'Y'
 
     # Add extra data to edges
-    new_start_pos = int(start_pos - extra_box_width *
+    new_start_pos = int(start_pos - extra_plot_width *
                         ((end_pos - start_pos) / x_ampl))
-    new_end_pos = int(end_pos + extra_box_width *
+    new_end_pos = int(end_pos + extra_plot_width *
                       ((end_pos - start_pos) / x_ampl))
 
-    x_ampl += 2 * extra_box_width
+    x_ampl += 2 * extra_plot_width
     return REGION(res, chrom, start_pos, end_pos), \
-           new_start_pos, new_end_pos, x_ampl, extra_box_width
+           new_start_pos, new_end_pos, x_ampl, extra_plot_width
 
 def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
@@ -165,7 +165,7 @@ def get_overview_cov():
         request.args.get('region', '1:100000-200000'),
         float(request.args.get('xpos', 1)),
         float(request.args.get('ypos', 1)),
-        float(request.args.get('boxHeight', 1)),
+        float(request.args.get('plot_height', 1)),
         float(request.args.get('y_margin', 1)),
         float(request.args.get('baf_y_start', 0)),
         float(request.args.get('baf_y_end', 0)),
@@ -174,20 +174,20 @@ def get_overview_cov():
     )
     x_ampl = float(request.args.get('x_ampl', 1))
 
-    graph = set_graph_values(req.box_height, req.y_pos, req.y_margin)
+    graph = set_graph_values(req.plot_height, req.y_pos, req.y_margin)
 
     parsed_region = parse_region_str(req.region)
     if not parsed_region:
         print('No parsed region')
         return abort(416)
 
-    reg, new_start_pos, new_end_pos, x_ampl, extra_box_width = \
+    reg, new_start_pos, new_end_pos, x_ampl, extra_plot_width = \
         set_region_values(parsed_region, x_ampl)
 
     logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
                                                            new_end_pos, x_ampl)
     logr_records, baf_records = set_data(graph, req, logr_list, baf_list,
-                                         req.x_pos - extra_box_width, new_start_pos,
+                                         req.x_pos - extra_plot_width, new_start_pos,
                                          x_ampl)
 
     if not new_start_pos and not logr_records and not baf_records:
@@ -484,8 +484,8 @@ def call_overview_chrom_dim():
     num_chrom = int(request.args.get('num_chrom', 0))
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
-    box_width = float(request.args.get('box_width', 0))
-    box_height = float(request.args.get('box_height', 0))
+    plot_width = float(request.args.get('plot_width', 0))
+    plot_height = float(request.args.get('plot_height', 0))
     right_margin = float(request.args.get('right_margin', 0))
     row_height = float(request.args.get('row_height', 0))
     margin = float(request.args.get('margin', 0))
@@ -493,12 +493,12 @@ def call_overview_chrom_dim():
     current_y = request.args.get('current_y', None)
     current_chrom = None
 
-    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
+    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
                                     row_height)
 
     if current_x and current_y:
         current_chrom = find_chrom_at_pos(chrom_dims, num_chrom,
-                                          2 * box_height, float(current_x),
+                                          2 * plot_height, float(current_x),
                                           float(current_y), margin)
 
     return jsonify(status='ok', chrom_dims=chrom_dims, \
@@ -521,7 +521,7 @@ def find_chrom_at_pos(chrom_dims, num_chrom, height, current_x, current_y, margi
 
     return current_chrom
 
-def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
+def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
                        row_height):
     '''
     Calculates the position for each chromosome in the overview canvas
@@ -532,7 +532,7 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, box_width, right_margin,
     first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
-        chrom_width = get_chrom_width(chrom, box_width)
+        chrom_width = get_chrom_width(chrom, plot_width)
         chrom_data = collection.find_one({'chrom': str(chrom)})
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})

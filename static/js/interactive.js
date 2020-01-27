@@ -2,18 +2,18 @@ class InteractiveCanvas {
   constructor (inputField, lineMargin, near, far) {
     this.inputField = inputField; // The canvas input field to display and fetch chromosome range from
 
-    // Box variables
-    this.titleMargin = 60; // Margin between box and title
-    this.legendMargin = 45; // Margin between legend and box
+    // Plot variables
+    this.titleMargin = 60; // Margin between plot and title
+    this.legendMargin = 45; // Margin between legend and plot
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
-    this.boxWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one box
-    this.boxHeight = 180; // Height of one box
-    this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first box
-    this.width = Math.max(this.boxWidth + 2 * this.extraWidth, $(document).innerWidth()); // Canvas width
-    this.height = 2 + this.y + 2 * (this.xMargin + this.boxHeight); // Canvas height
-    this.x = this.width / 2 - this.boxWidth / 2; // X-position for first box
+    this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
+    this.plotHeight = 180; // Height of one plot
+    this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
+    this.width = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Canvas width
+    this.height = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
+    this.x = this.width / 2 - this.plotWidth / 2; // X-position for first plot
     this.moveImg = null; // Placeholder for image copy of contentCanvas
 
     // Canvases
@@ -58,8 +58,8 @@ class InteractiveCanvas {
       region: region,
       top: ic.y,
       left: ic.x + adjustedMargin,
-      width: ic.boxWidth,
-      height: ic.boxHeight,
+      width: ic.plotWidth,
+      height: ic.plotHeight,
       logr_height: Math.abs(logr.yStart - logr.yEnd),
       baf_height: Math.abs(baf.yStart - baf.yEnd),
       y_margin: ic.yMargin
@@ -84,24 +84,24 @@ class InteractiveCanvas {
 
     // Make content area visible
     ic.staticCanvas.getContext('2d').clearRect(ic.x + linePadding,
-      ic.y + linePadding, ic.boxWidth, ic.width);
+      ic.y + linePadding, ic.plotWidth, ic.width);
     ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width,
       ic.y + linePadding);
 
     ic.staticCanvas.getContext('2d').fillStyle = 'black';
     // Draw rotated y-axis legends
     drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
-      ic.y + ic.boxHeight / 2, -Math.PI / 2);
+      ic.y + ic.plotHeight / 2, -Math.PI / 2);
     drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
-      ic.y + 1.5 * ic.boxHeight, -Math.PI / 2);
+      ic.y + 1.5 * ic.plotHeight, -Math.PI / 2);
 
     // Draw BAF
-    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y, ic.boxWidth, ic.boxHeight,
+    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y, ic.plotWidth, ic.plotHeight,
       ic.yMargin, baf.yStart, baf.yEnd, baf.step, true);
 
     // Draw LogR
-    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y + ic.boxHeight, ic.boxWidth,
-      ic.boxHeight, ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
+    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y + ic.plotHeight, ic.plotWidth,
+      ic.plotHeight, ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
 
     ic.renderer.render(ic.scene, ic.camera);
 
@@ -120,10 +120,10 @@ class InteractiveCanvas {
       sample_name: sampleName,
       xpos: ic.x + ic.xMargin,
       ypos: ic.y,
-      boxHeight: ic.boxHeight,
-      extra_box_width: ic.extraWidth,
+      plot_height: ic.plotHeight,
+      extra_plot_width: ic.extraWidth,
       y_margin: ic.yMargin,
-      x_ampl: ic.boxWidth - 2 * ic.xMargin,
+      x_ampl: ic.plotWidth - 2 * ic.xMargin,
       baf_y_start: baf.yStart,
       baf_y_end: baf.yEnd,
       logr_y_start: logr.yStart,
@@ -135,13 +135,13 @@ class InteractiveCanvas {
 
       // Draw ticks for x-axis
       drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y,
-        result['start'], result['end'], ic.boxWidth, ic.yMargin);
+        result['start'], result['end'], ic.plotWidth, ic.yMargin);
 
       // Draw horizontal lines for BAF and LogR
       drawGraphLines(ic.scene, 0, result['y_pos'],
-        baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.width, ic.boxHeight);
-      drawGraphLines(ic.scene, 0, result['y_pos'] + ic.boxHeight,
-        logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.width, ic.boxHeight);
+        baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.width, ic.plotHeight);
+      drawGraphLines(ic.scene, 0, result['y_pos'] + ic.plotHeight,
+        logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.width, ic.plotHeight);
 
       // Plot scatter data
       drawData(ic.scene, result['baf'], baf.color);
@@ -150,7 +150,7 @@ class InteractiveCanvas {
 
       // Draw chromosome title
       drawText(ic.contentCanvas,
-        result['x_pos'] - ic.xMargin + ic.boxWidth / 2,
+        result['x_pos'] - ic.xMargin + ic.plotWidth / 2,
         result['y_pos'] - ic.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
@@ -178,8 +178,8 @@ class InteractiveCanvas {
 
   // Check if coordinates is inside the graph
   insideGraph (x, y) {
-    if (x < (this.x + adjustedMargin + this.boxWidth) && x > this.x + adjustedMargin &&
-      y < (this.y + 2 * this.boxHeight) && y > this.y) {
+    if (x < (this.x + adjustedMargin + this.plotWidth) && x > this.x + adjustedMargin &&
+      y < (this.y + 2 * this.plotHeight) && y > this.y) {
       return true;
     } else {
       return false;

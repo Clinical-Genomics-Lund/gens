@@ -46,8 +46,8 @@ class Annotation {
           sample_name: this.sampleName,
           top: ic.y,
           left: ic.x + adjustedMargin,
-          width: ic.boxWidth,
-          height: ic.boxHeight,
+          width: ic.plotWidth,
+          height: ic.plotHeight,
           y_margin: ic.yMargin
         });
       } else {
@@ -58,8 +58,8 @@ class Annotation {
           sample_name: this.sampleName,
           top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
           left: oc.x + adjustedMargin,
-          width: oc.boxWidth,
-          height: oc.boxHeight,
+          width: oc.plotWidth,
+          height: oc.plotHeight,
           y_margin: oc.yMargin,
           num_chrom: oc.numChrom,
           right_margin: oc.rightMargin + adjustedMargin,
@@ -136,8 +136,8 @@ class Annotation {
         overview: false,
         top: ic.y,
         left: ic.x + adjustedMargin,
-        width: ic.boxWidth,
-        height: ic.boxHeight,
+        width: ic.plotWidth,
+        height: ic.plotHeight,
         y_margin: ic.yMargin
       });
     } else {
@@ -150,8 +150,8 @@ class Annotation {
         overview: true,
         top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
         left: oc.x + adjustedMargin,
-        width: oc.boxWidth,
-        height: oc.boxHeight,
+        width: oc.plotWidth,
+        height: oc.plotHeight,
         y_margin: oc.yMargin,
         num_chrom: oc.numChrom,
         right_margin: oc.rightMargin + adjustedMargin,

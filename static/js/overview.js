@@ -1,13 +1,13 @@
 class OverviewCanvas {
   constructor (xPos, lineMargin, adjustedMargin, near, far) {
-    // Box variables
-    this.boxWidth = 120; // Width of one box
-    this.boxHeight = 100; // Height of one box
-    this.x = xPos; // X-position for box
-    this.y = 20 + 2 * lineMargin; // Y-position for box
+    // Plot variables
+    this.plotWidth = 120; // Width of one plot
+    this.plotHeight = 100; // Height of one plot
+    this.x = xPos; // X-position for plot
+    this.y = 20 + 2 * lineMargin; // Y-position for plot
     this.numChrom = 24; // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
     this.rowMargin = 30; // margin between rows
-    this.titleMargin = 10; // Margin between box and title
+    this.titleMargin = 10; // Margin between plot and title
     this.leftMargin = 0.05 * $(document).innerWidth(); // Margin between graphs and page
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
@@ -16,9 +16,9 @@ class OverviewCanvas {
 
     // Set canvas height
     this.rightMargin = ($(document).innerWidth() - this.x - this.adjustedMargin - 10);
-    this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.boxWidth);
+    this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.plotWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
-    this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.boxHeight));
+    this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.plotHeight));
 
     // Canvas variables
     this.width = $(document).innerWidth(); // Canvas width
@@ -51,8 +51,8 @@ class OverviewCanvas {
       num_chrom: oc.numChrom,
       x_pos: oc.x,
       y_pos: oc.y + oc.rowMargin,
-      box_width: oc.boxWidth,
-      box_height: 2 * oc.boxHeight,
+      plot_width: oc.plotWidth,
+      plot_height: 2 * oc.plotHeight,
       right_margin: oc.rightMargin,
       row_height: oc.rowHeight,
     }).done(function (result) {
@@ -65,7 +65,7 @@ class OverviewCanvas {
           sample_name: sampleName,
           xpos: dims[chrom - 1]['x_pos'] + oc.xMargin,
           ypos: dims[chrom - 1]['y_pos'],
-          boxHeight: oc.boxHeight,
+          plot_height: oc.plotHeight,
           y_margin: oc.yMargin,
           x_ampl: dims[chrom - 1]['width'] - 2 * oc.xMargin,
           baf_y_start: baf.yStart,
@@ -89,24 +89,24 @@ class OverviewCanvas {
           // Draw BAF
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'], width, oc.boxHeight, oc.yMargin,
+            result['y_pos'], width, oc.plotHeight, oc.yMargin,
             baf.yStart, baf.yEnd, baf.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
             baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-            width, oc.boxHeight);
+            width, oc.plotHeight);
 
           // Draw LogR
           createGraph(oc.scene, staticCanvas,
             result['x_pos'] - oc.xMargin,
-            result['y_pos'] + oc.boxHeight, width,
-            oc.boxHeight, oc.yMargin, logr.yStart,
+            result['y_pos'] + oc.plotHeight, width,
+            oc.plotHeight, oc.yMargin, logr.yStart,
             logr.yEnd, logr.step,
             result['x_pos'] < oc.leftmostPoint);
           drawGraphLines(oc.scene, result['x_pos'],
-            result['y_pos'] + oc.boxHeight, logr.yStart,
+            result['y_pos'] + oc.plotHeight, logr.yStart,
             logr.yEnd, logr.step, oc.yMargin,
-            width, oc.boxHeight);
+            width, oc.plotHeight);
 
           // Plot scatter data
           drawData(oc.scene, result['baf'], baf.color);
@@ -140,8 +140,8 @@ class OverviewCanvas {
       num_chrom: oc.numChrom,
       left: oc.x + adjustedMargin,
       top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-      width: oc.boxWidth,
-      height: oc.boxHeight,
+      width: oc.plotWidth,
+      height: oc.plotHeight,
       row_height: oc.rowHeight,
       right_margin: oc.rightMargin + adjustedMargin,
       y_margin: oc.yMargin,
@@ -161,8 +161,8 @@ class OverviewCanvas {
       num_chrom: oc.numChrom,
       x_pos: oc.x + adjustedMargin,
       y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-      box_width: oc.boxWidth,
-      box_height: oc.boxHeight,
+      plot_width: oc.plotWidth,
+      plot_height: oc.plotHeight,
       right_margin: oc.rightMargin + adjustedMargin,
       row_height: oc.rowHeight,
       margin: oc.xMargin,

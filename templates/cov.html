@@ -126,7 +126,7 @@
 
             // Initiate and draw track canvas
             document.getElementById('track-container').style.marginLeft = ic.x + 'px';
-            let tc = new TrackCanvas(ic.x + adjustedMargin, ic.boxWidth, near, far);
+            let tc = new TrackCanvas(ic.x + adjustedMargin, ic.plotWidth, near, far);
             tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
@@ -308,7 +308,7 @@
 
                             ic.moveImg = null;
                             drag = false;
-                            let scale = ic.boxWidth / (ic.end - ic.start);
+                            let scale = ic.plotWidth / (ic.end - ic.start);
                             let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
 
                             // Do not allow negative values
