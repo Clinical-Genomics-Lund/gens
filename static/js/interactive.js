@@ -10,17 +10,21 @@ class InteractiveCanvas {
     this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
     this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
     this.plotHeight = 180; // Height of one plot
+    this.x = 0.1 * $(document).innerWidth(); // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
-    this.width = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Canvas width
-    this.height = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
-    this.x = this.width / 2 - this.plotWidth / 2; // X-position for first plot
-    this.moveImg = null; // Placeholder for image copy of contentCanvas
+    this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
+    this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
 
-    // Canvases
-    this.drawCanvas = new OffscreenCanvas(parseInt(this.width), parseInt(this.height));
+    // Setup draw canvas
+    this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Draw-canvas width
+    this.drawCanvas = new OffscreenCanvas(parseInt(this.drawWidth), parseInt(this.canvasHeight));
     this.context = this.drawCanvas.getContext('webgl2');
+
+    // Setup visible canvases
     this.contentCanvas = document.getElementById('interactive-content');
     this.staticCanvas = document.getElementById('interactive-static');
+    this.staticCanvas.width = this.contentCanvas.width = $(document).innerWidth();
+    this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
     // Data values
     let input = inputField.placeholder.split(/:|-/);
@@ -32,8 +36,8 @@ class InteractiveCanvas {
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(this.width / -2, this.width / 2,
-      this.height / -2, this.height / 2, near, far);
+    this.camera = new THREE.OrthographicCamera(this.drawWidth / -2, this.drawWidth / 2,
+      this.canvasHeight / -2, this.canvasHeight / 2, near, far);
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.drawCanvas,
       context: this.context,
@@ -41,23 +45,17 @@ class InteractiveCanvas {
     });
 
     // Change to fourth quadrant of scene
-    this.camera.position.x = this.width / 2 - lineMargin;
-    this.camera.position.y = this.height / 2 - lineMargin;
+    this.camera.position.x = this.drawWidth / 2 - lineMargin;
+    this.camera.position.y = this.canvasHeight / 2 - lineMargin;
     this.camera.position.z = 1;
-
-    // Set dimensions of overview canvases
-    this.staticCanvas.width =
-      this.contentCanvas.width = this.width;
-    this.staticCanvas.height =
-      this.contentCanvas.height =  this.height;
   }
 
-  loadAnnotations (ac, ic, region, adjustedMargin) {
+  loadAnnotations (ac, ic, region) {
     $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
       sample_name: ac.sampleName,
       region: region,
       top: ic.y,
-      left: ic.x + adjustedMargin,
+      left: ic.x,
       width: ic.plotWidth,
       height: ic.plotHeight,
       logr_height: Math.abs(logr.yStart - logr.yEnd),
@@ -65,7 +63,7 @@ class InteractiveCanvas {
       y_margin: ic.yMargin
     }, function(result) {
       let annotations = result['annotations'];
-      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
+      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.canvasHeight);
       for (let i = 0; i < annotations.length; i++) {
         ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
           annotations[i]['width'], annotations[i]['height'],
@@ -78,18 +76,18 @@ class InteractiveCanvas {
   // Draw static content for interactive canvas
   drawStaticContent (ic, baf, logr) {
     let linePadding = 2;
+    let staticContext = ic.staticCanvas.getContext('2d');
     // Fill background colour
-    ic.staticCanvas.getContext('2d').fillStyle = 'white';
-    ic.staticCanvas.getContext('2d').fillRect(0, 0, ic.width, ic.height);
+    staticContext.fillStyle = 'white';
+    staticContext.fillRect(0, 0, ic.staticCanvas.width, ic.staticCanvas.height);
 
     // Make content area visible
-    ic.staticCanvas.getContext('2d').clearRect(ic.x + linePadding,
-      ic.y + linePadding, ic.plotWidth, ic.width);
-    ic.staticCanvas.getContext('2d').clearRect(0, 0, ic.width,
-      ic.y + linePadding);
+    staticContext.clearRect(ic.x + linePadding, ic.y + linePadding,
+      ic.plotWidth, ic.staticCanvas.height);
+    staticContext.clearRect(0, 0, ic.staticCanvas.width, ic.y + linePadding);
 
-    ic.staticCanvas.getContext('2d').fillStyle = 'black';
     // Draw rotated y-axis legends
+    staticContext.fillStyle = 'black';
     drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
       ic.y + ic.plotHeight / 2, -Math.PI / 2);
     drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
@@ -106,8 +104,7 @@ class InteractiveCanvas {
     ic.renderer.render(ic.scene, ic.camera);
 
     // Transfer image to visible canvas
-    ic.staticCanvas.getContext('2d').drawImage(
-      ic.drawCanvas.transferToImageBitmap(), 0, 0);
+    staticContext.drawImage(ic.drawCanvas.transferToImageBitmap(), 0, 0);
 
     // Clear scene for next render
     ic.scene.remove.apply(ic.scene, ic.scene.children);
@@ -118,7 +115,7 @@ class InteractiveCanvas {
     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
       region: document.getElementById('region_field').placeholder,
       sample_name: sampleName,
-      xpos: ic.x + ic.xMargin,
+      xpos: ic.extraWidth,
       ypos: ic.y,
       plot_height: ic.plotHeight,
       extra_plot_width: ic.extraWidth,
@@ -134,14 +131,14 @@ class InteractiveCanvas {
         ic.contentCanvas.width, ic.contentCanvas.height);
 
       // Draw ticks for x-axis
-      drawVerticalTicks(ic.scene, ic.contentCanvas, ic.x, ic.y,
+      drawVerticalTicks(ic.scene, ic.contentCanvas, ic.extraWidth, ic.x, ic.y,
         result['start'], result['end'], ic.plotWidth, ic.yMargin);
 
       // Draw horizontal lines for BAF and LogR
       drawGraphLines(ic.scene, 0, result['y_pos'],
-        baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.width, ic.plotHeight);
+        baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.drawWidth, ic.plotHeight);
       drawGraphLines(ic.scene, 0, result['y_pos'] + ic.plotHeight,
-        logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.width, ic.plotHeight);
+        logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.drawWidth, ic.plotHeight);
 
       // Plot scatter data
       drawData(ic.scene, result['baf'], baf.color);
@@ -154,9 +151,12 @@ class InteractiveCanvas {
         result['y_pos'] - ic.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
+      ic.moveImg = ic.drawCanvas.transferToImageBitmap();
+
       // Transfer image to visible canvas
-      ic.contentCanvas.getContext('2d').drawImage(
-        ic.drawCanvas.transferToImageBitmap(), 0, 0);
+      ic.contentCanvas.getContext('2d').drawImage(ic.moveImg,
+        ic.extraWidth, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight,
+        ic.x, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight);
 
       // Clear scene before drawing
       ic.scene.remove.apply(ic.scene, ic.scene.children);
@@ -178,7 +178,7 @@ class InteractiveCanvas {
 
   // Check if coordinates is inside the graph
   insideGraph (x, y) {
-    if (x < (this.x + adjustedMargin + this.plotWidth) && x > this.x + adjustedMargin &&
+    if (x < (this.x + this.plotWidth) && x > this.x &&
       y < (this.y + 2 * this.plotHeight) && y > this.y) {
       return true;
     } else {
@@ -187,7 +187,7 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, adjustedMargin, inputValue) {
+  redraw (ic, ac, baf, logr, inputValue) {
     if (ic.disallowDraw) {
       return;
     }
@@ -197,7 +197,7 @@ class InteractiveCanvas {
     ac.saveAnnotations();
 
     // Clear annotations and tracks
-    ac.clearAnnotations(ic.height);
+    ac.clearAnnotations(ic.canvasHeight);
     tc.clearTracks();
 
     // Set input field
@@ -208,7 +208,7 @@ class InteractiveCanvas {
     }
 
     ic.drawInteractiveContent(ic, baf, logr);
-    ic.loadAnnotations(ac, ic, ic.inputField.placeholder, adjustedMargin);
+    ic.loadAnnotations(ac, ic, ic.inputField.placeholder);
     ac.drawAnnotations();
     tc.drawTracks(ic.inputField.placeholder);
   }

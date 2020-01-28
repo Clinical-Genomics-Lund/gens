@@ -14,7 +14,8 @@ function drawData (scene, data, color) {
 // Draws vertical tick marks for selected values between
 // xStart and xEnd with step length.
 // The amplitude scales the values to drawing size
-function drawVerticalTicks (scene, canvas, x, y, xStart, xEnd, width, yMargin) {
+function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
+  width, yMargin) {
   const lineThickness = 2;
   const lineWidth = 5;
   const scale = width / (xEnd - xStart);
@@ -26,7 +27,8 @@ function drawVerticalTicks (scene, canvas, x, y, xStart, xEnd, width, yMargin) {
   if (stepLength > precison * precison) {
     xStart = Math.ceil(xStart / precison) * precison;
     xEnd = Math.floor(xEnd / precison) * precison;
-    x += scale * (xStart - xStart);
+    renderX += scale * (xStart - xStart);
+    canvasX += scale * (xStart - xStart);
     stepLength = Math.floor(stepLength / precison) * precison;
   }
 
@@ -35,11 +37,12 @@ function drawVerticalTicks (scene, canvas, x, y, xStart, xEnd, width, yMargin) {
     let value = numberWithCommas(step.toFixed(0));
 
     // Draw text and ticks only for the leftmost box
-    drawRotatedText(canvas, value, 10, x + xStep,
+    drawRotatedText(canvas, value, 10, canvasX + xStep,
       y - value.length - 3 * yMargin, -Math.PI / 4);
 
     // Draw tick line
-    drawLine(scene, x + xStep, y - lineWidth, x + xStep, y, lineThickness, 0x000000);
+    drawLine(scene, renderX + xStep, y - lineWidth, renderX + xStep, y,
+      lineThickness, 0x000000);
   }
 }
 
@@ -75,21 +78,21 @@ function left (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
+  ic.redraw (ic, ac, baf, logr, null);
 }
 
 function right (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
+  ic.redraw (ic, ac, baf, logr, null);
 }
 
 function zoomIn (ic, baf, logr, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
+  ic.redraw (ic, ac, baf, logr, null);
 }
 
 function zoomOut (ic, baf, logr, sampleName) {
@@ -99,7 +102,7 @@ function zoomOut (ic, baf, logr, sampleName) {
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (ic, ac, baf, logr, adjustedMargin, null);
+  ic.redraw (ic, ac, baf, logr, null);
 }
 
 

@@ -45,7 +45,7 @@ class Annotation {
           baf_height: Math.abs(baf.yStart - baf.yEnd),
           sample_name: this.sampleName,
           top: ic.y,
-          left: ic.x + adjustedMargin,
+          left: ic.x,
           width: ic.plotWidth,
           height: ic.plotHeight,
           y_margin: ic.yMargin
@@ -57,12 +57,12 @@ class Annotation {
           yPos: annot.y,
           sample_name: this.sampleName,
           top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-          left: oc.x + adjustedMargin,
+          left: oc.x,
           width: oc.plotWidth,
           height: oc.plotHeight,
           y_margin: oc.yMargin,
           num_chrom: oc.numChrom,
-          right_margin: oc.rightMargin + adjustedMargin,
+          right_margin: oc.rightMargin,
           row_height: oc.rowHeight,
         });
       }
@@ -135,7 +135,7 @@ class Annotation {
         sample_name: this.sampleName,
         overview: false,
         top: ic.y,
-        left: ic.x + adjustedMargin,
+        left: ic.x,
         width: ic.plotWidth,
         height: ic.plotHeight,
         y_margin: ic.yMargin
@@ -149,12 +149,12 @@ class Annotation {
         sample_name: this.sampleName,
         overview: true,
         top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-        left: oc.x + adjustedMargin,
+        left: oc.x,
         width: oc.plotWidth,
         height: oc.plotHeight,
         y_margin: oc.yMargin,
         num_chrom: oc.numChrom,
-        right_margin: oc.rightMargin + adjustedMargin,
+        right_margin: oc.rightMargin,
         row_height: oc.rowHeight
       });
     }

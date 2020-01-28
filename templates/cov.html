@@ -119,25 +119,20 @@
             ic.drawStaticContent(ic, baf, logr);
             ic.drawInteractiveContent(ic, baf, logr);
 
-            // Adjust canvas margins to compensate for extra hidden data
-            let adjustedMargin = Math.min(0, window.innerWidth - ic.width) / 2;
-            document.getElementById('visualization-container').style.marginLeft =
-                adjustedMargin + 'px';
-
             // Initiate and draw track canvas
             document.getElementById('track-container').style.marginLeft = ic.x + 'px';
-            let tc = new TrackCanvas(ic.x + adjustedMargin, ic.plotWidth, near, far);
+            let tc = new TrackCanvas(ic.x, ic.plotWidth, near, far);
             tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
-            let oc = new OverviewCanvas(ic.x, lineMargin, adjustedMargin, near, far);
+            let oc = new OverviewCanvas(ic.x, lineMargin, near, far);
             oc.drawOverviewContent(oc, baf, logr);
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
                         'visualization-container').clientHeight, sampleName);
-            ic.loadAnnotations(ac, ic, inputField.placeholder, adjustedMargin);
-            <!-- oc.loadAnnotations(ac, oc, adjustedMargin); -->
+            ic.loadAnnotations(ac, ic, inputField.placeholder);
+            <!-- oc.loadAnnotations(ac, oc); -->
 
             <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
                 <!-- event.preventDefault(); -->
@@ -183,7 +178,7 @@
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ic.redraw(ic, ac, baf, logr, adjustedMargin, inputField.value);
+                ic.redraw(ic, ac, baf, logr, inputField.value);
                 inputField.value = '';
             });
 
@@ -197,8 +192,6 @@
                         // Do not move interactive canvas if an annotation is present
                         if (!ac.intersectsAnnotation(event.pageX - ac.annotationCanvas.offsetLeft,
                                 event.pageY - ac.annotationCanvas.offsetTop, true)) {
-                            ic.moveImg = ic.contentCanvas.getContext('2d').getImageData(
-                            0, ic.y + 2, ic.width, ic.height);
                             if (!ic.disallowDrag) {
                                 dragStart = {
                                     x: event.pageX - ic.contentCanvas.offsetLeft,
@@ -268,10 +261,10 @@
                                 ic.contentCanvas.width, ic.contentCanvas.height);
 
                             // Copy draw image to content Canvas
-                            ic.contentCanvas.getContext('2d').putImageData(
-                                ic.moveImg,
-                                dragEnd.x - dragStart.x,
-                                ic.y + 2);
+                            ic.contentCanvas.getContext('2d').drawImage(ic.moveImg,
+                                ic.extraWidth - (dragEnd.x - dragStart.x), 0,
+                                ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight,
+                                ic.x, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight);
                         }
                         break;
                     case 3: // Right click
@@ -319,7 +312,7 @@
                             ic.end += moveDist;
                             ic.disallowDrag = true;
 
-                            ic.redraw(ic, ac, baf, logr, adjustedMargin, null);
+                            ic.redraw(ic, ac, baf, logr, null);
                         }
                         break;
                     case 3: // Right click
@@ -344,7 +337,7 @@
                                 dragStart.x : dragEnd.x;
                             let y_pos = dragEnd.y - dragStart.y >= 0 ?
                                 dragStart.y : dragEnd.y;
-                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.height);
+                            ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.canvasHeight);
                             ac.addAnnotation(x_pos, y_pos, width, height, '', ic, 'interactive');
                             ac.drawAnnotations();
                         }
@@ -380,8 +373,7 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, adjustedMargin,
-                            ic.chromosome + ':0-None');
+                            ic.redraw (ic, ac, baf, logr, ic.chromosome + ':0-None');
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph

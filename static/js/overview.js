@@ -1,5 +1,5 @@
 class OverviewCanvas {
-  constructor (xPos, lineMargin, adjustedMargin, near, far) {
+  constructor (xPos, lineMargin, near, far) {
     // Plot variables
     this.plotWidth = 120; // Width of one plot
     this.plotHeight = 100; // Height of one plot
@@ -12,10 +12,9 @@ class OverviewCanvas {
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.adjustedMargin = adjustedMargin;
 
     // Set canvas height
-    this.rightMargin = ($(document).innerWidth() - this.x - this.adjustedMargin - 10);
+    this.rightMargin = ($(document).innerWidth() - this.x - 10);
     this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.plotWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
     this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.plotHeight));
@@ -134,16 +133,16 @@ class OverviewCanvas {
     });
   }
 
-  loadAnnotations (ac, oc, adjustedMargin) {
+  loadAnnotations (ac, oc) {
     $.getJSON($SCRIPT_ROOT + '/_loadallannotations', {
       sample_name: ac.sampleName,
       num_chrom: oc.numChrom,
-      left: oc.x + adjustedMargin,
+      left: oc.x,
       top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
       width: oc.plotWidth,
       height: oc.plotHeight,
       row_height: oc.rowHeight,
-      right_margin: oc.rightMargin + adjustedMargin,
+      right_margin: oc.rightMargin,
       y_margin: oc.yMargin,
     }, function(result) {
       let annotations = result['annotations'];
@@ -159,11 +158,11 @@ class OverviewCanvas {
   insideGraph (x, y, callback) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       num_chrom: oc.numChrom,
-      x_pos: oc.x + adjustedMargin,
+      x_pos: oc.x,
       y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
       plot_width: oc.plotWidth,
       plot_height: oc.plotHeight,
-      right_margin: oc.rightMargin + adjustedMargin,
+      right_margin: oc.rightMargin,
       row_height: oc.rowHeight,
       margin: oc.xMargin,
       current_x: x,
