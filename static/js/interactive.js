@@ -120,7 +120,7 @@ class InteractiveCanvas {
       plot_height: ic.plotHeight,
       extra_plot_width: ic.extraWidth,
       y_margin: ic.yMargin,
-      x_ampl: ic.plotWidth - 2 * ic.xMargin,
+      x_ampl: ic.plotWidth,
       baf_y_start: baf.yStart,
       baf_y_end: baf.yEnd,
       logr_y_start: logr.yStart,
