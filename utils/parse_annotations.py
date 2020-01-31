@@ -16,28 +16,39 @@ class ParseAnnotations:
     '''
     def __init__(self, input_file, annot_type, file_name):
         self.input_file = input_file
-        self.collection = GENS_DB['annotations']
         self.file_name = file_name
+        self.annotations = []
         self.header = []
-        self.fields_to_save = ['sequence', 'start', 'end', 'name', 'strand',
-                               'color', 'score']
+        self.fields_to_save = ['sequence', 'start', 'end', 'name',
+                               'strand', 'color', 'score']
 
         if annot_type == 'aed':
             self.parse_aed()
         else:
             self.parse_bed()
 
+        # Bulk upload annotations to database
+        collection = GENS_DB['annotations']
+        collection.insert_many(self.annotations)
+
     def parse_bed(self):
         '''
         Parses a bed file
         '''
+        with open(self.input_file) as bed:
+            bed_reader = csv.reader(bed, delimiter='\t')
 
-    def parse_aed_header(self, header):
-        '''
-        Parses the aed header
-        '''
-        for head in header:
-            self.header.append(head.split(':')[1].split('(')[0])
+            # Set header since existing header is bad
+            self.header = ['sequence', 'start', 'end', 'name',
+                           'score', 'strand', 'nul', 'null',
+                           'color']
+
+            # Skip bad header info
+            next(bed_reader)
+
+            # Load in annotations
+            for line in bed_reader:
+                self.add_annotation(line)
 
     def parse_aed(self):
         '''
@@ -45,24 +56,28 @@ class ParseAnnotations:
         '''
         with open(self.input_file) as aed:
             aed_reader = csv.reader(aed, delimiter='\t')
-            self.parse_aed_header(next(aed_reader))
 
-            annotations = []
+            # Parse the aed header
+            for head in next(aed_reader):
+                self.header.append(head.split(':')[1].split('(')[0])
+
             for line in aed_reader:
                 # Skip extra header info
                 if any('(aed:' in l for l in line):
                     continue
 
-                # Add relevant fields for annotation
-                annotation = {}
-                for title, field in zip(self.header, line):
-                    if title in self.fields_to_save:
-                        annotation[title] = field
-                annotation['track_source'] = self.file_name
-                annotations.append(annotation)
+                self.add_annotation(line)
 
-            # Bulk upload annotations to database
-            self.collection.insert_many(annotations)
+    def add_annotation(self, line):
+        '''
+        Add relevant fields for an annotation
+        '''
+        annotation = {}
+        for title, field in zip(self.header, line):
+            if title in self.fields_to_save:
+                annotation[title] = field
+        annotation['track_source'] = self.file_name
+        self.annotations.append(annotation)
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description='Parse annotations from different file types')
