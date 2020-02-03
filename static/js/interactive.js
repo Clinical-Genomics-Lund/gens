@@ -10,7 +10,7 @@ class InteractiveCanvas {
     this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
     this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
     this.plotHeight = 180; // Height of one plot
-    this.x = 0.1 * $(document).innerWidth(); // X-position for first plot
+    this.x = $(document).innerWidth() / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
