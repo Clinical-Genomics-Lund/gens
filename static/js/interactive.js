@@ -147,7 +147,7 @@ class InteractiveCanvas {
 
       // Draw chromosome title
       drawText(ic.contentCanvas,
-        result['x_pos'] - ic.xMargin + ic.plotWidth / 2,
+        $(document).innerWidth() / 2,
         result['y_pos'] - ic.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
