@@ -257,14 +257,22 @@
                             }
 
                             // Clear whole content canvas
-                            ic.contentCanvas.getContext('2d').clearRect(0, ic.titleMargin / 2,
-                                ic.contentCanvas.width, ic.contentCanvas.height);
+                            ic.contentCanvas.getContext('2d').clearRect(0,
+                                ic.titleMargin / 2,
+                                ic.contentCanvas.width,
+                                ic.contentCanvas.height);
 
                             // Copy draw image to content Canvas
+                            let lineMargin = 2;
                             ic.contentCanvas.getContext('2d').drawImage(ic.moveImg,
-                                ic.extraWidth - (dragEnd.x - dragStart.x), 0,
-                                ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight,
-                                ic.x, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight);
+                                ic.extraWidth - (dragEnd.x - dragStart.x),
+                                ic.y + lineMargin,
+                                ic.plotWidth + 2 * ic.xMargin,
+                                ic.canvasHeight,
+                                ic.x,
+                                ic.y + lineMargin,
+                                ic.plotWidth + 2 * ic.xMargin,
+                                ic.canvasHeight);
                         }
                         break;
                     case 3: // Right click
@@ -299,7 +307,6 @@
                                 annotation[i].style.visibility = 'visible';
                             }
 
-                            ic.moveImg = null;
                             drag = false;
                             let scale = ic.plotWidth / (ic.end - ic.start);
                             let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
