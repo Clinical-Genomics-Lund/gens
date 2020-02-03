@@ -75,9 +75,21 @@ class ParseAnnotations:
         annotation = {}
         for title, field in zip(self.header, line):
             if title in self.fields_to_save:
-                annotation[title] = field
+                annotation[title] = format_field(title, field)
         annotation['track_source'] = self.file_name
         self.annotations.append(annotation)
+
+def format_field(title, field):
+    '''
+    Formats field depending on title
+    '''
+    if 'color' in title:
+        return field if 'rgb(' in field else 'rgb({})'.format(field)
+    if 'sequence' in title:
+        return field.strip('chr')
+    if 'start' in title or 'end' in title or 'score' in title:
+        return int(field)
+    return field
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description='Parse annotations from different file types')
