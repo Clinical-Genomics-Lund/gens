@@ -6,6 +6,7 @@ Parses files into mongo database
 import csv
 import argparse
 from pymongo import MongoClient
+from pymongo import ASCENDING
 
 CLIENT = MongoClient('10.0.224.63', 27017)
 GENS_DB = CLIENT['gens']
@@ -17,6 +18,7 @@ class ParseAnnotations:
     def __init__(self, input_file, annot_type, file_name):
         self.input_file = input_file
         self.file_name = file_name
+        self.collection = GENS_DB['annotations']
         self.annotations = []
         self.header = []
         self.fields_to_save = ['sequence', 'start', 'end', 'name',
@@ -28,8 +30,38 @@ class ParseAnnotations:
             self.parse_bed()
 
         # Bulk upload annotations to database
-        collection = GENS_DB['annotations']
-        collection.insert_many(self.annotations)
+        self.collection.insert_many(self.annotations)
+
+        # Update height order for annotations
+        self.update_height_order()
+
+    def update_height_order(self):
+        '''
+        Updates height order for annotations
+        Height order is used for annotation placement
+        '''
+        annotations = self.collection.find().sort([('start', ASCENDING)])
+
+        height_tracker = [0]
+        current_height = 1
+        for annot in annotations:
+            while True:
+                if int(annot['start']) > height_tracker[current_height - 1]:
+                    # Add as this height
+                    height_tracker[current_height - 1] = int(annot['end'])
+
+                    # Add height to DB
+                    self.collection.update(
+                        {'_id': annot['_id']},
+                        {'$set': {'height_order': current_height}}
+                    )
+
+                    # Reset height
+                    current_height = 1
+                    break
+                current_height += 1
+                if len(height_tracker) < current_height:
+                    height_tracker.append(0)
 
     def parse_bed(self):
         '''
