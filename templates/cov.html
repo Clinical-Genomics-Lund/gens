@@ -66,6 +66,7 @@
         <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
         <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
         <script src='{{ url_for('static', filename='js/track.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
         <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
 
@@ -125,8 +126,7 @@
             ic.drawInteractiveContent(ic, baf, logr);
 
             // Initiate and draw track canvas
-            document.getElementById('track-container').style.marginLeft = ic.x + 'px';
-            let tc = new TrackCanvas(ic.x, ic.plotWidth, near, far);
+            let tc = new Transcript(ic.x, ic.plotWidth, near, far);
             tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
