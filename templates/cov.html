@@ -112,8 +112,8 @@
 
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
-            ic.drawStaticContent(ic, baf, logr);
-            ic.drawInteractiveContent(ic, baf, logr);
+            ic.drawStaticContent(baf, logr);
+            ic.drawInteractiveContent(baf, logr);
 
             // Initiate and draw track canvas
             document.getElementById('track-container').style.marginLeft = ic.x + 'px';
@@ -122,13 +122,13 @@
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far);
-            oc.drawOverviewContent(oc, baf, logr);
+            oc.drawOverviewContent(baf, logr);
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
                         'visualization-container').clientHeight, sampleName);
-            ic.loadAnnotations(ac, ic, inputField.placeholder);
-            <!-- oc.loadAnnotations(ac, oc); -->
+            ic.loadAnnotations(ac, inputField.placeholder);
+            <!-- oc.loadAnnotations(ac); -->
 
             <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
                 <!-- event.preventDefault(); -->
@@ -174,7 +174,7 @@
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ic.redraw(ic, ac, baf, logr, inputField.value);
+                ic.redraw(ac, baf, logr, inputField.value);
                 inputField.value = '';
             });
 
@@ -315,7 +315,7 @@
                             ic.end += moveDist;
                             ic.disallowDrag = true;
 
-                            ic.redraw(ic, ac, baf, logr, null);
+                            ic.redraw(ac, baf, logr, null);
                         }
                         break;
                     case 3: // Right click
@@ -376,7 +376,7 @@
                         if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             // Display new chromosome
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, ic.chromosome + ':0-None');
+                            ic.redraw (ac, baf, logr, ic.chromosome + ':0-None');
                         }
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph

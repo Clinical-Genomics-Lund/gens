@@ -43,35 +43,35 @@ class OverviewCanvas {
     let _this = this;
   }
 
-  drawOverviewContent (oc, baf, logr) {
+  drawOverviewContent (baf, logr) {
     let drawnChrom = 0; // Amount of async drawn chromosomes
 
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      num_chrom: oc.numChrom,
-      x_pos: oc.x,
-      y_pos: oc.y + oc.rowMargin,
-      plot_width: oc.plotWidth,
-      plot_height: 2 * oc.plotHeight,
-      right_margin: oc.rightMargin,
-      row_height: oc.rowHeight,
-    }).done(function (result) {
+      num_chrom: this.numChrom,
+      x_pos: this.x,
+      y_pos: this.y + this.rowMargin,
+      plot_width: this.plotWidth,
+      plot_height: 2 * this.plotHeight,
+      right_margin: this.rightMargin,
+      row_height: this.rowHeight,
+    }).done( (result) => {
       let dims = result['chrom_dims'];
       for (let chrom = 1; chrom <= dims.length &&
-        chrom <= oc.numChrom; chrom++) {
+        chrom <= this.numChrom; chrom++) {
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
           sample_name: sampleName,
-          xpos: dims[chrom - 1]['x_pos'] + oc.xMargin,
+          xpos: dims[chrom - 1]['x_pos'] + this.xMargin,
           ypos: dims[chrom - 1]['y_pos'],
-          plot_height: oc.plotHeight,
-          y_margin: oc.yMargin,
-          x_ampl: dims[chrom - 1]['width'] - 2 * oc.xMargin,
+          plot_height: this.plotHeight,
+          y_margin: this.yMargin,
+          x_ampl: dims[chrom - 1]['width'] - 2 * this.xMargin,
           baf_y_start: baf.yStart,
           baf_y_end: baf.yEnd,
           logr_y_start: logr.yStart,
           logr_y_end: logr.yEnd
-        }, function (result) {
+        }, (result) => {
           let staticCanvas = document.getElementById('overview-static');
           let chrom = result['chrom']
           if (chrom == 'X') chrom = 23;
@@ -81,41 +81,41 @@ class OverviewCanvas {
 
           // Draw chromosome title
           drawText(staticCanvas,
-            result['x_pos'] - oc.xMargin + width / 2,
-            result['y_pos'] - oc.titleMargin,
+            result['x_pos'] - this.xMargin + width / 2,
+            result['y_pos'] - this.titleMargin,
             result['chrom'], 10, 'center');
 
           // Draw BAF
-          createGraph(oc.scene, staticCanvas,
-            result['x_pos'] - oc.xMargin,
-            result['y_pos'], width, oc.plotHeight, oc.yMargin,
+          createGraph(this.scene, staticCanvas,
+            result['x_pos'] - this.xMargin,
+            result['y_pos'], width, this.plotHeight, this.yMargin,
             baf.yStart, baf.yEnd, baf.step,
-            result['x_pos'] < oc.leftmostPoint);
-          drawGraphLines(oc.scene, result['x_pos'], result['y_pos'],
-            baf.yStart, baf.yEnd, baf.step, oc.yMargin,
-            width, oc.plotHeight);
+            result['x_pos'] < this.leftmostPoint);
+          drawGraphLines(this.scene, result['x_pos'], result['y_pos'],
+            baf.yStart, baf.yEnd, baf.step, this.yMargin,
+            width, this.plotHeight);
 
           // Draw LogR
-          createGraph(oc.scene, staticCanvas,
-            result['x_pos'] - oc.xMargin,
-            result['y_pos'] + oc.plotHeight, width,
-            oc.plotHeight, oc.yMargin, logr.yStart,
+          createGraph(this.scene, staticCanvas,
+            result['x_pos'] - this.xMargin,
+            result['y_pos'] + this.plotHeight, width,
+            this.plotHeight, this.yMargin, logr.yStart,
             logr.yEnd, logr.step,
-            result['x_pos'] < oc.leftmostPoint);
-          drawGraphLines(oc.scene, result['x_pos'],
-            result['y_pos'] + oc.plotHeight, logr.yStart,
-            logr.yEnd, logr.step, oc.yMargin,
-            width, oc.plotHeight);
+            result['x_pos'] < this.leftmostPoint);
+          drawGraphLines(this.scene, result['x_pos'],
+            result['y_pos'] + this.plotHeight, logr.yStart,
+            logr.yEnd, logr.step, this.yMargin,
+            width, this.plotHeight);
 
           // Plot scatter data
-          drawData(oc.scene, result['baf'], baf.color);
-          drawData(oc.scene, result['data'], logr.color);
-        }).done(function (result) {
-          if (++drawnChrom === oc.numChrom) {
+          drawData(this.scene, result['baf'], baf.color);
+          drawData(this.scene, result['data'], logr.color);
+        }).done( (result) =>  {
+          if (++drawnChrom === this.numChrom) {
             // Render scene and transfer to visible canvas
-            oc.renderer.render(oc.scene, oc.camera);
-            oc.staticCanvas.getContext('2d').drawImage(
-              oc.contentCanvas.transferToImageBitmap(), 0, 0);
+            this.renderer.render(this.scene, this.camera);
+            this.staticCanvas.getContext('2d').drawImage(
+              this.contentCanvas.transferToImageBitmap(), 0, 0);
             document.getElementById('progress-bar').remove();
             document.getElementById('progress-container').remove();
             document.getElementById('grid-container').style.visibility =
@@ -123,9 +123,9 @@ class OverviewCanvas {
             document.getElementById('grid-container').style.display = 'grid';
           } else {
             document.getElementById('progress-bar').value =
-                drawnChrom / oc.numChrom;
+                drawnChrom / this.numChrom;
           }
-        }).fail(function (result) {
+        }).fail( (result) => {
           console.log(result['responseText']);
           drawnChrom++;
         });
@@ -133,22 +133,22 @@ class OverviewCanvas {
     });
   }
 
-  loadAnnotations (ac, oc) {
+  loadAnnotations (ac) {
     $.getJSON($SCRIPT_ROOT + '/_loadallannotations', {
       sample_name: ac.sampleName,
-      num_chrom: oc.numChrom,
-      left: oc.x,
-      top: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-      width: oc.plotWidth,
-      height: oc.plotHeight,
-      row_height: oc.rowHeight,
-      right_margin: oc.rightMargin,
-      y_margin: oc.yMargin,
-    }, function(result) {
+      num_chrom: this.numChrom,
+      left: this.x,
+      top: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
+      width: this.plotWidth,
+      height: this.plotHeight,
+      row_height: this.rowHeight,
+      right_margin: this.rightMargin,
+      y_margin: this.yMargin,
+    }, (result) => {
       let annotations = result['annotations'];
       ac.ctx.clearRect(0, 0, 0, ac.annotationCanvas.width);
       for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], oc, 'overview');
+        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], this, 'overview');
       }
       ac.drawAnnotations();
     });
@@ -157,21 +157,21 @@ class OverviewCanvas {
   // Check if coordinates is inside the graph
   insideGraph (x, y, callback) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      num_chrom: oc.numChrom,
-      x_pos: oc.x,
-      y_pos: oc.y + oc.staticCanvas.offsetTop - ac.yOffset + oc.rowMargin,
-      plot_width: oc.plotWidth,
-      plot_height: oc.plotHeight,
-      right_margin: oc.rightMargin,
-      row_height: oc.rowHeight,
-      margin: oc.xMargin,
+      num_chrom: this.numChrom,
+      x_pos: this.x,
+      y_pos: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
+      plot_width: this.plotWidth,
+      plot_height: this.plotHeight,
+      right_margin: this.rightMargin,
+      row_height: this.rowHeight,
+      margin: this.xMargin,
       current_x: x,
       current_y: y,
-    }).done(function (result) {
+    }).done( (result) => {
       if (result['current_chrom'] == null) {
         return false;
       } else {
-        return callback(x, y, '', oc, 'overview');
+        return callback(x, y, '', this, 'overview');
       }
     });
   }

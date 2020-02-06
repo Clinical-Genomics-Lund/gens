@@ -50,129 +50,129 @@ class InteractiveCanvas {
     this.camera.position.z = 1;
   }
 
-  loadAnnotations (ac, ic, region) {
+  loadAnnotations (ac, region) {
     $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
       sample_name: ac.sampleName,
       region: region,
-      top: ic.y,
-      left: ic.x,
-      width: ic.plotWidth,
-      height: ic.plotHeight,
+      top: this.y,
+      left: this.x,
+      width: this.plotWidth,
+      height: this.plotHeight,
       logr_height: Math.abs(logr.yStart - logr.yEnd),
       baf_height: Math.abs(baf.yStart - baf.yEnd),
-      y_margin: ic.yMargin
-    }, function(result) {
+      y_margin: this.yMargin
+    }, (result) => {
       let annotations = result['annotations'];
-      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, ic.canvasHeight);
+      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, this.canvasHeight);
       for (let i = 0; i < annotations.length; i++) {
         ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
           annotations[i]['width'], annotations[i]['height'],
-          annotations[i]['text'], ic, 'interactive');
+          annotations[i]['text'], this, 'interactive');
       }
       ac.drawAnnotations();
     });
   }
 
   // Draw static content for interactive canvas
-  drawStaticContent (ic, baf, logr) {
+  drawStaticContent (baf, logr) {
     let linePadding = 2;
-    let staticContext = ic.staticCanvas.getContext('2d');
+    let staticContext = this.staticCanvas.getContext('2d');
     // Fill background colour
     staticContext.fillStyle = 'white';
-    staticContext.fillRect(0, 0, ic.staticCanvas.width, ic.staticCanvas.height);
+    staticContext.fillRect(0, 0, this.staticCanvas.width, this.staticCanvas.height);
 
     // Make content area visible
-    staticContext.clearRect(ic.x + linePadding, ic.y + linePadding,
-      ic.plotWidth, ic.staticCanvas.height);
-    staticContext.clearRect(0, 0, ic.staticCanvas.width, ic.y + linePadding);
+    staticContext.clearRect(this.x + linePadding, this.y + linePadding,
+      this.plotWidth, this.staticCanvas.height);
+    staticContext.clearRect(0, 0, this.staticCanvas.width, this.y + linePadding);
 
     // Draw rotated y-axis legends
     staticContext.fillStyle = 'black';
-    drawRotatedText(ic.staticCanvas, 'B Allele Freq', 18, ic.x - ic.legendMargin,
-      ic.y + ic.plotHeight / 2, -Math.PI / 2);
-    drawRotatedText(ic.staticCanvas, 'Log R Ratio', 18, ic.x - ic.legendMargin,
-      ic.y + 1.5 * ic.plotHeight, -Math.PI / 2);
+    drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, this.x - this.legendMargin,
+      this.y + this.plotHeight / 2, -Math.PI / 2);
+    drawRotatedText(this.staticCanvas, 'Log R Ratio', 18, this.x - this.legendMargin,
+      this.y + 1.5 * this.plotHeight, -Math.PI / 2);
 
     // Draw BAF
-    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y, ic.plotWidth, ic.plotHeight,
-      ic.yMargin, baf.yStart, baf.yEnd, baf.step, true);
+    createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth, this.plotHeight,
+      this.yMargin, baf.yStart, baf.yEnd, baf.step, true);
 
     // Draw LogR
-    createGraph(ic.scene, ic.staticCanvas, ic.x, ic.y + ic.plotHeight, ic.plotWidth,
-      ic.plotHeight, ic.yMargin, logr.yStart, logr.yEnd, logr.step, true);
+    createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight, this.plotWidth,
+      this.plotHeight, this.yMargin, logr.yStart, logr.yEnd, logr.step, true);
 
-    ic.renderer.render(ic.scene, ic.camera);
+    this.renderer.render(this.scene, this.camera);
 
     // Transfer image to visible canvas
-    staticContext.drawImage(ic.drawCanvas.transferToImageBitmap(), 0, 0);
+    staticContext.drawImage(this.drawCanvas.transferToImageBitmap(), 0, 0);
 
     // Clear scene for next render
-    ic.scene.remove.apply(ic.scene, ic.scene.children);
+    this.scene.remove.apply(this.scene, this.scene.children);
   }
 
   // Draw values for interactive canvas
-  drawInteractiveContent (ic, baf, logr) {
+  drawInteractiveContent (baf, logr) {
     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
       region: document.getElementById('region_field').placeholder,
       sample_name: sampleName,
-      xpos: ic.extraWidth,
-      ypos: ic.y,
-      plot_height: ic.plotHeight,
-      extra_plot_width: ic.extraWidth,
-      y_margin: ic.yMargin,
-      x_ampl: ic.plotWidth,
+      xpos: this.extraWidth,
+      ypos: this.y,
+      plot_height: this.plotHeight,
+      extra_plot_width: this.extraWidth,
+      y_margin: this.yMargin,
+      x_ampl: this.plotWidth,
       baf_y_start: baf.yStart,
       baf_y_end: baf.yEnd,
       logr_y_start: logr.yStart,
       logr_y_end: logr.yEnd
-    }, function (result) {
+    }, (result) => {
       // Clear canvas
-      ic.contentCanvas.getContext('2d').clearRect(0, 0,
-        ic.contentCanvas.width, ic.contentCanvas.height);
+      this.contentCanvas.getContext('2d').clearRect(0, 0,
+        this.contentCanvas.width, this.contentCanvas.height);
 
       // Draw ticks for x-axis
-      drawVerticalTicks(ic.scene, ic.contentCanvas, ic.extraWidth, ic.x, ic.y,
-        result['start'], result['end'], ic.plotWidth, ic.yMargin);
+      drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x, this.y,
+        result['start'], result['end'], this.plotWidth, this.yMargin);
 
       // Draw horizontal lines for BAF and LogR
-      drawGraphLines(ic.scene, 0, result['y_pos'],
-        baf.yStart, baf.yEnd, baf.step, ic.yMargin, ic.drawWidth, ic.plotHeight);
-      drawGraphLines(ic.scene, 0, result['y_pos'] + ic.plotHeight,
-        logr.yStart, logr.yEnd, logr.step, ic.yMargin, ic.drawWidth, ic.plotHeight);
+      drawGraphLines(this.scene, 0, result['y_pos'],
+        baf.yStart, baf.yEnd, baf.step, this.yMargin, this.drawWidth, this.plotHeight);
+      drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
+        logr.yStart, logr.yEnd, logr.step, this.yMargin, this.drawWidth, this.plotHeight);
 
       // Plot scatter data
-      drawData(ic.scene, result['baf'], baf.color);
-      drawData(ic.scene, result['data'], logr.color);
-      ic.renderer.render(ic.scene, ic.camera);
+      drawData(this.scene, result['baf'], baf.color);
+      drawData(this.scene, result['data'], logr.color);
+      this.renderer.render(this.scene, this.camera);
 
       // Draw chromosome title
-      drawText(ic.contentCanvas,
+      drawText(this.contentCanvas,
         $(document).innerWidth() / 2,
-        result['y_pos'] - ic.titleMargin,
+        result['y_pos'] - this.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
-      ic.moveImg = ic.drawCanvas.transferToImageBitmap();
+      this.moveImg = this.drawCanvas.transferToImageBitmap();
 
       // Transfer image to visible canvas
-      ic.contentCanvas.getContext('2d').drawImage(ic.moveImg,
-        ic.extraWidth, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight,
-        ic.x, 0, ic.plotWidth + 2 * ic.xMargin, ic.canvasHeight);
+      this.contentCanvas.getContext('2d').drawImage(this.moveImg,
+        this.extraWidth, 0, this.plotWidth + 2 * this.xMargin, this.canvasHeight,
+        this.x, 0, this.plotWidth + 2 * this.xMargin, this.canvasHeight);
 
       // Clear scene before drawing
-      ic.scene.remove.apply(ic.scene, ic.scene.children);
+      this.scene.remove.apply(this.scene, this.scene.children);
 
       // Set values
-      ic.chromosome = result['chrom'];
-      ic.start = result['start'];
-      ic.end = result['end'];
-      ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
-    }).done(function () {
-      ic.disallowDraw = false;
-      ic.inputField.blur();
-    }).fail(function (result) {
+      this.chromosome = result['chrom'];
+      this.start = result['start'];
+      this.end = result['end'];
+      this.inputField.placeholder = this.chromosome + ':' + this.start + '-' + this.end;
+    }).done(() => {
+      this.disallowDraw = false;
+      this.inputField.blur();
+    }).fail((result) => {
       console.log('Bad input');
-      ic.inputField.placeholder = 'Bad input: ' + ic.inputField.placeholder;
-      ic.inputField.value = '';
+      this.inputField.placeholder = 'Bad input: ' + this.inputField.placeholder;
+      this.inputField.value = '';
     });
   }
 
@@ -187,29 +187,29 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (ic, ac, baf, logr, inputValue) {
-    if (ic.disallowDraw) {
+  redraw (ac, baf, logr, inputValue) {
+    if (this.disallowDraw) {
       return;
     }
-    ic.disallowDrag = false;
-    ic.disallowDraw = true;
+    this.disallowDrag = false;
+    this.disallowDraw = true;
 
     ac.saveAnnotations();
 
     // Clear annotations and tracks
-    ac.clearAnnotations(ic.canvasHeight);
+    ac.clearAnnotations(this.canvasHeight);
     tc.clearTracks();
 
     // Set input field
     if (inputValue) {
-      ic.inputField.placeholder = inputValue;
+      this.inputField.placeholder = inputValue;
     } else {
-      ic.inputField.placeholder = ic.chromosome + ':' + ic.start + '-' + ic.end;
+      this.inputField.placeholder = this.chromosome + ':' + this.start + '-' + this.end;
     }
 
-    ic.drawInteractiveContent(ic, baf, logr);
-    ic.loadAnnotations(ac, ic, ic.inputField.placeholder);
+    this.drawInteractiveContent(baf, logr);
+    this.loadAnnotations(ac, this.inputField.placeholder);
     ac.drawAnnotations();
-    tc.drawTracks(ic.inputField.placeholder);
+    tc.drawTracks(this.inputField.placeholder);
   }
 }
