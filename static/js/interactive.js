@@ -55,6 +55,7 @@ class InteractiveCanvas {
   loadAnnotations (ac, region) {
     $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
       sample_name: ac.sampleName,
+      hg_type: this.hgType,
       region: region,
       top: this.y,
       left: this.x,

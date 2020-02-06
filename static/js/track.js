@@ -1,5 +1,7 @@
 class TrackCanvas {
-  constructor (x, width, near, far) {
+  constructor (x, width, near, far, hgType) {
+    this.hgType = hgType;
+
     // Track variables
     this.featureHeight = 20; // Max height for feature
     this.featureMargin = 14; // Margin for fitting gene name under track
@@ -101,6 +103,7 @@ class TrackCanvas {
     $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
       region: region,
       width: this.trackCanvas.width,
+      hg_type: this.hgType,
     }, function(result) {
       const scale = tc.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;

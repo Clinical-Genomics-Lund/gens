@@ -51,6 +51,7 @@ class OverviewCanvas {
 
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       num_chrom: this.numChrom,
+      hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y + this.rowMargin,
       plot_width: this.plotWidth,
@@ -162,6 +163,7 @@ class OverviewCanvas {
   insideGraph (x, y, callback) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       num_chrom: this.numChrom,
+      hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
       plot_width: this.plotWidth,

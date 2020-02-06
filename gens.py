@@ -284,6 +284,7 @@ def save_interactive_annotation():
     width = float(request.args.get('width', 1))
     height = float(request.args.get('height', 1))
     y_margin = float(request.args.get('y_margin', 1))
+    # TODO: add hg-type as input
 
     if sample_name is None or region is None:
         return abort(404)
@@ -338,6 +339,7 @@ def remove_annotation():
     y_margin = float(request.args.get('y_margin', 1))
     start = float(request.args.get('start', 1))
     end = float(request.args.get('end', 1))
+    # TODO: add hg_type as input
 
     # Overview variables
     num_chrom = int(request.args.get('num_chrom', -1))
@@ -542,7 +544,8 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
     Calculates the position for each chromosome in the overview canvas
     '''
 
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
 
     first_x_pos = x_pos
     chrom_dims = []
@@ -572,7 +575,8 @@ def get_track_data():
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
-    collection = GENS_DB['tracks']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['tracks' + hg_type]
 
     # Get tracks within span [start_pos, end_pos]
     tracks = collection.find({'seqname': str(chrom),
@@ -603,7 +607,8 @@ def get_chrom_width(chrom, full_width):
     '''
     Calculates overview width of chromosome
     '''
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
 
     if chrom_data:
@@ -629,7 +634,8 @@ def parse_region_str(region):
     chrom.replace('chr', '')
 
     # Get end position
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
 
     if end == 'None':
