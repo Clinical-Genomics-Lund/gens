@@ -43,11 +43,9 @@ def coverage_view(sample_name):
         print('LogR file not found')
         abort(404)
 
-    region = request.form.get('region', '1:100000-200000')
-
-    call_chrom = 1
-    call_start = 1011000
-    call_end = 1015000
+    region = request.args.get('region', None)
+    if not region:
+        region = request.form.get('region', '1:100000-200000')
 
     parsed_region = parse_region_str(region)
     if not parsed_region:
@@ -56,8 +54,7 @@ def coverage_view(sample_name):
     _, chrom, start_pos, end_pos = parsed_region
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
-                           call_chrom=call_chrom, call_start=call_start,
-                           call_end=call_end, sample_name=sample_name)
+                           sample_name=sample_name)
 
 # Set graph-specific values
 def set_graph_values(plot_height, ypos, y_margin):

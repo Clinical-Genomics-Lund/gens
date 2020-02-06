@@ -69,10 +69,6 @@
             // FLASK VALUES //
             let sampleName = '{{ sample_name }}';
 
-            let callChrom = '{{ call_chrom }}';
-            let callStart = {{ call_start }};
-            let callEnd   = {{ call_end }};
-
             // WEBGL VALUES //
             let near = 0.1;
             let far = 100;
@@ -83,6 +79,9 @@
             let dragStart;
             let dragEnd;
             let inputField = document.getElementById('region_field');
+
+            // Set first input field value for ic
+            inputField.placeholder = {{chrom}} + ':' + {{start}} + '-' + {{end}};
 
             // BAF values
             let baf = {
@@ -110,9 +109,6 @@
             window.onresize = (event) => {
                 window.location.reload(false);
             };
-
-            // Set first input field value for ic
-            inputField.placeholder = '1:100000-200000';
 
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
