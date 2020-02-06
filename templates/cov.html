@@ -68,6 +68,7 @@
 
             // FLASK VALUES //
             let sampleName = '{{ sample_name }}';
+            let hgType = {{hg_type}}
 
             // WEBGL VALUES //
             let near = 0.1;
@@ -111,7 +112,8 @@
             };
 
             // Initiate and draw interactive canvas
-            let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
+            let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
+                sampleName, hgType);
             ic.drawStaticContent(baf, logr);
             ic.drawInteractiveContent(baf, logr);
 
@@ -121,7 +123,8 @@
             tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
-            let oc = new OverviewCanvas(ic.x, lineMargin, near, far);
+            let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
+                sampleName, hgType);
             oc.drawOverviewContent(baf, logr);
 
             // Initiate annotation canvas

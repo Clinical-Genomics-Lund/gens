@@ -22,7 +22,8 @@ REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
-FILE_DIR = "/access/wgs/plotdata/"
+FILE_DIR_HG37 = "/access/wgs/plotdata/"
+FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
@@ -35,11 +36,15 @@ def coverage_view(sample_name):
     if not sample_name:
         print('No sample requested')
         abort(404)
+
+    # Set whether to get HG37 och HG38 files
+    hg_filedir, hg_type = get_hg_type()
+
     # Check that BAF and LogR file exists
-    if not path.exists(FILE_DIR + sample_name + BAF_END):
+    if not path.exists(hg_filedir + sample_name + BAF_END):
         print('BAF file not found')
         abort(404)
-    if not path.exists(FILE_DIR + sample_name + COV_END):
+    if not path.exists(hg_filedir + sample_name + COV_END):
         print('LogR file not found')
         abort(404)
 
@@ -54,7 +59,17 @@ def coverage_view(sample_name):
     _, chrom, start_pos, end_pos = parsed_region
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
-                           sample_name=sample_name)
+                           sample_name=sample_name, hg_type=hg_type)
+
+def get_hg_type():
+    '''
+    Returns whether to fetch files of type HG37 or HG38
+    HG38 is default
+    '''
+    hg_type = request.args.get('hg_type', None)
+    if hg_type == '38' or hg_type is None:
+        return FILE_DIR_HG38, '38'
+    return FILE_DIR_HG37, hg_type
 
 # Set graph-specific values
 def set_graph_values(plot_height, ypos, y_margin):
@@ -102,11 +117,14 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
     sample_name = request.args.get('sample_name', None)
 
+    # Set whether to get HG37 och HG38 files
+    hg_filedir, _ = get_hg_type()
+
     # Fetch data with the defined range
-    logr_list = list(tabix_query(FILE_DIR + sample_name + COV_END,
+    logr_list = list(tabix_query(hg_filedir + sample_name + COV_END,
                                  reg.res + '_' + reg.chrom,
                                  new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(FILE_DIR + sample_name + BAF_END,
+    baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
                                 reg.res + '_' + reg.chrom,
                                 new_start_pos, new_end_pos))
 

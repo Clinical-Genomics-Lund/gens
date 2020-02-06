@@ -1,5 +1,8 @@
 class OverviewCanvas {
-  constructor (xPos, lineMargin, near, far) {
+  constructor (xPos, lineMargin, near, far, sampleName, hgType) {
+    this.sampleName = sampleName; // File name to load data from
+    this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
+
     // Plot variables
     this.plotWidth = 120; // Width of one plot
     this.plotHeight = 100; // Height of one plot
@@ -61,7 +64,8 @@ class OverviewCanvas {
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
-          sample_name: sampleName,
+          sample_name: this.sampleName,
+          hg_type: this.hgType,
           xpos: dims[chrom - 1]['x_pos'] + this.xMargin,
           ypos: dims[chrom - 1]['y_pos'],
           plot_height: this.plotHeight,
@@ -135,7 +139,7 @@ class OverviewCanvas {
 
   loadAnnotations (ac) {
     $.getJSON($SCRIPT_ROOT + '/_loadallannotations', {
-      sample_name: ac.sampleName,
+      sample_name: this.sampleName,
       num_chrom: this.numChrom,
       left: this.x,
       top: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
