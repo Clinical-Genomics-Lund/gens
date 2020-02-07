@@ -56,7 +56,7 @@ class TrackCanvas {
         // Toggle between expanded/collapsed view
         tc.expanded = !tc.expanded;
         tc.clearTracks();
-        tc.drawTracks(inputField.placeholder);
+        tc.drawTracks(inputField.value);
       }, false);
   }
 

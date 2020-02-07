@@ -58,6 +58,12 @@ def coverage_view(sample_name):
 
     _, chrom, start_pos, end_pos = parsed_region
 
+    # Handle X and Y chromosome input
+    if chrom == '23':
+        chrom = 'X'
+    elif chrom == '24':
+        chrom = 'Y'
+
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
                            sample_name=sample_name, hg_type=hg_type)
 
@@ -618,7 +624,6 @@ def get_chrom_width(chrom, full_width):
 
     if chrom_data:
         chrom_width = full_width * float(chrom_data['scale'])
-
         return chrom_width
 
     print('Chromosome width not available')
@@ -634,10 +639,10 @@ def parse_region_str(region):
             start, end = pos_range.split('-')
         else:
             chrom, start, end = region.split()
+        chrom.replace('chr', '')
     except ValueError:
         print('Wrong region formatting')
         return None
-    chrom.replace('chr', '')
 
     # Represent x and y as 23 respectively 24
     if 'x' in chrom.lower():
@@ -660,6 +665,10 @@ def parse_region_str(region):
     start = int(start)
     end = int(end)
     size = end - start
+
+    if size <= 0:
+        print('Invalid input span')
+        return None
 
     # Do not go beyond end position
     if end > chrom_data['size']:

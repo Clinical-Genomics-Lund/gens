@@ -82,7 +82,8 @@
             let inputField = document.getElementById('region_field');
 
             // Set first input field value for ic
-            inputField.placeholder = {{chrom}} + ':' + {{start}} + '-' + {{end}};
+            inputField.value = '{{chrom}}' + ':' + {{start}} + '-' + {{end}};
+            inputField.placeholder = inputField.value;
 
             // BAF values
             let baf = {
@@ -120,7 +121,7 @@
             // Initiate and draw track canvas
             document.getElementById('track-container').style.marginLeft = ic.x + 'px';
             let tc = new TrackCanvas(ic.x, ic.plotWidth, near, far, hgType);
-            tc.drawTracks(inputField.placeholder);
+            tc.drawTracks(inputField.value);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
@@ -130,7 +131,7 @@
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
                         'visualization-container').clientHeight, sampleName);
-            ic.loadAnnotations(ac, inputField.placeholder);
+            ic.loadAnnotations(ac, inputField.value);
             <!-- oc.loadAnnotations(ac); -->
 
             <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
@@ -178,7 +179,6 @@
                 function (event) {
                 event.preventDefault();
                 ic.redraw(ac, baf, logr, inputField.value);
-                inputField.value = '';
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {

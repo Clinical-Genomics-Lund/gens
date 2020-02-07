@@ -53,6 +53,12 @@ html, body {
     display: inline;
 }
 
+#region_field.error:disabled {
+    outline: 1px dotted red;
+    outline: 5px auto red;
+    background-color: white;
+}
+
 #interactive-container {
     display: grid;
     grid-row: 1;

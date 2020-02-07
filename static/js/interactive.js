@@ -29,7 +29,7 @@ class InteractiveCanvas {
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
     // Data values
-    let input = inputField.placeholder.split(/:|-/);
+    const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
     this.start = input[1];
     this.end = input[2];
@@ -116,7 +116,7 @@ class InteractiveCanvas {
   // Draw values for interactive canvas
   drawInteractiveContent (baf, logr) {
     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
-      region: document.getElementById('region_field').placeholder,
+      region: this.inputField.value,
       sample_name: this.sampleName,
       hg_type: this.hgType,
       xpos: this.extraWidth,
@@ -164,19 +164,30 @@ class InteractiveCanvas {
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
-
+    }).done((result) => {
       // Set values
       this.chromosome = result['chrom'];
       this.start = result['start'];
       this.end = result['end'];
-      this.inputField.placeholder = this.chromosome + ':' + this.start + '-' + this.end;
-    }).done(() => {
+      this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
+      this.inputField.placeholder = this.inputField.value;
       this.disallowDraw = false;
       this.inputField.blur();
+      return true;
     }).fail((result) => {
-      console.log('Bad input');
-      this.inputField.placeholder = 'Bad input: ' + this.inputField.placeholder;
-      this.inputField.value = '';
+      this.disallowDraw = false;
+
+      // Signal bad input by adding error class
+      this.inputField.classList.add('error');
+      this.inputField.disabled = true;
+
+      // Remove error class after a while
+      setTimeout( () => {
+        this.inputField.classList.remove('error');
+        this.inputField.value = this.inputField.placeholder;
+        this.inputField.disabled = false;
+      }, 1500);
+      return false;
     });
   }
 
@@ -200,20 +211,23 @@ class InteractiveCanvas {
 
     ac.saveAnnotations();
 
-    // Clear annotations and tracks
-    ac.clearAnnotations(this.canvasHeight);
-    tc.clearTracks();
-
     // Set input field
     if (inputValue) {
-      this.inputField.placeholder = inputValue;
+      this.inputField.value = inputValue;
     } else {
-      this.inputField.placeholder = this.chromosome + ':' + this.start + '-' + this.end;
+      this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
     }
 
-    this.drawInteractiveContent(baf, logr);
-    this.loadAnnotations(ac, this.inputField.placeholder);
-    ac.drawAnnotations();
-    tc.drawTracks(this.inputField.placeholder);
+    let success = this.drawInteractiveContent(baf, logr);
+    if (success) {
+      // Clear annotations and tracks
+      ac.clearAnnotations(this.canvasHeight);
+      tc.clearTracks();
+
+      // Draw new annotations and tracks
+      this.loadAnnotations(ac, this.inputField.value);
+      ac.drawAnnotations();
+      tc.drawTracks(this.inputField.value);
+    }
   }
 }
