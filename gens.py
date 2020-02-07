@@ -589,6 +589,12 @@ def get_track_data():
     _, hg_type = get_hg_type()
     collection = GENS_DB['tracks' + hg_type]
 
+    # Handle X and Y chromosome input
+    if chrom == '23':
+        chrom = 'X'
+    elif chrom == '24':
+        chrom = 'Y'
+
     # Get tracks within span [start_pos, end_pos]
     tracks = collection.find({'seqname': str(chrom),
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},

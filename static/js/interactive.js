@@ -173,7 +173,6 @@ class InteractiveCanvas {
       this.inputField.placeholder = this.inputField.value;
       this.disallowDraw = false;
       this.inputField.blur();
-      return true;
     }).fail((result) => {
       this.disallowDraw = false;
 
@@ -187,7 +186,6 @@ class InteractiveCanvas {
         this.inputField.value = this.inputField.placeholder;
         this.inputField.disabled = false;
       }, 1500);
-      return false;
     });
   }
 
@@ -218,16 +216,15 @@ class InteractiveCanvas {
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
     }
 
-    let success = this.drawInteractiveContent(baf, logr);
-    if (success) {
-      // Clear annotations and tracks
-      ac.clearAnnotations(this.canvasHeight);
-      tc.clearTracks();
+    this.drawInteractiveContent(baf, logr);
 
-      // Draw new annotations and tracks
-      this.loadAnnotations(ac, this.inputField.value);
-      ac.drawAnnotations();
-      tc.drawTracks(this.inputField.value);
-    }
+    // Clear annotations and tracks
+    ac.clearAnnotations(this.canvasHeight);
+    tc.clearTracks();
+
+    // Draw new annotations and tracks
+    this.loadAnnotations(ac, this.inputField.value);
+    ac.drawAnnotations();
+    tc.drawTracks(this.inputField.value);
   }
 }
