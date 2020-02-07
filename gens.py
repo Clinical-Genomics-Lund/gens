@@ -552,6 +552,11 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
     for chrom in range(1, num_chrom + 1):
         chrom_width = get_chrom_width(chrom, plot_width)
         chrom_data = collection.find_one({'chrom': str(chrom)})
+
+        if chrom_data is None:
+            print('Could not find chromosome data in DB')
+            return None
+
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})
 
@@ -630,13 +635,24 @@ def parse_region_str(region):
         else:
             chrom, start, end = region.split()
     except ValueError:
+        print('Wrong region formatting')
         return None
     chrom.replace('chr', '')
+
+    # Represent x and y as 23 respectively 24
+    if 'x' in chrom.lower():
+        chrom = '23'
+    if 'y' in chrom.lower():
+        chrom = '24'
 
     # Get end position
     _, hg_type = get_hg_type()
     collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
+
+    if chrom_data is None:
+        print('Could not find chromosome data in DB')
+        return None
 
     if end == 'None':
         end = chrom_data['size']

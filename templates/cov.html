@@ -374,13 +374,20 @@
                     }
 
                     if (key === 'Enter' &&
-                            currentTime - state.lastKeyTime < keystrokeDelay) {
+                            currentTime - state.lastKeyTime < keystrokeDelay ||
+                        key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
                         // Enter was pressed, process previous key presses.
-                        if (state.buffer <= oc.numChrom && state.buffer > 0) {
-                            // Display new chromosome
+                        if (key.toLowerCase() == 'x') {
+                            ic.chromosome = 23;
+                        } else if (key.toLowerCase() == 'y') {
+                            ic.chromosome = 24;
+                        } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             ic.chromosome = state.buffer;
-                            ic.redraw (ac, baf, logr, ic.chromosome + ':0-None');
+                        } else {
+                            // No valid key pressed
+                            return;
                         }
+                        ic.redraw (ac, baf, logr, ic.chromosome + ':0-None');
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
                         switch (key) {
@@ -411,7 +418,6 @@
                             buffer = state.buffer + key;
                         }
                     }
-
                     // Save current state
                     state = { buffer: buffer, lastKeyTime: currentTime };
                 });
