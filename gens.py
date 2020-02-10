@@ -22,7 +22,8 @@ REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
-FILE_DIR = "/access/wgs/plotdata/"
+FILE_DIR_HG37 = "/access/wgs/plotdata/"
+FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
@@ -35,19 +36,21 @@ def coverage_view(sample_name):
     if not sample_name:
         print('No sample requested')
         abort(404)
+
+    # Set whether to get HG37 och HG38 files
+    hg_filedir, hg_type = get_hg_type()
+
     # Check that BAF and LogR file exists
-    if not path.exists(FILE_DIR + sample_name + BAF_END):
+    if not path.exists(hg_filedir + sample_name + BAF_END):
         print('BAF file not found')
         abort(404)
-    if not path.exists(FILE_DIR + sample_name + COV_END):
+    if not path.exists(hg_filedir + sample_name + COV_END):
         print('LogR file not found')
         abort(404)
 
-    region = request.form.get('region', '1:100000-200000')
-
-    call_chrom = 1
-    call_start = 1011000
-    call_end = 1015000
+    region = request.args.get('region', None)
+    if not region:
+        region = request.form.get('region', '1:100000-200000')
 
     parsed_region = parse_region_str(region)
     if not parsed_region:
@@ -55,9 +58,24 @@ def coverage_view(sample_name):
 
     _, chrom, start_pos, end_pos = parsed_region
 
+    # Handle X and Y chromosome input
+    if chrom == '23':
+        chrom = 'X'
+    elif chrom == '24':
+        chrom = 'Y'
+
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
-                           call_chrom=call_chrom, call_start=call_start,
-                           call_end=call_end, sample_name=sample_name)
+                           sample_name=sample_name, hg_type=hg_type)
+
+def get_hg_type():
+    '''
+    Returns whether to fetch files of type HG37 or HG38
+    HG38 is default
+    '''
+    hg_type = request.args.get('hg_type', None)
+    if hg_type == '38' or hg_type is None:
+        return FILE_DIR_HG38, '38'
+    return FILE_DIR_HG37, hg_type
 
 # Set graph-specific values
 def set_graph_values(plot_height, ypos, y_margin):
@@ -105,11 +123,14 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
     sample_name = request.args.get('sample_name', None)
 
+    # Set whether to get HG37 och HG38 files
+    hg_filedir, _ = get_hg_type()
+
     # Fetch data with the defined range
-    logr_list = list(tabix_query(FILE_DIR + sample_name + COV_END,
+    logr_list = list(tabix_query(hg_filedir + sample_name + COV_END,
                                  reg.res + '_' + reg.chrom,
                                  new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(FILE_DIR + sample_name + BAF_END,
+    baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
                                 reg.res + '_' + reg.chrom,
                                 new_start_pos, new_end_pos))
 
@@ -269,6 +290,7 @@ def save_interactive_annotation():
     width = float(request.args.get('width', 1))
     height = float(request.args.get('height', 1))
     y_margin = float(request.args.get('y_margin', 1))
+    # TODO: add hg-type as input
 
     if sample_name is None or region is None:
         return abort(404)
@@ -323,6 +345,7 @@ def remove_annotation():
     y_margin = float(request.args.get('y_margin', 1))
     start = float(request.args.get('start', 1))
     end = float(request.args.get('end', 1))
+    # TODO: add hg_type as input
 
     # Overview variables
     num_chrom = int(request.args.get('num_chrom', -1))
@@ -527,13 +550,19 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
     Calculates the position for each chromosome in the overview canvas
     '''
 
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
 
     first_x_pos = x_pos
     chrom_dims = []
     for chrom in range(1, num_chrom + 1):
         chrom_width = get_chrom_width(chrom, plot_width)
         chrom_data = collection.find_one({'chrom': str(chrom)})
+
+        if chrom_data is None:
+            print('Could not find chromosome data in DB')
+            return None
+
         chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
                            'width': chrom_width, 'size': chrom_data['size']})
 
@@ -557,7 +586,14 @@ def get_track_data():
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
-    collection = GENS_DB['tracks']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['tracks' + hg_type]
+
+    # Handle X and Y chromosome input
+    if chrom == '23':
+        chrom = 'X'
+    elif chrom == '24':
+        chrom = 'Y'
 
     # Get tracks within span [start_pos, end_pos]
     tracks = collection.find({'seqname': str(chrom),
@@ -625,12 +661,12 @@ def get_chrom_width(chrom, full_width):
     '''
     Calculates overview width of chromosome
     '''
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
 
     if chrom_data:
         chrom_width = full_width * float(chrom_data['scale'])
-
         return chrom_width
 
     print('Chromosome width not available')
@@ -646,13 +682,25 @@ def parse_region_str(region):
             start, end = pos_range.split('-')
         else:
             chrom, start, end = region.split()
+        chrom.replace('chr', '')
     except ValueError:
+        print('Wrong region formatting')
         return None
-    chrom.replace('chr', '')
+
+    # Represent x and y as 23 respectively 24
+    if 'x' in chrom.lower():
+        chrom = '23'
+    if 'y' in chrom.lower():
+        chrom = '24'
 
     # Get end position
-    collection = GENS_DB['chromsizes']
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
+
+    if chrom_data is None:
+        print('Could not find chromosome data in DB')
+        return None
 
     if end == 'None':
         end = chrom_data['size']
@@ -660,6 +708,10 @@ def parse_region_str(region):
     start = int(start)
     end = int(end)
     size = end - start
+
+    if size <= 0:
+        print('Invalid input span')
+        return None
 
     # Do not go beyond end position
     if end > chrom_data['size']:

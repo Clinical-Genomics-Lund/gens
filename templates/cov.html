@@ -48,7 +48,7 @@
                             <span class='icon' id='search-minus' title='Zoom out'></span>
                         </button>
                         <form id='region_form'>
-                            <input name='region' id='region_field' type='text' size=20>
+                            <input onFocus='this.select();' id='region_field' type='text' size=20>
                             <input type='submit' title='Submit range'>
                         </form>
                     </div>
@@ -75,10 +75,7 @@
 
             // FLASK VALUES //
             let sampleName = '{{ sample_name }}';
-
-            let callChrom = '{{ call_chrom }}';
-            let callStart = {{ call_start }};
-            let callEnd   = {{ call_end }};
+            let hgType = {{hg_type}}
 
             // WEBGL VALUES //
             let near = 0.1;
@@ -90,6 +87,10 @@
             let dragStart;
             let dragEnd;
             let inputField = document.getElementById('region_field');
+
+            // Set first input field value for ic
+            inputField.value = '{{chrom}}' + ':' + {{start}} + '-' + {{end}};
+            inputField.placeholder = inputField.value;
 
             // BAF values
             let baf = {
@@ -118,16 +119,14 @@
                 window.location.reload(false);
             };
 
-            // Set first input field value for ic
-            inputField.placeholder = '1:100000-200000';
-
             // Initiate and draw interactive canvas
-            let ic = new InteractiveCanvas(inputField, lineMargin, near, far);
-            ic.drawStaticContent(ic, baf, logr);
-            ic.drawInteractiveContent(ic, baf, logr);
+            let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
+                sampleName, hgType);
+            ic.drawStaticContent(baf, logr);
+            ic.drawInteractiveContent(baf, logr);
 
             // Initiate and draw track canvas
-            let tc = new Transcript(ic.x, ic.plotWidth, near, far);
+            let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType);
             tc.drawTracks(inputField.placeholder);
 
             // Initiate and draw annotation canvas
@@ -135,14 +134,15 @@
             bc.drawTracks(inputField.placeholder);
 
             // Initiate and draw overview canvas
-            let oc = new OverviewCanvas(ic.x, lineMargin, near, far);
-            oc.drawOverviewContent(oc, baf, logr);
+            let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
+                sampleName, hgType);
+            oc.drawOverviewContent(baf, logr);
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
                         'visualization-container').clientHeight, sampleName);
-            ic.loadAnnotations(ac, ic, inputField.placeholder);
-            <!-- oc.loadAnnotations(ac, oc); -->
+            ic.loadAnnotations(ac, inputField.value);
+            <!-- oc.loadAnnotations(ac); -->
 
             <!-- ic.contentCanvas.addEventListener('contextmenu', function(event) { -->
                 <!-- event.preventDefault(); -->
@@ -188,8 +188,7 @@
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ic.redraw(ic, ac, baf, logr, inputField.value);
-                inputField.value = '';
+                ic.redraw(ac, baf, logr, inputField.value);
             });
 
             ic.contentCanvas.addEventListener('mousedown', function (event) {
@@ -329,7 +328,7 @@
                             ic.end += moveDist;
                             ic.disallowDrag = true;
 
-                            ic.redraw(ic, ac, baf, logr, null);
+                            ic.redraw(ac, baf, logr, null);
                         }
                         break;
                     case 3: // Right click
@@ -385,13 +384,20 @@
                     }
 
                     if (key === 'Enter' &&
-                            currentTime - state.lastKeyTime < keystrokeDelay) {
+                            currentTime - state.lastKeyTime < keystrokeDelay ||
+                        key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
                         // Enter was pressed, process previous key presses.
-                        if (state.buffer <= oc.numChrom && state.buffer > 0) {
-                            // Display new chromosome
+                        if (key.toLowerCase() == 'x') {
+                            ic.chromosome = 23;
+                        } else if (key.toLowerCase() == 'y') {
+                            ic.chromosome = 24;
+                        } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
                             ic.chromosome = state.buffer;
-                            ic.redraw (ic, ac, baf, logr, ic.chromosome + ':0-None');
+                        } else {
+                            // No valid key pressed
+                            return;
                         }
+                        ic.redraw (ac, baf, logr, ic.chromosome + ':0-None');
                     } else if (!isFinite(key)) {
                         // Arrow keys for moving graph
                         switch (key) {
@@ -422,7 +428,6 @@
                             buffer = state.buffer + key;
                         }
                     }
-
                     // Save current state
                     state = { buffer: buffer, lastKeyTime: currentTime };
                 });

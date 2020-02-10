@@ -132,11 +132,11 @@ if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description='Update mongoDB database with data')
     PARSER.add_argument('--chromsizes', action='store_true',
                         help='Option for updating mongoDB with chromosome sizes')
-    PARSER.add_argument('--csfile', default='chrom_sizes.tsv',
+    PARSER.add_argument('--csfile', default='chrom_sizes38.tsv',
                         help='Input file for updating mongoDB with chromosome sizes')
     PARSER.add_argument('--track', action='store_true',
                         help='Option for updating mongoDB with chromosome tracks')
-    PARSER.add_argument('--trackfile', default='Homo_sapiens.GRCh37.87.gtf',
+    PARSER.add_argument('--trackfile', default='Homo_sapiens.GRCh38.99.gtf',
                         help='Input file for updating mongoDB with chromosome tracks')
     ARGS = PARSER.parse_args()
 

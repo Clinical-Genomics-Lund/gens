@@ -35,7 +35,7 @@ class Annotation {
 
       if (annot.y < ic.contentCanvas.offsetTop + ic.contentCanvas.height) {
         $.getJSON($SCRIPT_ROOT + '/_saveinteractiveannotation', {
-          region: document.getElementById('region_field').placeholder,
+          region: document.getElementById('region_field').value,
           text: text,
           xPos: annot.x,
           yPos: annot.y,
@@ -128,7 +128,7 @@ class Annotation {
     if (removedAnnot.y < (oc.staticCanvas.offsetTop - this.yOffset)) {
       // Remove from database
       $.getJSON($SCRIPT_ROOT + '/_removeannotation', {
-        region: document.getElementById('region_field').placeholder,
+        region: document.getElementById('region_field').value,
         xPos: removedAnnot.x,
         yPos: removedAnnot.y,
         text: text,
