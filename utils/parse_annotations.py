@@ -40,15 +40,20 @@ class ParseAnnotations:
         Updates height order for annotations
         Height order is used for annotation placement
         '''
-        annotations = self.collection.find().sort([('start', ASCENDING)])
+        annotations = self.collection.find().sort([('sequence', ASCENDING), ('start', ASCENDING)])
 
-        height_tracker = [0]
+        height_tracker = [-1] * 200
         current_height = 1
+        current_chrom = 0
         for annot in annotations:
+            # Reset height order calculations for every chromosome
+            if current_chrom != annot['sequence']:
+                height_tracker = [-1] * 200
+                current_height = 1
+                current_chrom = annot['sequence']
+
             while True:
                 if int(annot['start']) > height_tracker[current_height - 1]:
-                    # Add as this height
-                    height_tracker[current_height - 1] = int(annot['end'])
 
                     # Add height to DB
                     self.collection.update(
@@ -56,12 +61,18 @@ class ParseAnnotations:
                         {'$set': {'height_order': current_height}}
                     )
 
-                    # Reset height
+                    # Keep track of added height order
+                    height_tracker[current_height - 1] = int(annot['end'])
+
+                    # Start from the beginning
                     current_height = 1
                     break
+
                 current_height += 1
+
+                # Extend height tracker
                 if len(height_tracker) < current_height:
-                    height_tracker.append(0)
+                    height_tracker += [-1] * 100
 
     def parse_bed(self):
         '''
