@@ -1,4 +1,4 @@
-class Transcript extends Track {
+class Anno extends Track {
   constructor (x, width, near, far) {
     // Dimensions of track canvas
     const maxRows = 67; // Max height order for canvas
@@ -8,16 +8,17 @@ class Transcript extends Track {
     super(width, near, far, maxRows, visibleHeight, minHeight);
 
     // Set inherited variables
-    this.trackCanvas = document.getElementById('track-canvas');
-    this.trackTitle = document.getElementById('track-titles');
-    this.trackContainer = document.getElementById('track-container');
+    this.trackCanvas = document.getElementById('anno-canvas');
+    this.trackTitle = document.getElementById('anno-titles');
+    this.trackContainer = document.getElementById('anno-container');
+    this.arrowColor =  0xffffff;
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x);
   }
 
   drawTracks (region) {
-    $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
+    $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
       width: this.trackCanvas.width,
     }, (result) => {
@@ -30,13 +31,14 @@ class Transcript extends Track {
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
         const track = result['tracks'][i];
-        const geneName = track['gene_name'];
-        const transcriptID = track['transcript_id'];
-        const seqname = track['seqname'];
+        const geneName = track['name'];
+        const color = track['color'];
+        const sequence = track['sequence'];
         const height_order = track['height_order'];
-        const strand = track['strand'];
+        const score = track['score'];
         const start = track['start'];
         const end = track['end'];
+        const strand = track['strand'];
 
         // Only draw visible tracks
         if (!this.expanded && height_order != 1)
@@ -47,16 +49,18 @@ class Transcript extends Track {
 
         this.drawTrackLen(scale * (start - result['start_pos']),
           scale * (end - result['start_pos']), adjustedYPos);
+        this.drawBand(scale * (start - result['start_pos']),
+          adjustedYPos, scale * (end - start), this.featureHeight / 2, color);
 
         // Draw gene name
-        if (result['res'] == 'd') {
+        // if (result['res'] == 'd') {
           this.drawGeneName(geneName,
             scale * ((start + end) / 2 - result['start_pos']),
             adjustedYPos + this.featureHeight, textHeight);
-        }
+        // }
 
         // Add tooltip title for whole gene
-        const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
+        const geneText = geneName + '\n' + 'chr' + sequence + ':' + start + '-' + end + '\n' + 'Score = ' + score;
         this.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
@@ -64,43 +68,10 @@ class Transcript extends Track {
           this.featureHeight + textHeight + 'px',
           0);
 
-        let latestFeaturePos = start;
-        for (let j = 0; j < track['features'].length; j++) {
-          let feature = track['features'][j];
-
-          // Draw arrows
-          let diff = feature['start'] - latestFeaturePos;
-          if (scale * diff >= this.arrowWidth) {
-            let direction = strand == '+' ? 1 : -1;
-            this.drawArrows(scale * (latestFeaturePos - result['start_pos']),
-              scale * (feature['start'] - result['start_pos']), adjustedYPos, direction)
-          }
-          latestFeaturePos = feature['end'];
-
-          switch(feature['feature']) {
-            case 'exon':
-              let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
-                '\nchr' + seqname + ':' + feature['start'] + '-' + feature['end'];
-
-              // Add tooltip title for whole gene
-              this.insertTitle(exonText,
-                titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
-                titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
-                scale * (feature['end'] - feature['start']) + 'px',
-                this.featureHeight + 'px',
-                1);
-
-              this.drawBand(scale * (feature['start'] - result['start_pos']),
-                adjustedYPos, scale * (feature['end'] - feature['start']),
-                this.featureHeight, this.trackColor);
-              break;
-            case 'three_prime_utr':
-              this.drawBand(scale * (feature['start'] - result['start_pos']),
-                adjustedYPos, scale * (feature['end'] - feature['start']),
-                this.featureHeight / 2, this.trackColor);
-              break;
-          }
-        }
+        // Draw arrows
+        let direction = strand == '+' ? 1 : -1;
+        this.drawArrows(scale * (start - result['start_pos']),
+        scale * (end - result['start_pos']), adjustedYPos, direction);
       }
 
       this.renderer.render(this.scene, this.camera);

@@ -6,6 +6,7 @@ class Track {
     this.yPos = this.featureHeight / 2; // First y-position
     this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
     this.trackColor =  0x0000ff;
+    this.arrowColor =  0x0000ff;
     this.arrowWidth = 4;
     this.expanded = false;
 
@@ -71,6 +72,24 @@ class Track {
     $('#' + this.trackTitle.id).empty();
   }
 
+  setContainerHeight(maxHeightOrder) {
+    if (maxHeightOrder == 0) {
+      // No results, do not show tracks
+      this.trackCanvas.height = 0;
+      this.trackTitle.style.height = 0 + 'px';
+      this.trackContainer.style.height = 0 + 'px';
+    } else if (this.expanded) {
+      const maxYPos = this.tracksYPos(maxHeightOrder + 1);
+      this.trackCanvas.height = maxYPos;
+      this.trackTitle.style.height = maxYPos + 'px';
+      this.trackContainer.style.height = this.visibleHeight + 'px';
+    } else {
+      this.trackCanvas.height = this.minHeight;
+      this.trackTitle.style.height = this.minHeight + 'px';
+      this.trackContainer.style.height = this.minHeight + 'px';
+    }
+  }
+
   drawGeneName(geneName, xPos, yPos, textHeight) {
     this.trackContext.save();
     this.trackContext.font = 'bold ' + textHeight + 'px Arial';
@@ -115,7 +134,7 @@ class Track {
     this.scene.add(line);
   }
 
-  drawBand (xpos, ypos, width, height) {
+  drawBand (xpos, ypos, width, height, color) {
     // Draw exon at input center position
     var rectangle = new THREE.Geometry();
     rectangle.vertices.push(
@@ -130,9 +149,27 @@ class Track {
       new THREE.Face3(1, 3, 2),
     );
 
-    var material = new THREE.MeshBasicMaterial({color: this.trackColor});
+    var material = new THREE.MeshBasicMaterial({color: color});
     rectangle = new THREE.Mesh(rectangle, material);
     this.scene.add(rectangle);
+  }
+
+  drawArrows(start, stop, yPos, direction) {
+    const stepLen = 40;
+    const width = stop - start
+    if (width < this.arrowWidth) {
+      // Arrow does not fit, do nothing
+      return;
+    } else if (width <= stepLen) {
+      // Draw one arrow in the middle
+      this.drawArrow(start + (stop - start) / 2, yPos, direction, this.featureHeight / 2);
+    } else {
+      for (let pos = start + this.arrowWidth;
+        pos < stop - this.arrowWidth; pos += stepLen) {
+        // Draw several arrows
+        this.drawArrow(pos, yPos, direction, this.featureHeight / 2);
+      }
+    }
   }
 
   // Draw an arrow in desired direction
@@ -149,7 +186,7 @@ class Track {
       new THREE.Vector3(xpos - width / 2, ypos + height / 2, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({color: this.trackColor});
+    var material = new THREE.LineBasicMaterial({color: this.arrowColor});
     line = new THREE.Line(line, material);
     this.scene.add(line);
   }

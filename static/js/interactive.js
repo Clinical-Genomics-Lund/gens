@@ -199,6 +199,7 @@ class InteractiveCanvas {
     // Clear annotations and tracks
     ac.clearAnnotations(ic.canvasHeight);
     tc.clearTracks();
+    bc.clearTracks();
 
     // Set input field
     if (inputValue) {
@@ -211,5 +212,6 @@ class InteractiveCanvas {
     ic.loadAnnotations(ac, ic, ic.inputField.placeholder);
     ac.drawAnnotations();
     tc.drawTracks(ic.inputField.placeholder);
+    bc.drawTracks(ic.inputField.placeholder);
   }
 }

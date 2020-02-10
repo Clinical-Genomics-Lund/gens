@@ -581,6 +581,43 @@ def get_track_data():
     return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)
 
+@APP.route('/_getannotationdata', methods=['GET'])
+def get_annotation_data():
+    '''
+    Gets track data in region and converts data coordinates to screen coordinates
+    '''
+    region = request.args.get('region', None)
+
+    res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    if res in ('a', 'b'):
+        return jsonify(status='ok', tracks=[], start_pos=start_pos,
+                       end_pos=end_pos, max_height_order=0)
+
+    collection = GENS_DB['annotations']
+
+    # Get tracks within span [start_pos, end_pos]
+    tracks = collection.find({'sequence': str(chrom),
+                              '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
+                                      {'end': {'$gte': start_pos, '$lte': end_pos}}]},
+                             {'_id': False})
+
+    # Get tracks that go over the whole span
+    tracks_over = collection.find({'sequence': str(chrom),
+                                   'start': {'$lte': start_pos},
+                                   'end': {'$gte': end_pos}},
+                                  {'_id': False})
+
+    tracks = list(tracks) + list(tracks_over)
+
+    max_height_order = 1
+    for track in tracks:
+        if track['height_order'] > max_height_order:
+            max_height_order = track['height_order']
+
+    return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
+                   end_pos=end_pos, max_height_order=max_height_order, res=res)
+
 
 ### Help functions ###
 
