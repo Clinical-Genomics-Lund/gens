@@ -1,5 +1,5 @@
 class Anno extends Track {
-  constructor (x, width, near, far) {
+  constructor (x, width, near, far, hgType) {
     // Dimensions of track canvas
     const maxRows = 67; // Max height order for canvas
     const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
@@ -15,12 +15,15 @@ class Anno extends Track {
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x);
+
+    this.hgType = hgType;
   }
 
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
       width: this.trackCanvas.width,
+      hg_type: this.hgType,
     }, (result) => {
       const scale = this.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;

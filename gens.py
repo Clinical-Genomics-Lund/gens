@@ -582,7 +582,7 @@ def get_track_data():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
-    if res in ('a', 'b'):
+    if not res or res in ('a', 'b'):
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
@@ -626,7 +626,7 @@ def get_annotation_data():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
-    if res in ('a', 'b'):
+    if not res or res in ('a', 'b'):
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 

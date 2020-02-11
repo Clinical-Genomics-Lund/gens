@@ -1,7 +1,5 @@
 class Transcript extends Track {
   constructor (x, width, near, far, hgType) {
-    this.hgType = hgType;
-
     // Dimensions of track canvas
     const maxRows = 67; // Max height order for canvas
     const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
@@ -16,6 +14,8 @@ class Transcript extends Track {
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x);
+
+    this.hgType = hgType;
   }
 
   drawTracks (region) {
