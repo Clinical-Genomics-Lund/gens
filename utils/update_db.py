@@ -138,15 +138,19 @@ if __name__ == '__main__':
                         help='Option for updating mongoDB with chromosome tracks')
     PARSER.add_argument('--trackfile', default='Homo_sapiens.GRCh38.99.gtf',
                         help='Input file for updating mongoDB with chromosome tracks')
+    PARSER.add_argument('--collection',
+                        help='Optional collection name')
     ARGS = PARSER.parse_args()
 
     if ARGS.chromsizes:
-        print('UPDATING CHROMOSOME SIZES')
-        UPDATE = UpdateMongo(ARGS.csfile, 'chromsizes')
+        print('Updating chromosome sizes')
+        COLLECTION = ARGS.collection if ARGS.collection else 'chromsizes38'
+        UPDATE = UpdateMongo(ARGS.csfile, COLLECTION)
         UPDATE.write_chromsizes()
-        print('FINISHED UPDATING CHROMOSOME SIZES')
+        print('Finished updating chromosome sizes')
     elif ARGS.track:
-        print('UPDATING TRACKS')
-        UPDATE = UpdateMongo(ARGS.trackfile, 'tracks')
+        print('Updating tracks')
+        COLLECTION = ARGS.collection if ARGS.collection else 'tracks38'
+        UPDATE = UpdateMongo(ARGS.trackfile, COLLECTION)
         UPDATE.write_tracks()
-        print('FINISHED UPDATING TRACKS')
+        print('Finished updating tracks')
