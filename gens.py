@@ -4,6 +4,7 @@ Whole genome visualization of BAF and log R ratio
 '''
 
 import math
+import re
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from os import path
@@ -456,6 +457,10 @@ def load_annotation_range():
     collection = GENS_DB[sample_name]
     _, chrom, start_pos, end_pos = parse_region_str(region)
 
+    if region is None:
+        print('Could not find annotation range in DB')
+        return abort(404)
+
     annotations = list(collection.find({'x': {'$gte': start_pos,
                                               '$lte': end_pos},
                                         'chrom': str(chrom)},
@@ -584,9 +589,13 @@ def get_track_data():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
+    if region is None:
+        print('Could not find track data in DB')
+        return abort(404)
+
     if res in ('a', 'b'):
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
-                       end_pos=end_pos, max_height_order=0)
+                    end_pos=end_pos, max_height_order=0)
 
     _, hg_type = get_hg_type()
     collection = GENS_DB['tracks' + hg_type]
@@ -642,15 +651,40 @@ def parse_region_str(region):
     Parses a region string
     '''
     try:
-        if ":" in region and "-" in region:
-            chrom, pos_range = region.split(':')
+        if not ':' in region:
+            print('Wrong region formatting')
+            return None
+        chrom, pos_range = region.split(':')
+        name_search = not pos_range.replace('-', '').isdigit() and \
+            not 'None' in pos_range
+
+        if not name_search:
             start, end = pos_range.split('-')
-        else:
-            chrom, start, end = region.split()
+
         chrom.replace('chr', '')
     except ValueError:
         print('Wrong region formatting')
         return None
+
+    _, hg_type = get_hg_type()
+
+    if name_search:
+        # Lookup range
+        collection = GENS_DB['tracks' + hg_type]
+        start = collection.find_one({'gene_name': re.compile(
+            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
+                                     'seqname': chrom.upper()},
+                                    sort=[('start', 1)])
+        end = collection.find_one({'gene_name': re.compile(
+            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
+                                   'seqname': chrom.upper()},
+                                  sort=[('end', -1)])
+        if start is not None and end is not None:
+            start = start['start']
+            end = end['end']
+        else:
+            print('Did not find range for gene name')
+            return None
 
     # Represent x and y as 23 respectively 24
     if 'x' in chrom.lower():
@@ -659,7 +693,6 @@ def parse_region_str(region):
         chrom = '24'
 
     # Get end position
-    _, hg_type = get_hg_type()
     collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
 
