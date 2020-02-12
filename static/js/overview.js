@@ -5,7 +5,7 @@ class OverviewCanvas {
 
     // Plot variables
     this.plotWidth = 120; // Width of one plot
-    this.plotHeight = 100; // Height of one plot
+    this.plotHeight = 180; // Height of one plot
     this.x = xPos; // X-position for plot
     this.y = 20 + 2 * lineMargin; // Y-position for plot
     this.numChrom = 24; // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
