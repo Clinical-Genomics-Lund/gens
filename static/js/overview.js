@@ -75,7 +75,8 @@ class OverviewCanvas {
           baf_y_start: baf.yStart,
           baf_y_end: baf.yEnd,
           logr_y_start: logr.yStart,
-          logr_y_end: logr.yEnd
+          logr_y_end: logr.yEnd,
+          overview: 'True'
         }, (result) => {
           let staticCanvas = document.getElementById('overview-static');
           let chrom = result['chrom']
