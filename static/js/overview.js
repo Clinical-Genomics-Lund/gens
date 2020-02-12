@@ -137,48 +137,4 @@ class OverviewCanvas {
       }
     });
   }
-
-  loadAnnotations (ac) {
-    $.getJSON($SCRIPT_ROOT + '/_loadallannotations', {
-      sample_name: this.sampleName,
-      num_chrom: this.numChrom,
-      left: this.x,
-      top: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
-      width: this.plotWidth,
-      height: this.plotHeight,
-      row_height: this.rowHeight,
-      right_margin: this.rightMargin,
-      y_margin: this.yMargin,
-    }, (result) => {
-      let annotations = result['annotations'];
-      ac.ctx.clearRect(0, 0, 0, ac.annotationCanvas.width);
-      for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'], annotations[i]['text'], this, 'overview');
-      }
-      ac.drawAnnotations();
-    });
-  }
-
-  // Check if coordinates is inside the graph
-  insideGraph (x, y, callback) {
-    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      num_chrom: this.numChrom,
-      hg_type: this.hgType,
-      x_pos: this.x,
-      y_pos: this.y + this.staticCanvas.offsetTop - ac.yOffset + this.rowMargin,
-      plot_width: this.plotWidth,
-      plot_height: this.plotHeight,
-      right_margin: this.rightMargin,
-      row_height: this.rowHeight,
-      margin: this.xMargin,
-      current_x: x,
-      current_y: y,
-    }).done( (result) => {
-      if (result['current_chrom'] == null) {
-        return false;
-      } else {
-        return callback(x, y, '', this, 'overview');
-      }
-    });
-  }
 }
