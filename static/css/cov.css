@@ -72,57 +72,6 @@ html, body {
     grid-column: 1;
 }
 
-#annotation-container {
-    z-index: 2;
-    pointer-events: none;
-    grid-row: 1;
-    grid-column: 1;
-}
-
-#annotation-overlays {
-    grid-row: 1;
-    grid-column: 1;
-    overflow-y: hidden;
-    position: relative;
-}
-
-.annotation-overlay {
-    z-index: 10;
-    display: inline-block;
-    position: absolute;
-    background-color: rgba(240, 240, 240, 0.5);
-    width: 200px;
-    height: 100px;
-    /* overflow-y: auto; */
-    resize: both;
-    border: 1px solid rgba(50, 50, 50, 0.5);
-}
-
-.annotation-overlay::-webkit-scrollbar {
-    width: 6px;
-}
-
-.annotation-overlay::-webkit-scrollbar-track {
-    border-radius: 10px;
-}
-
-.annotation-overlay::-webkit-scrollbar-thumb {
-    background: rgba(50, 50, 50, 0.5);
-    border-radius: 15px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-#annotation-text:focus {
-    outline: 0px solid transparent;
-}
-
-.annotation-button {
-    float: right;
-    background: none;
-    border: none;
-    font-size: 10px;
-}
-
 #times {
     background: url(../svg/times-solid.svg) no-repeat top left;
 }

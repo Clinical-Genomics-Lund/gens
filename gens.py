@@ -4,6 +4,7 @@ Whole genome visualization of BAF and log R ratio
 '''
 
 import math
+import re
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from os import path
@@ -78,15 +79,17 @@ def get_hg_type():
     return FILE_DIR_HG37, hg_type
 
 # Set graph-specific values
-def set_graph_values(plot_height, ypos, y_margin):
+def set_graph_values(req):
     '''
     Returns graph-specific values as named tuple
     '''
+    logr_height = abs(req.logr_y_end - req.logr_y_start)
+    baf_height = abs(req.baf_y_end - req.baf_y_start)
     return GRAPH(
-        plot_height - 2 * y_margin,
-        (plot_height - y_margin * 2) / 8,
-        ypos + plot_height - y_margin,
-        ypos + 1.5 * plot_height
+        (req.plot_height - 2 * req.y_margin) / baf_height,
+        (req.plot_height - req.y_margin * 2) / logr_height,
+        req.y_pos + req.plot_height - req.y_margin,
+        req.y_pos + 1.5 * req.plot_height
     )
 
 def set_region_values(parsed_region, x_ampl):
@@ -195,7 +198,7 @@ def get_overview_cov():
     )
     x_ampl = float(request.args.get('x_ampl', 1))
 
-    graph = set_graph_values(req.plot_height, req.y_pos, req.y_margin)
+    graph = set_graph_values(req)
 
     parsed_region = parse_region_str(req.region)
     if not parsed_region:
@@ -218,289 +221,6 @@ def get_overview_cov():
     return jsonify(data=logr_records, baf=baf_records, status="ok",
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
                    start=reg.start_pos, end=reg.end_pos)
-
-@APP.route('/_saveoverviewannotation', methods=['GET'])
-def save_overview_annotation():
-    '''
-    Inserts annotation into database
-    '''
-    text = request.args.get('text', None)
-    x_pos = float(request.args.get('xPos', 1))
-    y_pos = float(request.args.get('yPos', 1))
-    sample_name = request.args.get('sample_name', None)
-    top = float(request.args.get('top', 1))
-    left = float(request.args.get('left', 1))
-    width = float(request.args.get('width', 1))
-    height = float(request.args.get('height', 1))
-    y_margin = float(request.args.get('y_margin', 1))
-
-    # Overview variables
-    num_chrom = int(request.args.get('num_chrom', -1))
-    right_margin = float(request.args.get('right_margin', 1))
-    row_height = float(request.args.get('row_height', 1))
-
-    if sample_name is None:
-        return abort(404)
-
-    chrom_dims = overview_chrom_dim(num_chrom, left, top, width,
-                                    right_margin, row_height)
-    chrom = find_chrom_at_pos(chrom_dims, num_chrom, 2 * height, x_pos,
-                              y_pos, 0)
-    chrom_dim = chrom_dims[int(chrom) - 1]
-    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
-                                      chrom_dim['y_pos'], 0,
-                                      chrom_dim['size'],
-                                      chrom_dim['width'], height,
-                                      y_margin)
-
-    # Set collection
-    collection = GENS_DB[sample_name]
-
-    # Check that record does not already exist
-    update = collection.update_one({'x': int(x_pos), 'y': y_pos,
-                                    'chrom': str(chrom)}, {'$set': {'text': text}})
-    if update.matched_count == 0:
-        # Insert new record
-        collection.insert_one({
-            'text': text,
-            'x': int(x_pos),
-            'y': y_pos,
-            'chrom': str(chrom),
-            'baf': baf
-        })
-
-    return jsonify(status='ok')
-
-@APP.route('/_saveinteractiveannotation', methods=['GET'])
-def save_interactive_annotation():
-    '''
-    Inserts annotation into database
-    '''
-    region = request.args.get('region', None)
-    text = request.args.get('text', None)
-    x_pos = float(request.args.get('xPos', 1))
-    y_pos = float(request.args.get('yPos', 1))
-    annot_width = float(request.args.get('annot_width', 4))
-    annot_height = float(request.args.get('annot_height', 4))
-    logr_height = float(request.args.get('logr_height', 1))
-    baf_height = float(request.args.get('baf_height', 1))
-    sample_name = request.args.get('sample_name', None)
-    top = float(request.args.get('top', 1))
-    left = float(request.args.get('left', 1))
-    width = float(request.args.get('width', 1))
-    height = float(request.args.get('height', 1))
-    y_margin = float(request.args.get('y_margin', 1))
-    # TODO: add hg-type as input
-
-    if sample_name is None or region is None:
-        return abort(404)
-
-    _, chrom, start, end = parse_region_str(region)
-    x_pos, y_pos, baf = to_data_coord(x_pos, y_pos, left, top, start,
-                                      end, width, height, y_margin)
-    annot_width = annot_width / (width / (end - start))
-
-    if baf:
-        annot_height = annot_height / (height / baf_height)
-    else:
-        annot_height = annot_height / (height / logr_height)
-
-    # Set collection
-    collection = GENS_DB[sample_name]
-
-    # Check that record does not already exist
-    update = collection.update_one({'x': int(x_pos), 'y': y_pos,
-                                    'width': annot_width, 'height': annot_height,
-                                    'chrom': chrom}, {'$set': {'text': text}})
-    if update.matched_count == 0:
-        # Insert new record
-        collection.insert_one({
-            'text': text,
-            'x': int(x_pos),
-            'y': y_pos,
-            'width': annot_width,
-            'height': annot_height,
-            'chrom': str(chrom),
-            'baf': baf
-        })
-
-    return jsonify(status='ok')
-
-@APP.route('/_removeannotation', methods=['GET'])
-def remove_annotation():
-    '''
-    Inserts annotation into database
-    '''
-    region = request.args.get('region', None)
-    x_pos = int(float(request.args.get('xPos', 1)))
-    y_pos = float(request.args.get('yPos', 1))
-    chrom = request.args.get('chrom', None)
-    text = request.args.get('text', None)
-    sample_name = request.args.get('sample_name', None)
-    overview = request.args.get('overview', 'false')
-    top = float(request.args.get('top', 1))
-    left = float(request.args.get('left', 1))
-    width = float(request.args.get('width', 1))
-    height = float(request.args.get('height', 1))
-    y_margin = float(request.args.get('y_margin', 1))
-    start = float(request.args.get('start', 1))
-    end = float(request.args.get('end', 1))
-    # TODO: add hg_type as input
-
-    # Overview variables
-    num_chrom = int(request.args.get('num_chrom', -1))
-    right_margin = float(request.args.get('right_margin', 1))
-    row_height = float(request.args.get('row_height', 1))
-
-    if sample_name is None or text is None:
-        return abort(404)
-
-    if overview == 'true':
-        chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
-                                        row_height)
-        chrom = find_chrom_at_pos(chrom_dims, num_chrom, 2 * height, x_pos, y_pos, 0)
-
-        if not chrom:
-            return abort(404)
-
-        chrom_dim = chrom_dims[int(chrom) - 1]
-        x_diff, y_diff, _ = to_data_coord(x_pos + 1, y_pos + 1, chrom_dim['x_pos'],
-                                          chrom_dim['y_pos'], 0,
-                                          chrom_dim['size'],
-                                          chrom_dim['width'], height,
-                                          y_margin)
-        x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, chrom_dim['x_pos'],
-                                        chrom_dim['y_pos'], 0,
-                                        chrom_dim['size'],
-                                        chrom_dim['width'], height,
-                                        y_margin)
-    else:
-        _, chrom, start, end = parse_region_str(region)
-        x_diff, y_diff, _ = to_data_coord(x_pos + 1, y_pos + 1, left, top, start,
-                                          end, width, height, y_margin)
-        x_pos, y_pos, _ = to_data_coord(x_pos, y_pos, left, top, start,
-                                        end, width, height, y_margin)
-
-    # Set collection
-    collection = GENS_DB[sample_name]
-
-    # Check that record does not already exist
-    x_distance = abs(x_diff - x_pos)
-    y_distance = abs(y_diff - y_pos)
-    collection.remove({'x': {'$gte': x_pos - x_distance,
-                             '$lte': x_pos + x_distance},
-                       'y': {'$gte': y_pos - y_distance,
-                             '$lte': y_pos + y_distance},
-                       'text': text, 'chrom': str(chrom)})
-    return jsonify(status='ok')
-
-@APP.route('/_loadallannotations', methods=['GET'])
-def load_all_annotations():
-    '''
-    Loads all available annotations for the sample
-    '''
-    sample_name = request.args.get('sample_name', None)
-    num_chrom = int(request.args.get('num_chrom', -1))
-    left = float(request.args.get('left', 1))
-    top = float(request.args.get('top', 1))
-    width = float(request.args.get('width', 1))
-    height = float(request.args.get('height', 1))
-    row_height = float(request.args.get('row_height', 1))
-    right_margin = float(request.args.get('right_margin', 1))
-    y_margin = float(request.args.get('y_margin', 1))
-    chrom_dims = overview_chrom_dim(num_chrom, left, top, width, right_margin,
-                                    row_height)
-    collection = GENS_DB[sample_name]
-
-    all_annotations = []
-    for chrom in range(1, num_chrom + 1):
-        chrom_dim = chrom_dims[chrom - 1]
-        annotations = list(collection.find({'x': {'$gte': 0,
-                                                  '$lte': int(chrom_dim['size'])},
-                                            'chrom': str(chrom)},
-                                           {'_id': False}))
-        for annotation in annotations:
-            annotation['x'], annotation['y'] = \
-                to_screen_coord(annotation['x'],
-                                annotation['y'],
-                                annotation['baf'], chrom_dim['x_pos'],
-                                chrom_dim['y_pos'], 0,
-                                chrom_dim['size'], chrom_dim['width'],
-                                height, y_margin)
-        if annotations:
-            all_annotations = all_annotations + annotations
-
-    return jsonify(status='ok', annotations=all_annotations)
-
-@APP.route('/_loadannotationrange', methods=['GET'])
-def load_annotation_range():
-    '''
-    Loads annotations within requested range
-    '''
-    # Load from mongo database
-    sample_name = request.args.get('sample_name', None)
-    region = request.args.get('region', None)
-    top = float(request.args.get('top', 1))
-    left = float(request.args.get('left', 1))
-    width = float(request.args.get('width', 1))
-    height = float(request.args.get('height', 1))
-    logr_height = float(request.args.get('logr_height', 1))
-    baf_height = float(request.args.get('baf_height', 1))
-    y_margin = float(request.args.get('y_margin', 1))
-
-    if sample_name is None or region is None:
-        return abort(404)
-
-    collection = GENS_DB[sample_name]
-    _, chrom, start_pos, end_pos = parse_region_str(region)
-
-    annotations = list(collection.find({'x': {'$gte': start_pos,
-                                              '$lte': end_pos},
-                                        'chrom': str(chrom)},
-                                       {'_id': False}))
-    for annotation in annotations:
-        annotation['x'], annotation['y'] = \
-                to_screen_coord(annotation['x'], annotation['y'],
-                                annotation['baf'], left, top, start_pos,
-                                end_pos, width, height, y_margin)
-        annotation['width'] = annotation['width'] * (width / (end_pos - start_pos))
-        if annotation['baf'] == 'true':
-            annotation['height'] = float(annotation['height']) * (height / baf_height)
-        else:
-            annotation['height'] = float(annotation['height']) * (height / logr_height)
-
-    return jsonify(status='ok', annotations=annotations)
-
-def to_data_coord(screen_x_pos, screen_y_pos, left, top, start, end, width,
-                  height, y_margin):
-    '''
-    Convert screen coordinates to data coordinates
-    '''
-    # Calculate x position
-    x_pos = start + (end - start) * ((screen_x_pos - left) / width)
-    if screen_y_pos <= (top + height):
-        # Calculate y position for BAF
-        y_pos = (top + height - y_margin - screen_y_pos) / (height - 2 * y_margin)
-        return [x_pos, y_pos, 'true']
-    else:
-        # Calculate y position for LogR
-        y_pos = (top + 1.5 * height - screen_y_pos) / (height - 2 * y_margin)
-        return [x_pos, y_pos, 'false']
-
-def to_screen_coord(data_x_pos, data_y_pos, baf, left, top, start, end,
-                    width, height, y_margin):
-    '''
-    Convert data coordinates to screen coordinates
-    '''
-    x_pos = width * (data_x_pos - start) / (end - start) + left
-    if baf == 'true':
-        # Calculate y position for BAF
-        y_pos = top + height - y_margin - data_y_pos * (height - 2 * y_margin)
-        return [x_pos, y_pos]
-    else:
-        # Calculate y position for LogR
-        y_pos = top + 1.5 * height - data_y_pos * (height - 2 * y_margin)
-        return [x_pos, y_pos]
 
 @APP.route('/_overviewchromdim', methods=['GET'])
 def call_overview_chrom_dim():
@@ -581,6 +301,10 @@ def get_track_data():
     region = request.args.get('region', None)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
+
+    if region is None:
+        print('Could not find track data in DB')
+        return abort(404)
 
     if not res or res in ('a', 'b'):
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
@@ -677,15 +401,40 @@ def parse_region_str(region):
     Parses a region string
     '''
     try:
-        if ":" in region and "-" in region:
-            chrom, pos_range = region.split(':')
+        if not ':' in region:
+            print('Wrong region formatting')
+            return None
+        chrom, pos_range = region.split(':')
+        name_search = not pos_range.replace('-', '').isdigit() and \
+            not 'None' in pos_range
+
+        if not name_search:
             start, end = pos_range.split('-')
-        else:
-            chrom, start, end = region.split()
+
         chrom.replace('chr', '')
     except ValueError:
         print('Wrong region formatting')
         return None
+
+    _, hg_type = get_hg_type()
+
+    if name_search:
+        # Lookup range
+        collection = GENS_DB['tracks' + hg_type]
+        start = collection.find_one({'gene_name': re.compile(
+            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
+                                     'seqname': chrom.upper()},
+                                    sort=[('start', 1)])
+        end = collection.find_one({'gene_name': re.compile(
+            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
+                                   'seqname': chrom.upper()},
+                                  sort=[('end', -1)])
+        if start is not None and end is not None:
+            start = start['start']
+            end = end['end']
+        else:
+            print('Did not find range for gene name')
+            return None
 
     # Represent x and y as 23 respectively 24
     if 'x' in chrom.lower():
@@ -694,7 +443,6 @@ def parse_region_str(region):
         chrom = '24'
 
     # Get end position
-    _, hg_type = get_hg_type()
     collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': str(chrom)})
 

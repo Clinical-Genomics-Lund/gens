@@ -52,30 +52,6 @@ class InteractiveCanvas {
     this.camera.position.z = 1;
   }
 
-  loadAnnotations (ac, region) {
-    $.getJSON($SCRIPT_ROOT + '/_loadannotationrange', {
-      sample_name: ac.sampleName,
-      hg_type: this.hgType,
-      region: region,
-      top: this.y,
-      left: this.x,
-      width: this.plotWidth,
-      height: this.plotHeight,
-      logr_height: Math.abs(logr.yStart - logr.yEnd),
-      baf_height: Math.abs(baf.yStart - baf.yEnd),
-      y_margin: this.yMargin
-    }, (result) => {
-      let annotations = result['annotations'];
-      ac.ctx.clearRect(0, 0, ac.annotationCanvas.width, this.canvasHeight);
-      for (let i = 0; i < annotations.length; i++) {
-        ac.addAnnotation(annotations[i]['x'], annotations[i]['y'],
-          annotations[i]['width'], annotations[i]['height'],
-          annotations[i]['text'], this, 'interactive');
-      }
-      ac.drawAnnotations();
-    });
-  }
-
   // Draw static content for interactive canvas
   drawStaticContent (baf, logr) {
     let linePadding = 2;
@@ -189,25 +165,13 @@ class InteractiveCanvas {
     });
   }
 
-  // Check if coordinates is inside the graph
-  insideGraph (x, y) {
-    if (x < (this.x + this.plotWidth) && x > this.x &&
-      y < (this.y + 2 * this.plotHeight) && y > this.y) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   // Redraw interactive canvas
-  redraw (ac, baf, logr, inputValue) {
+  redraw (baf, logr, inputValue) {
     if (this.disallowDraw) {
       return;
     }
     this.disallowDrag = false;
     this.disallowDraw = true;
-
-    ac.saveAnnotations();
 
     // Set input field
     if (inputValue) {
@@ -218,14 +182,11 @@ class InteractiveCanvas {
 
     this.drawInteractiveContent(baf, logr);
 
-    // Clear annotations and tracks
-    ac.clearAnnotations(this.canvasHeight);
+    // Clear tracks
     tc.clearTracks();
     bc.clearTracks();
 
-    // Draw new annotations and tracks
-    this.loadAnnotations(ac, this.inputField.value);
-    ac.drawAnnotations();
+    // Draw new tracks
     tc.drawTracks(this.inputField.value);
     bc.drawTracks(this.inputField.placeholder);
   }
