@@ -101,6 +101,14 @@
                 color: '#000000' // Viz color
             };
 
+	    // LOGR values for overview plot
+            let logr_overview = {
+                yStart: 3.0, // Start value for y axis
+                yEnd: -3.0, // End value for y axis
+                step: 1.0, // Step value for drawing ticks along y-axis
+                color: '#000000' // Viz color
+            };
+
             // Hide non-rendered content
             window.onload = (event) => {
                 document.getElementById('grid-container').style.visibility = 'hidden';
@@ -126,7 +134,7 @@
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
                 sampleName, hgType);
-            oc.drawOverviewContent(baf, logr);
+            oc.drawOverviewContent(baf, logr_overview);
 
             // Initiate annotation canvas
             let ac = new Annotation(document.getElementById(
