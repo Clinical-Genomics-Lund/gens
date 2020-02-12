@@ -78,15 +78,17 @@ def get_hg_type():
     return FILE_DIR_HG37, hg_type
 
 # Set graph-specific values
-def set_graph_values(plot_height, ypos, y_margin):
+def set_graph_values(req):
     '''
     Returns graph-specific values as named tuple
     '''
+    logr_height = abs(req.logr_y_end - req.logr_y_start)
+    baf_height = abs(req.baf_y_end - req.baf_y_start)
     return GRAPH(
-        plot_height - 2 * y_margin,
-        (plot_height - y_margin * 2) / 8,
-        ypos + plot_height - y_margin,
-        ypos + 1.5 * plot_height
+        (req.plot_height - 2 * req.y_margin) / baf_height,
+        (req.plot_height - req.y_margin * 2) / logr_height,
+        req.y_pos + req.plot_height - req.y_margin,
+        req.y_pos + 1.5 * req.plot_height
     )
 
 def set_region_values(parsed_region, x_ampl):
@@ -195,7 +197,7 @@ def get_overview_cov():
     )
     x_ampl = float(request.args.get('x_ampl', 1))
 
-    graph = set_graph_values(req.plot_height, req.y_pos, req.y_margin)
+    graph = set_graph_values(req)
 
     parsed_region = parse_region_str(req.region)
     if not parsed_region:
