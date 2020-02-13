@@ -400,36 +400,32 @@ def parse_region_str(region):
     '''
     Parses a region string
     '''
+    name_search = None
     try:
-        if not ':' in region:
-            print('Wrong region formatting')
-            return None
-        chrom, pos_range = region.split(':')
-        name_search = not pos_range.replace('-', '').isdigit() and \
-            not 'None' in pos_range
-
-        if not name_search:
+        if ':' in region:
+            chrom, pos_range = region.split(':')
             start, end = pos_range.split('-')
-
-        chrom.replace('chr', '')
+            chrom.replace('chr', '')
+            chrom.upper()
+        else:
+            name_search = region
     except ValueError:
         print('Wrong region formatting')
         return None
 
     _, hg_type = get_hg_type()
 
-    if name_search:
+    if name_search is not None:
         # Lookup range
         collection = GENS_DB['tracks' + hg_type]
         start = collection.find_one({'gene_name': re.compile(
-            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
-                                     'seqname': chrom.upper()},
+            '^' + re.escape(name_search) + '$', re.IGNORECASE)},
                                     sort=[('start', 1)])
         end = collection.find_one({'gene_name': re.compile(
-            '^' + re.escape(pos_range) + '$', re.IGNORECASE),
-                                   'seqname': chrom.upper()},
+            '^' + re.escape(name_search) + '$', re.IGNORECASE)},
                                   sort=[('end', -1)])
         if start is not None and end is not None:
+            chrom = start['seqname']
             start = start['start']
             end = end['end']
         else:
