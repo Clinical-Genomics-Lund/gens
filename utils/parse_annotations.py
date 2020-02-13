@@ -15,7 +15,7 @@ class ParseAnnotations:
     '''
     Update mongoDB with values from input files
     '''
-    def __init__(self, input_file, annot_type, file_name, hg_type):
+    def __init__(self, input_file, annot_type, file_name):
         self.input_file = input_file
         self.file_name = file_name
         self.collection = GENS_DB['annotations']
@@ -23,7 +23,9 @@ class ParseAnnotations:
         self.header = []
         self.fields_to_save = ['sequence', 'start', 'end', 'name',
                                'strand', 'color', 'score']
-        self.size_collection = GENS_DB['chromsizes' + str(hg_type)]
+
+        # Set start as index to be able to sort quicker
+        self.collection.create_index([('start', ASCENDING)], unique=False)
 
         if annot_type == 'aed':
             self.parse_aed()
@@ -31,9 +33,11 @@ class ParseAnnotations:
             self.parse_bed()
 
         # Bulk upload annotations to database
+        print('Inserting to DB')
         self.collection.insert_many(self.annotations)
 
         # Update height order for annotations
+        print('Updating height order')
         self.update_height_order()
 
     def update_height_order(self):
@@ -41,43 +45,36 @@ class ParseAnnotations:
         Updates height order for annotations
         Height order is used for annotation placement
         '''
-        step = 100000
         for chrom in range(1, 25):
-            end = self.size_collection.find_one(
-                {'chrom': str(chrom)})['size']
             chrom = 'X' if chrom == 23 else \
                 'Y' if chrom == 24 else chrom
-            for start in range(0, end + 1, step):
-                annotations = self.collection.find(
-                    {'sequence': str(chrom),
-                     'start': start,
-                     'end': start + step - 1}
-                    ).sort([('start', ASCENDING)])
+            annotations = self.collection.find(
+                {'sequence': str(chrom)}).sort([('start', ASCENDING)])
 
-                height_tracker = [-1] * 200
-                current_height = 1
-                for annot in annotations:
-                    while True:
-                        if int(annot['start']) > height_tracker[current_height - 1]:
+            height_tracker = [-1] * 200
+            current_height = 1
+            for annot in annotations:
+                while True:
+                    if int(annot['start']) > height_tracker[current_height - 1]:
 
-                            # Add height to DB
-                            self.collection.update(
-                                {'_id': annot['_id']},
-                                {'$set': {'height_order': current_height}}
-                            )
+                        # Add height to DB
+                        self.collection.update(
+                            {'_id': annot['_id']},
+                            {'$set': {'height_order': current_height}}
+                        )
 
-                            # Keep track of added height order
-                            height_tracker[current_height - 1] = int(annot['end'])
+                        # Keep track of added height order
+                        height_tracker[current_height - 1] = int(annot['end'])
 
-                            # Start from the beginning
-                            current_height = 1
-                            break
+                        # Start from the beginning
+                        current_height = 1
+                        break
 
-                        current_height += 1
+                    current_height += 1
 
-                        # Extend height tracker
-                        if len(height_tracker) < current_height:
-                            height_tracker += [-1] * 100
+                    # Extend height tracker
+                    if len(height_tracker) < current_height:
+                        height_tracker += [-1] * 100
 
     def parse_bed(self):
         '''
@@ -145,12 +142,12 @@ if __name__ == '__main__':
     PARSER.add_argument('--aed', help='An aed file to parse')
     PARSER.add_argument('--name', help='A representative name for annotations \
             based on input file', required=True)
-    PARSER.add_argument('--hg', default=38, help='Set hg type. Default is hg38')
     ARGS = PARSER.parse_args()
 
     if ARGS.bed:
         print('Parsing bed file')
-        ParseAnnotations(ARGS.bed, 'bed', ARGS.name, ARGS.hg)
+        ParseAnnotations(ARGS.bed, 'bed', ARGS.name)
     elif ARGS.aed:
         print('Parsing aed file')
-        ParseAnnotations(ARGS.aed, 'aed', ARGS.name, ARGS.hg)
+        ParseAnnotations(ARGS.aed, 'aed', ARGS.name)
+    print('Finished')
