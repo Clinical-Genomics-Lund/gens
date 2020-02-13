@@ -1,4 +1,4 @@
-class Anno extends Track {
+class Annotation extends Track {
   constructor (x, width, near, far, hgType) {
     // Dimensions of track canvas
     const maxRows = 67; // Max height order for canvas
@@ -8,9 +8,9 @@ class Anno extends Track {
     super(width, near, far, maxRows, visibleHeight, minHeight);
 
     // Set inherited variables
-    this.trackCanvas = document.getElementById('anno-canvas');
-    this.trackTitle = document.getElementById('anno-titles');
-    this.trackContainer = document.getElementById('anno-container');
+    this.trackCanvas = document.getElementById('annotation-canvas');
+    this.trackTitle = document.getElementById('annotation-titles');
+    this.trackContainer = document.getElementById('annotation-container');
     this.arrowColor =  0xffffff;
 
     // Setup html objects now that we have gotten the canvas and div elements

@@ -23,9 +23,9 @@
                         <div id='track-titles' class='info-titles'></div>
                     </div>
 
-                    <div id='anno-container' class='info-container'>
-                        <canvas id='anno-canvas' class='info-canvas'></canvas>
-                        <div id='anno-titles' class='info-titles'></div>
+                    <div id='annotation-container' class='info-container'>
+                        <canvas id='annotation-canvas' class='info-canvas'></canvas>
+                        <div id='annotation-titles' class='info-titles'></div>
                     </div>
 
                     <div id='button-container'>
@@ -60,7 +60,7 @@
         <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
         <script src='{{ url_for('static', filename='js/track.js') }}'></script>
         <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/anno.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
         <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
 
@@ -128,11 +128,11 @@
 
             // Initiate and draw track canvas
             let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType);
-            tc.drawTracks(inputField.placeholder);
+            tc.drawTracks(inputField.value);
 
             // Initiate and draw annotation canvas
-            let bc = new Anno(ic.x, ic.plotWidth, near, far, hgType);
-            bc.drawTracks(inputField.placeholder);
+            let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType);
+            ac.drawTracks(inputField.value);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,

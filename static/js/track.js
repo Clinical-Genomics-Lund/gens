@@ -60,7 +60,7 @@ class Track {
         // Toggle between expanded/collapsed view
         this.expanded = !this.expanded;
         this.clearTracks();
-        this.drawTracks(inputField.placeholder);
+        this.drawTracks(inputField.value);
       }, false);
   }
 

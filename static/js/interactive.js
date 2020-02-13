@@ -184,10 +184,10 @@ class InteractiveCanvas {
 
     // Clear tracks
     tc.clearTracks();
-    bc.clearTracks();
+    ac.clearTracks();
 
     // Draw new tracks
     tc.drawTracks(this.inputField.value);
-    bc.drawTracks(this.inputField.placeholder);
+    ac.drawTracks(this.inputField.value);
   }
 }
