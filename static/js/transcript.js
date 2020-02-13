@@ -40,6 +40,7 @@ class Transcript extends Track {
         const strand = track['strand'];
         const start = track['start'];
         const end = track['end'];
+        const color = strand == '+' ? 'blue' : 'red';
 
         // Only draw visible tracks
         if (!this.expanded && height_order != 1)
@@ -49,7 +50,7 @@ class Transcript extends Track {
         const textHeight = 10;
 
         this.drawTrackLen(scale * (start - result['start_pos']),
-          scale * (end - result['start_pos']), adjustedYPos);
+          scale * (end - result['start_pos']), adjustedYPos, color);
 
         // Draw gene name
         if (result['res'] == 'd') {
@@ -76,7 +77,8 @@ class Transcript extends Track {
           if (scale * diff >= this.arrowWidth) {
             let direction = strand == '+' ? 1 : -1;
             this.drawArrows(scale * (latestFeaturePos - result['start_pos']),
-              scale * (feature['start'] - result['start_pos']), adjustedYPos, direction)
+              scale * (feature['start'] - result['start_pos']), adjustedYPos,
+              direction, color)
           }
           latestFeaturePos = feature['end'];
 
@@ -95,12 +97,12 @@ class Transcript extends Track {
 
               this.drawBand(scale * (feature['start'] - result['start_pos']),
                 adjustedYPos, scale * (feature['end'] - feature['start']),
-                this.featureHeight, this.trackColor);
+                this.featureHeight, color);
               break;
             case 'three_prime_utr':
               this.drawBand(scale * (feature['start'] - result['start_pos']),
                 adjustedYPos, scale * (feature['end'] - feature['start']),
-                this.featureHeight / 2, this.trackColor);
+                this.featureHeight / 2, color);
               break;
           }
         }

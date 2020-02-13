@@ -35,13 +35,13 @@ class Annotation extends Track {
       for (let i = 0; i < result['tracks'].length; i++) {
         const track = result['tracks'][i];
         const geneName = track['name'];
-        const color = track['color'];
         const sequence = track['sequence'];
         const height_order = track['height_order'];
         const score = track['score'];
         const start = track['start'];
         const end = track['end'];
         const strand = track['strand'];
+        const color = strand == '+' ? 'blue' : 'red';
 
         // Only draw visible tracks
         if (!this.expanded && height_order != 1)
@@ -50,8 +50,6 @@ class Annotation extends Track {
         const adjustedYPos = this.tracksYPos(height_order);
         const textHeight = 10;
 
-        this.drawTrackLen(scale * (start - result['start_pos']),
-          scale * (end - result['start_pos']), adjustedYPos);
         this.drawBand(scale * (start - result['start_pos']),
           adjustedYPos, scale * (end - start), this.featureHeight / 2, color);
 
@@ -74,7 +72,7 @@ class Annotation extends Track {
         // Draw arrows
         let direction = strand == '+' ? 1 : -1;
         this.drawArrows(scale * (start - result['start_pos']),
-        scale * (end - result['start_pos']), adjustedYPos, direction);
+        scale * (end - result['start_pos']), adjustedYPos, direction, this.arrowColor);
       }
 
       this.renderer.render(this.scene, this.camera);

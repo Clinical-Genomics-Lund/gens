@@ -22,7 +22,7 @@ class ParseAnnotations:
         self.annotations = []
         self.header = []
         self.fields_to_save = ['sequence', 'start', 'end', 'name',
-                               'strand', 'color', 'score']
+                               'strand', 'score']
 
         # Set start as index to be able to sort quicker
         self.collection.create_index([('start', ASCENDING)], unique=False)
@@ -85,8 +85,7 @@ class ParseAnnotations:
 
             # Set header since existing header is bad
             self.header = ['sequence', 'start', 'end', 'name',
-                           'score', 'strand', 'nul', 'null',
-                           'color']
+                           'score', 'strand', 'nul', 'null']
 
             # Skip bad header info
             next(bed_reader)
@@ -128,8 +127,6 @@ def format_field(title, field):
     '''
     Formats field depending on title
     '''
-    if 'color' in title:
-        return field if 'rgb(' in field else 'rgb({})'.format(field)
     if 'sequence' in title:
         return field.strip('chr')
     if 'start' in title or 'end' in title or 'score' in title:

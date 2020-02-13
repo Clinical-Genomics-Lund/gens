@@ -5,9 +5,9 @@ class Track {
     this.featureMargin = 14; // Margin for fitting gene name under track
     this.yPos = this.featureHeight / 2; // First y-position
     this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
-    this.trackColor =  0x0000ff;
     this.arrowColor =  0x0000ff;
     this.arrowWidth = 4;
+    this.arrowDistance = 200;
     this.expanded = false;
 
     // Dimensions of track canvas
@@ -121,7 +121,7 @@ class Track {
     this.trackTitle.appendChild(title);
   }
 
-  drawTrackLen (xStart, xStop, yPos) {
+  drawTrackLen (xStart, xStop, yPos, color) {
     // Draw exon at input center position
     var line = new THREE.Geometry();
     line.vertices.push(
@@ -129,7 +129,7 @@ class Track {
       new THREE.Vector3(xStop, yPos, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({color: this.trackColor});
+    var material = new THREE.LineBasicMaterial({color: color});
     line = new THREE.Line(line, material);
     this.scene.add(line);
   }
@@ -154,20 +154,20 @@ class Track {
     this.scene.add(rectangle);
   }
 
-  drawArrows(start, stop, yPos, direction) {
-    const stepLen = 40;
+  drawArrows(start, stop, yPos, direction, color) {
     const width = stop - start
     if (width < this.arrowWidth) {
       // Arrow does not fit, do nothing
       return;
-    } else if (width <= stepLen) {
+    } else if (width <= this.arrowDistance) {
       // Draw one arrow in the middle
-      this.drawArrow(start + (stop - start) / 2, yPos, direction, this.featureHeight / 2);
+      this.drawArrow(start + (stop - start) / 2, yPos, direction,
+        this.featureHeight / 2, color);
     } else {
       for (let pos = start + this.arrowWidth;
-        pos < stop - this.arrowWidth; pos += stepLen) {
+        pos < stop - this.arrowWidth; pos += this.arrowDistance) {
         // Draw several arrows
-        this.drawArrow(pos, yPos, direction, this.featureHeight / 2);
+        this.drawArrow(pos, yPos, direction, this.featureHeight / 2, color);
       }
     }
   }
@@ -175,7 +175,7 @@ class Track {
   // Draw an arrow in desired direction
   // Forward arrow: direction = 1
   // Reverse arrow: direction = -1
-  drawArrow (xpos, ypos, direction, height) {
+  drawArrow (xpos, ypos, direction, height, color) {
     let width = direction * this.arrowWidth;
 
     // Draw arrow symbol at around center position
@@ -186,7 +186,7 @@ class Track {
       new THREE.Vector3(xpos - width / 2, ypos + height / 2, 0)
     );
 
-    var material = new THREE.LineBasicMaterial({color: this.arrowColor});
+    var material = new THREE.LineBasicMaterial({color: color});
     line = new THREE.Line(line, material);
     this.scene.add(line);
   }
