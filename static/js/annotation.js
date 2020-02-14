@@ -14,8 +14,9 @@ class Annotation extends Track {
     this.arrowColor =  0xffffff;
 
     // Setup html objects now that we have gotten the canvas and div elements
-    this.setupHTML(x);
+    this.setupHTML(x + 1);
 
+    this.trackContainer.style.marginTop = '-1px';
     this.hgType = hgType;
   }
 

@@ -27,6 +27,7 @@ class Track {
   setupHTML(xPos) {
     // Setup container
     this.trackContainer.style.marginLeft = xPos + 'px';
+    this.trackContainer.style.width = this.width + 'px';
 
     // Setup initial track Canvas
     this.trackContext = this.trackCanvas.getContext('2d');
@@ -83,10 +84,12 @@ class Track {
       this.trackCanvas.height = maxYPos;
       this.trackTitle.style.height = maxYPos + 'px';
       this.trackContainer.style.height = this.visibleHeight + 'px';
+      this.trackContainer.style.paddingRight = '6px';
     } else {
       this.trackCanvas.height = this.minHeight;
       this.trackTitle.style.height = this.minHeight + 'px';
       this.trackContainer.style.height = this.minHeight + 'px';
+      this.trackContainer.style.paddingRight = '0px';
     }
   }
 
