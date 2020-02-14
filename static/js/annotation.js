@@ -33,6 +33,7 @@ class Annotation extends Track {
 
       let latest_height = 0;
       let latest_name_end = 0;
+      let latest_title_end = 0;
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
@@ -53,6 +54,7 @@ class Annotation extends Track {
         if (latest_height != height_order) {
           latest_height = height_order;
           latest_name_end = 0;
+          latest_title_end = 0;
         }
 
         const adjustedYPos = this.tracksYPos(height_order);
@@ -68,12 +70,12 @@ class Annotation extends Track {
 
         // Add tooltip title for whole gene
         const geneText = geneName + '\n' + 'chr' + sequence + ':' + start + '-' + end + '\n' + 'Score = ' + score;
-        this.insertTitle(geneText,
+        latest_title_end = this.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
           scale * (end - start) + 'px',
           this.featureHeight + textHeight + 'px',
-          0);
+          0, latest_height);
 
         // Draw arrows
         let direction = strand == '+' ? 1 : -1;

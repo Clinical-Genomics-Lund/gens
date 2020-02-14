@@ -32,6 +32,7 @@ class Transcript extends Track {
 
       let latest_height = 0;
       let latest_name_end = 0;
+      let latest_title_end = 0;
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
@@ -48,6 +49,7 @@ class Transcript extends Track {
         if (latest_height != height_order) {
           latest_height = height_order;
           latest_name_end = 0;
+          latest_title_end = 0;
         }
 
         // Only draw visible tracks
@@ -67,12 +69,12 @@ class Transcript extends Track {
 
         // Add tooltip title for whole gene
         const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
-        this.insertTitle(geneText,
+        latest_title_end = this.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
           scale * (end - start) + 'px',
           this.featureHeight + textHeight + 'px',
-          0);
+          0, latest_title_end);
 
         let latestFeaturePos = start;
         for (let j = 0; j < track['features'].length; j++) {
@@ -94,12 +96,12 @@ class Transcript extends Track {
                 '\nchr' + seqname + ':' + feature['start'] + '-' + feature['end'];
 
               // Add tooltip title for whole gene
-              this.insertTitle(exonText,
+              latest_title_end = this.insertTitle(exonText,
                 titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
                 titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
                 scale * (feature['end'] - feature['start']) + 'px',
                 this.featureHeight + 'px',
-                1);
+                1, latest_title_end);
 
               this.drawBand(scale * (feature['start'] - result['start_pos']),
                 adjustedYPos, scale * (feature['end'] - feature['start']),

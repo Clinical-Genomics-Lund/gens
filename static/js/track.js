@@ -104,7 +104,6 @@ class Track {
     if (xPos >= this.trackCanvas.width - textWidth) {
       xPos = this.trackCanvas.width - textWidth;
     }
-    console.log(xPos, latest_name_end);
     if (xPos < latest_name_end) {
       return latest_name_end;
     }
@@ -114,7 +113,14 @@ class Track {
     return xPos + textWidth;
   }
 
-  insertTitle(text, left, top, width, height, zIndex) {
+  insertTitle(text, left, top, width, height, zIndex, latest_pos) {
+    // Make div wider for more mouse over space
+    let minWidth = 1;
+    if (parseInt(width) < minWidth && (parseInt(left) - minWidth / 2) > latest_pos) {
+      left = parseInt(left) - minWidth / 2 + 'px';
+      width = minWidth + 'px';
+    }
+
     let title = document.createElement('div');
     title.title = text;
     title.style.left = left;
@@ -124,6 +130,7 @@ class Track {
     title.style.position = 'absolute';
     title.style.zIndex = zIndex;
     this.trackTitle.appendChild(title);
+    return parseInt(left + width);
   }
 
   drawTrackLen (xStart, xStop, yPos, color) {
