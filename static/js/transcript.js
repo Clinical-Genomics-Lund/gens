@@ -30,6 +30,9 @@ class Transcript extends Track {
       // Set needed height of visible canvas and transcript tooltips
       this.setContainerHeight(result['max_height_order']);
 
+      let latest_height = 0;
+      let latest_name_end = 0;
+
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['tracks'].length; i++) {
         const track = result['tracks'][i];
@@ -42,6 +45,11 @@ class Transcript extends Track {
         const end = track['end'];
         const color = strand == '+' ? 'blue' : 'red';
 
+        if (latest_height != height_order) {
+          latest_height = height_order;
+          latest_name_end = 0;
+        }
+
         // Only draw visible tracks
         if (!this.expanded && height_order != 1)
           continue
@@ -53,11 +61,9 @@ class Transcript extends Track {
           scale * (end - result['start_pos']), adjustedYPos, color);
 
         // Draw gene name
-        if (result['res'] == 'd') {
-          this.drawGeneName(geneName,
-            scale * ((start + end) / 2 - result['start_pos']),
-            adjustedYPos + this.featureHeight, textHeight);
-        }
+        latest_name_end = this.drawGeneName(geneName,
+          scale * ((start + end) / 2 - result['start_pos']),
+          adjustedYPos + this.featureHeight, textHeight, latest_name_end);
 
         // Add tooltip title for whole gene
         const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;

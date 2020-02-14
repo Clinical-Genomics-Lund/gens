@@ -306,7 +306,7 @@ def get_track_data():
         print('Could not find track data in DB')
         return abort(404)
 
-    if not res or res in ('a', 'b'):
+    if not res or res == 'a':
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
@@ -319,26 +319,21 @@ def get_track_data():
     elif chrom == '24':
         chrom = 'Y'
 
-    # Get tracks within span [start_pos, end_pos]
+    # Get tracks within span [start_pos, end_pos] or tracks that go over the span
     tracks = collection.find({'seqname': str(chrom),
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'end': {'$gte': start_pos, '$lte': end_pos}}]},
-                             {'_id': False})
+                                      {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                      {'$and': [{'start': {'$lte': start_pos}},
+                                                {'end': {'$gte': end_pos}}]}]},
+                             {'_id': False}, sort=[('height_order', 1), ('start', 1)])
+    tracks = list(tracks)
+    if tracks:
+        height_orders = [t['height_order'] for t in tracks]
+        max_height_order = max(height_orders)
+    else:
+        max_height_order = 1
 
-    # Get tracks that go over the whole span
-    tracks_over = collection.find({'seqname': str(chrom),
-                                   'start': {'$lte': start_pos},
-                                   'end': {'$gte': end_pos}},
-                                  {'_id': False})
-
-    tracks = list(tracks) + list(tracks_over)
-
-    max_height_order = 1
-    for track in tracks:
-        if track['height_order'] > max_height_order:
-            max_height_order = track['height_order']
-
-    return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
+    return jsonify(status='ok', tracks=list(tracks), start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)
 
 @APP.route('/_getannotationdata', methods=['GET'])
@@ -350,30 +345,25 @@ def get_annotation_data():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
-    if not res or res in ('a', 'b'):
+    if not res or res == 'a':
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
     collection = GENS_DB['annotations']
 
-    # Get tracks within span [start_pos, end_pos]
+    # Get tracks within span [start_pos, end_pos] or tracks that go over the span
     tracks = collection.find({'sequence': str(chrom),
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'end': {'$gte': start_pos, '$lte': end_pos}}]},
-                             {'_id': False})
-
-    # Get tracks that go over the whole span
-    tracks_over = collection.find({'sequence': str(chrom),
-                                   'start': {'$lte': start_pos},
-                                   'end': {'$gte': end_pos}},
-                                  {'_id': False})
-
-    tracks = list(tracks) + list(tracks_over)
-
-    max_height_order = 1
-    for track in tracks:
-        if track['height_order'] > max_height_order:
-            max_height_order = track['height_order']
+                                      {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                      {'$and': [{'start': {'$lte': start_pos}},
+                                                {'end': {'$gte': end_pos}}]}]},
+                             {'_id': False}, sort=[('height_order', 1), ('start', 1)])
+    tracks = list(tracks)
+    if tracks:
+        height_orders = [t['height_order'] for t in tracks]
+        max_height_order = max(height_orders)
+    else:
+        max_height_order = 1
 
     return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)

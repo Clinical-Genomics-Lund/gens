@@ -90,7 +90,7 @@ class Track {
     }
   }
 
-  drawGeneName(geneName, xPos, yPos, textHeight) {
+  drawGeneName(geneName, xPos, yPos, textHeight, latest_name_end) {
     this.trackContext.save();
     this.trackContext.font = 'bold ' + textHeight + 'px Arial';
     this.trackContext.fillStyle = 'black';
@@ -104,9 +104,14 @@ class Track {
     if (xPos >= this.trackCanvas.width - textWidth) {
       xPos = this.trackCanvas.width - textWidth;
     }
+    console.log(xPos, latest_name_end);
+    if (xPos < latest_name_end) {
+      return latest_name_end;
+    }
 
     this.trackContext.fillText(geneName, xPos, yPos);
     this.trackContext.restore();
+    return xPos + textWidth;
   }
 
   insertTitle(text, left, top, width, height, zIndex) {
