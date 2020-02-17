@@ -29,16 +29,16 @@
                     </div>
 
                     <div id='button-container'>
-                        <button onclick='left(ic, baf, logr);' class='icon'>
+                        <button onclick='left(ic);' class='icon'>
                             <span class='icon' id='arrow-left' title='Left'></span>
                         </button>
-                        <button onclick='right(ic, baf, logr);' class='icon'>
+                        <button onclick='right(ic);' class='icon'>
                             <span class='icon' id='arrow-right' title='Right'></span>
                         </button>
-                        <button onclick='zoomIn(ic, baf, logr);' class='icon'>
+                        <button onclick='zoomIn(ic);' class='icon'>
                             <span class='icon' id='search-plus' title='Zoom in'></span>
                         </button>
-                        <button onclick='zoomOut(ic, baf, logr);' class='icon'>
+                        <button onclick='zoomOut(ic);' class='icon'>
                             <span class='icon' id='search-minus' title='Zoom out'></span>
                         </button>
                         <form id='region_form'>
@@ -67,47 +67,20 @@
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
             // FLASK VALUES //
-            let sampleName = '{{ sample_name }}';
-            let hgType = {{hg_type}}
+            const sampleName = '{{ sample_name }}';
+            const hgType = {{hg_type}}
 
             // WEBGL VALUES //
-            let near = 0.1;
-            let far = 100;
-            let lineMargin = 2; // Margin for line thickness
+            const near = 0.1;
+            const far = 100;
+            const lineMargin = 2; // Margin for line thickness
 
             // Listener values
-            let drag = false;
-            let dragStart;
-            let dragEnd;
-            let inputField = document.getElementById('region_field');
+            const inputField = document.getElementById('region_field');
 
             // Set first input field value for ic
             inputField.value = '{{chrom}}' + ':' + {{start}} + '-' + {{end}};
             inputField.placeholder = inputField.value;
-
-            // BAF values
-            let baf = {
-                yStart: 1.0, // Start value for y axis
-                yEnd: 0.0, // End value for y axis
-                step: 0.2, // Step value for drawing ticks along y-axis
-                color: '#000000' // Viz color
-            };
-
-            // LOGR values
-            let logr = {
-                yStart: 4.0, // Start value for y axis
-                yEnd: -4.0, // End value for y axis
-                step: 1.0, // Step value for drawing ticks along y-axis
-                color: '#000000' // Viz color
-            };
-
-	    // LOGR values for overview plot
-            let logr_overview = {
-                yStart: 3.0, // Start value for y axis
-                yEnd: -3.0, // End value for y axis
-                step: 1.0, // Step value for drawing ticks along y-axis
-                color: '#000000' // Viz color
-            };
 
             // Hide non-rendered content
             window.onload = (event) => {
@@ -123,8 +96,8 @@
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
                 sampleName, hgType);
-            ic.drawStaticContent(baf, logr);
-            ic.drawInteractiveContent(baf, logr);
+            ic.drawStaticContent();
+            ic.drawInteractiveContent();
 
             // Initiate and draw track canvas
             let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType);
@@ -137,170 +110,12 @@
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
                 sampleName, hgType);
-            oc.drawOverviewContent(baf, logr_overview);
+            oc.drawOverviewContent();
 
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                 event.preventDefault();
-                ic.redraw(baf, logr, inputField.value);
-            });
-
-            ic.contentCanvas.addEventListener('mousedown', function (event) {
-                event.stopPropagation();
-                switch (event.which) {
-                    case 1: // Left mouse click
-                        if (!ic.disallowDrag) {
-                            dragStart = {
-                                x: event.pageX - ic.contentCanvas.offsetLeft,
-                                y: event.pageY - ic.contentCanvas.offsetTop
-                            };
-                            dragEnd = {
-                                x: event.pageX - ic.contentCanvas.offsetLeft,
-                                y: event.pageY - ic.contentCanvas.offsetTop
-                            };
-                            drag = true;
-                        }
-                        break;
-                }
-            });
-
-            ic.contentCanvas.addEventListener('mousemove', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                switch (event.which) {
-                    case 1: // Left mouse click
-                        if (drag && !ic.disallowDrag) {
-                            dragEnd = {
-                                x: event.pageX - ic.contentCanvas.offsetLeft,
-                                y: event.pageY - ic.contentCanvas.offsetTop
-                            };
-
-                            // Clear whole content canvas
-                            ic.contentCanvas.getContext('2d').clearRect(0,
-                                ic.titleMargin / 2,
-                                ic.contentCanvas.width,
-                                ic.contentCanvas.height);
-
-                            // Copy draw image to content Canvas
-                            let lineMargin = 2;
-                            ic.contentCanvas.getContext('2d').drawImage(ic.moveImg,
-                                ic.extraWidth - (dragEnd.x - dragStart.x),
-                                ic.y + lineMargin,
-                                ic.plotWidth + 2 * ic.xMargin,
-                                ic.canvasHeight,
-                                ic.x,
-                                ic.y + lineMargin,
-                                ic.plotWidth + 2 * ic.xMargin,
-                                ic.canvasHeight);
-                        }
-                        break;
-                }
-            });
-
-            ic.contentCanvas.addEventListener('mouseup', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                switch (event.which) {
-                    case 1: // Left mouse click
-                        if (drag) {
-                            drag = false;
-                            let scale = ic.plotWidth / (ic.end - ic.start);
-                            let moveDist = Math.floor((dragStart.x - dragEnd.x) / scale);
-
-                            // Do not allow negative values
-                            if (ic.start + moveDist < 0) {
-                                moveDist -= (ic.start + moveDist);
-                            }
-                            ic.start += moveDist;
-                            ic.end += moveDist;
-                            ic.disallowDrag = true;
-
-                            ic.redraw(baf, logr, null);
-                        }
-                        break;
-                }
-            });
-
-            function keyMapper (options) {
-                const keystrokeDelay = options.keystrokeDelay || 1000;
-
-                let state = {
-                    buffer: '',
-                    lastKeyTime: Date.now()
-                };
-
-                document.addEventListener('keydown', event => {
-                    const key = event.key;
-                    const currentTime = Date.now();
-                    const eventType = window.event;
-                    const target = eventType.target || eventType.scrElement;
-                    const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
-                    let buffer = '';
-
-                    // Do not listen to keydown events for active fields
-                    if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-                        return;
-                    }
-
-                    if (key === 'Enter' &&
-                            currentTime - state.lastKeyTime < keystrokeDelay ||
-                        key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
-                        // Enter was pressed, process previous key presses.
-                        if (key.toLowerCase() == 'x') {
-                            ic.chromosome = 23;
-                        } else if (key.toLowerCase() == 'y') {
-                            ic.chromosome = 24;
-                        } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
-                            ic.chromosome = state.buffer;
-                        } else {
-                            // No valid key pressed
-                            return;
-                        }
-                        ic.redraw (baf, logr, ic.chromosome + ':0-None');
-                    } else if (!isFinite(key)) {
-                        // Arrow keys for moving graph
-                        switch (key) {
-                        case 'ArrowLeft':
-                            left(ic, baf, logr, sampleName);
-                            break;
-                        case 'ArrowRight':
-                            right(ic, baf, logr, sampleName);
-                            break;
-                        case '+':
-                            zoomIn(ic, baf, logr, sampleName);
-                            break;
-                        case '-':
-                            zoomOut(ic, baf, logr, sampleName);
-                            break;
-                        default:
-                            return;
-                        }
-                    } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
-                        // Reset buffer
-                        buffer = key;
-                    } else {
-                        if (state.buffer.length > 1) {
-                            // Buffer contains more than two digits, keep the last digit
-                            buffer = state.buffer[state.buffer.length - 1] + key;
-                        } else {
-                            // Add new digit to buffer
-                            buffer = state.buffer + key;
-                        }
-                    }
-                    // Save current state
-                    state = { buffer: buffer, lastKeyTime: currentTime };
-                });
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                'use strict';
-
-                const options = {
-                    eventType: 'keydown',
-                    keystrokeDelay: 1000
-                };
-
-                keyMapper(options);
+                ic.redraw(inputField.value);
             });
         </script>
     </body>

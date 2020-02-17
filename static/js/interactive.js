@@ -17,6 +17,22 @@ class InteractiveCanvas {
     this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
 
+    // BAF values
+    this.baf = {
+        yStart: 1.0, // Start value for y axis
+        yEnd: 0.0, // End value for y axis
+        step: 0.2, // Step value for drawing ticks along y-axis
+        color: '#000000' // Viz color
+    };
+
+    // LOGR values
+    this.logr = {
+        yStart: 4.0, // Start value for y axis
+        yEnd: -4.0, // End value for y axis
+        step: 1.0, // Step value for drawing ticks along y-axis
+        color: '#000000' // Viz color
+    };
+
     // Setup draw canvas
     this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Draw-canvas width
     this.drawCanvas = new OffscreenCanvas(parseInt(this.drawWidth), parseInt(this.canvasHeight));
@@ -33,8 +49,12 @@ class InteractiveCanvas {
     this.chromosome = input[0];
     this.start = input[1];
     this.end = input[2];
-    this.disallowDrag = false;
-    this.disallowDraw = false;
+    this.allowDraw = true;
+
+    // Listener values
+    this.drag = false;
+    this.dragStart;
+    this.dragEnd;
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -47,13 +67,86 @@ class InteractiveCanvas {
     });
 
     // Change to fourth quadrant of scene
-    this.camera.position.x = this.drawWidth / 2 - lineMargin;
-    this.camera.position.y = this.canvasHeight / 2 - lineMargin;
-    this.camera.position.z = 1;
+    this.camera.position.set(this.drawWidth / 2 - lineMargin,
+      this.canvasHeight / 2 - lineMargin, 1);
+
+    this.contentCanvas.addEventListener('mousedown', (event) => {
+        event.stopPropagation();
+        if (!this.drag && this.allowDraw) {
+            this.dragStart = {
+                x: event.pageX - this.contentCanvas.offsetLeft,
+                y: event.pageY - this.contentCanvas.offsetTop
+            };
+            this.dragEnd = {
+                x: event.pageX - this.contentCanvas.offsetLeft,
+                y: event.pageY - this.contentCanvas.offsetTop
+            };
+            this.drag = true;
+        }
+    });
+
+    this.contentCanvas.addEventListener('mousemove', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (this.drag) {
+            this.dragEnd = {
+                x: event.pageX - this.contentCanvas.offsetLeft,
+                y: event.pageY - this.contentCanvas.offsetTop
+            };
+
+            // Clear whole content canvas
+            this.contentCanvas.getContext('2d').clearRect(0,
+                this.titleMargin / 2,
+                this.contentCanvas.width,
+                this.contentCanvas.height);
+
+            // Copy draw image to content Canvas
+            let lineMargin = 2;
+            this.contentCanvas.getContext('2d').drawImage(this.moveImg,
+                this.extraWidth - (this.dragEnd.x - this.dragStart.x),
+                this.y + lineMargin,
+                this.plotWidth + 2 * this.xMargin,
+                this.canvasHeight,
+                this.x,
+                this.y + lineMargin,
+                this.plotWidth + 2 * this.xMargin,
+                this.canvasHeight);
+        }
+    });
+
+    this.contentCanvas.addEventListener('mouseup', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (this.drag) {
+          this.drag = false;
+          let scale = this.plotWidth / (this.end - this.start);
+          let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / scale);
+
+          // Do not allow negative values
+          if (this.start + moveDist < 0) {
+            moveDist -= (this.start + moveDist);
+          }
+          this.start += moveDist;
+          this.end += moveDist;
+
+          this.redraw(null);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        'use strict';
+
+        const options = {
+            eventType: 'keydown',
+            keystrokeDelay: 1000
+        };
+
+        this.keyMapper(options);
+    });
   }
 
   // Draw static content for interactive canvas
-  drawStaticContent (baf, logr) {
+  drawStaticContent () {
     let linePadding = 2;
     let staticContext = this.staticCanvas.getContext('2d');
     // Fill background colour
@@ -74,11 +167,11 @@ class InteractiveCanvas {
 
     // Draw BAF
     createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth, this.plotHeight,
-      this.yMargin, baf.yStart, baf.yEnd, baf.step, true);
+      this.yMargin, this.baf.yStart, this.baf.yEnd, this.baf.step, true);
 
     // Draw LogR
     createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight, this.plotWidth,
-      this.plotHeight, this.yMargin, logr.yStart, logr.yEnd, logr.step, true);
+      this.plotHeight, this.yMargin, this.logr.yStart, this.logr.yEnd, this.logr.step, true);
 
     this.renderer.render(this.scene, this.camera);
 
@@ -90,7 +183,7 @@ class InteractiveCanvas {
   }
 
   // Draw values for interactive canvas
-  drawInteractiveContent (baf, logr) {
+  drawInteractiveContent () {
     $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
       region: this.inputField.value,
       sample_name: this.sampleName,
@@ -101,10 +194,10 @@ class InteractiveCanvas {
       extra_plot_width: this.extraWidth,
       y_margin: this.yMargin,
       x_ampl: this.plotWidth,
-      baf_y_start: baf.yStart,
-      baf_y_end: baf.yEnd,
-      logr_y_start: logr.yStart,
-      logr_y_end: logr.yEnd
+      baf_y_start: this.baf.yStart,
+      baf_y_end: this.baf.yEnd,
+      logr_y_start: this.logr.yStart,
+      logr_y_end: this.logr.yEnd
     }, (result) => {
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -116,13 +209,13 @@ class InteractiveCanvas {
 
       // Draw horizontal lines for BAF and LogR
       drawGraphLines(this.scene, 0, result['y_pos'],
-        baf.yStart, baf.yEnd, baf.step, this.yMargin, this.drawWidth, this.plotHeight);
+        this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin, this.drawWidth, this.plotHeight);
       drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
-        logr.yStart, logr.yEnd, logr.step, this.yMargin, this.drawWidth, this.plotHeight);
+        this.logr.yStart, this.logr.yEnd, this.logr.step, this.yMargin, this.drawWidth, this.plotHeight);
 
       // Plot scatter data
-      drawData(this.scene, result['baf'], baf.color);
-      drawData(this.scene, result['data'], logr.color);
+      drawData(this.scene, result['baf'], this.baf.color);
+      drawData(this.scene, result['data'], this.logr.color);
       this.renderer.render(this.scene, this.camera);
 
       // Draw chromosome title
@@ -147,10 +240,10 @@ class InteractiveCanvas {
       this.end = result['end'];
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
       this.inputField.placeholder = this.inputField.value;
-      this.disallowDraw = false;
+      this.allowDraw = true;
       this.inputField.blur();
     }).fail((result) => {
-      this.disallowDraw = false;
+      this.allowDraw = true;
 
       // Signal bad input by adding error class
       this.inputField.classList.add('error');
@@ -166,12 +259,11 @@ class InteractiveCanvas {
   }
 
   // Redraw interactive canvas
-  redraw (baf, logr, inputValue) {
-    if (this.disallowDraw) {
+  redraw (inputValue) {
+    if (!this.allowDraw) {
       return;
     }
-    this.disallowDrag = false;
-    this.disallowDraw = true;
+    this.allowDraw = false;
 
     // Set input field
     if (inputValue) {
@@ -180,7 +272,7 @@ class InteractiveCanvas {
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
     }
 
-    this.drawInteractiveContent(baf, logr);
+    this.drawInteractiveContent();
 
     // Clear tracks
     tc.clearTracks();
@@ -189,5 +281,76 @@ class InteractiveCanvas {
     // Draw new tracks
     tc.drawTracks(this.inputField.value);
     ac.drawTracks(this.inputField.value);
+  }
+
+  keyMapper (options) {
+      const keystrokeDelay = options.keystrokeDelay || 1000;
+
+      let state = {
+          buffer: '',
+          lastKeyTime: Date.now()
+      };
+
+      document.addEventListener('keydown', event => {
+          const key = event.key;
+          const currentTime = Date.now();
+          const eventType = window.event;
+          const target = eventType.target || eventType.scrElement;
+          const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
+          let buffer = '';
+
+          // Do not listen to keydown events for active fields
+          if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+              return;
+          }
+
+          if (key === 'Enter' &&
+                  currentTime - state.lastKeyTime < keystrokeDelay ||
+              key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
+              // Enter was pressed, process previous key presses.
+              if (key.toLowerCase() == 'x') {
+                  this.chromosome = 23;
+              } else if (key.toLowerCase() == 'y') {
+                  this.chromosome = 24;
+              } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
+                  this.chromosome = state.buffer;
+              } else {
+                  // No valid key pressed
+                  return;
+              }
+              this.redraw (this.chromosome + ':0-None');
+          } else if (!isFinite(key)) {
+              // Arrow keys for moving graph
+              switch (key) {
+              case 'ArrowLeft':
+                  left(this, sampleName);
+                  break;
+              case 'ArrowRight':
+                  right(this, sampleName);
+                  break;
+              case '+':
+                  zoomIn(this, sampleName);
+                  break;
+              case '-':
+                  zoomOut(this, sampleName);
+                  break;
+              default:
+                  return;
+              }
+          } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+              // Reset buffer
+              buffer = key;
+          } else {
+              if (state.buffer.length > 1) {
+                  // Buffer contains more than two digits, keep the last digit
+                  buffer = state.buffer[state.buffer.length - 1] + key;
+              } else {
+                  // Add new digit to buffer
+                  buffer = state.buffer + key;
+              }
+          }
+          // Save current state
+          state = { buffer: buffer, lastKeyTime: currentTime };
+      });
   }
 }

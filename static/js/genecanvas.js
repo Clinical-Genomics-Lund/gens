@@ -74,35 +74,35 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2);
 }
 
-function left (ic, baf, logr, sampleName) {
+function left (ic, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(0.1 * size);
   ic.end -= Math.floor(0.1 * size);
-  ic.redraw (baf, logr, null);
+  ic.redraw (null);
 }
 
-function right (ic, baf, logr, sampleName) {
+function right (ic, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
-  ic.redraw (baf, logr, null);
+  ic.redraw (null);
 }
 
-function zoomIn (ic, baf, logr, sampleName) {
+function zoomIn (ic, sampleName) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
-  ic.redraw (baf, logr, null);
+  ic.redraw (null);
 }
 
-function zoomOut (ic, baf, logr, sampleName) {
+function zoomOut (ic, sampleName) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
   ic.end += Math.floor(size * 0.5);
   if (ic.start < 1) {
     ic.start = 1;
   }
-  ic.redraw (baf, logr, null);
+  ic.redraw (null);
 }
 
 
