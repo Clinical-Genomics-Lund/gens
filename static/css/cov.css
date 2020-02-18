@@ -93,6 +93,21 @@ html, body {
     grid-column: 1;
 }
 
+.info-container[data-state=nodata] {
+    height: 0px;
+    border: none;
+}
+
+.info-container[data-state=collapsed] {
+    padding-right: 0px;
+    border: 1px solid black;
+}
+
+.info-container[data-state=expanded] {
+    padding-right: 6px;
+    border: 1px solid black;
+}
+
 .info-container {
     display: grid;
     grid-row: 2;
@@ -100,7 +115,6 @@ html, body {
     overflow-y: auto;
     overflow-x: hidden;
     height: 100px;
-    border: 1px solid black;
 }
 
 .info-container::-webkit-scrollbar {

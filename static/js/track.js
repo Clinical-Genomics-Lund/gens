@@ -79,17 +79,18 @@ class Track {
       this.trackCanvas.height = 0;
       this.trackTitle.style.height = 0 + 'px';
       this.trackContainer.style.height = 0 + 'px';
+      this.trackContainer.setAttribute('data-state', 'nodata');
     } else if (this.expanded) {
       const maxYPos = this.tracksYPos(maxHeightOrder + 1);
       this.trackCanvas.height = maxYPos;
       this.trackTitle.style.height = maxYPos + 'px';
       this.trackContainer.style.height = this.visibleHeight + 'px';
-      this.trackContainer.style.paddingRight = '6px';
+      this.trackContainer.setAttribute('data-state', 'expanded');
     } else {
       this.trackCanvas.height = this.minHeight;
       this.trackTitle.style.height = this.minHeight + 'px';
       this.trackContainer.style.height = this.minHeight + 'px';
-      this.trackContainer.style.paddingRight = '0px';
+      this.trackContainer.setAttribute('data-state', 'collapsed');
     }
   }
 
