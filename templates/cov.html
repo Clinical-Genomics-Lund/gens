@@ -2,10 +2,17 @@
 <html>
     <head>
         <meta charset=utf-8>
-        <link rel='stylesheet' href='static/css/cov.css' type='text/css'>
+        <link rel='stylesheet' href='static/css/cov.css?u={{ last_updated }}' type='text/css'>
         <link rel='icon' href='data:,'>
         <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
         <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
+        <script src='{{ url_for('static', filename='js/genecanvas.js') }}?u={{ last_updated }}'></script>;
+        <script src='{{ url_for('static', filename='js/interactive.js') }}?u={{ last_updated }}'></script>
+        <script src='{{ url_for('static', filename='js/track.js') }}?u={{ last_updated }}'></script>
+        <script src='{{ url_for('static', filename='js/transcript.js') }}?u={{ last_updated }}'></script>
+        <script src='{{ url_for('static', filename='js/annotation.js') }}?u={{ last_updated }}'></script>
+        <script src='{{ url_for('static', filename='js/overview.js') }}?u={{ last_updated }}'></script>
+
         <html>
             <div id='progress-container'>
                 <progress value="0" max="1" id='progress-bar'></progress>
@@ -56,12 +63,6 @@
     </head>
 
     <body>
-        <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/track.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
-        <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
         <script>
 
             $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};

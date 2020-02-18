@@ -3,11 +3,10 @@
 Whole genome visualization of BAF and log R ratio
 '''
 
-import math
 import re
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
-from os import path
+from os import path, walk
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
 
@@ -66,7 +65,8 @@ def coverage_view(sample_name):
         chrom = 'Y'
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
-                           sample_name=sample_name, hg_type=hg_type)
+                           sample_name=sample_name, hg_type=hg_type,
+                           last_updated=dir_last_updated('static'))
 
 def get_hg_type():
     '''
@@ -477,3 +477,12 @@ def tabix_query(filename, chrom, start=None, end=None):
     else:
         for line in process.stdout:
             yield line.strip().split()
+
+def dir_last_updated(folder):
+    '''
+    Returns last updated date of a folder
+    '''
+    return str(max(path.getmtime(path.join(root_path, f))
+                   for root_path, dirs, files in walk(folder)
+                   for f in files))
+
