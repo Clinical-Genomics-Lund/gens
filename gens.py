@@ -457,7 +457,7 @@ def parse_region_str(region):
         resolution = 'a'
     elif size > 1800000:
         resolution = 'b'
-    elif size > 200000:
+    elif size > 500000:
         resolution = 'c'
 
     return resolution, chrom, start, end
