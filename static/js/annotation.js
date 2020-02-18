@@ -66,8 +66,8 @@ class Annotation extends Track {
 
         // Draw gene name
         latest_name_end = this.drawGeneName(geneName,
-            scale * ((start + end) / 2 - result['start_pos']),
-            adjustedYPos + this.featureHeight, textHeight, latest_name_end);
+          scale * ((start + end) / 2 - result['start_pos']),
+          adjustedYPos + this.featureHeight, textHeight, latest_name_end);
 
         // Add tooltip title for whole gene
         const geneText = geneName + '\n' + 'chr' + sequence + ':' + start + '-' + end + '\n' + 'Score = ' + score;
@@ -81,7 +81,7 @@ class Annotation extends Track {
         // Draw arrows
         let direction = strand == '+' ? 1 : -1;
         this.drawArrows(scale * (start - result['start_pos']),
-        scale * (end - result['start_pos']), adjustedYPos, direction, this.arrowColor);
+          scale * (end - result['start_pos']), adjustedYPos, direction, this.arrowColor);
       }
 
       this.renderer.render(this.scene, this.camera);

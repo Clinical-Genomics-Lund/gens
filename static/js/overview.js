@@ -18,18 +18,18 @@ class OverviewCanvas {
 
     // BAF values
     this.baf = {
-        yStart: 1.0, // Start value for y axis
-        yEnd: 0.0, // End value for y axis
-        step: 0.2, // Step value for drawing ticks along y-axis
-        color: '#000000' // Viz color
+      yStart: 1.0, // Start value for y axis
+      yEnd: 0.0, // End value for y axis
+      step: 0.2, // Step value for drawing ticks along y-axis
+      color: '#000000' // Viz color
     };
 
     // LOGR values
     this.logr = {
-        yStart: 3.0, // Start value for y axis
-        yEnd: -3.0, // End value for y axis
-        step: 1.0, // Step value for drawing ticks along y-axis
-        color: '#000000' // Viz color
+      yStart: 3.0, // Start value for y axis
+      yEnd: -3.0, // End value for y axis
+      step: 1.0, // Step value for drawing ticks along y-axis
+      color: '#000000' // Viz color
     };
 
     // Set canvas height
@@ -139,11 +139,11 @@ class OverviewCanvas {
             document.getElementById('progress-bar').remove();
             document.getElementById('progress-container').remove();
             document.getElementById('grid-container').style.visibility =
-                'visible';
+              'visible';
             document.getElementById('grid-container').style.display = 'grid';
           } else {
             document.getElementById('progress-bar').value =
-                drawnChrom / this.numChrom;
+              drawnChrom / this.numChrom;
           }
         }).fail( (result) => {
           console.log(result['responseText']);

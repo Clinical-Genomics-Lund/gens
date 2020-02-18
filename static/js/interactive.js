@@ -14,23 +14,23 @@ class InteractiveCanvas {
     this.plotHeight = 180; // Height of one plot
     this.x = $(document).innerWidth() / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
-    this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Canvas height
+    this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Height for whole canvas
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
 
     // BAF values
     this.baf = {
-        yStart: 1.0, // Start value for y axis
-        yEnd: 0.0, // End value for y axis
-        step: 0.2, // Step value for drawing ticks along y-axis
-        color: '#000000' // Viz color
+      yStart: 1.0, // Start value for y axis
+      yEnd: 0.0, // End value for y axis
+      step: 0.2, // Step value for drawing ticks along y-axis
+      color: '#000000' // Viz color
     };
 
     // LOGR values
     this.logr = {
-        yStart: 4.0, // Start value for y axis
-        yEnd: -4.0, // End value for y axis
-        step: 1.0, // Step value for drawing ticks along y-axis
-        color: '#000000' // Viz color
+      yStart: 4.0, // Start value for y axis
+      yEnd: -4.0, // End value for y axis
+      step: 1.0, // Step value for drawing ticks along y-axis
+      color: '#000000' // Viz color
     };
 
     // Setup draw canvas
@@ -70,85 +70,87 @@ class InteractiveCanvas {
     this.camera.position.set(this.drawWidth / 2 - lineMargin,
       this.canvasHeight / 2 - lineMargin, 1);
 
+    // Setup listeners
     this.contentCanvas.addEventListener('mousedown', (event) => {
-        event.stopPropagation();
-        if (!this.drag && this.allowDraw) {
-            this.dragStart = {
-                x: event.pageX - this.contentCanvas.offsetLeft,
-                y: event.pageY - this.contentCanvas.offsetTop
-            };
-            this.dragEnd = {
-                x: event.pageX - this.contentCanvas.offsetLeft,
-                y: event.pageY - this.contentCanvas.offsetTop
-            };
-            this.drag = true;
-        }
+      event.stopPropagation();
+      if (!this.drag && this.allowDraw) {
+        this.dragStart = {
+          x: event.pageX - this.contentCanvas.offsetLeft,
+          y: event.pageY - this.contentCanvas.offsetTop
+        };
+        this.dragEnd = {
+          x: event.pageX - this.contentCanvas.offsetLeft,
+          y: event.pageY - this.contentCanvas.offsetTop
+        };
+        this.drag = true;
+      }
     });
 
     this.contentCanvas.addEventListener('mousemove', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (this.drag) {
-            this.dragEnd = {
-                x: event.pageX - this.contentCanvas.offsetLeft,
-                y: event.pageY - this.contentCanvas.offsetTop
-            };
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.drag) {
+        this.dragEnd = {
+          x: event.pageX - this.contentCanvas.offsetLeft,
+          y: event.pageY - this.contentCanvas.offsetTop
+        };
 
-            // Clear whole content canvas
-            this.contentCanvas.getContext('2d').clearRect(0,
-                this.titleMargin / 2,
-                this.contentCanvas.width,
-                this.contentCanvas.height);
+        // Clear whole content canvas
+        this.contentCanvas.getContext('2d').clearRect(0,
+          this.titleMargin / 2,
+          this.contentCanvas.width,
+          this.contentCanvas.height);
 
-            // Copy draw image to content Canvas
-            let lineMargin = 2;
-            this.contentCanvas.getContext('2d').drawImage(this.moveImg,
-                this.extraWidth - (this.dragEnd.x - this.dragStart.x),
-                this.y + lineMargin,
-                this.plotWidth + 2 * this.xMargin,
-                this.canvasHeight,
-                this.x,
-                this.y + lineMargin,
-                this.plotWidth + 2 * this.xMargin,
-                this.canvasHeight);
-        }
+        // Copy draw image to content Canvas
+        let lineMargin = 2;
+        this.contentCanvas.getContext('2d').drawImage(this.moveImg,
+          this.extraWidth - (this.dragEnd.x - this.dragStart.x),
+          this.y + lineMargin,
+          this.plotWidth + 2 * this.xMargin,
+          this.canvasHeight,
+          this.x,
+          this.y + lineMargin,
+          this.plotWidth + 2 * this.xMargin,
+          this.canvasHeight);
+      }
     });
 
     this.contentCanvas.addEventListener('mouseup', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (this.drag) {
-          this.drag = false;
-          let scale = this.plotWidth / (this.end - this.start);
-          let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / scale);
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.drag) {
+        this.drag = false;
+        let scale = this.plotWidth / (this.end - this.start);
+        let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / scale);
 
-          // Do not allow negative values
-          if (this.start + moveDist < 0) {
-            moveDist -= (this.start + moveDist);
-          }
-          this.start += moveDist;
-          this.end += moveDist;
-
-          this.redraw(null);
+        // Do not allow negative values
+        if (this.start + moveDist < 0) {
+          moveDist -= (this.start + moveDist);
         }
+        this.start += moveDist;
+        this.end += moveDist;
+
+        this.redraw(null);
+      }
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        'use strict';
+      'use strict';
 
-        const options = {
-            eventType: 'keydown',
-            keystrokeDelay: 1000
-        };
+      const options = {
+        eventType: 'keydown',
+        keystrokeDelay: 1000
+      };
 
-        this.keyMapper(options);
+      this.keyMapper(options);
     });
   }
 
   // Draw static content for interactive canvas
   drawStaticContent () {
-    let linePadding = 2;
-    let staticContext = this.staticCanvas.getContext('2d');
+    const linePadding = 2;
+    const staticContext = this.staticCanvas.getContext('2d');
+
     // Fill background colour
     staticContext.fillStyle = 'white';
     staticContext.fillRect(0, 0, this.staticCanvas.width, this.staticCanvas.height);
@@ -166,12 +168,14 @@ class InteractiveCanvas {
       this.y + 1.5 * this.plotHeight, -Math.PI / 2);
 
     // Draw BAF
-    createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth, this.plotHeight,
-      this.yMargin, this.baf.yStart, this.baf.yEnd, this.baf.step, true);
+    createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth,
+      this.plotHeight, this.yMargin, this.baf.yStart, this.baf.yEnd,
+      this.baf.step, true);
 
     // Draw LogR
-    createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight, this.plotWidth,
-      this.plotHeight, this.yMargin, this.logr.yStart, this.logr.yEnd, this.logr.step, true);
+    createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight,
+      this.plotWidth, this.plotHeight, this.yMargin, this.logr.yStart,
+      this.logr.yEnd, this.logr.step, true);
 
     this.renderer.render(this.scene, this.camera);
 
@@ -204,14 +208,16 @@ class InteractiveCanvas {
         this.contentCanvas.width, this.contentCanvas.height);
 
       // Draw ticks for x-axis
-      drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x, this.y,
-        result['start'], result['end'], this.plotWidth, this.yMargin);
+      drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x,
+        this.y, result['start'], result['end'], this.plotWidth, this.yMargin);
 
       // Draw horizontal lines for BAF and LogR
       drawGraphLines(this.scene, 0, result['y_pos'],
-        this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin, this.drawWidth, this.plotHeight);
+        this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
+        this.drawWidth, this.plotHeight);
       drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
-        this.logr.yStart, this.logr.yEnd, this.logr.step, this.yMargin, this.drawWidth, this.plotHeight);
+        this.logr.yStart, this.logr.yEnd, this.logr.step, this.yMargin,
+        this.drawWidth, this.plotHeight);
 
       // Plot scatter data
       drawData(this.scene, result['baf'], this.baf.color);
@@ -274,83 +280,84 @@ class InteractiveCanvas {
 
     this.drawInteractiveContent();
 
-    // Clear tracks
+    // Clear tracks and annotations
     tc.clearTracks();
     ac.clearTracks();
 
-    // Draw new tracks
+    // Draw new tracks and annotations
     tc.drawTracks(this.inputField.value);
     ac.drawTracks(this.inputField.value);
   }
 
+  // Key listener for quickly navigating between chromosomes
   keyMapper (options) {
-      const keystrokeDelay = options.keystrokeDelay || 1000;
+    const keystrokeDelay = options.keystrokeDelay || 1000;
 
-      let state = {
-          buffer: '',
-          lastKeyTime: Date.now()
-      };
+    let state = {
+      buffer: '',
+      lastKeyTime: Date.now()
+    };
 
-      document.addEventListener('keydown', event => {
-          const key = event.key;
-          const currentTime = Date.now();
-          const eventType = window.event;
-          const target = eventType.target || eventType.scrElement;
-          const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
-          let buffer = '';
+    document.addEventListener('keydown', event => {
+      const key = event.key;
+      const currentTime = Date.now();
+      const eventType = window.event;
+      const target = eventType.target || eventType.scrElement;
+      const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
+      let buffer = '';
 
-          // Do not listen to keydown events for active fields
-          if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-              return;
-          }
+      // Do not listen to keydown events for active fields
+      if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+        return;
+      }
 
-          if (key === 'Enter' &&
-                  currentTime - state.lastKeyTime < keystrokeDelay ||
-              key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
-              // Enter was pressed, process previous key presses.
-              if (key.toLowerCase() == 'x') {
-                  this.chromosome = 23;
-              } else if (key.toLowerCase() == 'y') {
-                  this.chromosome = 24;
-              } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
-                  this.chromosome = state.buffer;
-              } else {
-                  // No valid key pressed
-                  return;
-              }
-              this.redraw (this.chromosome + ':0-None');
-          } else if (!isFinite(key)) {
-              // Arrow keys for moving graph
-              switch (key) {
-              case 'ArrowLeft':
-                  left(this, sampleName);
-                  break;
-              case 'ArrowRight':
-                  right(this, sampleName);
-                  break;
-              case '+':
-                  zoomIn(this, sampleName);
-                  break;
-              case '-':
-                  zoomOut(this, sampleName);
-                  break;
-              default:
-                  return;
-              }
-          } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
-              // Reset buffer
-              buffer = key;
-          } else {
-              if (state.buffer.length > 1) {
-                  // Buffer contains more than two digits, keep the last digit
-                  buffer = state.buffer[state.buffer.length - 1] + key;
-              } else {
-                  // Add new digit to buffer
-                  buffer = state.buffer + key;
-              }
-          }
-          // Save current state
-          state = { buffer: buffer, lastKeyTime: currentTime };
-      });
+      if (key === 'Enter' &&
+        currentTime - state.lastKeyTime < keystrokeDelay ||
+        key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
+        // Enter was pressed, process previous key presses.
+        if (key.toLowerCase() == 'x') {
+          this.chromosome = 23;
+        } else if (key.toLowerCase() == 'y') {
+          this.chromosome = 24;
+        } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
+          this.chromosome = state.buffer;
+        } else {
+          // No valid key pressed
+          return;
+        }
+        this.redraw (this.chromosome + ':0-None');
+      } else if (!isFinite(key)) {
+        // Arrow keys for moving graph
+        switch (key) {
+          case 'ArrowLeft':
+            left(this, sampleName);
+            break;
+          case 'ArrowRight':
+            right(this, sampleName);
+            break;
+          case '+':
+            zoomIn(this, sampleName);
+            break;
+          case '-':
+            zoomOut(this, sampleName);
+            break;
+          default:
+            return;
+        }
+      } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
+        // Reset buffer
+        buffer = key;
+      } else {
+        if (state.buffer.length > 1) {
+          // Buffer contains more than two digits, keep the last digit
+          buffer = state.buffer[state.buffer.length - 1] + key;
+        } else {
+          // Add new digit to buffer
+          buffer = state.buffer + key;
+        }
+      }
+      // Save current state
+      state = { buffer: buffer, lastKeyTime: currentTime };
+    });
   }
 }
