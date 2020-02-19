@@ -15,6 +15,7 @@ class OverviewCanvas {
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 5; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
+    this.borderColor = 'gray';
 
     // BAF values
     this.baf = {
@@ -111,7 +112,7 @@ class OverviewCanvas {
             result['x_pos'] - this.xMargin,
             result['y_pos'], width, this.plotHeight, this.yMargin,
             this.baf.yStart, this.baf.yEnd, this.baf.step,
-            result['x_pos'] < this.leftmostPoint);
+            result['x_pos'] < this.leftmostPoint, this.borderColor);
           drawGraphLines(this.scene, result['x_pos'], result['y_pos'],
             this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
             width, this.plotHeight);
@@ -122,7 +123,7 @@ class OverviewCanvas {
             result['y_pos'] + this.plotHeight, width,
             this.plotHeight, this.yMargin, this.logr.yStart,
             this.logr.yEnd, this.logr.step,
-            result['x_pos'] < this.leftmostPoint);
+            result['x_pos'] < this.leftmostPoint, this.borderColor);
           drawGraphLines(this.scene, result['x_pos'],
             result['y_pos'] + this.plotHeight, this.logr.yStart,
             this.logr.yEnd, this.logr.step, this.yMargin,

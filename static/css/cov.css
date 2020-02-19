@@ -100,12 +100,12 @@ html, body {
 
 .info-container[data-state=collapsed] {
     padding-right: 0px;
-    border: 1px solid black;
+    border: 1px solid gray;
 }
 
 .info-container[data-state=expanded] {
     padding-right: 6px;
-    border: 1px solid black;
+    border: 1px solid gray;
 }
 
 .info-container {

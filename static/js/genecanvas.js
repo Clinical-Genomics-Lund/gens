@@ -64,14 +64,15 @@ function drawGraphLines (scene, x, y, yStart, yEnd, stepLength, yMargin, width, 
 
 // Creates a graph for one chromosome data type
 function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
-  yEnd, step, addTicks) {
+  yEnd, step, addTicks, color) {
   // Draw tick marks
   if (addTicks) {
-    drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width, height);
+    drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width,
+      height, color);
   }
 
   // Draw surrounding coordinate box
-  drawBox(scene, x, y, width, height, 2);
+  drawBox(scene, x, y, width, height, 2, color);
 }
 
 function left (ic, sampleName) {
@@ -119,7 +120,7 @@ function zoomOut (ic, sampleName) {
 // Draws tick marks for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
+function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height, color) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
   let lineWidth = 4;
@@ -130,7 +131,7 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, widt
       step.toFixed(1), 10, 'right');
 
     // Draw tick line
-    drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, 0x000000);
+    drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, color);
   }
 }
 
@@ -172,7 +173,7 @@ function drawLine (scene, x, y, x2, y2, thickness, color) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-function drawBox (scene, x, y, width, height, lineWidth) {
+function drawBox (scene, x, y, width, height, lineWidth, color) {
   var coordAxes = new THREE.Geometry();
   coordAxes.vertices.push(
     new THREE.Vector3(x, y, 0),
@@ -182,7 +183,7 @@ function drawBox (scene, x, y, width, height, lineWidth) {
     new THREE.Vector3(x, y, 0)
   );
 
-  var material = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: lineWidth });
+  var material = new THREE.LineBasicMaterial({ color: color, linewidth: lineWidth });
   coordAxes = new THREE.Line(coordAxes, material);
   scene.add(coordAxes);
 }

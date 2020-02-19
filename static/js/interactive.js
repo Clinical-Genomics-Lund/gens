@@ -16,6 +16,7 @@ class InteractiveCanvas {
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Height for whole canvas
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
+    this.borderColor = 'gray';
 
     // BAF values
     this.baf = {
@@ -161,7 +162,7 @@ class InteractiveCanvas {
     staticContext.clearRect(0, 0, this.staticCanvas.width, this.y + linePadding);
 
     // Draw rotated y-axis legends
-    staticContext.fillStyle = 'black';
+    staticContext.fillStyle = 'gray';
     drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, this.x - this.legendMargin,
       this.y + this.plotHeight / 2, -Math.PI / 2);
     drawRotatedText(this.staticCanvas, 'Log R Ratio', 18, this.x - this.legendMargin,
@@ -170,12 +171,12 @@ class InteractiveCanvas {
     // Draw BAF
     createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth,
       this.plotHeight, this.yMargin, this.baf.yStart, this.baf.yEnd,
-      this.baf.step, true);
+      this.baf.step, true, this.borderColor);
 
     // Draw LogR
     createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight,
       this.plotWidth, this.plotHeight, this.yMargin, this.logr.yStart,
-      this.logr.yEnd, this.logr.step, true);
+      this.logr.yEnd, this.logr.step, true, this.borderColor);
 
     this.renderer.render(this.scene, this.camera);
 
