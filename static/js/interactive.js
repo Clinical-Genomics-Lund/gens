@@ -330,14 +330,38 @@ class InteractiveCanvas {
         // Arrow keys for moving graph
         switch (key) {
           case 'ArrowLeft':
-            left(this, sampleName);
+            if (this.chromosome == 'X') {
+              this.chromosome = '23';
+            } else if (this.chromosome == 'Y') {
+              this.chromosome = '24';
+            }
+            this.chromosome = parseInt(this.chromosome) - 1 < 1 ? 24 :
+              parseInt(this.chromosome) - 1;
+            console.log(this.chromosome);
+            this.redraw (this.chromosome + ':0-None');
             break;
           case 'ArrowRight':
+            if (this.chromosome == 'X') {
+              this.chromosome = '23';
+            } else if (this.chromosome == 'Y') {
+              this.chromosome = '24';
+            }
+            this.chromosome = parseInt(this.chromosome) + 1 > 24 ? 1 :
+              parseInt(this.chromosome) + 1;
+            console.log(this.chromosome);
+            this.redraw (this.chromosome + ':0-None');
+            break;
+          case 'a':
+            left(this, sampleName);
+            break;
+          case 'd':
             right(this, sampleName);
             break;
+          case 'w':
           case '+':
             zoomIn(this, sampleName);
             break;
+          case 's':
           case '-':
             zoomOut(this, sampleName);
             break;
