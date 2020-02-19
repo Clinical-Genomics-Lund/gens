@@ -76,9 +76,15 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
 
 function left (ic, sampleName) {
   let size = ic.end - ic.start;
-  ic.start -= Math.floor(0.1 * size);
-  ic.end -= Math.floor(0.1 * size);
-  ic.redraw (null);
+  let moveDist = Math.floor(0.1 * size);
+
+  // Don't allow negative values
+  if (ic.start - moveDist < 0) {
+    moveDist += (ic.start - moveDist);
+  }
+  ic.start -= moveDist;
+  ic.end -= moveDist;
+  ic.redraw(null);
 }
 
 function right (ic, sampleName) {

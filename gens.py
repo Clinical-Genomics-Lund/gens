@@ -449,7 +449,7 @@ def parse_region_str(region):
 
     # Do not go beyond end position
     if end > chrom_data['size']:
-        start = max(0, start - size)
+        start = max(0, start - (end - chrom_data['size']))
         end = chrom_data['size']
 
     resolution = 'd'
