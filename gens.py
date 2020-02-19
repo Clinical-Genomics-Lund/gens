@@ -99,6 +99,9 @@ def set_region_values(parsed_region, x_ampl):
     extra_plot_width = float(request.args.get('extra_plot_width', 0))
     res, chrom, start_pos, end_pos = parsed_region
 
+    if request.args.get('overview', False):
+        res = 'o'
+
     # Move negative start and end position to positive values
     if start_pos != 'None' and int(start_pos) < 0:
         end_pos += start_pos
