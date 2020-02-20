@@ -327,7 +327,7 @@ def get_track_data():
         chrom = 'Y'
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'seqname': str(chrom),
+    tracks = collection.find({'chrom': str(chrom),
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},
@@ -359,7 +359,7 @@ def get_annotation_data():
     collection = GENS_DB['annotations']
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'sequence': str(chrom),
+    tracks = collection.find({'chrom': str(chrom),
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},
@@ -427,7 +427,7 @@ def parse_region_str(region):
                 '^' + re.escape(name_search) + '$', re.IGNORECASE)},
                                       sort=[('end', -1)])
             if start is not None and end is not None:
-                chrom = start['seqname']
+                chrom = start['chrom']
                 start = start['start']
                 end = end['end']
             else:

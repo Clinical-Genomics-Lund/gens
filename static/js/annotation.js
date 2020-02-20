@@ -40,7 +40,7 @@ class Annotation extends Track {
       for (let i = 0; i < result['tracks'].length; i++) {
         const track = result['tracks'][i];
         const geneName = track['name'];
-        const sequence = track['sequence'];
+        const chrom = track['chrom'];
         const height_order = track['height_order'];
         const score = track['score'];
         const start = track['start'];
@@ -70,7 +70,7 @@ class Annotation extends Track {
           adjustedYPos + this.featureHeight, textHeight, latest_name_end);
 
         // Add tooltip title for whole gene
-        const geneText = geneName + '\n' + 'chr' + sequence + ':' + start + '-' + end + '\n' + 'Score = ' + score;
+        const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'Score = ' + score;
         latest_title_end = this.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',

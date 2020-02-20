@@ -39,7 +39,7 @@ class Transcript extends Track {
         const track = result['tracks'][i];
         const geneName = track['gene_name'];
         const transcriptID = track['transcript_id'];
-        const seqname = track['seqname'];
+        const chrom = track['chrom'];
         const height_order = track['height_order'];
         const strand = track['strand'];
         const start = track['start'];
@@ -68,7 +68,7 @@ class Transcript extends Track {
           adjustedYPos + this.featureHeight, textHeight, latest_name_end);
 
         // Add tooltip title for whole gene
-        const geneText = geneName + '\n' + 'chr' + seqname + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
+        const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
         latest_title_end = this.insertTitle(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + adjustedYPos - this.featureHeight / 2 + 'px',
@@ -93,7 +93,7 @@ class Transcript extends Track {
           switch(feature['feature']) {
             case 'exon':
               let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
-                '\nchr' + seqname + ':' + feature['start'] + '-' + feature['end'];
+                '\nchr' + chrom + ':' + feature['start'] + '-' + feature['end'];
 
               // Add tooltip title for whole gene
               latest_title_end = this.insertTitle(exonText,
