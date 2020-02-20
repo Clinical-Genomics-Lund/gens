@@ -22,6 +22,10 @@ REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
+CHROMOSOMES = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+               '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+               '22', 'X', 'Y'}
+
 FILE_DIR_HG37 = "/access/wgs/plotdata/"
 FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
 BAF_END = '.baf.bed.gz'
@@ -409,21 +413,26 @@ def parse_region_str(region):
     _, hg_type = get_hg_type()
 
     if name_search is not None:
-        # Lookup range
-        collection = GENS_DB['tracks' + hg_type]
-        start = collection.find_one({'gene_name': re.compile(
-            '^' + re.escape(name_search) + '$', re.IGNORECASE)},
-                                    sort=[('start', 1)])
-        end = collection.find_one({'gene_name': re.compile(
-            '^' + re.escape(name_search) + '$', re.IGNORECASE)},
-                                  sort=[('end', -1)])
-        if start is not None and end is not None:
-            chrom = start['seqname']
-            start = start['start']
-            end = end['end']
+        if name_search.upper() in CHROMOSOMES:
+            start = 0
+            end = 'None'
+            chrom = name_search
         else:
-            print('Did not find range for gene name')
-            return None
+            # Lookup range
+            collection = GENS_DB['tracks' + hg_type]
+            start = collection.find_one({'gene_name': re.compile(
+                '^' + re.escape(name_search) + '$', re.IGNORECASE)},
+                                        sort=[('start', 1)])
+            end = collection.find_one({'gene_name': re.compile(
+                '^' + re.escape(name_search) + '$', re.IGNORECASE)},
+                                      sort=[('end', -1)])
+            if start is not None and end is not None:
+                chrom = start['seqname']
+                start = start['start']
+                end = end['end']
+            else:
+                print('Did not find range for gene name')
+                return None
 
     # Represent x and y as 23 respectively 24
     if 'x' in chrom.lower():
