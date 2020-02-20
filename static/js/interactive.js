@@ -8,7 +8,7 @@ class InteractiveCanvas {
     this.titleMargin = 60; // Margin between plot and title
     this.legendMargin = 45; // Margin between legend and plot
     this.xMargin = 2; // margin for x-axis in graph
-    this.yMargin = 5; // margin for top and bottom in graph
+    this.yMargin = 8; // margin for top and bottom in graph
     this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
     this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
     this.plotHeight = 180; // Height of one plot

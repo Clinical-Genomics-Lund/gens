@@ -13,7 +13,7 @@ class OverviewCanvas {
     this.titleMargin = 10; // Margin between plot and title
     this.leftMargin = 0.05 * $(document).innerWidth(); // Margin between graphs and page
     this.xMargin = 2; // margin for x-axis in graph
-    this.yMargin = 5; // margin for top and bottom in graph
+    this.yMargin = 8; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
     this.borderColor = 'gray';
 
