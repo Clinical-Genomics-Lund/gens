@@ -8,7 +8,10 @@ class OverviewCanvas {
     this.plotHeight = 180; // Height of one plot
     this.x = xPos; // X-position for plot
     this.y = 20 + 2 * lineMargin; // Y-position for plot
-    this.numChrom = 24; // Number of displayable chromosomes, 23 and 24 are X respectively Y chromosomes.
+    this.numChrom = 24; // Number of displayable chromosomes
+    this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+      '22', 'X', 'Y'] // For looping purposes
     this.rowMargin = 30; // margin between rows
     this.titleMargin = 10; // Margin between plot and title
     this.leftMargin = 0.05 * $(document).innerWidth(); // Margin between graphs and page
@@ -66,7 +69,6 @@ class OverviewCanvas {
     let drawnChrom = 0; // Amount of async drawn chromosomes
 
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      num_chrom: this.numChrom,
       hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y + this.rowMargin,
@@ -76,18 +78,18 @@ class OverviewCanvas {
       row_height: this.rowHeight,
     }).done( (result) => {
       let dims = result['chrom_dims'];
-      for (let chrom = 1; chrom <= dims.length &&
-        chrom <= this.numChrom; chrom++) {
+      for (let i = 0; i < this.chromosomes.length; i++) {
+        let chrom = chromosomes[i];
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',
           sample_name: this.sampleName,
           hg_type: this.hgType,
-          xpos: dims[chrom - 1]['x_pos'] + this.xMargin,
-          ypos: dims[chrom - 1]['y_pos'],
+          xpos: dims[chrom]['x_pos'] + this.xMargin,
+          ypos: dims[chrom]['y_pos'],
           plot_height: this.plotHeight,
           y_margin: this.yMargin,
-          x_ampl: dims[chrom - 1]['width'] - 2 * this.xMargin,
+          x_ampl: dims[chrom]['width'] - 2 * this.xMargin,
           baf_y_start: this.baf.yStart,
           baf_y_end: this.baf.yEnd,
           logr_y_start: this.logr.yStart,
@@ -95,11 +97,8 @@ class OverviewCanvas {
           overview: 'True'
         }, (result) => {
           let staticCanvas = document.getElementById('overview-static');
-          let chrom = result['chrom']
-          if (chrom == 'X') chrom = 23;
-          if (chrom == 'Y') chrom = 24;
-          chrom = parseInt(chrom);
-          let width = dims[chrom - 1]['width']
+          chrom = result['chrom']
+          let width = dims[chrom]['width']
 
           // Draw chromosome title
           drawText(staticCanvas,

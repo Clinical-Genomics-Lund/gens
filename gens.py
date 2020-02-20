@@ -22,10 +22,6 @@ REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
-CHROMOSOMES = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-               '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
-               '22', 'X', 'Y'}
-
 FILE_DIR_HG37 = "/access/wgs/plotdata/"
 FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
 BAF_END = '.baf.bed.gz'
@@ -231,7 +227,9 @@ def get_overview_cov():
 
 @APP.route('/_overviewchromdim', methods=['GET'])
 def call_overview_chrom_dim():
-    num_chrom = int(request.args.get('num_chrom', 0))
+    '''
+    Returns current chromosome and its dimensions
+    '''
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
     plot_width = float(request.args.get('plot_width', 0))
@@ -243,27 +241,27 @@ def call_overview_chrom_dim():
     current_y = request.args.get('current_y', None)
     current_chrom = None
 
-    chrom_dims = overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
+    chrom_dims = overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
                                     row_height)
 
     if current_x and current_y:
-        current_chrom = find_chrom_at_pos(chrom_dims, num_chrom,
-                                          2 * plot_height, float(current_x),
-                                          float(current_y), margin)
+        current_chrom = find_chrom_at_pos(chrom_dims, 2 * plot_height,
+                                          float(current_x), float(current_y),
+                                          margin)
 
     return jsonify(status='ok', chrom_dims=chrom_dims, \
                    current_chrom=current_chrom)
 
-def find_chrom_at_pos(chrom_dims, num_chrom, height, current_x, current_y, margin):
+def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     '''
     Returns the related chromosome to the position
     '''
     current_chrom = None
 
-    for chrom in range(1, int(num_chrom) + 1):
-        x_pos = chrom_dims[chrom - 1]['x_pos']
-        y_pos = chrom_dims[chrom - 1]['y_pos']
-        width = chrom_dims[chrom - 1]['width']
+    for chrom in CHROMOSOMES:
+        x_pos = chrom_dims[chrom]['x_pos']
+        y_pos = chrom_dims[chrom]['y_pos']
+        width = chrom_dims[chrom]['width']
         if x_pos + margin <= current_x <= (x_pos + width) and \
            y_pos + margin <= current_y <= (y_pos + height):
             current_chrom = chrom
@@ -271,7 +269,7 @@ def find_chrom_at_pos(chrom_dims, num_chrom, height, current_x, current_y, margi
 
     return current_chrom
 
-def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
+def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
                        row_height):
     '''
     Calculates the position for each chromosome in the overview canvas
@@ -282,9 +280,9 @@ def overview_chrom_dim(num_chrom, x_pos, y_pos, plot_width, right_margin,
 
     first_x_pos = x_pos
     chrom_dims = []
-    for chrom in range(1, num_chrom + 1):
+    for chrom in CHROMOSOMES:
         chrom_width = get_chrom_width(chrom, plot_width)
-        chrom_data = collection.find_one({'chrom': str(chrom)})
+        chrom_data = collection.find_one({'chrom': chrom})
 
         if chrom_data is None:
             print('Could not find chromosome data in DB')
@@ -320,14 +318,8 @@ def get_track_data():
     _, hg_type = get_hg_type()
     collection = GENS_DB['tracks' + hg_type]
 
-    # Handle X and Y chromosome input
-    if chrom == '23':
-        chrom = 'X'
-    elif chrom == '24':
-        chrom = 'Y'
-
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'chrom': str(chrom),
+    tracks = collection.find({'chrom': chrom,
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},
@@ -359,7 +351,7 @@ def get_annotation_data():
     collection = GENS_DB['annotations']
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'chrom': str(chrom),
+    tracks = collection.find({'chrom': chrom,
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},
@@ -384,7 +376,7 @@ def get_chrom_width(chrom, full_width):
     '''
     _, hg_type = get_hg_type()
     collection = GENS_DB['chromsizes' + hg_type]
-    chrom_data = collection.find_one({'chrom': str(chrom)})
+    chrom_data = collection.find_one({'chrom': chrom})
 
     if chrom_data:
         chrom_width = full_width * float(chrom_data['scale'])
@@ -416,7 +408,7 @@ def parse_region_str(region):
         if name_search.upper() in CHROMOSOMES:
             start = 0
             end = 'None'
-            chrom = name_search
+            chrom = name_search.upper()
         else:
             # Lookup range
             collection = GENS_DB['tracks' + hg_type]
@@ -434,15 +426,9 @@ def parse_region_str(region):
                 print('Did not find range for gene name')
                 return None
 
-    # Represent x and y as 23 respectively 24
-    if 'x' in chrom.lower():
-        chrom = '23'
-    if 'y' in chrom.lower():
-        chrom = '24'
-
     # Get end position
     collection = GENS_DB['chromsizes' + hg_type]
-    chrom_data = collection.find_one({'chrom': str(chrom)})
+    chrom_data = collection.find_one({'chrom': chrom})
 
     if chrom_data is None:
         print('Could not find chromosome data in DB')

@@ -300,7 +300,7 @@ class InteractiveCanvas {
     };
 
     document.addEventListener('keydown', event => {
-      const key = event.key;
+      const key = event.key.toUpperCase();
       const currentTime = Date.now();
       const eventType = window.event;
       const target = eventType.target || eventType.scrElement;
@@ -314,14 +314,12 @@ class InteractiveCanvas {
 
       if (key === 'Enter' &&
         currentTime - state.lastKeyTime < keystrokeDelay ||
-        key.toLowerCase() == 'x' || key.toLowerCase() == 'y') {
+        key == 'X' || key == 'Y') {
         // Enter was pressed, process previous key presses.
-        if (key.toLowerCase() == 'x') {
-          this.chromosome = 23;
-        } else if (key.toLowerCase() == 'y') {
-          this.chromosome = 24;
-        } else if (state.buffer <= oc.numChrom && state.buffer > 0) {
+        if ((state.buffer <= 22 && state.buffer > 0) {
           this.chromosome = state.buffer;
+        } else if (key == 'X' || key == 'Y') {
+          this.chromosome = key;
         } else {
           // No valid key pressed
           return;
@@ -331,26 +329,28 @@ class InteractiveCanvas {
         // Arrow keys for moving graph
         switch (key) {
           case 'ArrowLeft':
-            if (this.chromosome == 'X') {
-              this.chromosome = '23';
-            } else if (this.chromosome == 'Y') {
-              this.chromosome = '24';
+            switch(this.chromosome) {
+              case 'Y':
+                this.chromosome = 'X';
+              case 'X':
+                this.chromosome = '22';
+              case '1':
+                this.chromosome = 'Y';
+              default:
+                this.chromosome = parseInt(this.chromosome) - 1;
             }
-            this.chromosome = parseInt(this.chromosome) - 1 < 1 ? 24 :
-              parseInt(this.chromosome) - 1;
-            console.log(this.chromosome);
-            this.redraw (this.chromosome + ':0-None');
             break;
           case 'ArrowRight':
-            if (this.chromosome == 'X') {
-              this.chromosome = '23';
-            } else if (this.chromosome == 'Y') {
-              this.chromosome = '24';
+            switch(this.chromosome) {
+              case '22':
+                this.chromosome = 'X';
+              case 'X':
+                this.chromosome = 'Y';
+              case 'Y':
+                this.chromosome = '1';
+              default:
+                this.chromosome = parseInt(this.chromosome) + 1;
             }
-            this.chromosome = parseInt(this.chromosome) + 1 > 24 ? 1 :
-              parseInt(this.chromosome) + 1;
-            console.log(this.chromosome);
-            this.redraw (this.chromosome + ':0-None');
             break;
           case 'a':
             left(this, sampleName);
