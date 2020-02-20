@@ -47,9 +47,9 @@ class ParseAnnotations:
         '''
         for chrom in range(1, 25):
             chrom = 'X' if chrom == 23 else \
-                'Y' if chrom == 24 else chrom
+                'Y' if chrom == 24 else str(chrom)
             annotations = self.collection.find(
-                {'sequence': str(chrom)}).sort([('start', ASCENDING)])
+                {'chrom': chrom}).sort([('start', ASCENDING)])
 
             height_tracker = [-1] * 200
             current_height = 1
@@ -119,6 +119,8 @@ class ParseAnnotations:
         annotation = {}
         for title, field in zip(self.header, line):
             if title in self.fields_to_save:
+                if title == 'sequence':
+                    title = 'chrom'
                 annotation[title] = format_field(title, field)
         annotation['track_source'] = self.file_name
         self.annotations.append(annotation)
@@ -127,7 +129,7 @@ def format_field(title, field):
     '''
     Formats field depending on title
     '''
-    if 'sequence' in title:
+    if 'chrom' in title:
         return field.strip('chr')
     if 'start' in title or 'end' in title or 'score' in title:
         return int(field)

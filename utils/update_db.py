@@ -29,7 +29,6 @@ class UpdateMongo:
             cs_reader = csv.reader(cs_file, delimiter='\t')
             for line in cs_reader:
                 chrom = line[0]
-                chrom = '23' if chrom == 'X' else '24' if chrom == 'Y' else chrom
                 chrom_size = int(line[1])
 
                 if chrom == '1':
@@ -77,7 +76,7 @@ class UpdateMongo:
                         height_order += 1
 
                     self.collection.insert_one({
-                        'seqname': seqname,
+                        'chrom': seqname,
                         'gene_name': gene_name,
                         'start': start,
                         'end': end,
