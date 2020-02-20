@@ -79,7 +79,7 @@ class OverviewCanvas {
     }).done( (result) => {
       let dims = result['chrom_dims'];
       for (let i = 0; i < this.chromosomes.length; i++) {
-        let chrom = chromosomes[i];
+        let chrom = this.chromosomes[i];
         // Draw data
         $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
           region: chrom + ':0-None',

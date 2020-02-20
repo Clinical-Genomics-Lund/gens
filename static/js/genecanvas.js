@@ -75,7 +75,7 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2, color);
 }
 
-function left (ic, sampleName) {
+function left (ic) {
   let size = ic.end - ic.start;
   let moveDist = Math.floor(0.1 * size);
 
@@ -88,21 +88,21 @@ function left (ic, sampleName) {
   ic.redraw(null);
 }
 
-function right (ic, sampleName) {
+function right (ic) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
   ic.end += Math.floor(0.1 * size);
   ic.redraw (null);
 }
 
-function zoomIn (ic, sampleName) {
+function zoomIn (ic) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
   ic.end -= Math.floor(size * 0.25);
   ic.redraw (null);
 }
 
-function zoomOut (ic, sampleName) {
+function zoomOut (ic) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
   ic.end += Math.floor(size * 0.5);

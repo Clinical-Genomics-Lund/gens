@@ -22,6 +22,10 @@ REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
                                  'logr_y_start', 'logr_y_end'))
 
+CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+               '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+               '22', 'X', 'Y']
+
 FILE_DIR_HG37 = "/access/wgs/plotdata/"
 FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
 BAF_END = '.baf.bed.gz'
@@ -279,7 +283,7 @@ def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
     collection = GENS_DB['chromsizes' + hg_type]
 
     first_x_pos = x_pos
-    chrom_dims = []
+    chrom_dims = {}
     for chrom in CHROMOSOMES:
         chrom_width = get_chrom_width(chrom, plot_width)
         chrom_data = collection.find_one({'chrom': chrom})
@@ -288,8 +292,8 @@ def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
             print('Could not find chromosome data in DB')
             return None
 
-        chrom_dims.append({'x_pos': x_pos, 'y_pos': y_pos,
-                           'width': chrom_width, 'size': chrom_data['size']})
+        chrom_dims[chrom] = ({'x_pos': x_pos, 'y_pos': y_pos,
+                              'width': chrom_width, 'size': chrom_data['size']})
 
         x_pos += chrom_width
         if x_pos > right_margin:
@@ -395,7 +399,7 @@ def parse_region_str(region):
             chrom, pos_range = region.split(':')
             start, end = pos_range.split('-')
             chrom.replace('chr', '')
-            chrom.upper()
+            chrom = chrom.upper()
         else:
             name_search = region
     except ValueError:

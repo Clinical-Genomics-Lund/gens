@@ -300,7 +300,7 @@ class InteractiveCanvas {
     };
 
     document.addEventListener('keydown', event => {
-      const key = event.key.toUpperCase();
+      const key = event.key;
       const currentTime = Date.now();
       const eventType = window.event;
       const target = eventType.target || eventType.scrElement;
@@ -313,58 +313,67 @@ class InteractiveCanvas {
       }
 
       if (key === 'Enter' &&
-        currentTime - state.lastKeyTime < keystrokeDelay ||
-        key == 'X' || key == 'Y') {
+        currentTime - state.lastKeyTime < keystrokeDelay) {
         // Enter was pressed, process previous key presses.
-        if ((state.buffer <= 22 && state.buffer > 0) {
+        if (state.buffer <= 22 && state.buffer > 0) {
           this.chromosome = state.buffer;
-        } else if (key == 'X' || key == 'Y') {
-          this.chromosome = key;
+        } else if (state.buffer.toUpperCase() == 'X' || state.buffer.toUpperCase() == 'Y') {
+          this.chromosome = state.buffer.toUpperCase();
         } else {
           // No valid key pressed
           return;
         }
         this.redraw (this.chromosome + ':0-None');
-      } else if (!isFinite(key)) {
+      } else if (!isFinite(key) && key != 'x' && key != 'y') {
         // Arrow keys for moving graph
         switch (key) {
           case 'ArrowLeft':
             switch(this.chromosome) {
               case 'Y':
                 this.chromosome = 'X';
+                break;
               case 'X':
                 this.chromosome = '22';
+                break;
               case '1':
                 this.chromosome = 'Y';
+                break;
               default:
-                this.chromosome = parseInt(this.chromosome) - 1;
+                this.chromosome = String(parseInt(this.chromosome) - 1);
+                break;
             }
+            this.redraw (this.chromosome + ':0-None');
             break;
           case 'ArrowRight':
             switch(this.chromosome) {
               case '22':
                 this.chromosome = 'X';
+                break;
               case 'X':
                 this.chromosome = 'Y';
+                break;
               case 'Y':
                 this.chromosome = '1';
+                break;
               default:
-                this.chromosome = parseInt(this.chromosome) + 1;
+                this.chromosome = String(parseInt(this.chromosome) + 1);
+                break;
             }
+            this.redraw (this.chromosome + ':0-None');
             break;
           case 'a':
-            left(this, sampleName);
+            left(this);
             break;
           case 'd':
-            right(this, sampleName);
+            right(this);
             break;
           case 'w':
           case '+':
-            zoomIn(this, sampleName);
+            zoomIn(this);
             break;
           case 's':
           case '-':
-            zoomOut(this, sampleName);
+            zoomOut(this);
             break;
           default:
             return;
