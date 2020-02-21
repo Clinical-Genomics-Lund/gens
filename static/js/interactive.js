@@ -283,11 +283,11 @@ class InteractiveCanvas {
 
     // Clear tracks and annotations
     tc.clearTracks();
-    // ac.clearTracks();
+    ac.clearTracks();
 
     // Draw new tracks and annotations
     tc.drawTracks(this.inputField.value);
-    // ac.drawTracks(this.inputField.value);
+    ac.drawTracks(this.inputField.value);
   }
 
   // Key listener for quickly navigating between chromosomes

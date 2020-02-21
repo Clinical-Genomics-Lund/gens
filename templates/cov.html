@@ -30,10 +30,10 @@
                     <div id='track-titles' class='info-titles'></div>
                 </div>
 
-                <!-- <div id='annotation-container' class='info-container'> -->
-                    <!-- <canvas id='annotation-canvas' class='info-canvas'></canvas> -->
-                    <!-- <div id='annotation-titles' class='info-titles'></div> -->
-                <!-- </div> -->
+                <div id='annotation-container' class='info-container'>
+                    <canvas id='annotation-canvas' class='info-canvas'></canvas>
+                    <div id='annotation-titles' class='info-titles'></div>
+                </div>
 
                 <div id='button-container'>
                     <button onclick='left(ic);' class='icon'>
@@ -102,8 +102,8 @@
             tc.drawTracks(inputField.value);
 
             // Initiate and draw annotation canvas
-            <!-- let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType); -->
-            <!-- ac.drawTracks(inputField.value); -->
+            let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType);
+            ac.drawTracks(inputField.value);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
