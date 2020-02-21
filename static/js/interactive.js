@@ -5,7 +5,7 @@ class InteractiveCanvas {
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
 
     // Plot variables
-    this.titleMargin = 60; // Margin between plot and title
+    this.titleMargin = 70; // Margin between plot and title
     this.legendMargin = 45; // Margin between legend and plot
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 8; // margin for top and bottom in graph
