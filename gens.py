@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 '''
-Whole genome visualization of BAF and log R ratio
+Whole genome visualization of BAF and log2 ratio
 '''
 
 import re
@@ -16,11 +16,11 @@ APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 CLIENT = MongoClient('10.0.224.63', 27017)
 GENS_DB = CLIENT['gens']
 
-GRAPH = namedtuple('graph', ('baf_ampl', 'logr_ampl', 'baf_ypos', 'logr_ypos'))
+GRAPH = namedtuple('graph', ('baf_ampl', 'log2_ampl', 'baf_ypos', 'log2_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
 REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
                                  'y_margin', 'baf_y_start', 'baf_y_end',
-                                 'logr_y_start', 'logr_y_end'))
+                                 'log2_y_start', 'log2_y_end'))
 
 CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
@@ -44,12 +44,12 @@ def coverage_view(sample_name):
     # Set whether to get HG37 och HG38 files
     hg_filedir, hg_type = get_hg_type()
 
-    # Check that BAF and LogR file exists
+    # Check that BAF and Log2 file exists
     if not path.exists(hg_filedir + sample_name + BAF_END):
         print('BAF file not found')
         abort(404)
     if not path.exists(hg_filedir + sample_name + COV_END):
-        print('LogR file not found')
+        print('Log2 file not found')
         abort(404)
 
     region = request.args.get('region', None)
@@ -87,11 +87,11 @@ def set_graph_values(req):
     '''
     Returns graph-specific values as named tuple
     '''
-    logr_height = abs(req.logr_y_end - req.logr_y_start)
+    log2_height = abs(req.log2_y_end - req.log2_y_start)
     baf_height = abs(req.baf_y_end - req.baf_y_start)
     return GRAPH(
         (req.plot_height - 2 * req.y_margin) / baf_height,
-        (req.plot_height - req.y_margin * 2) / logr_height,
+        (req.plot_height - req.y_margin * 2) / log2_height,
         req.y_pos + req.plot_height - req.y_margin,
         req.y_pos + 1.5 * req.plot_height
     )
@@ -129,7 +129,7 @@ def set_region_values(parsed_region, x_ampl):
 
 def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     '''
-    Loads in data for LogR and BAF
+    Loads in data for Log2 and BAF
     '''
     sample_name = request.args.get('sample_name', None)
 
@@ -137,43 +137,43 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     hg_filedir, _ = get_hg_type()
 
     # Fetch data with the defined range
-    logr_list = list(tabix_query(hg_filedir + sample_name + COV_END,
+    log2_list = list(tabix_query(hg_filedir + sample_name + COV_END,
                                  reg.res + '_' + reg.chrom,
                                  new_start_pos, new_end_pos))
     baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
                                 reg.res + '_' + reg.chrom,
                                 new_start_pos, new_end_pos))
 
-    if not new_start_pos and not logr_list and not baf_list:
+    if not new_start_pos and not log2_list and not baf_list:
         print('Data for chromosome {} not available'.format(reg.chrom))
         return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
 
     # Set end position now that data is loaded
     if not new_end_pos:
         new_start_pos = 0
-        if logr_list:
-            new_end_pos = int(logr_list[len(logr_list) - 1][1])
+        if log2_list:
+            new_end_pos = int(log2_list[len(log2_list) - 1][1])
         if baf_list:
             new_end_pos = max(new_end_pos, int(baf_list[len(baf_list) - 1][1]))
 
     # X ampl contains the total width to plot x data on
     x_ampl = x_ampl / (new_end_pos - new_start_pos)
-    return logr_list, baf_list, new_start_pos, x_ampl
+    return log2_list, baf_list, new_start_pos, x_ampl
 
-def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl):
+def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
     '''
-    Edits data for LogR and BAF
+    Edits data for Log2 ratio and BAF
     '''
-    #  Normalize and calculate the Log R Ratio
-    logr_records = []
-    for record in logr_list:
+    #  Normalize and calculate the Lo2 ratio
+    log2_records = []
+    for record in log2_list:
         # Cap values to end points
         ypos = float(record[3])
-        ypos = req.logr_y_start + 0.2 if ypos > req.logr_y_start else ypos
-        ypos = req.logr_y_end - 0.2 if ypos < req.logr_y_end else ypos
+        ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
+        ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
-        logr_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                             graph.logr_ypos - graph.logr_ampl * ypos, 0])
+        log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
+                             graph.log2_ypos - graph.log2_ampl * ypos, 0])
 
     # Gather the BAF records
     baf_records = []
@@ -185,12 +185,12 @@ def set_data(graph, req, logr_list, baf_list, x_pos, new_start_pos, x_ampl):
         baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                             graph.baf_ypos - graph.baf_ampl * ypos, 0])
 
-    return logr_records, baf_records
+    return log2_records, baf_records
 
 @APP.route('/_getoverviewcov', methods=['GET'])
 def get_overview_cov():
     '''
-    Reads and computes LogR and BAF values for overview graph
+    Reads and formats Log2 ratio and BAF values for overview graph
     '''
     req = REQUEST(
         request.args.get('region', '1:100000-200000'),
@@ -200,8 +200,8 @@ def get_overview_cov():
         float(request.args.get('y_margin', 1)),
         float(request.args.get('baf_y_start', 0)),
         float(request.args.get('baf_y_end', 0)),
-        float(request.args.get('logr_y_start', 0)),
-        float(request.args.get('logr_y_end', 0))
+        float(request.args.get('log2_y_start', 0)),
+        float(request.args.get('log2_y_end', 0))
     )
     x_ampl = float(request.args.get('x_ampl', 1))
 
@@ -215,17 +215,17 @@ def get_overview_cov():
     reg, new_start_pos, new_end_pos, x_ampl, extra_plot_width = \
         set_region_values(parsed_region, x_ampl)
 
-    logr_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
+    log2_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
                                                            new_end_pos, x_ampl)
-    logr_records, baf_records = set_data(graph, req, logr_list, baf_list,
+    log2_records, baf_records = set_data(graph, req, log2_list, baf_list,
                                          req.x_pos - extra_plot_width, new_start_pos,
                                          x_ampl)
 
-    if not new_start_pos and not logr_records and not baf_records:
+    if not new_start_pos and not log2_records and not baf_records:
         print('No records')
         return abort(404)
 
-    return jsonify(data=logr_records, baf=baf_records, status="ok",
+    return jsonify(data=log2_records, baf=baf_records, status="ok",
                    chrom=reg.chrom, x_pos=req.x_pos, y_pos=req.y_pos,
                    start=reg.start_pos, end=reg.end_pos)
 

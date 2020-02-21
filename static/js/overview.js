@@ -28,8 +28,8 @@ class OverviewCanvas {
       color: '#000000' // Viz color
     };
 
-    // LOGR values
-    this.logr = {
+    // Log2 ratio values
+    this.log2 = {
       yStart: 3.0, // Start value for y axis
       yEnd: -3.0, // End value for y axis
       step: 1.0, // Step value for drawing ticks along y-axis
@@ -92,8 +92,8 @@ class OverviewCanvas {
           x_ampl: dims[chrom]['width'] - 2 * this.xMargin,
           baf_y_start: this.baf.yStart,
           baf_y_end: this.baf.yEnd,
-          logr_y_start: this.logr.yStart,
-          logr_y_end: this.logr.yEnd,
+          log2_y_start: this.log2.yStart,
+          log2_y_end: this.log2.yEnd,
           overview: 'True'
         }, (result) => {
           let staticCanvas = document.getElementById('overview-static');
@@ -116,21 +116,21 @@ class OverviewCanvas {
             this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
             width, this.plotHeight);
 
-          // Draw LogR
+          // Draw Log 2 ratio
           createGraph(this.scene, staticCanvas,
             result['x_pos'] - this.xMargin,
             result['y_pos'] + this.plotHeight, width,
-            this.plotHeight, this.yMargin, this.logr.yStart,
-            this.logr.yEnd, this.logr.step,
+            this.plotHeight, this.yMargin, this.log2.yStart,
+            this.log2.yEnd, this.log2.step,
             result['x_pos'] < this.leftmostPoint, this.borderColor);
           drawGraphLines(this.scene, result['x_pos'],
-            result['y_pos'] + this.plotHeight, this.logr.yStart,
-            this.logr.yEnd, this.logr.step, this.yMargin,
+            result['y_pos'] + this.plotHeight, this.log2.yStart,
+            this.log2.yEnd, this.log2.step, this.yMargin,
             width, this.plotHeight);
 
           // Plot scatter data
           drawData(this.scene, result['baf'], this.baf.color);
-          drawData(this.scene, result['data'], this.logr.color);
+          drawData(this.scene, result['data'], this.log2.color);
         }).done( (result) =>  {
           if (++drawnChrom === this.numChrom) {
             // Render scene and transfer to visible canvas

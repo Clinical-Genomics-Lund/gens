@@ -26,8 +26,8 @@ class InteractiveCanvas {
       color: '#000000' // Viz color
     };
 
-    // LOGR values
-    this.logr = {
+    // Log2 ratio values
+    this.log2 = {
       yStart: 4.0, // Start value for y axis
       yEnd: -4.0, // End value for y axis
       step: 1.0, // Step value for drawing ticks along y-axis
@@ -165,7 +165,7 @@ class InteractiveCanvas {
     staticContext.fillStyle = 'gray';
     drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, this.x - this.legendMargin,
       this.y + this.plotHeight / 2, -Math.PI / 2);
-    drawRotatedText(this.staticCanvas, 'Log R Ratio', 18, this.x - this.legendMargin,
+    drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, this.x - this.legendMargin,
       this.y + 1.5 * this.plotHeight, -Math.PI / 2);
 
     // Draw BAF
@@ -173,10 +173,10 @@ class InteractiveCanvas {
       this.plotHeight, this.yMargin, this.baf.yStart, this.baf.yEnd,
       this.baf.step, true, this.borderColor);
 
-    // Draw LogR
+    // Draw Log 2 ratio
     createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight,
-      this.plotWidth, this.plotHeight, this.yMargin, this.logr.yStart,
-      this.logr.yEnd, this.logr.step, true, this.borderColor);
+      this.plotWidth, this.plotHeight, this.yMargin, this.log2.yStart,
+      this.log2.yEnd, this.log2.step, true, this.borderColor);
 
     this.renderer.render(this.scene, this.camera);
 
@@ -201,8 +201,8 @@ class InteractiveCanvas {
       x_ampl: this.plotWidth,
       baf_y_start: this.baf.yStart,
       baf_y_end: this.baf.yEnd,
-      logr_y_start: this.logr.yStart,
-      logr_y_end: this.logr.yEnd
+      log2_y_start: this.log2.yStart,
+      log2_y_end: this.log2.yEnd
     }, (result) => {
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -212,17 +212,17 @@ class InteractiveCanvas {
       drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x,
         this.y, result['start'], result['end'], this.plotWidth, this.yMargin);
 
-      // Draw horizontal lines for BAF and LogR
+      // Draw horizontal lines for BAF and Log 2 ratio
       drawGraphLines(this.scene, 0, result['y_pos'],
         this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
         this.drawWidth, this.plotHeight);
       drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
-        this.logr.yStart, this.logr.yEnd, this.logr.step, this.yMargin,
+        this.log2.yStart, this.log2.yEnd, this.log2.step, this.yMargin,
         this.drawWidth, this.plotHeight);
 
       // Plot scatter data
       drawData(this.scene, result['baf'], this.baf.color);
-      drawData(this.scene, result['data'], this.logr.color);
+      drawData(this.scene, result['data'], this.log2.color);
       this.renderer.render(this.scene, this.camera);
 
       // Draw chromosome title
