@@ -46,7 +46,7 @@ class Annotation extends Track {
         const start = track['start'];
         const end = track['end'];
         const strand = track['strand'];
-        const color = strand == '+' ? 'blue' : 'red';
+        const color = track['color'];
 
         // Only draw visible tracks
         if (!this.expanded && height_order != 1)
