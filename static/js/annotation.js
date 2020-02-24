@@ -18,13 +18,45 @@ class Annotation extends Track {
 
     this.trackContainer.style.marginTop = '-1px';
     this.hgType = hgType;
+
+    // Setup annotation list
+    this.sourceList = document.getElementById('source-list');
+    this.sourceList.addEventListener('change', () => {
+      this.clearTracks;
+      this.drawTracks(document.getElementById('region_field').value);
+    })
+    this.annotSourceList();
+  }
+
+  annotSourceList () {
+    $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {}, (result) => {
+      if(result['sources'].length > 0) {
+        this.sourceList.style.visibility = 'visible';
+      }
+
+      for (let i = 0; i < result['sources'].length; i++) {
+        // Add annotation file name to list
+        let opt = document.createElement('option');
+        const file_name = result['sources'][i];
+        opt.value = file_name;
+        opt.innerHTML = file_name;
+
+        // TODO: Set default value
+        if (file_name == 'cagdb') {
+          opt.setAttribute('selected', true);
+        }
+        this.sourceList.appendChild(opt);
+      }
+    }).done((result) => {
+      this.drawTracks(document.getElementById('region_field').value);
+    });
   }
 
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
-      width: this.trackCanvas.width,
       hg_type: this.hgType,
+      source: this.sourceList.value
     }, (result) => {
       const scale = this.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;

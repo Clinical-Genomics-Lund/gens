@@ -122,7 +122,7 @@ class ParseAnnotations:
                 if title == 'sequence':
                     title = 'chrom'
                 annotation[title] = format_field(title, field)
-        annotation['track_source'] = self.file_name
+        annotation['source'] = self.file_name
         self.annotations.append(annotation)
 
 def format_field(title, field):

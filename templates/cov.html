@@ -36,6 +36,7 @@
                 </div>
 
                 <div id='button-container'>
+                    <select id='source-list'></select>
                     <button onclick='left(ic);' class='icon'>
                         <span class='icon' id='arrow-left' title='Left'></span>
                     </button>
@@ -103,7 +104,6 @@
 
             // Initiate and draw annotation canvas
             let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType);
-            ac.drawTracks(inputField.value);
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,

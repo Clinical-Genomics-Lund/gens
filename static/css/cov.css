@@ -49,6 +49,13 @@ html, body {
     grid-column: 1;
 }
 
+#source-list {
+    visibility: hidden;
+    height: 100%;
+    height: 21px;
+    width: 200px;
+}
+
 #region_form {
     display: inline;
 }

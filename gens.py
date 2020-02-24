@@ -345,6 +345,11 @@ def get_annotation_data():
     Gets track data in region and converts data coordinates to screen coordinates
     '''
     region = request.args.get('region', None)
+    source = request.args.get('source', None)
+
+    if region is None or source is None:
+        print('Could not find annotation data in DB')
+        return abort(404)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
@@ -356,6 +361,7 @@ def get_annotation_data():
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
     tracks = collection.find({'chrom': chrom,
+                              'source': source,
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},
@@ -370,6 +376,15 @@ def get_annotation_data():
 
     return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)
+
+@APP.route('/_getannotationsources', methods=['GET'])
+def get_annotation_sources():
+    '''
+    Returns available annotation source files
+    '''
+    collection = GENS_DB['annotations']
+    sources = collection.distinct('source')
+    return jsonify(status='ok', sources=sources)
 
 
 ### Help functions ###
