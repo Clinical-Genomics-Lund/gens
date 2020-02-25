@@ -346,6 +346,7 @@ def get_annotation_data():
     '''
     region = request.args.get('region', None)
     source = request.args.get('source', None)
+    hg_type = request.args.get('hg_type', None)
 
     if region is None or source is None:
         print('Could not find annotation data in DB')
@@ -362,6 +363,7 @@ def get_annotation_data():
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
     tracks = collection.find({'chrom': chrom,
                               'source': source,
+                              'hg_type': hg_type,
                               '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
                                       {'end': {'$gte': start_pos, '$lte': end_pos}},
                                       {'$and': [{'start': {'$lte': start_pos}},

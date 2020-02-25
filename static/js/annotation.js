@@ -55,7 +55,7 @@ class Annotation extends Track {
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
-      hg_type: this.hgType,
+      hg_type: '37',
       source: this.sourceList.value
     }, (result) => {
       const scale = this.trackCanvas.width / (result['end_pos'] - result['start_pos']);
