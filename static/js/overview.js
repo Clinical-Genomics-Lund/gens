@@ -1,7 +1,8 @@
 class OverviewCanvas {
-  constructor (xPos, lineMargin, near, far, sampleName, hgType) {
+  constructor (xPos, lineMargin, near, far, sampleName, hgType, hgFileDir) {
     this.sampleName = sampleName; // File name to load data from
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
+    this.hgFileDir = hgFileDir; // File directory
 
     // Plot variables
     this.plotWidth = 120; // Width of one plot
@@ -85,6 +86,7 @@ class OverviewCanvas {
           region: chrom + ':0-None',
           sample_name: this.sampleName,
           hg_type: this.hgType,
+          hg_filedir: this.hgFileDir,
           xpos: dims[chrom]['x_pos'] + this.xMargin,
           ypos: dims[chrom]['y_pos'],
           plot_height: this.plotHeight,

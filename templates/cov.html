@@ -68,6 +68,7 @@
             // FLASK VALUES //
             const sampleName = '{{ sample_name }}';
             const hgType = {{hg_type}}
+            const hgFileDir = '{{hg_filedir}}'
 
             // WEBGL VALUES //
             const near = 0.1;
@@ -93,7 +94,7 @@
 
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
-                sampleName, hgType);
+                sampleName, hgType, hgFileDir);
             ic.drawStaticContent();
             ic.drawInteractiveContent();
 
@@ -107,7 +108,7 @@
 
             // Initiate and draw overview canvas
             let oc = new OverviewCanvas(ic.x, lineMargin, near, far,
-                sampleName, hgType);
+                sampleName, hgType, hgFileDir);
             oc.drawOverviewContent();
 
             document.getElementById('region_form').addEventListener('submit',

@@ -70,17 +70,20 @@ def coverage_view(sample_name):
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
                            sample_name=sample_name, hg_type=hg_type,
+                           hg_filedir=hg_filedir,
                            last_updated=dir_last_updated('static'))
 
 def get_hg_type():
     '''
     Returns whether to fetch files of type HG37 or HG38
     HG38 is default
+    Also adds bp100 resolution
     '''
-    hg_type = request.args.get('hg_type', None)
-    if hg_type == '38' or hg_type is None:
-        return FILE_DIR_HG38, '38'
-    return FILE_DIR_HG37, hg_type
+    hg_type = request.args.get('hg_type', '38')
+    bp100 = request.args.get('bp100', False)
+    file_dir = FILE_DIR_HG38 if hg_type == '38' else FILE_DIR_HG37
+    file_dir = file_dir + '100bp/' if bp100 else file_dir
+    return file_dir, hg_type
 
 # Set graph-specific values
 def set_graph_values(req):
@@ -134,7 +137,8 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
     sample_name = request.args.get('sample_name', None)
 
     # Set whether to get HG37 och HG38 files
-    hg_filedir, _ = get_hg_type()
+    hg_filedir = request.args.get('hg_filedir', None)
+    hg_type = request.args.get('hg_type', '38')
 
     # Fetch data with the defined range
     log2_list = list(tabix_query(hg_filedir + sample_name + COV_END,
@@ -279,7 +283,7 @@ def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
     Calculates the position for each chromosome in the overview canvas
     '''
 
-    _, hg_type = get_hg_type()
+    hg_type = request.args.get('hg_type', '38')
     collection = GENS_DB['chromsizes' + hg_type]
 
     first_x_pos = x_pos
@@ -319,7 +323,7 @@ def get_track_data():
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
-    _, hg_type = get_hg_type()
+    hg_type = request.args.get('hg_type', '38')
     collection = GENS_DB['tracks' + hg_type]
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
@@ -378,7 +382,7 @@ def get_chrom_width(chrom, full_width):
     '''
     Calculates overview width of chromosome
     '''
-    _, hg_type = get_hg_type()
+    hg_type = request.args.get('hg_type', '38')
     collection = GENS_DB['chromsizes' + hg_type]
     chrom_data = collection.find_one({'chrom': chrom})
 
@@ -406,7 +410,7 @@ def parse_region_str(region):
         print('Wrong region formatting')
         return None
 
-    _, hg_type = get_hg_type()
+    hg_type = request.args.get('hg_type', '38')
 
     if name_search is not None:
         if name_search.upper() in CHROMOSOMES:
@@ -455,11 +459,11 @@ def parse_region_str(region):
         end = chrom_data['size']
 
     resolution = 'd'
-    if size > 20000000:
+    if size > 15000000:
         resolution = 'a'
-    elif size > 1800000:
+    elif size > 1400000:
         resolution = 'b'
-    elif size > 500000:
+    elif size > 200000:
         resolution = 'c'
 
     return resolution, chrom, start, end
