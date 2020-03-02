@@ -22,6 +22,7 @@ class Annotation extends Track {
     // Setup annotation list
     this.sourceList = document.getElementById('source-list');
     this.sourceList.addEventListener('change', () => {
+      this.expanded = false;
       this.clearTracks;
       this.drawTracks(document.getElementById('region_field').value);
     })
@@ -56,7 +57,8 @@ class Annotation extends Track {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
       hg_type: '37',
-      source: this.sourceList.value
+      source: this.sourceList.value,
+      collapsed: this.expanded ? false : true
     }, (result) => {
       const scale = this.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const textSize = 10;

@@ -308,6 +308,7 @@ def get_track_data():
     Gets track data in region and converts data coordinates to screen coordinates
     '''
     region = request.args.get('region', None)
+    collapsed = request.args.get('collapsed', None)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
@@ -324,12 +325,23 @@ def get_track_data():
     collection = GENS_DB['tracks' + hg_type]
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'chrom': chrom,
-                              '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'$and': [{'start': {'$lte': start_pos}},
-                                                {'end': {'$gte': end_pos}}]}]},
-                             {'_id': False}, sort=[('height_order', 1), ('start', 1)])
+    if collapsed == 'true':
+        tracks = collection.find({'chrom': chrom,
+                                  'height_order': 1,
+                                  '$or': [{'start': {'$gte': start_pos,
+                                                     '$lte': end_pos}},
+                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                          {'$and': [{'start': {'$lte': start_pos}},
+                                                    {'end': {'$gte': end_pos}}]}]},
+                                 {'_id': False}, sort=[('start', 1)])
+    else:
+        tracks = collection.find({'chrom': chrom,
+                                  '$or': [{'start': {'$gte': start_pos,
+                                                     '$lte': end_pos}},
+                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                          {'$and': [{'start': {'$lte': start_pos}},
+                                                    {'end': {'$gte': end_pos}}]}]},
+                                 {'_id': False}, sort=[('height_order', 1), ('start', 1)])
     tracks = list(tracks)
     if tracks:
         height_orders = [t['height_order'] for t in tracks]
@@ -348,6 +360,7 @@ def get_annotation_data():
     region = request.args.get('region', None)
     source = request.args.get('source', None)
     hg_type = request.args.get('hg_type', None)
+    collapsed = request.args.get('collapsed', None)
 
     if region is None or source is None:
         print('Could not find annotation data in DB')
@@ -363,14 +376,27 @@ def get_annotation_data():
     collection = GENS_DB['annotations']
 
     # Get tracks within span [start_pos, end_pos] or tracks that go over the span
-    tracks = collection.find({'chrom': chrom,
-                              'source': source,
-                              'hg_type': hg_type,
-                              '$or': [{'start': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                      {'$and': [{'start': {'$lte': start_pos}},
-                                                {'end': {'$gte': end_pos}}]}]},
-                             {'_id': False}, sort=[('height_order', 1), ('start', 1)])
+    if collapsed == 'true':
+        tracks = collection.find({'chrom': chrom,
+                                  'source': source,
+                                  'hg_type': hg_type,
+                                  'height_order': 1,
+                                  '$or': [{'start': {'$gte': start_pos,
+                                                     '$lte': end_pos}},
+                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                          {'$and': [{'start': {'$lte': start_pos}},
+                                                    {'end': {'$gte': end_pos}}]}]},
+                                 {'_id': False}, sort=[('start', 1)])
+    else:
+        tracks = collection.find({'chrom': chrom,
+                                  'source': source,
+                                  'hg_type': hg_type,
+                                  '$or': [{'start': {'$gte': start_pos,
+                                                     '$lte': end_pos}},
+                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                          {'$and': [{'start': {'$lte': start_pos}},
+                                                    {'end': {'$gte': end_pos}}]}]},
+                                 {'_id': False}, sort=[('height_order', 1), ('start', 1)])
     tracks = list(tracks)
     if tracks:
         height_orders = [t['height_order'] for t in tracks]

@@ -20,8 +20,8 @@ class Transcript extends Track {
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
       region: region,
-      width: this.trackCanvas.width,
       hg_type: this.hgType,
+      collapsed: this.expanded ? false : true
     }, (result) => {
       const scale = this.trackCanvas.width / (result['end_pos'] - result['start_pos']);
       const titleMargin = 2;

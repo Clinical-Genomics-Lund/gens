@@ -108,6 +108,7 @@ html, body {
 .info-container[data-state=collapsed] {
     padding-right: 0px;
     border: 1px solid gray;
+    overflow-y: hidden;
 }
 
 .info-container[data-state=expanded] {
