@@ -1,10 +1,12 @@
 class Track {
-  constructor (width, near, far, maxRows, visibleHeight, minHeight) {
+  constructor (width, near, far, visibleHeight, minHeight) {
     // Track variables
     this.featureHeight = 20; // Max height for feature
     this.featureMargin = 14; // Margin for fitting gene name under track
     this.yPos = this.featureHeight / 2; // First y-position
     this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
+    this.toRows = function(height) {return (height - this.yPos) /
+        (this.featureHeight + this.featureMargin) + 1}
     this.arrowColor =  0x0000ff;
     this.arrowWidth = 4;
     this.arrowDistance = 200;
@@ -12,7 +14,7 @@ class Track {
 
     // Dimensions of track canvas
     this.width = width; // Width of canvas
-    this.maxHeight = this.tracksYPos(maxRows); // Max height of canvas, height_order <= 66
+    this.maxHeight = 16000; // Max height of canvas
     this.visibleHeight = visibleHeight; // Visible height for expanded canvas, overflows for scroll
     this.minHeight = minHeight; // Minimized height
 

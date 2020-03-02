@@ -315,6 +315,7 @@ def get_track_data():
         print('Could not find track data in DB')
         return abort(404)
 
+    # Do not show annotations at 'a'-resolution
     if not res or res == 'a':
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
@@ -354,6 +355,7 @@ def get_annotation_data():
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
+    # Do not show annotations at 'a'-resolution
     if not res or res == 'a':
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
