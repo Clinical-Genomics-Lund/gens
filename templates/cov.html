@@ -87,11 +87,6 @@
                 document.getElementById('grid-container').style.visibility = 'hidden';
             };
 
-            // Reload page on window resize
-            window.onresize = (event) => {
-                window.location.reload(false);
-            };
-
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
                 sampleName, hgType);
