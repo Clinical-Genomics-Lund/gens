@@ -55,6 +55,9 @@ class Transcript extends Track {
           const strand = track['strand'];
           const start = track['start'];
           const end = track['end'];
+          const mane = track['mane']
+          const refsecID = track['refsec_id']
+          const hgncID = track['hgnc_id']
           const color = strand == '+' ? 'blue' : 'red';
 
           // Not able to render any more, start a fresh rendering
@@ -83,7 +86,14 @@ class Transcript extends Track {
             textYPos + this.featureHeight, textSize, latest_name_end);
 
           // Add tooltip title for whole gene
-          const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'id = ' + transcriptID;
+          let geneText = '';
+          if (mane == true) {
+            geneText = `${geneName} [MANE]\nchr${chrom}:${start}-${end}\n` +
+            `id = ${transcriptID}\nrefseq_id = ${refsecID}\nhgnc = ${hgncID}`;
+          } else {
+            geneText = `${geneName}\nchr${chrom}:${start}-${end}\n` +
+            `id = ${transcriptID}`;
+          }
           latest_title_end = this.insertTitle(geneText,
             titleMargin + scale * (start - result['start_pos']) + 'px',
             titleMargin + textYPos - this.featureHeight / 2 + 'px',
