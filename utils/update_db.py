@@ -132,60 +132,60 @@ class UpdateMongo:
         '''
         Sorts a track depending on feature, gene name and start position
         '''
-        track1_gene_name = track1[1]
-        track2_gene_name = track2[1]
-        track1_feature = track1[2]
-        track2_feature = track2[2]
-        track1_start = track1[3]
-        track2_start = track2[3]
-        track1_transcript_id = track1[6]
-        track2_transcript_id = track2[6]
+        t1_gene_name = track1[1]
+        t2_gene_name = track2[1]
+        t1_feature = track1[2]
+        t2_feature = track2[2]
+        t1_start = track1[3]
+        t2_start = track2[3]
+        t1_transcript_id = track1[6]
+        t2_transcript_id = track2[6]
 
-        # Transcript headers are sorted first
-        if track1_feature == 'transcript' and track2_feature != 'transcript':
+        # Sort by:
+        # 1) Transcript headers
+        # 2) MANE transcripts
+        # 3) Both are transcripts: sort by gene name and start position
+        if (t1_feature == 'transcript' and t2_feature != 'transcript') or\
+            t1_transcript_id in self.mane or\
+            (t1_gene_name == t2_gene_name and t1_start < t2_start):
             return -1
-        if track1_feature != 'transcript' and track2_feature == 'transcript':
+        if (t1_feature != 'transcript' and t2_feature == 'transcript') or\
+            t2_transcript_id in self.mane or\
+            (t1_gene_name == t2_gene_name and t1_start > t2_start):
             return 1
-
-        # Sort up MANE transcripts
-        if track1_transcript_id in self.mane:
-            return -1
-        if track2_transcript_id in self.mane:
-            return 1
-
-        # Both are transcripts, sort by gene name and start position
-        if track1_gene_name == track2_gene_name:
-            if track1_start < track2_start:
-                return -1
-            if track1_start > track2_start:
-                return 1
         return 0
 
-if __name__ == '__main__':
-    PARSER = argparse.ArgumentParser(description='Update mongoDB database with data')
-    PARSER.add_argument('--chromsizes', action='store_true',
+def main():
+    '''
+    Main function
+    '''
+    parser = argparse.ArgumentParser(description='Update mongoDB database with data')
+    parser.add_argument('--chromsizes', action='store_true',
                         help='Option for updating mongoDB with chromosome sizes')
-    PARSER.add_argument('--csfile', default='chrom_sizes38.tsv',
+    parser.add_argument('--csfile', default='chrom_sizes38.tsv',
                         help='Input file for updating mongoDB with chromosome sizes')
-    PARSER.add_argument('--track', action='store_true',
+    parser.add_argument('--track', action='store_true',
                         help='Option for updating mongoDB with chromosome tracks')
-    PARSER.add_argument('--trackfile', default='Homo_sapiens.GRCh38.99.gtf',
+    parser.add_argument('--trackfile', default='Homo_sapiens.GRCh38.99.gtf',
                         help='Input file for updating mongoDB with chromosome tracks')
-    PARSER.add_argument('--mane',
+    parser.add_argument('--mane',
                         help='Mane file for updating tracks')
-    PARSER.add_argument('--collection',
+    parser.add_argument('--collection',
                         help='Optional collection name')
-    ARGS = PARSER.parse_args()
+    args = parser.parse_args()
 
-    if ARGS.chromsizes:
+    if args.chromsizes:
         print('Updating chromosome sizes')
-        COLLECTION = ARGS.collection if ARGS.collection else 'chromsizes38'
-        UPDATE = UpdateMongo(ARGS.csfile, ARGS.mane, COLLECTION)
-        UPDATE.write_chromsizes()
+        collection = args.collection if args.collection else 'chromsizes38'
+        update = UpdateMongo(args.csfile, args.mane, collection)
+        update.write_chromsizes()
         print('Finished updating chromosome sizes')
-    elif ARGS.track:
+    elif args.track:
         print('Updating tracks')
-        COLLECTION = ARGS.collection if ARGS.collection else 'tracks38'
-        UPDATE = UpdateMongo(ARGS.trackfile, ARGS.mane, COLLECTION)
-        UPDATE.write_tracks()
+        collection = args.collection if args.collection else 'tracks38'
+        update = UpdateMongo(args.trackfile, args.mane, collection)
+        update.write_tracks()
         print('Finished updating tracks')
+
+if __name__ == '__main__':
+    main()
