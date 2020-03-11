@@ -143,7 +143,7 @@ class Annotation extends Track {
           0, drawStart, this.trackCanvas.width, drawHeight);
 
         // Clear draw canvas
-        ic.scene.remove.apply(this.scene, this.scene.children);
+        this.scene.remove.apply(this.scene, this.scene.children);
         max_rows *= 2;
       }
     });

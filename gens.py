@@ -7,6 +7,7 @@ import re
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
 from os import path, walk
+from datetime import date
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
 
@@ -53,6 +54,7 @@ def coverage_view(sample_name):
         abort(404)
 
     region = request.args.get('region', None)
+    print_page = request.args.get('print_page', 'false')
     if not region:
         region = request.form.get('region', '1:100000-200000')
 
@@ -70,7 +72,8 @@ def coverage_view(sample_name):
 
     return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
                            sample_name=sample_name, hg_type=hg_type,
-                           last_updated=dir_last_updated('static'))
+                           last_updated=dir_last_updated('static'),
+                           print_page=print_page, todays_date=date.today())
 
 def get_hg_type():
     '''

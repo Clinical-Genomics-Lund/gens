@@ -192,3 +192,18 @@ function drawBox (scene, x, y, width, height, lineWidth, color) {
 function numberWithCommas (x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+// Reloads page to printable size
+function loadPrintPage(region) {
+  let location = window.location.href.replace(/region=.*&/, 'region=' + region + '&');
+  window.location.replace(location + "&print_page=true");
+}
+
+// Show print prompt and reloads page after print
+function printPage () {
+  $('.no-print').hide();
+  window.addEventListener('afterprint', function() {
+    window.location.replace(window.location.href.replace('&print_page=true', ''))
+  }, {once : true});
+  print();
+}

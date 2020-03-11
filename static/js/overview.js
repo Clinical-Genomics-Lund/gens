@@ -7,14 +7,14 @@ class OverviewCanvas {
     this.plotWidth = 120; // Width of one plot
     this.plotHeight = 180; // Height of one plot
     this.x = xPos; // X-position for plot
-    this.y = 20 + 2 * lineMargin; // Y-position for plot
+    this.y = 5 + 2 * lineMargin; // Y-position for plot
     this.numChrom = 24; // Number of displayable chromosomes
     this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
       '22', 'X', 'Y'] // For looping purposes
     this.rowMargin = 30; // margin between rows
     this.titleMargin = 10; // Margin between plot and title
-    this.leftMargin = 0.05 * $(document).innerWidth(); // Margin between graphs and page
+    this.leftMargin = 0.05 * document.body.clientWidth; // Margin between graphs and page
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 8; // margin for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
@@ -37,13 +37,13 @@ class OverviewCanvas {
     };
 
     // Set canvas height
-    this.rightMargin = ($(document).innerWidth() - this.x - 10);
+    this.rightMargin = (document.body.clientWidth - this.x - 10);
     this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.plotWidth);
     let numRows = Math.ceil(this.numChrom / this.chromPerRow);
     this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.plotHeight));
 
     // Canvas variables
-    this.width = $(document).innerWidth(); // Canvas width
+    this.width = document.body.clientWidth; // Canvas width
     this.height = this.y + numRows * this.rowHeight; // Canvas height
     this.contentCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
@@ -65,7 +65,7 @@ class OverviewCanvas {
     let _this = this;
   }
 
-  drawOverviewContent () {
+  drawOverviewContent (printing) {
     let drawnChrom = 0; // Amount of async drawn chromosomes
 
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
@@ -142,6 +142,9 @@ class OverviewCanvas {
             document.getElementById('grid-container').style.visibility =
               'visible';
             document.getElementById('grid-container').style.display = 'grid';
+            if (printing == true) {
+              printPage();
+            }
           } else {
             document.getElementById('progress-bar').value =
               drawnChrom / this.numChrom;

@@ -9,10 +9,10 @@ class InteractiveCanvas {
     this.legendMargin = 45; // Margin between legend and plot
     this.xMargin = 2; // margin for x-axis in graph
     this.yMargin = 8; // margin for top and bottom in graph
-    this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
-    this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
+    this.extraWidth = document.body.clientWidth; // Width for loading in extra edge data
+    this.plotWidth = 0.9 * document.body.clientWidth - this.legendMargin; // Width of one plot
     this.plotHeight = 180; // Height of one plot
-    this.x = $(document).innerWidth() / 2 - this.plotWidth / 2; // X-position for first plot
+    this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Height for whole canvas
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
@@ -35,14 +35,14 @@ class InteractiveCanvas {
     };
 
     // Setup draw canvas
-    this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Draw-canvas width
+    this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, document.body.clientWidth); // Draw-canvas width
     this.drawCanvas = new OffscreenCanvas(parseInt(this.drawWidth), parseInt(this.canvasHeight));
     this.context = this.drawCanvas.getContext('webgl2');
 
     // Setup visible canvases
     this.contentCanvas = document.getElementById('interactive-content');
     this.staticCanvas = document.getElementById('interactive-static');
-    this.staticCanvas.width = this.contentCanvas.width = $(document).innerWidth();
+    this.staticCanvas.width = this.contentCanvas.width = document.body.clientWidth;
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
     // Data values
@@ -227,7 +227,7 @@ class InteractiveCanvas {
 
       // Draw chromosome title
       drawText(this.contentCanvas,
-        $(document).innerWidth() / 2,
+        document.body.clientWidth / 2,
         result['y_pos'] - this.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
