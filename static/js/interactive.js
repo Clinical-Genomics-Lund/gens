@@ -189,7 +189,7 @@ class InteractiveCanvas {
 
   // Draw values for interactive canvas
   drawInteractiveContent () {
-    $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
+    $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
       region: this.inputField.value,
       sample_name: this.sampleName,
       hg_type: this.hgType,

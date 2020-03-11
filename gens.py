@@ -36,7 +36,7 @@ COV_END = '.cov.bed.gz'
 @APP.route('/<path:sample_name>', methods=['GET'])
 def coverage_view(sample_name):
     '''
-    Method for displaying a region
+    Renders the first coverage view
     '''
     if not sample_name:
         print('No sample requested')
@@ -75,125 +75,11 @@ def coverage_view(sample_name):
                            last_updated=dir_last_updated('static'),
                            print_page=print_page, todays_date=date.today())
 
-def get_hg_type():
-    '''
-    Returns whether to fetch files of type HG37 or HG38
-    HG38 is default
-    '''
-    hg_type = request.args.get('hg_type', None)
-    if hg_type == '38' or hg_type is None:
-        return FILE_DIR_HG38, '38'
-    return FILE_DIR_HG37, hg_type
-
-# Set graph-specific values
-def set_graph_values(req):
-    '''
-    Returns graph-specific values as named tuple
-    '''
-    log2_height = abs(req.log2_y_end - req.log2_y_start)
-    baf_height = abs(req.baf_y_end - req.baf_y_start)
-    return GRAPH(
-        (req.plot_height - 2 * req.y_margin) / baf_height,
-        (req.plot_height - req.y_margin * 2) / log2_height,
-        req.y_pos + req.plot_height - req.y_margin,
-        req.y_pos + 1.5 * req.plot_height
-    )
-
-def set_region_values(parsed_region, x_ampl):
-    '''
-    Sets region values
-    '''
-    extra_plot_width = float(request.args.get('extra_plot_width', 0))
-    res, chrom, start_pos, end_pos = parsed_region
-
-    if request.args.get('overview', False):
-        res = 'o'
-
-    # Move negative start and end position to positive values
-    if start_pos != 'None' and int(start_pos) < 0:
-        end_pos += start_pos
-        start_pos = 0
-
-    # Handle X and Y chromosome input
-    if chrom == '23':
-        chrom = 'X'
-    elif chrom == '24':
-        chrom = 'Y'
-
-    # Add extra data to edges
-    new_start_pos = int(start_pos - extra_plot_width *
-                        ((end_pos - start_pos) / x_ampl))
-    new_end_pos = int(end_pos + extra_plot_width *
-                      ((end_pos - start_pos) / x_ampl))
-
-    x_ampl += 2 * extra_plot_width
-    return REGION(res, chrom, start_pos, end_pos), \
-           new_start_pos, new_end_pos, x_ampl, extra_plot_width
-
-def load_data(reg, new_start_pos, new_end_pos, x_ampl):
-    '''
-    Loads in data for Log2 and BAF
-    '''
-    sample_name = request.args.get('sample_name', None)
-
-    # Set whether to get HG37 och HG38 files
-    hg_filedir, _ = get_hg_type()
-
-    # Fetch data with the defined range
-    log2_list = list(tabix_query(hg_filedir + sample_name + COV_END,
-                                 reg.res + '_' + reg.chrom,
-                                 new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
-                                reg.res + '_' + reg.chrom,
-                                new_start_pos, new_end_pos))
-
-    if not new_start_pos and not log2_list and not baf_list:
-        print('Data for chromosome {} not available'.format(reg.chrom))
-        return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
-
-    # Set end position now that data is loaded
-    if not new_end_pos:
-        new_start_pos = 0
-        if log2_list:
-            new_end_pos = int(log2_list[len(log2_list) - 1][1])
-        if baf_list:
-            new_end_pos = max(new_end_pos, int(baf_list[len(baf_list) - 1][1]))
-
-    # X ampl contains the total width to plot x data on
-    x_ampl = x_ampl / (new_end_pos - new_start_pos)
-    return log2_list, baf_list, new_start_pos, x_ampl
-
-def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
-    '''
-    Edits data for Log2 ratio and BAF
-    '''
-    #  Normalize and calculate the Lo2 ratio
-    log2_records = []
-    for record in log2_list:
-        # Cap values to end points
-        ypos = float(record[3])
-        ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
-        ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
-
-        log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                             graph.log2_ypos - graph.log2_ampl * ypos, 0])
-
-    # Gather the BAF records
-    baf_records = []
-    for record in baf_list:
-        # Cap values to end points
-        ypos = float(record[3])
-        ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
-        ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
-        baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                            graph.baf_ypos - graph.baf_ampl * ypos, 0])
-
-    return log2_records, baf_records
-
-@APP.route('/_getoverviewcov', methods=['GET'])
-def get_overview_cov():
+@APP.route('/_getcoverage', methods=['GET'])
+def get_coverage():
     '''
     Reads and formats Log2 ratio and BAF values for overview graph
+    Returns the coverage for frontend rendering
     '''
     req = REQUEST(
         request.args.get('region', '1:100000-200000'),
@@ -236,6 +122,7 @@ def get_overview_cov():
 def call_overview_chrom_dim():
     '''
     Returns current chromosome and its dimensions
+    relative to the overview graph
     '''
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
@@ -258,52 +145,6 @@ def call_overview_chrom_dim():
 
     return jsonify(status='ok', chrom_dims=chrom_dims, \
                    current_chrom=current_chrom)
-
-def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
-    '''
-    Returns the related chromosome to the position
-    '''
-    current_chrom = None
-
-    for chrom in CHROMOSOMES:
-        x_pos = chrom_dims[chrom]['x_pos']
-        y_pos = chrom_dims[chrom]['y_pos']
-        width = chrom_dims[chrom]['width']
-        if x_pos + margin <= current_x <= (x_pos + width) and \
-           y_pos + margin <= current_y <= (y_pos + height):
-            current_chrom = chrom
-            break
-
-    return current_chrom
-
-def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
-                       row_height):
-    '''
-    Calculates the position for each chromosome in the overview canvas
-    '''
-
-    _, hg_type = get_hg_type()
-    collection = GENS_DB['chromsizes' + hg_type]
-
-    first_x_pos = x_pos
-    chrom_dims = {}
-    for chrom in CHROMOSOMES:
-        chrom_width = get_chrom_width(chrom, plot_width)
-        chrom_data = collection.find_one({'chrom': chrom})
-
-        if chrom_data is None:
-            print('Could not find chromosome data in DB')
-            return None
-
-        chrom_dims[chrom] = ({'x_pos': x_pos, 'y_pos': y_pos,
-                              'width': chrom_width, 'size': chrom_data['size']})
-
-        x_pos += chrom_width
-        if x_pos > right_margin:
-            y_pos += row_height
-            x_pos = first_x_pos
-
-    return chrom_dims
 
 @APP.route('/_gettrackdata', methods=['GET'])
 def get_track_data():
@@ -536,3 +377,164 @@ def dir_last_updated(folder):
                    for root_path, dirs, files in walk(folder)
                    for f in files))
 
+def get_hg_type():
+    '''
+    Returns whether to fetch files of type HG37 or HG38
+    HG38 is default
+    '''
+    hg_type = request.args.get('hg_type', None)
+    if hg_type == '38' or hg_type is None:
+        return FILE_DIR_HG38, '38'
+    return FILE_DIR_HG37, hg_type
+
+# Set graph-specific values
+def set_graph_values(req):
+    '''
+    Returns graph-specific values as named tuple
+    '''
+    log2_height = abs(req.log2_y_end - req.log2_y_start)
+    baf_height = abs(req.baf_y_end - req.baf_y_start)
+    return GRAPH(
+        (req.plot_height - 2 * req.y_margin) / baf_height,
+        (req.plot_height - req.y_margin * 2) / log2_height,
+        req.y_pos + req.plot_height - req.y_margin,
+        req.y_pos + 1.5 * req.plot_height
+    )
+
+def set_region_values(parsed_region, x_ampl):
+    '''
+    Sets region values
+    '''
+    extra_plot_width = float(request.args.get('extra_plot_width', 0))
+    res, chrom, start_pos, end_pos = parsed_region
+
+    if request.args.get('overview', False):
+        res = 'o'
+
+    # Move negative start and end position to positive values
+    if start_pos != 'None' and int(start_pos) < 0:
+        end_pos += start_pos
+        start_pos = 0
+
+    # Handle X and Y chromosome input
+    if chrom == '23':
+        chrom = 'X'
+    elif chrom == '24':
+        chrom = 'Y'
+
+    # Add extra data to edges
+    new_start_pos = int(start_pos - extra_plot_width *
+                        ((end_pos - start_pos) / x_ampl))
+    new_end_pos = int(end_pos + extra_plot_width *
+                      ((end_pos - start_pos) / x_ampl))
+
+    x_ampl += 2 * extra_plot_width
+    return REGION(res, chrom, start_pos, end_pos), \
+           new_start_pos, new_end_pos, x_ampl, extra_plot_width
+
+def load_data(reg, new_start_pos, new_end_pos, x_ampl):
+    '''
+    Loads in data for Log2 and BAF
+    '''
+    sample_name = request.args.get('sample_name', None)
+
+    # Set whether to get HG37 och HG38 files
+    hg_filedir, _ = get_hg_type()
+
+    # Fetch data with the defined range
+    log2_list = list(tabix_query(hg_filedir + sample_name + COV_END,
+                                 reg.res + '_' + reg.chrom,
+                                 new_start_pos, new_end_pos))
+    baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
+                                reg.res + '_' + reg.chrom,
+                                new_start_pos, new_end_pos))
+
+    if not new_start_pos and not log2_list and not baf_list:
+        print('Data for chromosome {} not available'.format(reg.chrom))
+        return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
+
+    # Set end position now that data is loaded
+    if not new_end_pos:
+        new_start_pos = 0
+        if log2_list:
+            new_end_pos = int(log2_list[len(log2_list) - 1][1])
+        if baf_list:
+            new_end_pos = max(new_end_pos, int(baf_list[len(baf_list) - 1][1]))
+
+    # X ampl contains the total width to plot x data on
+    x_ampl = x_ampl / (new_end_pos - new_start_pos)
+    return log2_list, baf_list, new_start_pos, x_ampl
+
+def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
+    '''
+    Edits data for Log2 ratio and BAF
+    '''
+    #  Normalize and calculate the Lo2 ratio
+    log2_records = []
+    for record in log2_list:
+        # Cap values to end points
+        ypos = float(record[3])
+        ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
+        ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
+
+        log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
+                             graph.log2_ypos - graph.log2_ampl * ypos, 0])
+
+    # Gather the BAF records
+    baf_records = []
+    for record in baf_list:
+        # Cap values to end points
+        ypos = float(record[3])
+        ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
+        ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
+        baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
+                            graph.baf_ypos - graph.baf_ampl * ypos, 0])
+
+    return log2_records, baf_records
+
+def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
+    '''
+    Returns which chromosome can be found at the input position
+    in the overview graph
+    '''
+    current_chrom = None
+
+    for chrom in CHROMOSOMES:
+        x_pos = chrom_dims[chrom]['x_pos']
+        y_pos = chrom_dims[chrom]['y_pos']
+        width = chrom_dims[chrom]['width']
+        if x_pos + margin <= current_x <= (x_pos + width) and \
+           y_pos + margin <= current_y <= (y_pos + height):
+            current_chrom = chrom
+            break
+
+    return current_chrom
+
+def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
+                       row_height):
+    '''
+    Calculates the position for each chromosome in the overview canvas
+    '''
+
+    _, hg_type = get_hg_type()
+    collection = GENS_DB['chromsizes' + hg_type]
+
+    first_x_pos = x_pos
+    chrom_dims = {}
+    for chrom in CHROMOSOMES:
+        chrom_width = get_chrom_width(chrom, plot_width)
+        chrom_data = collection.find_one({'chrom': chrom})
+
+        if chrom_data is None:
+            print('Could not find chromosome data in DB')
+            return None
+
+        chrom_dims[chrom] = ({'x_pos': x_pos, 'y_pos': y_pos,
+                              'width': chrom_width, 'size': chrom_data['size']})
+
+        x_pos += chrom_width
+        if x_pos > right_margin:
+            y_pos += row_height
+            x_pos = first_x_pos
+
+    return chrom_dims

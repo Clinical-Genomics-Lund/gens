@@ -81,7 +81,7 @@ class OverviewCanvas {
       for (let i = 0; i < this.chromosomes.length; i++) {
         let chrom = this.chromosomes[i];
         // Draw data
-        $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
+        $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
           region: chrom + ':0-None',
           sample_name: this.sampleName,
           hg_type: this.hgType,
