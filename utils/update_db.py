@@ -29,6 +29,8 @@ class UpdateMongo:
         with open(self.input_file) as cs_file:
             first_chrom_len = 1
             cs_reader = csv.reader(cs_file, delimiter='\t')
+            chrom_sizes = []
+            tot_scale = 0
             for line in cs_reader:
                 chrom = line[0]
                 chrom_size = int(line[1])
@@ -36,11 +38,17 @@ class UpdateMongo:
                 if chrom == '1':
                     first_chrom_len = chrom_size
 
-                self.collection.insert_one({
+                scale = round(chrom_size / first_chrom_len, 2)
+                tot_scale += round(chrom_size / first_chrom_len, 2)
+
+                chrom_sizes.append({
                     'chrom': chrom,
                     'size': chrom_size,
-                    'scale': round(chrom_size / first_chrom_len, 2)
+                    'scale': scale
                 })
+            for chrom in chrom_sizes:
+                chrom['scale'] /= tot_scale
+            self.collection.insert_many(chrom_sizes)
 
     def write_tracks(self):
         '''

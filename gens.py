@@ -20,7 +20,7 @@ GENS_DB = CLIENT['gens']
 GRAPH = namedtuple('graph', ('baf_ampl', 'log2_ampl', 'baf_ypos', 'log2_ypos'))
 REGION = namedtuple('region', ('res', 'chrom', 'start_pos', 'end_pos'))
 REQUEST = namedtuple('request', ('region', 'x_pos', 'y_pos', 'plot_height',
-                                 'y_margin', 'baf_y_start', 'baf_y_end',
+                                 'top_bottom_padding', 'baf_y_start', 'baf_y_end',
                                  'log2_y_start', 'log2_y_end'))
 
 CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
@@ -86,7 +86,7 @@ def get_coverage():
         float(request.args.get('xpos', 1)),
         float(request.args.get('ypos', 1)),
         float(request.args.get('plot_height', 1)),
-        float(request.args.get('y_margin', 1)),
+        float(request.args.get('top_bottom_padding', 1)),
         float(request.args.get('baf_y_start', 0)),
         float(request.args.get('baf_y_end', 0)),
         float(request.args.get('log2_y_start', 0)),
@@ -126,17 +126,14 @@ def call_overview_chrom_dim():
     '''
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
-    plot_width = float(request.args.get('plot_width', 0))
     plot_height = float(request.args.get('plot_height', 0))
-    right_margin = float(request.args.get('right_margin', 0))
-    row_height = float(request.args.get('row_height', 0))
+    full_plot_width = float(request.args.get('full_plot_width', 0))
     margin = float(request.args.get('margin', 0))
     current_x = request.args.get('current_x', None)
     current_y = request.args.get('current_y', None)
     current_chrom = None
 
-    chrom_dims = overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
-                                    row_height)
+    chrom_dims = overview_chrom_dim(x_pos, y_pos, full_plot_width)
 
     if current_x and current_y:
         current_chrom = find_chrom_at_pos(chrom_dims, 2 * plot_height,
@@ -263,7 +260,7 @@ def get_annotation_sources():
 
 ### Help functions ###
 
-def get_chrom_width(chrom, full_width):
+def get_chrom_width(chrom, full_plot_width):
     '''
     Calculates overview width of chromosome
     '''
@@ -272,11 +269,10 @@ def get_chrom_width(chrom, full_width):
     chrom_data = collection.find_one({'chrom': chrom})
 
     if chrom_data:
-        chrom_width = full_width * float(chrom_data['scale'])
-        return chrom_width
+        return full_plot_width * float(chrom_data['scale'])
 
     print('Chromosome width not available')
-    return full_width, full_width
+    return None
 
 def parse_region_str(region):
     '''
@@ -395,9 +391,9 @@ def set_graph_values(req):
     log2_height = abs(req.log2_y_end - req.log2_y_start)
     baf_height = abs(req.baf_y_end - req.baf_y_start)
     return GRAPH(
-        (req.plot_height - 2 * req.y_margin) / baf_height,
-        (req.plot_height - req.y_margin * 2) / log2_height,
-        req.y_pos + req.plot_height - req.y_margin,
+        (req.plot_height - 2 * req.top_bottom_padding) / baf_height,
+        (req.plot_height - req.top_bottom_padding * 2) / log2_height,
+        req.y_pos + req.plot_height - req.top_bottom_padding,
         req.y_pos + 1.5 * req.plot_height
     )
 
@@ -494,8 +490,7 @@ def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
 
 def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     '''
-    Returns which chromosome can be found at the input position
-    in the overview graph
+    Returns which chromosome the current position belongs to in the overview graph
     '''
     current_chrom = None
 
@@ -510,8 +505,7 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
 
     return current_chrom
 
-def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
-                       row_height):
+def overview_chrom_dim(x_pos, y_pos, full_plot_width):
     '''
     Calculates the position for each chromosome in the overview canvas
     '''
@@ -519,12 +513,14 @@ def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
     _, hg_type = get_hg_type()
     collection = GENS_DB['chromsizes' + hg_type]
 
-    first_x_pos = x_pos
     chrom_dims = {}
     for chrom in CHROMOSOMES:
-        chrom_width = get_chrom_width(chrom, plot_width)
-        chrom_data = collection.find_one({'chrom': chrom})
+        chrom_width = get_chrom_width(chrom, full_plot_width)
+        if chrom_width is None:
+            print('Could not find chromosome data in DB')
+            return None
 
+        chrom_data = collection.find_one({'chrom': chrom})
         if chrom_data is None:
             print('Could not find chromosome data in DB')
             return None
@@ -533,8 +529,5 @@ def overview_chrom_dim(x_pos, y_pos, plot_width, right_margin,
                               'width': chrom_width, 'size': chrom_data['size']})
 
         x_pos += chrom_width
-        if x_pos > right_margin:
-            y_pos += row_height
-            x_pos = first_x_pos
 
     return chrom_dims

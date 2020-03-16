@@ -15,7 +15,7 @@ function drawData (scene, data, color) {
 // xStart and xEnd with step length.
 // The amplitude scales the values to drawing size
 function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
-  width, yMargin) {
+  width, yMargin, titleColor) {
   const lineThickness = 2;
   const lineWidth = 5;
   const scale = width / (xEnd - xStart);
@@ -38,7 +38,7 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
 
     // Draw text and ticks only for the leftmost box
     drawRotatedText(canvas, value, 10, canvasX + xStep,
-      y - value.length - 3 * yMargin, -Math.PI / 4);
+      y - value.length - 3 * yMargin, -Math.PI / 4, titleColor);
 
     // Draw tick line
     drawLine(scene, renderX + xStep, y - lineWidth, renderX + xStep, y,
@@ -136,9 +136,10 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, widt
 }
 
 // Draw 90 degree rotated text
-function drawRotatedText (canvas, text, textSize, posx, posy, rot) {
+function drawRotatedText (canvas, text, textSize, posx, posy, rot, color) {
   let ctx = canvas.getContext('2d');
   ctx.save();
+  ctx.fillStyle = color;
   ctx.font = ''.concat(textSize, 'px Arial');
   ctx.translate(posx, posy); // Position for text
   ctx.rotate(rot); // Rotate rot degrees

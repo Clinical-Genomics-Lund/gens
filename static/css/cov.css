@@ -299,3 +299,9 @@ span#search-plus {
 span#search-minus {
     background: url(../svg/search-minus-solid.svg) no-repeat top left;
 }
+
+@media print {
+    #button-container {
+        page-break-after: always;
+    }
+}

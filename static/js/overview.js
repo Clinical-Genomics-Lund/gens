@@ -1,24 +1,24 @@
 class OverviewCanvas {
-  constructor (xPos, lineMargin, near, far, sampleName, hgType) {
+  constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName, hgType) {
     this.sampleName = sampleName; // File name to load data from
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
 
     // Plot variables
-    this.plotWidth = 120; // Width of one plot
-    this.plotHeight = 180; // Height of one plot
-    this.x = xPos; // X-position for plot
-    this.y = 5 + 2 * lineMargin; // Y-position for plot
     this.numChrom = 24; // Number of displayable chromosomes
+    this.fullPlotWidth = fullPlotWidth; // Width for all chromosomes to fit in
+    this.plotHeight = 180; // Height of one plot
+    this.titleMargin = 10; // Margin between plot and title
+    this.legendMargin = 45; // Margin between legend and plot
+    this.x = xPos; // Starting x-position for plot
+    this.y = 20 + this.titleMargin + 2 * lineMargin; // Starting y-position for plot
     this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
       '22', 'X', 'Y'] // For looping purposes
-    this.rowMargin = 30; // margin between rows
-    this.titleMargin = 10; // Margin between plot and title
-    this.leftMargin = 0.05 * document.body.clientWidth; // Margin between graphs and page
-    this.xMargin = 2; // margin for x-axis in graph
-    this.yMargin = 8; // margin for top and bottom in graph
+    this.leftRightPadding = 2; // Padding for left and right in graph
+    this.topBottomPadding = 8; // Padding for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.borderColor = 'gray';
+    this.borderColor = 'gray'; // Color of border
+    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -36,15 +36,9 @@ class OverviewCanvas {
       color: '#000000' // Viz color
     };
 
-    // Set canvas height
-    this.rightMargin = (document.body.clientWidth - this.x - 10);
-    this.chromPerRow =  Math.floor((this.rightMargin - this.x) / this.plotWidth);
-    let numRows = Math.ceil(this.numChrom / this.chromPerRow);
-    this.rowHeight = (this.titleMargin + this.rowMargin + 2 * (this.xMargin + this.plotHeight));
-
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
-    this.height = this.y + numRows * this.rowHeight; // Canvas height
+    this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding; // Canvas height
     this.contentCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.contentCanvas.getContext('webgl2');
@@ -71,11 +65,9 @@ class OverviewCanvas {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       hg_type: this.hgType,
       x_pos: this.x,
-      y_pos: this.y + this.rowMargin,
-      plot_width: this.plotWidth,
+      y_pos: this.y,
       plot_height: 2 * this.plotHeight,
-      right_margin: this.rightMargin,
-      row_height: this.rowHeight,
+      full_plot_width: this.fullPlotWidth,
     }).done( (result) => {
       let dims = result['chrom_dims'];
       for (let i = 0; i < this.chromosomes.length; i++) {
@@ -85,11 +77,11 @@ class OverviewCanvas {
           region: chrom + ':0-None',
           sample_name: this.sampleName,
           hg_type: this.hgType,
-          xpos: dims[chrom]['x_pos'] + this.xMargin,
+          xpos: dims[chrom]['x_pos'] + this.leftRightPadding,
           ypos: dims[chrom]['y_pos'],
           plot_height: this.plotHeight,
-          y_margin: this.yMargin,
-          x_ampl: dims[chrom]['width'] - 2 * this.xMargin,
+          top_bottom_padding: this.topBottomPadding,
+          x_ampl: dims[chrom]['width'] - 2 * this.leftRightPadding,
           baf_y_start: this.baf.yStart,
           baf_y_end: this.baf.yEnd,
           log2_y_start: this.log2.yStart,
@@ -102,30 +94,38 @@ class OverviewCanvas {
 
           // Draw chromosome title
           drawText(staticCanvas,
-            result['x_pos'] - this.xMargin + width / 2,
+            result['x_pos'] - this.leftRightPadding + width / 2,
             result['y_pos'] - this.titleMargin,
             result['chrom'], 10, 'center');
 
+          // Draw rotated y-axis legends
+          if (result['x_pos'] < this.leftmostPoint) {
+            drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, result['x_pos'] - this.legendMargin,
+              result['y_pos'] + this.plotHeight / 2, -Math.PI / 2, this.titleColor);
+            drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, result['x_pos'] - this.legendMargin,
+              result['y_pos'] + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
+          }
+
           // Draw BAF
           createGraph(this.scene, staticCanvas,
-            result['x_pos'] - this.xMargin,
-            result['y_pos'], width, this.plotHeight, this.yMargin,
+            result['x_pos'] - this.leftRightPadding,
+            result['y_pos'], width, this.plotHeight, this.topBottomPadding,
             this.baf.yStart, this.baf.yEnd, this.baf.step,
             result['x_pos'] < this.leftmostPoint, this.borderColor);
           drawGraphLines(this.scene, result['x_pos'], result['y_pos'],
-            this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
+            this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
             width, this.plotHeight);
 
           // Draw Log 2 ratio
           createGraph(this.scene, staticCanvas,
-            result['x_pos'] - this.xMargin,
+            result['x_pos'] - this.leftRightPadding,
             result['y_pos'] + this.plotHeight, width,
-            this.plotHeight, this.yMargin, this.log2.yStart,
+            this.plotHeight, this.topBottomPadding, this.log2.yStart,
             this.log2.yEnd, this.log2.step,
             result['x_pos'] < this.leftmostPoint, this.borderColor);
           drawGraphLines(this.scene, result['x_pos'],
             result['y_pos'] + this.plotHeight, this.log2.yStart,
-            this.log2.yEnd, this.log2.step, this.yMargin,
+            this.log2.yEnd, this.log2.step, this.topBottomPadding,
             width, this.plotHeight);
 
           // Plot scatter data
