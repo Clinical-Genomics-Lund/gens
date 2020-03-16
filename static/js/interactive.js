@@ -199,7 +199,7 @@ class InteractiveCanvas {
       ypos: this.y,
       plot_height: this.plotHeight,
       extra_plot_width: this.extraWidth,
-      top_bottom_pad: this.topBottomPadding,
+      top_bottom_padding: this.topBottomPadding,
       x_ampl: this.plotWidth,
       baf_y_start: this.baf.yStart,
       baf_y_end: this.baf.yEnd,
