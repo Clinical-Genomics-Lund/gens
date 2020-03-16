@@ -157,7 +157,7 @@ def get_track_data():
         print('Could not find track data in DB')
         return abort(404)
 
-    # Do not show annotations at 'a'-resolution
+    # Do not show transcripts at 'a'-resolution
     if not res or res == 'a':
         return jsonify(status='ok', tracks=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
@@ -253,8 +253,9 @@ def get_annotation_sources():
     '''
     Returns available annotation source files
     '''
+    hg_type = request.args.get('hg_type', None)
     collection = GENS_DB['annotations']
-    sources = collection.distinct('source')
+    sources = collection.distinct('source', {'hg_type': hg_type})
     return jsonify(status='ok', sources=sources)
 
 

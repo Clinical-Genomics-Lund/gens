@@ -17,7 +17,7 @@ class ParseAnnotations:
     '''
     def __init__(self, annot_type, args):
         self.input_file = args.file
-        self.file_name = args.name
+        self.file_name = args.file.split('/')[-1]
         self.hg_type = args.hg_type
         self.collection = GENS_DB['annotations']
         self.annotations = []
@@ -132,9 +132,25 @@ class ParseAnnotations:
                 except ValueError:
                     print(line)
                     return
+        if annotation['end'] < annotation['start']:
+            annotation['start'], annotation['end'] = \
+                annotation['end'], annotation['start']
+        self.set_missing_fields(annotation)
         annotation['source'] = self.file_name
         annotation['hg_type'] = self.hg_type
         self.annotations.append(annotation)
+
+    def set_missing_fields(self, annotation):
+        '''
+        Sets default values to fields that are missing
+        '''
+        for key in self.fields_to_save:
+            if key in annotation.keys():
+                continue
+            if key == 'color':
+                annotation['color'] = 'blue'
+            if key == 'score':
+                annotation['score'] = 'None'
 
 def format_field(title, field):
     '''
@@ -166,8 +182,6 @@ def main():
     '''
     parser = argparse.ArgumentParser(description='Parse annotations from different file types')
     parser.add_argument('-f', '--file', help='A file to parse', required=True)
-    parser.add_argument('-n', '--name', help='A representative name for annotations \
-            based on input file', required=True)
     parser.add_argument('-hg', '--hg_type', help='Set hg-type')
     parser.add_argument('-rm', '--remove', help='Set hg-type', default=False,
                         action='store_true')

@@ -30,7 +30,9 @@ class Annotation extends Track {
   }
 
   annotSourceList () {
-    $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {}, (result) => {
+    $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {
+      hg_type: this.hgType
+    }, (result) => {
       if(result['sources'].length > 0) {
         this.sourceList.style.visibility = 'visible';
       }
@@ -42,8 +44,8 @@ class Annotation extends Track {
         opt.value = file_name;
         opt.innerHTML = file_name;
 
-        // TODO: Set default value
-        if (file_name == 'CNV segments') {
+        // Set mimisbrunnr as default file
+        if (file_name.match('misbrunnr')) {
           opt.setAttribute('selected', true);
         }
         this.sourceList.appendChild(opt);
@@ -56,7 +58,7 @@ class Annotation extends Track {
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
-      hg_type: '37',
+      hg_type: this.hgType,
       source: this.sourceList.value,
       collapsed: this.expanded ? false : true
     }, (result) => {
