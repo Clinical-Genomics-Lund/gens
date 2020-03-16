@@ -96,6 +96,7 @@
             // FLASK values
             const sampleName = '{{ sample_name }}';
             const hgType = {{hg_type}}
+            const hgFileDir = '{{hg_filedir}}'
 
             // WEBGL values
             const near = 0.1;
@@ -116,7 +117,7 @@
 
             // Initiate and draw interactive canvas
             let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
-                sampleName, hgType);
+                sampleName, hgType, hgFileDir);
             ic.drawStaticContent();
             ic.drawInteractiveContent();
 
@@ -128,8 +129,8 @@
             let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType);
 
             // Initiate and draw overview canvas
-            let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far,
-                sampleName, hgType);
+            let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
+                far, sampleName, hgType, hgFileDir);
             oc.drawOverviewContent(printing);
 
             document.getElementById('region_form').addEventListener('submit',

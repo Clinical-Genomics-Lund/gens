@@ -1,8 +1,9 @@
 class InteractiveCanvas {
-  constructor (inputField, lineMargin, near, far, sampleName, hgType) {
+  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
     this.inputField = inputField; // The canvas input field to display and fetch chromosome range from
     this.sampleName = sampleName; // File name to load data from
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
+    this.hgFileDir = hgFileDir; // File directory
 
     // Plot variables
     this.titleMargin = 80; // Margin between plot and title
@@ -193,6 +194,7 @@ class InteractiveCanvas {
       region: this.inputField.value,
       sample_name: this.sampleName,
       hg_type: this.hgType,
+      hg_filedir: this.hgFileDir,
       xpos: this.extraWidth,
       ypos: this.y,
       plot_height: this.plotHeight,
