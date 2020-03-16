@@ -6,18 +6,19 @@ class InteractiveCanvas {
     this.hgFileDir = hgFileDir; // File directory
 
     // Plot variables
-    this.titleMargin = 70; // Margin between plot and title
+    this.titleMargin = 80; // Margin between plot and title
     this.legendMargin = 45; // Margin between legend and plot
-    this.xMargin = 2; // margin for x-axis in graph
-    this.yMargin = 8; // margin for top and bottom in graph
-    this.extraWidth = $(document).innerWidth(); // Width for loading in extra edge data
-    this.plotWidth = 0.9 * $(document).innerWidth() - this.legendMargin; // Width of one plot
+    this.leftRightPadding = 2; // Padding for left and right in graph
+    this.topBottomPadding = 8; // margin for top and bottom in graph
+    this.extraWidth = document.body.clientWidth; // Width for loading in extra edge data
+    this.plotWidth = 0.9 * document.body.clientWidth - this.legendMargin; // Width of one plot
     this.plotHeight = 180; // Height of one plot
-    this.x = $(document).innerWidth() / 2 - this.plotWidth / 2; // X-position for first plot
+    this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
-    this.canvasHeight = 2 + this.y + 2 * (this.xMargin + this.plotHeight); // Height for whole canvas
+    this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight); // Height for whole canvas
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
-    this.borderColor = 'gray';
+    this.borderColor = 'gray'; // Color of border
+    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -36,17 +37,17 @@ class InteractiveCanvas {
     };
 
     // Setup draw canvas
-    this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, $(document).innerWidth()); // Draw-canvas width
+    this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, document.body.clientWidth); // Draw-canvas width
     this.drawCanvas = new OffscreenCanvas(parseInt(this.drawWidth), parseInt(this.canvasHeight));
     this.context = this.drawCanvas.getContext('webgl2');
 
     // Setup visible canvases
     this.contentCanvas = document.getElementById('interactive-content');
     this.staticCanvas = document.getElementById('interactive-static');
-    this.staticCanvas.width = this.contentCanvas.width = $(document).innerWidth();
+    this.staticCanvas.width = this.contentCanvas.width = document.body.clientWidth;
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
-    // Data values
+    // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
     this.start = input[1];
@@ -108,11 +109,11 @@ class InteractiveCanvas {
         this.contentCanvas.getContext('2d').drawImage(this.moveImg,
           this.extraWidth - (this.dragEnd.x - this.dragStart.x),
           this.y + lineMargin,
-          this.plotWidth + 2 * this.xMargin,
+          this.plotWidth + 2 * this.leftRightPadding,
           this.canvasHeight,
           this.x,
           this.y + lineMargin,
-          this.plotWidth + 2 * this.xMargin,
+          this.plotWidth + 2 * this.leftRightPadding,
           this.canvasHeight);
       }
     });
@@ -163,20 +164,19 @@ class InteractiveCanvas {
     staticContext.clearRect(0, 0, this.staticCanvas.width, this.y + linePadding);
 
     // Draw rotated y-axis legends
-    staticContext.fillStyle = 'gray';
     drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, this.x - this.legendMargin,
-      this.y + this.plotHeight / 2, -Math.PI / 2);
+      this.y + this.plotHeight / 2, -Math.PI / 2, this.titleColor);
     drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, this.x - this.legendMargin,
-      this.y + 1.5 * this.plotHeight, -Math.PI / 2);
+      this.y + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
 
     // Draw BAF
     createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth,
-      this.plotHeight, this.yMargin, this.baf.yStart, this.baf.yEnd,
+      this.plotHeight, this.topBottomPadding, this.baf.yStart, this.baf.yEnd,
       this.baf.step, true, this.borderColor);
 
     // Draw Log 2 ratio
     createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight,
-      this.plotWidth, this.plotHeight, this.yMargin, this.log2.yStart,
+      this.plotWidth, this.plotHeight, this.topBottomPadding, this.log2.yStart,
       this.log2.yEnd, this.log2.step, true, this.borderColor);
 
     this.renderer.render(this.scene, this.camera);
@@ -190,7 +190,7 @@ class InteractiveCanvas {
 
   // Draw values for interactive canvas
   drawInteractiveContent () {
-    $.getJSON($SCRIPT_ROOT + '/_getoverviewcov', {
+    $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
       region: this.inputField.value,
       sample_name: this.sampleName,
       hg_type: this.hgType,
@@ -199,7 +199,7 @@ class InteractiveCanvas {
       ypos: this.y,
       plot_height: this.plotHeight,
       extra_plot_width: this.extraWidth,
-      y_margin: this.yMargin,
+      top_bottom_pad: this.topBottomPadding,
       x_ampl: this.plotWidth,
       baf_y_start: this.baf.yStart,
       baf_y_end: this.baf.yEnd,
@@ -212,14 +212,15 @@ class InteractiveCanvas {
 
       // Draw ticks for x-axis
       drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x,
-        this.y, result['start'], result['end'], this.plotWidth, this.yMargin);
+        this.y, result['start'], result['end'], this.plotWidth, this.topBottomPadding,
+        this.titleColor);
 
       // Draw horizontal lines for BAF and Log 2 ratio
       drawGraphLines(this.scene, 0, result['y_pos'],
-        this.baf.yStart, this.baf.yEnd, this.baf.step, this.yMargin,
+        this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
         this.drawWidth, this.plotHeight);
       drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
-        this.log2.yStart, this.log2.yEnd, this.log2.step, this.yMargin,
+        this.log2.yStart, this.log2.yEnd, this.log2.step, this.topBottomPadding,
         this.drawWidth, this.plotHeight);
 
       // Plot scatter data
@@ -229,7 +230,7 @@ class InteractiveCanvas {
 
       // Draw chromosome title
       drawText(this.contentCanvas,
-        $(document).innerWidth() / 2,
+        document.body.clientWidth / 2,
         result['y_pos'] - this.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
@@ -237,8 +238,8 @@ class InteractiveCanvas {
 
       // Transfer image to visible canvas
       this.contentCanvas.getContext('2d').drawImage(this.moveImg,
-        this.extraWidth, 0, this.plotWidth + 2 * this.xMargin, this.canvasHeight,
-        this.x, 0, this.plotWidth + 2 * this.xMargin, this.canvasHeight);
+        this.extraWidth, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight,
+        this.x, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight);
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
@@ -285,11 +286,11 @@ class InteractiveCanvas {
 
     // Clear tracks and annotations
     tc.clearTracks();
-    // ac.clearTracks();
+    ac.clearTracks();
 
     // Draw new tracks and annotations
     tc.drawTracks(this.inputField.value);
-    // ac.drawTracks(this.inputField.value);
+    ac.drawTracks(this.inputField.value);
   }
 
   // Key listener for quickly navigating between chromosomes

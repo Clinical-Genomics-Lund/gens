@@ -15,14 +15,19 @@ class ParseAnnotations:
     '''
     Update mongoDB with values from input files
     '''
-    def __init__(self, input_file, annot_type, file_name):
-        self.input_file = input_file
-        self.file_name = file_name
+    def __init__(self, annot_type, args):
+        self.input_file = args.file
+        self.file_name = args.file.split('/')[-1]
+        self.hg_type = args.hg_type
         self.collection = GENS_DB['annotations']
         self.annotations = []
         self.header = []
         self.fields_to_save = ['sequence', 'start', 'end', 'name',
-                               'strand', 'score']
+                               'strand', 'color', 'score']
+
+        # Remove old data
+        if args.remove:
+            self.collection.remove({'source': self.file_name})
 
         # Set start as index to be able to sort quicker
         self.collection.create_index([('start', ASCENDING)], unique=False)
@@ -47,9 +52,10 @@ class ParseAnnotations:
         '''
         for chrom in range(1, 25):
             chrom = 'X' if chrom == 23 else \
-                'Y' if chrom == 24 else str(chrom)
-            annotations = self.collection.find(
-                {'chrom': chrom}).sort([('start', ASCENDING)])
+                    'Y' if chrom == 24 else str(chrom)
+            annotations = self.collection.find({
+                'chrom': chrom,
+                'source': self.file_name}).sort([('start', ASCENDING)])
 
             height_tracker = [-1] * 200
             current_height = 1
@@ -58,10 +64,10 @@ class ParseAnnotations:
                     if int(annot['start']) > height_tracker[current_height - 1]:
 
                         # Add height to DB
-                        self.collection.update(
-                            {'_id': annot['_id']},
-                            {'$set': {'height_order': current_height}}
-                        )
+                        self.collection.update({
+                            '_id': annot['_id'],
+                            'source': annot['source']
+                            }, {'$set': {'height_order': current_height}})
 
                         # Keep track of added height order
                         height_tracker[current_height - 1] = int(annot['end'])
@@ -85,7 +91,7 @@ class ParseAnnotations:
 
             # Set header since existing header is bad
             self.header = ['sequence', 'start', 'end', 'name',
-                           'score', 'strand', 'nul', 'null']
+                           'score', 'strand', 'null', 'null', 'color']
 
             # Skip bad header info
             next(bed_reader)
@@ -121,32 +127,76 @@ class ParseAnnotations:
             if title in self.fields_to_save:
                 if title == 'sequence':
                     title = 'chrom'
-                annotation[title] = format_field(title, field)
-        annotation['track_source'] = self.file_name
+                try:
+                    annotation[title] = format_field(title, field)
+                except ValueError:
+                    print(line)
+                    return
+        if annotation['end'] < annotation['start']:
+            annotation['start'], annotation['end'] = \
+                annotation['end'], annotation['start']
+        self.set_missing_fields(annotation)
+        annotation['source'] = self.file_name
+        annotation['hg_type'] = self.hg_type
         self.annotations.append(annotation)
+
+    def set_missing_fields(self, annotation):
+        '''
+        Sets default values to fields that are missing
+        '''
+        for key in self.fields_to_save:
+            if key in annotation.keys():
+                continue
+            if key == 'color':
+                annotation['color'] = 'blue'
+            if key == 'score':
+                annotation['score'] = 'None'
 
 def format_field(title, field):
     '''
     Formats field depending on title
     '''
+    if 'color' in title:
+        if not field:
+            return 'blue'
+        return field if 'rgb(' in field else 'rgb({})'.format(field)
     if 'chrom' in title:
+        if not field:
+            print('"{}" is not defined. Value was "{}" Skipping line:'.format(title, field))
+            raise ValueError(title + ' field must exist')
         return field.strip('chr')
-    if 'start' in title or 'end' in title or 'score' in title:
+    if 'start' in title or 'end' in title:
+        if not field:
+            print('"{}" is not defined. Value was "{}" Skipping line:'.format(title, field))
+            raise ValueError(title + 'field must exist')
+        return int(field)
+    if 'score' in title:
+        if not field:
+            return ''
         return int(field)
     return field
 
-if __name__ == '__main__':
-    PARSER = argparse.ArgumentParser(description='Parse annotations from different file types')
-    PARSER.add_argument('--bed', help='A bed file to parse')
-    PARSER.add_argument('--aed', help='An aed file to parse')
-    PARSER.add_argument('--name', help='A representative name for annotations \
-            based on input file', required=True)
-    ARGS = PARSER.parse_args()
+def main():
+    '''
+    Main function for annotation parser
+    '''
+    parser = argparse.ArgumentParser(description='Parse annotations from different file types')
+    parser.add_argument('-f', '--file', help='A file to parse', required=True)
+    parser.add_argument('-hg', '--hg_type', help='Set hg-type')
+    parser.add_argument('-rm', '--remove', help='Set hg-type', default=False,
+                        action='store_true')
+    args = parser.parse_args()
 
-    if ARGS.bed:
+    if '.bed' in args.file:
         print('Parsing bed file')
-        ParseAnnotations(ARGS.bed, 'bed', ARGS.name)
-    elif ARGS.aed:
+        ParseAnnotations('bed', args)
+    elif '.aed' in args.file:
         print('Parsing aed file')
-        ParseAnnotations(ARGS.aed, 'aed', ARGS.name)
+        ParseAnnotations('aed', args)
+    else:
+        print('Wrong file type')
+        return
     print('Finished')
+
+if __name__ == '__main__':
+    main()
