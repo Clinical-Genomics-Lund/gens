@@ -70,7 +70,7 @@ def coverage_view(sample_name):
     elif chrom == '24':
         chrom = 'Y'
 
-    return render_template('cov.html', chrom=chrom, start=start_pos, end=end_pos,
+    return render_template('gens.html', chrom=chrom, start=start_pos, end=end_pos,
                            sample_name=sample_name, hg_type=hg_type,
                            last_updated=dir_last_updated('static'),
                            hg_filedir=hg_filedir,
