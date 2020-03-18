@@ -56,7 +56,7 @@ class Transcript extends Track {
           const start = track['start'];
           const end = track['end'];
           const mane = track['mane']
-          const refsecID = track['refsec_id']
+          const refseqID = track['refseq_id']
           const hgncID = track['hgnc_id']
           const color = strand == '+' ? 'blue' : 'red';
 
@@ -89,7 +89,7 @@ class Transcript extends Track {
           let geneText = '';
           if (mane == true) {
             geneText = `${geneName} [MANE]\nchr${chrom}:${start}-${end}\n` +
-            `id = ${transcriptID}\nrefseq_id = ${refsecID}\nhgnc = ${hgncID}`;
+            `id = ${transcriptID}\nrefseq_id = ${refseqID}\nhgnc = ${hgncID}`;
           } else {
             geneText = `${geneName}\nchr${chrom}:${start}-${end}\n` +
             `id = ${transcriptID}`;
