@@ -5,8 +5,6 @@ class Track {
     this.featureMargin = 14; // Margin for fitting gene name under track
     this.yPos = this.featureHeight / 2; // First y-position
     this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
-    this.toRows = function(height) {return (height - this.yPos) /
-        (this.featureHeight + this.featureMargin) + 1}
     this.arrowColor =  'white';
     this.arrowWidth = 4;
     this.arrowDistance = 200;
@@ -20,8 +18,6 @@ class Track {
     this.minHeight = minHeight; // Minimized height
 
     // Canvases
-    this.drawCanvas = new OffscreenCanvas(this.width, this.maxHeight);
-    this.context = this.drawCanvas.getContext('webgl2');
     this.trackCanvas = null; // Set in parent class
     this.trackTitle = null; // Set in parent class
     this.trackContainer = null; // Set in parent class
@@ -40,21 +36,6 @@ class Track {
     // Setup track div
     this.trackTitle.style.width = this.width + 'px';
     this.trackTitle.style.height = this.minHeight + 'px';
-
-    // Scene variables
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(this.width / -2,
-      this.width / 2, this.maxHeight / -2,
-      this.maxHeight / 2, near, far);
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.drawCanvas,
-      context: this.context,
-      antialiasing: true
-    });
-
-    // Change to fourth quadrant of scene
-    this.camera.position.set(this.width / 2 - lineMargin,
-      this.maxHeight / 2 - lineMargin, 1);
 
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',

@@ -73,82 +73,55 @@ class Annotation extends Track {
       let latest_name_end = 0; // Latest annotations end position
       let latest_title_end = 0; // Latest annotations title's end position
 
-      // Do not render more than context buffers height
-      const rendering_height = this.tracksYPos(result['max_height_order']);
-      let max_rows = this.toRows(this.context.drawingBufferHeight);
-      let i = 0;
-
-      // Draw the image in section if drawing buffer is smaller than needed rendering size
-      for (let drawStart = 0; drawStart <= rendering_height &&
-        drawStart < this.trackCanvas.height;
-        drawStart += this.context.drawingBufferHeight) {
         // Go through results and draw appropriate symbols
-        for (; i < result['tracks'].length; i++) {
-          const track = result['tracks'][i];
-          const geneName = track['name'];
-          const chrom = track['chrom'];
-          const height_order = track['height_order'];
-          const score = track['score'];
-          const start = track['start'];
-          const end = track['end'];
-          const strand = track['strand'];
-          const color = track['color'];
+      for (let i = 0; i < result['tracks'].length; i++) {
+        const track = result['tracks'][i];
+        const geneName = track['name'];
+        const chrom = track['chrom'];
+        const height_order = track['height_order'];
+        const score = track['score'];
+        const start = track['start'];
+        const end = track['end'];
+        const strand = track['strand'];
+        const color = track['color'];
+        const canvasYPos = this.tracksYPos(height_order);
 
-          // Not able to render any more, start a fresh rendering
-          const canvasYPos = this.tracksYPos(height_order) - drawStart;
-          if (canvasYPos >= this.context.drawingBufferHeight) {
-            break;
-          }
+        // Only draw visible tracks
+        if (!this.expanded && height_order != 1)
+          continue
 
-          // Only draw visible tracks
-          if (!this.expanded && height_order != 1)
-            continue
-
-          if (latest_height != height_order) {
-            latest_height = height_order;
-            latest_name_end = 0;
-            latest_title_end = 0;
-          }
-
-          // Draw box for annotation
-          this.drawBand(scale * (start - result['start_pos']),
-            canvasYPos, scale * (end - start), this.featureHeight / 2, color);
-
-          // Draw gene name
-          const textYPos = this.tracksYPos(height_order);
-          latest_name_end = this.drawGeneName(geneName,
-            scale * ((start + end) / 2 - result['start_pos']),
-            textYPos + this.featureHeight, textSize, latest_name_end);
-
-          // Add tooltip title for whole gene
-          const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'Score = ' + score;
-          latest_title_end = this.insertTitle(geneText,
-            scale * (start - result['start_pos']) + 'px',
-            textYPos - this.featureHeight / 2 + 'px',
-            scale * (end - start) + 'px',
-            this.featureHeight + textSize + 'px',
-            0, latest_height);
-
-          // Draw arrows
-          if (strand) {
-            let direction = strand == '+' ? 1 : -1;
-            this.drawArrows(scale * (start - result['start_pos']),
-              scale * (end - result['start_pos']), canvasYPos, direction,
-              this.arrowColor);
-          }
+        if (latest_height != height_order) {
+          latest_height = height_order;
+          latest_name_end = 0;
+          latest_title_end = 0;
         }
 
-        this.renderer.render(this.scene, this.camera);
+        // Draw box for annotation
+        this.drawBand(scale * (start - result['start_pos']),
+          canvasYPos, scale * (end - start), this.featureHeight / 2, color);
 
-        // Transfer image to visible canvas
-        const drawHeight = Math.min(this.trackCanvas.height, drawStart + this.context.drawingBufferHeight) - drawStart;
-        this.trackContext.drawImage(this.drawCanvas.transferToImageBitmap(),
-          0, 0, this.trackCanvas.width, drawHeight,
-          0, drawStart, this.trackCanvas.width, drawHeight);
+        // Draw gene name
+        const textYPos = this.tracksYPos(height_order);
+        latest_name_end = this.drawGeneName(geneName,
+          scale * ((start + end) / 2 - result['start_pos']),
+          textYPos + this.featureHeight, textSize, latest_name_end);
 
-        // Clear draw canvas
-        this.scene.remove.apply(this.scene, this.scene.children);
-        max_rows *= 2;
+        // Add tooltip title for whole gene
+        const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'Score = ' + score;
+        latest_title_end = this.insertTitle(geneText,
+          scale * (start - result['start_pos']) + 'px',
+          textYPos - this.featureHeight / 2 + 'px',
+          scale * (end - start) + 'px',
+          this.featureHeight + textSize + 'px',
+          0, latest_height);
+
+        // Draw arrows
+        if (strand) {
+          let direction = strand == '+' ? 1 : -1;
+          this.drawArrows(scale * (start - result['start_pos']),
+            scale * (end - result['start_pos']), canvasYPos, direction,
+            this.arrowColor);
+        }
       }
     });
   }
