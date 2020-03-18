@@ -193,7 +193,10 @@ def main():
     '''
     Main function for annotation parser
     '''
-    parser = argparse.ArgumentParser(description='Parse annotations from different file types')
+    parser = argparse.ArgumentParser(
+        description='Update annotations from either a bed or aed file',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument('-f', '--file', help='A file to parse', required=True)
     parser.add_argument('-hg', '--hg_type', help='Set hg-type', default='38')
     parser.add_argument('-c', '--collection', default='annotations',

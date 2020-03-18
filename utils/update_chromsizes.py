@@ -68,7 +68,10 @@ def main():
     '''
     Main function
     '''
-    parser = argparse.ArgumentParser(description='Update mongoDB database with data')
+    parser = argparse.ArgumentParser(
+        description='Update mongoDB database with chromosome size data',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument('-f', '--file', default='chrom_sizes38.tsv',
                         help='Input file for updating mongoDB with chromosome sizes')
     parser.add_argument('-c', '--collection',

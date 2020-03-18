@@ -164,7 +164,10 @@ def main():
     '''
     Main function
     '''
-    parser = argparse.ArgumentParser(description='Update mongoDB database with data')
+    parser = argparse.ArgumentParser(
+        description='Update transcripts in Gens DB',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument('-f', '--file', default='Homo_sapiens.GRCh38.99.gtf',
                         help='Input file for updating mongoDB with chromosome tracks')
     parser.add_argument('-m', '--mane',
