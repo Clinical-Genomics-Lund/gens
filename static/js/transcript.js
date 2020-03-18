@@ -76,7 +76,8 @@ class Transcript extends Track {
             latest_title_end = 0;
           }
 
-          this.drawTrackLen(scale * (start - result['start_pos']),
+          // Draw a line to mark gene's length
+          this.drawLine(scale * (start - result['start_pos']),
             scale * (end - result['start_pos']), canvasYPos, color);
 
           // Draw gene name

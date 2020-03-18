@@ -10,8 +10,8 @@ class Annotation extends Track {
     this.trackCanvas = document.getElementById('annotation-canvas');
     this.trackTitle = document.getElementById('annotation-titles');
     this.trackContainer = document.getElementById('annotation-container');
-    this.arrowColor =  0xffffff;
     this.featureHeight = 18;
+    this.arrowThickness = 2;
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1);
