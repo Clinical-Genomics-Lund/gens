@@ -5,37 +5,45 @@ Parses files into mongo database
 
 import csv
 import argparse
-from pymongo import MongoClient
-from pymongo import ASCENDING
+from pymongo import MongoClient, ASCENDING
 
 CLIENT = MongoClient('10.0.224.63', 27017)
 GENS_DB = CLIENT['gens']
 
-class ParseAnnotations:
+class UpdateAnnotations:
     '''
     Update mongoDB with values from input files
     '''
-    def __init__(self, annot_type, args):
+    def __init__(self, args):
         self.input_file = args.file
         self.file_name = args.file.split('/')[-1]
         self.hg_type = args.hg_type
-        self.collection = GENS_DB['annotations']
+        self.collection_name = args.collection
+        self.collection = GENS_DB[args.collection]
         self.annotations = []
         self.header = []
         self.fields_to_save = ['sequence', 'start', 'end', 'name',
                                'strand', 'color', 'score']
 
-        # Remove old data
-        if args.remove:
-            self.collection.remove({'source': self.file_name})
-
-        # Set start as index to be able to sort quicker
+    def write_annotations(self, annotation_type):
+        '''
+        Write annotations to database
+        '''
+        # Set index to be able to sort quicker
         self.collection.create_index([('start', ASCENDING)], unique=False)
+        self.collection.create_index([('end', ASCENDING)], unique=False)
+        self.collection.create_index([('chrom', ASCENDING)], unique=False)
+        self.collection.create_index([('source', ASCENDING)], unique=False)
+        self.collection.create_index([('hg_type', ASCENDING)], unique=False)
+        self.collection.create_index([('height_order', ASCENDING)], unique=False)
 
-        if annot_type == 'aed':
+        if annotation_type == 'aed':
             self.parse_aed()
         else:
             self.parse_bed()
+
+        # Remove existing annotations in database
+        self.collection.remove({'source': self.file_name})
 
         # Bulk upload annotations to database
         print('Inserting to DB')
@@ -147,10 +155,15 @@ class ParseAnnotations:
         for key in self.fields_to_save:
             if key in annotation.keys():
                 continue
-            if key == 'color':
-                annotation['color'] = 'blue'
-            if key == 'score':
+            elif key == 'color':
+                annotation['color'] = 'gray'
+            elif key == 'score':
                 annotation['score'] = 'None'
+            elif key == 'sequence' or key == 'strand':
+                pass
+            else:
+                print('Warning, field {} is missing from annotation {} in file {}'.\
+                    format(key, annotation, self.file_name))
 
 def format_field(title, field):
     '''
@@ -158,7 +171,7 @@ def format_field(title, field):
     '''
     if 'color' in title:
         if not field:
-            return 'blue'
+            return 'gray'
         return field if 'rgb(' in field else 'rgb({})'.format(field)
     if 'chrom' in title:
         if not field:
@@ -182,17 +195,18 @@ def main():
     '''
     parser = argparse.ArgumentParser(description='Parse annotations from different file types')
     parser.add_argument('-f', '--file', help='A file to parse', required=True)
-    parser.add_argument('-hg', '--hg_type', help='Set hg-type')
-    parser.add_argument('-rm', '--remove', help='Set hg-type', default=False,
-                        action='store_true')
+    parser.add_argument('-hg', '--hg_type', help='Set hg-type', default='38')
+    parser.add_argument('-c', '--collection', default='annotations',
+                        help='Optional collection name')
     args = parser.parse_args()
+    update = UpdateAnnotations(args)
 
     if '.bed' in args.file:
         print('Parsing bed file')
-        ParseAnnotations('bed', args)
+        update.write_annotations('bed')
     elif '.aed' in args.file:
         print('Parsing aed file')
-        ParseAnnotations('aed', args)
+        update.write_annotations('aed')
     else:
         print('Wrong file type')
         return

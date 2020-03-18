@@ -1,68 +1,49 @@
 #!/usr/bin/python3
 '''
-Write cromosome sizes to database
+Write transcripts to DB
 '''
 
 import csv
 import argparse
 from functools import cmp_to_key
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING
 from gtfparse import read_gtf
 
 CLIENT = MongoClient('10.0.224.63', 27017)
 GENS_DB = CLIENT['gens']
 
-class UpdateMongo:
+class UpdateTranscripts:
     '''
-    Update mongoDB with values from input files
+    Update mongoDB with values from the input files
     '''
-    def __init__(self, input_file, mane_file, collection_name):
-        self.input_file = input_file
-        self.mane_file = mane_file
+    def __init__(self, args):
+        self.input_file = args.file
+        self.mane_file = args.mane
         self.mane = {}
-        self.collection = GENS_DB[collection_name]
+        self.temp_collection = GENS_DB[args.collection + 'temp']
+        self.collection_name = args.collection
+        self.collection = GENS_DB[args.collection]
 
-    def write_chromsizes(self):
+    def write_transcripts(self):
         '''
-        Write cromosome sizes to database
+        Write transcripts to database
         '''
-        with open(self.input_file) as cs_file:
-            first_chrom_len = 1
-            cs_reader = csv.reader(cs_file, delimiter='\t')
-            chrom_sizes = []
-            tot_scale = 0
-            for line in cs_reader:
-                chrom = line[0]
-                chrom_size = int(line[1])
 
-                if chrom == '1':
-                    first_chrom_len = chrom_size
+        # Set index to be able to sort quicker
+        self.temp_collection.create_index([('start', ASCENDING)], unique=False)
+        self.temp_collection.create_index([('end', ASCENDING)], unique=False)
+        self.temp_collection.create_index([('chrom', ASCENDING)], unique=False)
+        self.collection.create_index([('height_order', ASCENDING)], unique=False)
 
-                scale = round(chrom_size / first_chrom_len, 2)
-                tot_scale += round(chrom_size / first_chrom_len, 2)
-
-                chrom_sizes.append({
-                    'chrom': chrom,
-                    'size': chrom_size,
-                    'scale': scale
-                })
-            for chrom in chrom_sizes:
-                chrom['scale'] /= tot_scale
-            self.collection.insert_many(chrom_sizes)
-
-    def write_tracks(self):
-        '''
-        Write cromosome tracks to database
-        '''
         # Set MANE transcripts
         with open(self.mane_file) as mane_file:
             cs_reader = csv.reader(mane_file, delimiter='\t')
             next(cs_reader) # Skip header
             for line in cs_reader:
                 hgnc_id = line[2].replace('HGNC:', '')
-                refsec_id = line[5]
+                refseq_id = line[5]
                 ensemble_nuc = line[7].split('.')[0]
-                self.mane[ensemble_nuc] = {'hgnc_id': hgnc_id, 'refsec_id': refsec_id}
+                self.mane[ensemble_nuc] = {'hgnc_id': hgnc_id, 'refseq_id': refseq_id}
 
         # Set the rest
         with open(self.input_file) as track_file:
@@ -99,14 +80,14 @@ class UpdateMongo:
                     if transcript_id in self.mane:
                         mane = True
                         hgnc_id = self.mane[transcript_id]['hgnc_id']
-                        refsec_id = self.mane[transcript_id]['refsec_id']
+                        refseq_id = self.mane[transcript_id]['refseq_id']
                     else:
                         mane = False
                         hgnc_id = None
-                        refsec_id = None
+                        refseq_id = None
 
                     mane = True if transcript_id in self.mane else False
-                    self.collection.insert_one({
+                    self.temp_collection.insert_one({
                         'chrom': seqname,
                         'gene_name': gene_name,
                         'start': start,
@@ -117,7 +98,7 @@ class UpdateMongo:
                         'transcript_biotype': transcript_biotype,
                         'mane': mane,
                         'hgnc_id': hgnc_id,
-                        'refsec_id': refsec_id,
+                        'refseq_id': refseq_id,
                         'features': []
                     })
                     previous_gene_name = gene_name
@@ -131,7 +112,7 @@ class UpdateMongo:
 
             # Bulk update transcripts with features
             for transcript_id in features:
-                self.collection.update(
+                self.temp_collection.update(
                     {'transcript_id': transcript_id},
                     {'$set': {'features': features[transcript_id]}}
                 )
@@ -163,37 +144,46 @@ class UpdateMongo:
             return 1
         return 0
 
+    def clean_up(self):
+        '''
+        Remove temporary collection
+        '''
+        self.temp_collection.drop()
+
+    def save_to_collection(self):
+        '''
+        Save temporary collection as real collection name
+        '''
+        # Drop existing database
+        self.collection.drop()
+
+        # Rename temp collection to target collection
+        self.temp_collection.rename(self.collection_name)
+
 def main():
     '''
     Main function
     '''
     parser = argparse.ArgumentParser(description='Update mongoDB database with data')
-    parser.add_argument('--chromsizes', action='store_true',
-                        help='Option for updating mongoDB with chromosome sizes')
-    parser.add_argument('--csfile', default='chrom_sizes38.tsv',
-                        help='Input file for updating mongoDB with chromosome sizes')
-    parser.add_argument('--track', action='store_true',
-                        help='Option for updating mongoDB with chromosome tracks')
-    parser.add_argument('--trackfile', default='Homo_sapiens.GRCh38.99.gtf',
+    parser.add_argument('-f', '--file', default='Homo_sapiens.GRCh38.99.gtf',
                         help='Input file for updating mongoDB with chromosome tracks')
-    parser.add_argument('--mane',
+    parser.add_argument('-m', '--mane',
                         help='Mane file for updating tracks')
-    parser.add_argument('--collection',
-                        help='Optional collection name')
+    parser.add_argument('-c', '--collection',
+                        help='Optional collection name', default='tracks38')
     args = parser.parse_args()
 
-    if args.chromsizes:
-        print('Updating chromosome sizes')
-        collection = args.collection if args.collection else 'chromsizes38'
-        update = UpdateMongo(args.csfile, args.mane, collection)
-        update.write_chromsizes()
-        print('Finished updating chromosome sizes')
-    elif args.track:
-        print('Updating tracks')
-        collection = args.collection if args.collection else 'tracks38'
-        update = UpdateMongo(args.trackfile, args.mane, collection)
-        update.write_tracks()
-        print('Finished updating tracks')
+    print('Updating transcripts')
+    update = UpdateTranscripts(args)
+    try:
+        update.write_transcripts()
+    except Exception as e:
+        print(str(e))
+        print('Error, could not update. Rollback')
+        update.clean_up()
+        return
+    update.save_to_collection()
+    print('Finished updating transcripts')
 
 if __name__ == '__main__':
     main()
