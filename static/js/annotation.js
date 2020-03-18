@@ -69,7 +69,6 @@ class Annotation extends Track {
       this.setContainerHeight(result['max_height_order']);
 
       // Keeps track of previous values
-      // TODO: use values in array instead, more intuitive?
       let latest_height = 0; // Latest height order for annotation
       let latest_name_end = 0; // Latest annotations end position
       let latest_title_end = 0; // Latest annotations title's end position
@@ -131,9 +130,12 @@ class Annotation extends Track {
             0, latest_height);
 
           // Draw arrows
-          let direction = strand == '+' ? 1 : -1;
-          this.drawArrows(scale * (start - result['start_pos']),
-            scale * (end - result['start_pos']), canvasYPos, direction, this.arrowColor);
+          if (strand) {
+            let direction = strand == '+' ? 1 : -1;
+            this.drawArrows(scale * (start - result['start_pos']),
+              scale * (end - result['start_pos']), canvasYPos, direction,
+              this.arrowColor);
+          }
         }
 
         this.renderer.render(this.scene, this.camera);
