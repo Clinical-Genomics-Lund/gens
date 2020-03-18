@@ -10,8 +10,8 @@ class InteractiveCanvas {
     this.legendMargin = 45; // Margin between legend and plot
     this.leftRightPadding = 2; // Padding for left and right in graph
     this.topBottomPadding = 8; // margin for top and bottom in graph
-    this.extraWidth = document.body.clientWidth; // Width for loading in extra edge data
-    this.plotWidth = 0.9 * document.body.clientWidth - this.legendMargin; // Width of one plot
+    this.plotWidth = Math.min(1500, 0.9 * document.body.clientWidth - this.legendMargin); // Width of one plot
+    this.extraWidth = this.plotWidth / 2; // Width for loading in extra edge data
     this.plotHeight = 180; // Height of one plot
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
