@@ -28,7 +28,7 @@ CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                '22', 'X', 'Y']
 
 FILE_DIR_HG37 = "/access/wgs/plotdata/"
-FILE_DIR_HG38 = "/access/wgs/plotdata/hg38/"
+FILE_DIR_HG38 = "/access/wgs/plot_data/"
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
