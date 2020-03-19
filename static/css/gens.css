@@ -278,25 +278,44 @@ span#info {
     background: url(../svg/info-solid.svg) no-repeat top left;
 }
 
+#info-box {
+    opacity: 0;
+    transition: opacity 0.5s linear;
+    position: absolute;
+    top: 32px;
+    left: 25px;
+    background: white;
+    z-index: 2;
+    border: 1px solid black;
+    display:inline-block;
+    width: 300px;
+    height: 320px;
+}
+
+#info:hover + #info-box {
+    opacity: 1;
+    transition: opacity 0.5s linear;
+}
+
 .print {
     background: url(../svg/print-solid.svg) no-repeat top left;
     margin-left: 5px;
     margin-right: 5px;
 }
 
-span#arrow-left {
+.arrow-left {
     background: url(../svg/arrow-left-solid.svg) no-repeat top left;
 }
 
-span#arrow-right {
+.arrow-right {
     background: url(../svg/arrow-right-solid.svg) no-repeat top left;
 }
 
-span#search-plus {
+.search-plus {
     background: url(../svg/search-plus-solid.svg) no-repeat top left;
 }
 
-span#search-minus {
+.search-minus {
     background: url(../svg/search-minus-solid.svg) no-repeat top left;
 }
 
