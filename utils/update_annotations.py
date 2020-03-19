@@ -5,6 +5,8 @@ Parses files into mongo database
 
 import csv
 import argparse
+import os
+import glob
 from pymongo import MongoClient, ASCENDING
 
 CLIENT = MongoClient('10.0.224.63', 27017)
@@ -14,9 +16,9 @@ class UpdateAnnotations:
     '''
     Update mongoDB with values from input files
     '''
-    def __init__(self, args):
-        self.input_file = args.file
-        self.file_name = args.file.split('/')[-1]
+    def __init__(self, annot_file, args):
+        self.input_file = annot_file
+        self.file_name = annot_file.split('/')[-1]
         self.hg_type = args.hg_type
         self.collection_name = args.collection
         self.collection = GENS_DB[args.collection]
@@ -197,22 +199,27 @@ def main():
         description='Update annotations from either a bed or aed file',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument('-f', '--file', help='A file to parse', required=True)
+    parser.add_argument('-f', '--file', help='A file to parse or a directory of files to parse', required=True)
     parser.add_argument('-hg', '--hg_type', help='Set hg-type', default='38')
     parser.add_argument('-c', '--collection', default='annotations',
                         help='Optional collection name')
     args = parser.parse_args()
-    update = UpdateAnnotations(args)
-
-    if '.bed' in args.file:
-        print('Parsing bed file')
-        update.write_annotations('bed')
-    elif '.aed' in args.file:
-        print('Parsing aed file')
-        update.write_annotations('aed')
+    if os.path.isdir(args.file):
+        files = glob.glob(args.file + '/*')
     else:
-        print('Wrong file type')
-        return
+        files = args.file
+
+    for annot_file in files:
+        update = UpdateAnnotations(annot_file, args)
+        if '.bed' in annot_file:
+            print('Parsing bed file')
+            update.write_annotations('bed')
+        elif '.aed' in annot_file:
+            print('Parsing aed file')
+            update.write_annotations('aed')
+        else:
+            print('Wrong file type')
+            return
     print('Finished')
 
 if __name__ == '__main__':
