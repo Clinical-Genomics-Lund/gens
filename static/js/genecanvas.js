@@ -5,7 +5,7 @@ function drawData (scene, data, color) {
   geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
   geometry.computeBoundingSphere();
 
-  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: true, opacity: 1 });
+  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: false });
   var points = new THREE.Points(geometry, material);
 
   scene.add(points);
@@ -32,6 +32,7 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
     stepLength = Math.floor(stepLength / precison) * precison;
   }
 
+  // Draw the ticks
   for (let step = xStart; step <= xEnd; step += stepLength) {
     let xStep = scale * (step - xStart);
     let value = numberWithCommas(step.toFixed(0));
@@ -75,6 +76,7 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2, color);
 }
 
+// Handle left button click
 function left (ic) {
   let size = ic.end - ic.start;
   let moveDist = Math.floor(0.1 * size);
@@ -88,6 +90,7 @@ function left (ic) {
   ic.redraw(null);
 }
 
+// Handle right button click
 function right (ic) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(0.1 * size);
@@ -95,6 +98,7 @@ function right (ic) {
   ic.redraw (null);
 }
 
+// Handle zoom in button click
 function zoomIn (ic) {
   let size = ic.end - ic.start;
   ic.start += Math.floor(size * 0.25);
@@ -102,6 +106,7 @@ function zoomIn (ic) {
   ic.redraw (null);
 }
 
+// Handle zoom out button click
 function zoomOut (ic) {
   let size = ic.end - ic.start;
   ic.start -= Math.floor(size * 0.5);
@@ -126,7 +131,6 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, widt
   let lineWidth = 4;
 
   for (let step = yStart; step >= yEnd; step -= stepLength) {
-    // TODO: fix correct centering
     drawText(canvas, x - lineWidth, y + (yStart - step) * ampl + 2.2,
       step.toFixed(1), 10, 'right');
 

@@ -89,6 +89,7 @@ class InteractiveCanvas {
       }
     });
 
+    // When in active dragging of the canvas
     this.contentCanvas.addEventListener('mousemove', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -118,6 +119,7 @@ class InteractiveCanvas {
       }
     });
 
+    // When stop dragging
     this.contentCanvas.addEventListener('mouseup', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -137,6 +139,7 @@ class InteractiveCanvas {
       }
     });
 
+    // Setup key down events to be handled by the key mapper
     document.addEventListener('DOMContentLoaded', () => {
       'use strict';
 
@@ -179,6 +182,7 @@ class InteractiveCanvas {
       this.plotWidth, this.plotHeight, this.topBottomPadding, this.log2.yStart,
       this.log2.yEnd, this.log2.step, true, this.borderColor);
 
+    // Render scene
     this.renderer.render(this.scene, this.camera);
 
     // Transfer image to visible canvas
