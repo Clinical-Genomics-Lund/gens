@@ -29,6 +29,7 @@ class Annotation extends Track {
     this.annotSourceList();
   }
 
+  // Fills the list with source files
   annotSourceList () {
     $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {
       hg_type: this.hgType
@@ -55,6 +56,7 @@ class Annotation extends Track {
     });
   }
 
+  // Draws annotations in given range
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
       region: region,
@@ -71,12 +73,12 @@ class Annotation extends Track {
       // Keeps track of previous values
       let latest_height = 0; // Latest height order for annotation
       let latest_name_end = 0; // Latest annotations end position
-      let latest_title_end = 0; // Latest annotations title's end position
+      let latest_track_end = 0; // Latest annotations title's end position
 
-        // Go through results and draw appropriate symbols
+      // Go through results and draw appropriate symbols
       for (let i = 0; i < result['annotations'].length; i++) {
         const track = result['annotations'][i];
-        const geneName = track['name'];
+        const annotationName = track['name'];
         const chrom = track['chrom'];
         const height_order = track['height_order'];
         const score = track['score'];
@@ -90,25 +92,28 @@ class Annotation extends Track {
         if (!this.expanded && height_order != 1)
           continue
 
+        // Keep track of latest annotations
         if (latest_height != height_order) {
           latest_height = height_order;
           latest_name_end = 0;
-          latest_title_end = 0;
+          latest_track_end = 0;
         }
 
         // Draw box for annotation
-        this.drawBand(scale * (start - result['start_pos']),
+        this.drawBox(scale * (start - result['start_pos']),
           canvasYPos, scale * (end - start), this.featureHeight / 2, color);
 
-        // Draw gene name
+        // Draw annotation name
         const textYPos = this.tracksYPos(height_order);
-        latest_name_end = this.drawGeneName(geneName,
+        latest_name_end = this.drawText(annotationName,
           scale * ((start + end) / 2 - result['start_pos']),
           textYPos + this.featureHeight, textSize, latest_name_end);
 
+        // Set tooltip text
+        const geneText = annotationName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'Score = ' + score;
+
         // Add tooltip title for whole gene
-        const geneText = geneName + '\n' + 'chr' + chrom + ':' + start + '-' + end + '\n' + 'Score = ' + score;
-        latest_title_end = this.insertTitle(geneText,
+        latest_track_end = this.hoverText(geneText,
           scale * (start - result['start_pos']) + 'px',
           textYPos - this.featureHeight / 2 + 'px',
           scale * (end - start) + 'px',

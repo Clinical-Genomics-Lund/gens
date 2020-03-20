@@ -49,6 +49,7 @@ class Track {
       }, false);
   }
 
+  // Clears previous tracks
   clearTracks() {
     // Clear canvas
     this.trackContext.clearRect(0, 0, this.trackCanvas.width, this.trackCanvas.height);
@@ -57,6 +58,7 @@ class Track {
     $('#' + this.trackTitle.id).empty();
   }
 
+  // Sets the container height depending on maximum height of tracks
   setContainerHeight(maxHeightOrder) {
     if (maxHeightOrder == 0) {
       // No results, do not show tracks
@@ -65,12 +67,14 @@ class Track {
       this.trackContainer.style.height = 0 + 'px';
       this.trackContainer.setAttribute('data-state', 'nodata');
     } else if (this.expanded) {
+      // Set variables for an expanded view
       const maxYPos = this.tracksYPos(maxHeightOrder + 1);
       this.trackCanvas.height = maxYPos;
       this.trackTitle.style.height = maxYPos + 'px';
       this.trackContainer.style.height = this.visibleHeight + 'px';
       this.trackContainer.setAttribute('data-state', 'expanded');
     } else {
+      // Set variables for a collapsed view
       this.trackCanvas.height = this.minHeight;
       this.trackTitle.style.height = this.minHeight + 'px';
       this.trackContainer.style.height = this.minHeight + 'px';
@@ -78,13 +82,14 @@ class Track {
     }
   }
 
-  drawGeneName(geneName, xPos, yPos, textHeight, latest_name_end) {
+  // Draws text underneath a track box
+  drawText(text, xPos, yPos, textHeight, latest_name_end) {
     this.trackContext.save();
     this.trackContext.font = 'bold ' + textHeight + 'px Arial';
     this.trackContext.fillStyle = 'black';
 
     // Center text
-    let textWidth = this.trackContext.measureText(geneName).width;
+    let textWidth = this.trackContext.measureText(text).width;
     xPos = xPos - textWidth / 2;
 
     // Cap text to outer edges
@@ -96,12 +101,13 @@ class Track {
       return latest_name_end;
     }
 
-    this.trackContext.fillText(geneName, xPos, yPos);
+    this.trackContext.fillText(text, xPos, yPos);
     this.trackContext.restore();
     return xPos + textWidth;
   }
 
-  insertTitle(text, left, top, width, height, zIndex, latest_pos) {
+  // Inserts a hover text for a track
+  hoverText(text, left, top, width, height, zIndex, latest_pos) {
     // Make div wider for more mouse over space
     let minWidth = 1;
     if (parseInt(width) < minWidth && (parseInt(left) - minWidth / 2) > latest_pos) {
@@ -121,6 +127,7 @@ class Track {
     return parseInt(left + width);
   }
 
+  // Draw a line from xStart to xStop at yPos
   drawLine (xStart, xStop, yPos, color) {
     this.trackContext.save();
     this.trackContext.strokeStyle = color;
@@ -132,7 +139,8 @@ class Track {
     this.trackContext.restore();
   }
 
-  drawBand (xpos, ypos, width, height, color) {
+  // Draws a box
+  drawBox (xpos, ypos, width, height, color) {
     this.trackContext.save();
     this.trackContext.fillStyle = color;
     this.trackContext.beginPath();
@@ -141,7 +149,9 @@ class Track {
     this.trackContext.restore();
   }
 
+  // Draw arrows for a segment
   drawArrows(start, stop, yPos, direction, color) {
+    // Calculate width of a segment to draw the arrow in
     const width = stop - start
     if (width < this.arrowWidth) {
       // Arrow does not fit, do nothing
@@ -151,6 +161,7 @@ class Track {
       this.drawArrow(start + (stop - start) / 2, yPos, direction,
         this.featureHeight / 2, color);
     } else {
+      // Draw many arrows
       for (let pos = start + this.arrowWidth;
         pos < stop - this.arrowWidth; pos += this.arrowDistance) {
         // Draw several arrows

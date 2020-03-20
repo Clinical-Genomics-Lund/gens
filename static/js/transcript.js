@@ -17,6 +17,7 @@ class Transcript extends Track {
     this.hgType = hgType;
   }
 
+  // Draws transcripts in given range
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/_gettranscriptdata', {
       region: region,
@@ -33,8 +34,9 @@ class Transcript extends Track {
       // Keeps track of previous values
       let latest_height = 0; // Latest height order for annotation
       let latest_name_end = 0; // Latest annotations end position
-      let latest_title_end = 0; // Latest annotations title's end position
+      let latest_track_end = 0; // Latest annotations title's end position
 
+      // Go through results and draw appropriate symbols
       for (let i = 0; i < result['transcripts'].length; i++) {
         const track = result['transcripts'][i];
         const geneName = track['gene_name'];
@@ -54,10 +56,11 @@ class Transcript extends Track {
         if (!this.expanded && height_order != 1)
           continue
 
+        // Keep track of latest track
         if (latest_height != height_order) {
           latest_height = height_order;
           latest_name_end = 0;
-          latest_title_end = 0;
+          latest_track_end = 0;
         }
 
         // Draw a line to mark gene's length
@@ -66,11 +69,11 @@ class Transcript extends Track {
 
         // Draw gene name
         const textYPos = this.tracksYPos(height_order);
-        latest_name_end = this.drawGeneName(geneName,
+        latest_name_end = this.drawText(geneName,
           scale * ((start + end) / 2 - result['start_pos']),
           textYPos + this.featureHeight, textSize, latest_name_end);
 
-        // Add tooltip title for whole gene
+        // Set tooltip text
         let geneText = '';
         if (mane == true) {
           geneText = `${geneName} [MANE]\nchr${chrom}:${start}-${end}\n` +
@@ -79,13 +82,16 @@ class Transcript extends Track {
           geneText = `${geneName}\nchr${chrom}:${start}-${end}\n` +
           `id = ${transcriptID}`;
         }
-        latest_title_end = this.insertTitle(geneText,
+
+        // Add tooltip title for whole gene
+        latest_track_end = this.hoverText(geneText,
           titleMargin + scale * (start - result['start_pos']) + 'px',
           titleMargin + textYPos - this.featureHeight / 2 + 'px',
           scale * (end - start) + 'px',
           this.featureHeight + textSize + 'px',
-          0, latest_title_end);
+          0, latest_track_end);
 
+        // Go trough feature list and draw geometries
         let latestFeaturePos = start;
         for (let j = 0; j < track['features'].length; j++) {
           let feature = track['features'][j];
@@ -102,25 +108,26 @@ class Transcript extends Track {
           }
           latestFeaturePos = feature['end'];
 
+          // Draw the geometry that represents the feature
           switch(feature['feature']) {
             case 'exon':
               let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
                 '\nchr' + chrom + ':' + feature['start'] + '-' + feature['end'];
 
               // Add tooltip title for whole gene
-              latest_title_end = this.insertTitle(exonText,
+              latest_track_end = this.hoverText(exonText,
                 titleMargin + scale * (feature['start'] - result['start_pos']) + 'px',
                 titleMargin + textYPos - this.featureHeight / 2 + 'px',
                 scale * (feature['end'] - feature['start']) + 'px',
                 this.featureHeight + 'px',
-                1, latest_title_end);
+                1, latest_track_end);
 
-              this.drawBand(scale * (feature['start'] - result['start_pos']),
+              this.drawBox(scale * (feature['start'] - result['start_pos']),
                 canvasYPos, scale * (feature['end'] - feature['start']),
                 this.featureHeight, color);
               break;
             case 'three_prime_utr':
-              this.drawBand(scale * (feature['start'] - result['start_pos']),
+              this.drawBox(scale * (feature['start'] - result['start_pos']),
                 canvasYPos, scale * (feature['end'] - feature['start']),
                 this.featureHeight / 2, color);
               break;
