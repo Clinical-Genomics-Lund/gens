@@ -74,8 +74,8 @@ class Annotation extends Track {
       let latest_title_end = 0; // Latest annotations title's end position
 
         // Go through results and draw appropriate symbols
-      for (let i = 0; i < result['tracks'].length; i++) {
-        const track = result['tracks'][i];
+      for (let i = 0; i < result['annotations'].length; i++) {
+        const track = result['annotations'][i];
         const geneName = track['name'];
         const chrom = track['chrom'];
         const height_order = track['height_order'];

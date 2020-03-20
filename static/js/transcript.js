@@ -18,7 +18,7 @@ class Transcript extends Track {
   }
 
   drawTracks (region) {
-    $.getJSON($SCRIPT_ROOT + '/_gettrackdata', {
+    $.getJSON($SCRIPT_ROOT + '/_gettranscriptdata', {
       region: region,
       hg_type: this.hgType,
       collapsed: this.expanded ? false : true
@@ -35,8 +35,8 @@ class Transcript extends Track {
       let latest_name_end = 0; // Latest annotations end position
       let latest_title_end = 0; // Latest annotations title's end position
 
-      for (let i = 0; i < result['tracks'].length; i++) {
-        const track = result['tracks'][i];
+      for (let i = 0; i < result['transcripts'].length; i++) {
+        const track = result['transcripts'][i];
         const geneName = track['gene_name'];
         const transcriptID = track['transcript_id'];
         const chrom = track['chrom'];

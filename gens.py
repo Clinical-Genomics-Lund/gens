@@ -34,9 +34,10 @@ COV_END = '.cov.bed.gz'
 
 @APP.route('/', defaults={'sample_name': ''})
 @APP.route('/<path:sample_name>', methods=['GET'])
-def coverage_view(sample_name):
+def gens_view(sample_name):
     '''
-    Renders the first coverage view
+    Renders the Gens template
+    Expects sample_id as input to be able to load the sample data
     '''
     if not sample_name:
         print('No sample requested')
@@ -53,6 +54,7 @@ def coverage_view(sample_name):
         print('Log2 file not found')
         abort(404)
 
+    # Fetch and parse region
     region = request.args.get('region', None)
     print_page = request.args.get('print_page', 'false')
     if not region:
@@ -64,12 +66,6 @@ def coverage_view(sample_name):
 
     _, chrom, start_pos, end_pos = parsed_region
 
-    # Handle X and Y chromosome input
-    if chrom == '23':
-        chrom = 'X'
-    elif chrom == '24':
-        chrom = 'Y'
-
     return render_template('gens.html', chrom=chrom, start=start_pos, end=end_pos,
                            sample_name=sample_name, hg_type=hg_type,
                            last_updated=dir_last_updated('static'),
@@ -80,8 +76,9 @@ def coverage_view(sample_name):
 def get_coverage():
     '''
     Reads and formats Log2 ratio and BAF values for overview graph
-    Returns the coverage for frontend rendering
+    Returns the coverage in screen coordinates for frontend rendering
     '''
+    # Set some input values
     req = REQUEST(
         request.args.get('region', '1:100000-200000'),
         float(request.args.get('xpos', 1)),
@@ -97,19 +94,23 @@ def get_coverage():
 
     graph = set_graph_values(req)
 
+    # Parse region
     parsed_region = parse_region_str(req.region)
     if not parsed_region:
         print('No parsed region')
         return abort(416)
 
+    # Set values that are needed to convert coordinates to screen coordinates
     reg, new_start_pos, new_end_pos, x_ampl, extra_plot_width = \
         set_region_values(parsed_region, x_ampl)
 
-    log2_list, baf_list, new_start_pos, x_ampl = load_data(reg, new_start_pos,
-                                                           new_end_pos, x_ampl)
-    log2_records, baf_records = set_data(graph, req, log2_list, baf_list,
-                                         req.x_pos - extra_plot_width, new_start_pos,
-                                         x_ampl)
+    # Load BAF and Log2 data from tabix files
+    log2_list, baf_list, new_start_pos, = load_data(reg, new_start_pos, new_end_pos)
+
+    # Convert the data to screen coordinates
+    log2_records, baf_records = convert_data(graph, req, log2_list, baf_list,
+                                             req.x_pos - extra_plot_width,
+                                             new_start_pos, x_ampl)
 
     if not new_start_pos and not log2_records and not baf_records:
         print('No records')
@@ -122,32 +123,22 @@ def get_coverage():
 @APP.route('/_overviewchromdim', methods=['GET'])
 def call_overview_chrom_dim():
     '''
-    Returns current chromosome and its dimensions
-    relative to the overview graph
+    Returns the dimensions of all chromosome graphs in screen coordinates
+    for drawing the chromosomes correctly in the overview graph
     '''
     x_pos = float(request.args.get('x_pos', 0))
     y_pos = float(request.args.get('y_pos', 0))
-    plot_height = float(request.args.get('plot_height', 0))
     full_plot_width = float(request.args.get('full_plot_width', 0))
-    margin = float(request.args.get('margin', 0))
-    current_x = request.args.get('current_x', None)
-    current_y = request.args.get('current_y', None)
-    current_chrom = None
 
-    chrom_dims = overview_chrom_dim(x_pos, y_pos, full_plot_width)
+    chrom_dims = overview_chrom_dimensions(x_pos, y_pos, full_plot_width)
 
-    if current_x and current_y:
-        current_chrom = find_chrom_at_pos(chrom_dims, 2 * plot_height,
-                                          float(current_x), float(current_y),
-                                          margin)
+    return jsonify(status='ok', chrom_dims=chrom_dims)
 
-    return jsonify(status='ok', chrom_dims=chrom_dims, \
-                   current_chrom=current_chrom)
-
-@APP.route('/_gettrackdata', methods=['GET'])
-def get_track_data():
+@APP.route('/_gettranscriptdata', methods=['GET'])
+def get_transcript_data():
     '''
-    Gets track data in region and converts data coordinates to screen coordinates
+    Gets transcript data for requested region and converts the coordinates to
+    screen coordinates
     '''
     region = request.args.get('region', None)
     collapsed = request.args.get('collapsed', None)
@@ -155,49 +146,55 @@ def get_track_data():
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
     if region is None:
-        print('Could not find track data in DB')
+        print('Could not find transcript in database')
         return abort(404)
 
     # Do not show transcripts at 'a'-resolution
     if not res or res == 'a':
-        return jsonify(status='ok', tracks=[], start_pos=start_pos,
+        return jsonify(status='ok', transcripts=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
     hg_type = request.args.get('hg_type', '38')
-    collection = GENS_DB['tracks' + hg_type]
+    collection = GENS_DB['transcripts' + hg_type]
 
-    # Get tracks within span [start_pos, end_pos] or tracks that go over the span
+    # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     if collapsed == 'true':
-        tracks = collection.find({'chrom': chrom,
-                                  'height_order': 1,
-                                  '$or': [{'start': {'$gte': start_pos,
-                                                     '$lte': end_pos}},
-                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                          {'$and': [{'start': {'$lte': start_pos}},
-                                                    {'end': {'$gte': end_pos}}]}]},
-                                 {'_id': False}, sort=[('start', 1)])
+        # Only fetch transcripts with height_order = 1 in collapsed view
+        transcripts = collection.find({'chrom': chrom,
+                                       'height_order': 1,
+                                       '$or': [{'start': {'$gte': start_pos,
+                                                          '$lte': end_pos}},
+                                               {'end': {'$gte': start_pos, '$lte': end_pos}},
+                                               {'$and': [{'start': {'$lte': start_pos}},
+                                                         {'end': {'$gte': end_pos}}]}]},
+                                      {'_id': False}, sort=[('start', 1)])
     else:
-        tracks = collection.find({'chrom': chrom,
-                                  '$or': [{'start': {'$gte': start_pos,
-                                                     '$lte': end_pos}},
-                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                          {'$and': [{'start': {'$lte': start_pos}},
-                                                    {'end': {'$gte': end_pos}}]}]},
-                                 {'_id': False}, sort=[('height_order', 1), ('start', 1)])
-    tracks = list(tracks)
-    if tracks:
-        height_orders = [t['height_order'] for t in tracks]
-        max_height_order = max(height_orders)
-    else:
-        max_height_order = 1
+        # Fetch all transcripts
+        transcripts = collection.find({'chrom': chrom,
+                                       '$or': [{'start': {'$gte': start_pos,
+                                                          '$lte': end_pos}},
+                                               {'end': {'$gte': start_pos,
+                                                        '$lte': end_pos}},
+                                               {'$and': [{'start': {'$lte': start_pos}},
+                                                         {'end': {'$gte': end_pos}}]}]},
+                                      {'_id': False}, sort=[('height_order', 1),
+                                                            ('start', 1)])
+    transcripts = list(transcripts)
 
-    return jsonify(status='ok', tracks=list(tracks), start_pos=start_pos,
+    # Calculate maximum height order
+    max_height_order = 1
+    if transcripts:
+        height_orders = [t['height_order'] for t in transcripts]
+        max_height_order = max(height_orders)
+
+    return jsonify(status='ok', transcripts=list(transcripts), start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)
 
 @APP.route('/_getannotationdata', methods=['GET'])
 def get_annotation_data():
     '''
-    Gets track data in region and converts data coordinates to screen coordinates
+    Gets annotation data in requested region and converts the coordinates
+    to screen coordinates
     '''
     region = request.args.get('region', None)
     source = request.args.get('source', None)
@@ -212,41 +209,49 @@ def get_annotation_data():
 
     # Do not show annotations at 'a'-resolution
     if not res or res == 'a':
-        return jsonify(status='ok', tracks=[], start_pos=start_pos,
+        return jsonify(status='ok', annotations=[], start_pos=start_pos,
                        end_pos=end_pos, max_height_order=0)
 
     collection = GENS_DB['annotations']
 
-    # Get tracks within span [start_pos, end_pos] or tracks that go over the span
+    # Get annotations within span [start_pos, end_pos] or annotations that
+    # go over the span
     if collapsed == 'true':
-        tracks = collection.find({'chrom': chrom,
-                                  'source': source,
-                                  'hg_type': hg_type,
-                                  'height_order': 1,
-                                  '$or': [{'start': {'$gte': start_pos,
-                                                     '$lte': end_pos}},
-                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                          {'$and': [{'start': {'$lte': start_pos}},
-                                                    {'end': {'$gte': end_pos}}]}]},
-                                 {'_id': False}, sort=[('start', 1)])
+        # Only fetch annotations with height_order = 1 in collapsed view
+        annotations = collection.find({'chrom': chrom,
+                                       'source': source,
+                                       'hg_type': hg_type,
+                                       'height_order': 1,
+                                       '$or': [{'start': {'$gte': start_pos,
+                                                          '$lte': end_pos}},
+                                               {'end': {'$gte': start_pos,
+                                                        '$lte': end_pos}},
+                                               {'$and': [{'start': {'$lte': start_pos}},
+                                                         {'end': {'$gte': end_pos}}]}]},
+                                      {'_id': False}, sort=[('start', 1)])
     else:
-        tracks = collection.find({'chrom': chrom,
-                                  'source': source,
-                                  'hg_type': hg_type,
-                                  '$or': [{'start': {'$gte': start_pos,
-                                                     '$lte': end_pos}},
-                                          {'end': {'$gte': start_pos, '$lte': end_pos}},
-                                          {'$and': [{'start': {'$lte': start_pos}},
-                                                    {'end': {'$gte': end_pos}}]}]},
-                                 {'_id': False}, sort=[('height_order', 1), ('start', 1)])
-    tracks = list(tracks)
-    if tracks:
-        height_orders = [t['height_order'] for t in tracks]
+        # Fetch all annotations
+        annotations = collection.find({'chrom': chrom,
+                                       'source': source,
+                                       'hg_type': hg_type,
+                                       '$or': [{'start': {'$gte': start_pos,
+                                                          '$lte': end_pos}},
+                                               {'end': {'$gte': start_pos,
+                                                        '$lte': end_pos}},
+                                               {'$and': [{'start': {'$lte': start_pos}},
+                                                         {'end': {'$gte': end_pos}}]}]},
+                                      {'_id': False}, sort=[('height_order', 1),
+                                                            ('start', 1)])
+    annotations = list(annotations)
+
+    # Calculate maximum height order
+    if annotations:
+        height_orders = [t['height_order'] for t in annotations]
         max_height_order = max(height_orders)
     else:
         max_height_order = 1
 
-    return jsonify(status='ok', tracks=tracks, start_pos=start_pos,
+    return jsonify(status='ok', annotations=annotations, start_pos=start_pos,
                    end_pos=end_pos, max_height_order=max_height_order, res=res)
 
 @APP.route('/_getannotationsources', methods=['GET'])
@@ -264,7 +269,8 @@ def get_annotation_sources():
 
 def get_chrom_width(chrom, full_plot_width):
     '''
-    Calculates overview width of chromosome
+    Calculates width of chromosome based on its scale factor
+    and input width for the whole plot
     '''
     hg_type = request.args.get('hg_type', '38')
     collection = GENS_DB['chromsizes' + hg_type]
@@ -282,12 +288,15 @@ def parse_region_str(region):
     '''
     name_search = None
     try:
+        # Split region in standard format chrom:start-stop
         if ':' in region:
             chrom, pos_range = region.split(':')
             start, end = pos_range.split('-')
             chrom.replace('chr', '')
             chrom = chrom.upper()
         else:
+            # Not in standard format, query in form of full chromsome
+            # or gene
             name_search = region
     except ValueError:
         print('Wrong region formatting')
@@ -296,13 +305,14 @@ def parse_region_str(region):
     hg_type = request.args.get('hg_type', '38')
 
     if name_search is not None:
+        # Query is for a full range chromosome
         if name_search.upper() in CHROMOSOMES:
             start = 0
             end = 'None'
             chrom = name_search.upper()
         else:
-            # Lookup range
-            collection = GENS_DB['tracks' + hg_type]
+            # Lookup queried gene
+            collection = GENS_DB['transcripts' + hg_type]
             start = collection.find_one({'gene_name': re.compile(
                 '^' + re.escape(name_search) + '$', re.IGNORECASE)},
                                         sort=[('start', 1)])
@@ -325,6 +335,7 @@ def parse_region_str(region):
         print('Could not find chromosome data in DB')
         return None
 
+    # Set end position if it is not set
     if end == 'None':
         end = chrom_data['size']
 
@@ -336,7 +347,7 @@ def parse_region_str(region):
         print('Invalid input span')
         return None
 
-    # Do not go beyond end position
+    # Cap end to maximum range value for given chromosome
     if end > chrom_data['size']:
         start = max(0, start - (end - chrom_data['size']))
         end = chrom_data['size']
@@ -369,7 +380,7 @@ def tabix_query(filename, chrom, start=None, end=None):
 
 def dir_last_updated(folder):
     '''
-    Returns last updated date of a folder
+    Returns the date for when the given folder was last updated
     '''
     return str(max(path.getmtime(path.join(root_path, f))
                    for root_path, dirs, files in walk(folder)
@@ -406,6 +417,7 @@ def set_region_values(parsed_region, x_ampl):
     extra_plot_width = float(request.args.get('extra_plot_width', 0))
     res, chrom, start_pos, end_pos = parsed_region
 
+    # Set resolution for overview graph
     if request.args.get('overview', False):
         res = 'o'
 
@@ -414,25 +426,20 @@ def set_region_values(parsed_region, x_ampl):
         end_pos += start_pos
         start_pos = 0
 
-    # Handle X and Y chromosome input
-    if chrom == '23':
-        chrom = 'X'
-    elif chrom == '24':
-        chrom = 'Y'
-
     # Add extra data to edges
     new_start_pos = int(start_pos - extra_plot_width *
                         ((end_pos - start_pos) / x_ampl))
     new_end_pos = int(end_pos + extra_plot_width *
                       ((end_pos - start_pos) / x_ampl))
 
-    x_ampl += 2 * extra_plot_width
+    # X ampl contains the total width to plot x data on
+    x_ampl = (x_ampl + 2 * extra_plot_width) / (new_end_pos - new_start_pos)
     return REGION(res, chrom, start_pos, end_pos), \
            new_start_pos, new_end_pos, x_ampl, extra_plot_width
 
-def load_data(reg, new_start_pos, new_end_pos, x_ampl):
+def load_data(reg, new_start_pos, new_end_pos):
     '''
-    Loads in data for Log2 and BAF
+    Loads data for Log2 and BAF
     '''
     sample_name = request.args.get('sample_name', None)
 
@@ -447,25 +454,16 @@ def load_data(reg, new_start_pos, new_end_pos, x_ampl):
                                 reg.res + '_' + reg.chrom,
                                 new_start_pos, new_end_pos))
 
-    if not new_start_pos and not log2_list and not baf_list:
+    if not log2_list and not baf_list:
         print('Data for chromosome {} not available'.format(reg.chrom))
         return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
 
-    # Set end position now that data is loaded
-    if not new_end_pos:
-        new_start_pos = 0
-        if log2_list:
-            new_end_pos = int(log2_list[len(log2_list) - 1][1])
-        if baf_list:
-            new_end_pos = max(new_end_pos, int(baf_list[len(baf_list) - 1][1]))
+    return log2_list, baf_list, new_start_pos
 
-    # X ampl contains the total width to plot x data on
-    x_ampl = x_ampl / (new_end_pos - new_start_pos)
-    return log2_list, baf_list, new_start_pos, x_ampl
-
-def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
+def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
     '''
-    Edits data for Log2 ratio and BAF
+    Converts data for Log2 ratio and BAF to screen coordinates
+    Also caps the data
     '''
     #  Normalize and calculate the Lo2 ratio
     log2_records = []
@@ -475,6 +473,7 @@ def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
+        # Convert to screen coordinates
         log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                              graph.log2_ypos - graph.log2_ampl * ypos, 0])
 
@@ -485,6 +484,8 @@ def set_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = float(record[3])
         ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
+
+        # Convert to screen coordinates
         baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
                             graph.baf_ypos - graph.baf_ampl * ypos, 0])
 
@@ -507,9 +508,9 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
 
     return current_chrom
 
-def overview_chrom_dim(x_pos, y_pos, full_plot_width):
+def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
     '''
-    Calculates the position for each chromosome in the overview canvas
+    Calculates the position for all chromosome graphs in the overview canvas
     '''
 
     hg_type = request.args.get('hg_type', '38')

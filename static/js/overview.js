@@ -68,7 +68,6 @@ class OverviewCanvas {
       hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y,
-      plot_height: 2 * this.plotHeight,
       full_plot_width: this.fullPlotWidth,
     }).done( (result) => {
       let dims = result['chrom_dims'];

@@ -137,6 +137,7 @@
                 far, sampleName, hgType, hgFileDir);
             oc.drawOverviewContent(printing);
 
+            // Redraw when new region is requested
             document.getElementById('region_form').addEventListener('submit',
                 function (event) {
                     event.preventDefault();

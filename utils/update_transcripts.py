@@ -169,11 +169,11 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('-f', '--file', default='Homo_sapiens.GRCh38.99.gtf',
-                        help='Input file for updating mongoDB with chromosome tracks')
+                        help='Input file for updating mongoDB with chromosome transcripts')
     parser.add_argument('-m', '--mane',
-                        help='Mane file for updating tracks')
+                        help='Mane file for updating transcripts')
     parser.add_argument('-c', '--collection',
-                        help='Optional collection name', default='tracks38')
+                        help='Optional collection name', default='transcripts38')
     args = parser.parse_args()
 
     print('Updating transcripts')
