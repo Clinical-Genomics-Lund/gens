@@ -39,7 +39,7 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
     let value = numberWithCommas(step.toFixed(0));
 
     // Draw text and ticks only for the leftmost box
-    drawRotatedText(canvas, value, 10, canvasX + xStep,
+    drawRotatedText(canvas, value, 10, canvasX + xStep + 4,
       y - value.length - 3 * yMargin, -Math.PI / 4, titleColor);
 
     // Draw tick line
