@@ -18,22 +18,23 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
   width, yMargin, titleColor) {
   const lineThickness = 2;
   const lineWidth = 5;
-  const scale = width / (xEnd - xStart);
-  const precison = 10;
-  const steps = 20;
+  const regionSize = xEnd - xStart;
+  const scale = width / regionSize;
+  const maxNumTicks = 30;
 
-  let stepLength = (xEnd - xStart) / steps;
-  // Adjust start, stop and step to even numbers
-  if (stepLength > precison * precison) {
-    xStart = Math.ceil(xStart / precison) * precison;
-    xEnd = Math.floor(xEnd / precison) * precison;
-    renderX += scale * (xStart - xStart);
-    canvasX += scale * (xStart - xStart);
-    stepLength = Math.floor(stepLength / precison) * precison;
+  // Create a step size which is an even power of ten (10, 100, 1000 etc)
+  let stepLength = 10**Math.floor(Math.log10(regionSize)-1);
+
+  // Change to "half-steps" (50, 500, 5000) if too many ticks
+  if( regionSize / stepLength > maxNumTicks ) {
+    stepLength *= 5;
   }
 
+  // Get  starting position for the first tick
+  let xFirstTick = Math.ceil(xStart/stepLength) * stepLength;
+
   // Draw the ticks
-  for (let step = xStart; step <= xEnd; step += stepLength) {
+  for (let step = xFirstTick; step <= xEnd; step += stepLength) {
     let xStep = scale * (step - xStart);
     let value = numberWithCommas(step.toFixed(0));
 
@@ -101,16 +102,16 @@ function right (ic) {
 // Handle zoom in button click
 function zoomIn (ic) {
   let size = ic.end - ic.start;
-  ic.start += Math.floor(size * 0.25);
-  ic.end -= Math.floor(size * 0.25);
+  ic.start += Math.floor(size * 0.2);
+  ic.end -= Math.floor(size * 0.2);
   ic.redraw (null);
 }
 
 // Handle zoom out button click
 function zoomOut (ic) {
   let size = ic.end - ic.start;
-  ic.start -= Math.floor(size * 0.5);
-  ic.end += Math.floor(size * 0.5);
+  ic.start -= Math.floor(size / 3);
+  ic.end += Math.floor(size / 3);
   if (ic.start < 1) {
     ic.start = 1;
   }
