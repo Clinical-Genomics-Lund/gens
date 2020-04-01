@@ -232,6 +232,9 @@ class InteractiveCanvas {
       drawData(this.scene, result['data'], this.log2.color);
       this.renderer.render(this.scene, this.camera);
 
+      // Mark the location in the overview plot
+      oc.markRegion(result['chrom'], result['start'], result['end']);
+
       // Draw chromosome title
       drawText(this.contentCanvas,
         document.body.clientWidth / 2,
