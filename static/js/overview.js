@@ -61,6 +61,30 @@ class OverviewCanvas {
     let _this = this;
   }
 
+  markRegion(chrom, start, end) {
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      hg_type: this.hgType,
+      x_pos: this.x,
+      y_pos: this.y,
+      full_plot_width: this.fullPlotWidth,
+    }).done( (result) => {
+
+      let dims = result['chrom_dims'];
+      let scale = dims[chrom]['width'] / dims[chrom]['size'];
+
+      let overviewMarker = document.getElementById('overview-marker');
+
+      // Calculate position and size of marker
+      let markerStartPos = 1+(dims[chrom]['x_pos']+start*scale);
+      let markerWidth = Math.ceil((end-start)*scale);
+
+      // Update the dom element
+      overviewMarker.style.left = markerStartPos+"px";
+      overviewMarker.style.width = (markerWidth)+"px";
+    });
+
+  }
+
   drawOverviewContent (printing) {
     let drawnChrom = 0; // Amount of async drawn chromosomes
 
