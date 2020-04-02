@@ -303,6 +303,12 @@ span#info {
     margin-right: 5px;
 }
 
+.permalink {
+    background: url(../svg/link.png) no-repeat top left;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
 .arrow-left {
     background: url(../svg/arrow-left-solid.svg) no-repeat top left;
 }

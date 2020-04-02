@@ -213,3 +213,15 @@ function printPage () {
   }, {once : true});
   print();
 }
+
+function copyPermalink(hg_type,region) {
+
+  url = window.location.href
+  url_parts = url.split('?');
+  permalink = url_parts[0]+"?hg_type="+hg_type+"&region="+region;
+  var $temp = $("<input>");
+  $("body").append($temp);
+  $temp.val(permalink).select();
+  document.execCommand("copy");
+  $temp.remove();
+}
