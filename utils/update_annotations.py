@@ -207,9 +207,10 @@ def main():
     if os.path.isdir(args.file):
         files = glob.glob(args.file + '/*')
     else:
-        files = args.file
+        files = [args.file]
 
     for annot_file in files:
+
         update = UpdateAnnotations(annot_file, args)
         if '.bed' in annot_file:
             print('Parsing bed file')
