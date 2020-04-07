@@ -41,7 +41,6 @@ class OverviewCanvas {
     // Drag event variables
     this.drag = false;
     this.dragStart;
-    this.dragEnd;
 
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
@@ -75,77 +74,58 @@ class OverviewCanvas {
     });
 
 
-    //// DRAG EVENTS /////
     // Start dragging
     this.staticCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
       if (!this.drag) {
         this.dragStart = event.x;
-        this.dragEnd = event.x;
         this.drag = true;
-
-        // Move marker to drag start  
-        //this.markerElem.style.left  = this.dragStart+"px";
-        //this.markerElem.style.width = "1px";
       }
     });
 
+    // Move mouse during dragging
     this.staticCanvas.addEventListener('mousemove', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
       if (this.drag && this.dragStart != event.x) {
-        // Draw marker selection
         this.markerElem.style.left  = Math.min(event.x, this.dragStart)+"px";
         this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px"; 
       }
     });
 
     // Stop dragging
-    this.staticCanvas.addEventListener('mouseup', (event) => {
+    window.addEventListener('mouseup', (event) => {
       event.preventDefault();
       event.stopPropagation();
+
       if (this.drag) {
         this.drag = false;
-        this.dragEnd = event.x;
 
         // Find chromosomal positions for the drag start/end positions
-        let startChr, startPos, endChr, endPos;
-        for(const i of this.chromosomes) {
-          const chr = this.dims[i];
-          if (this.dragStart > chr.x_pos && this.dragStart < chr.x_pos + chr.width) {
-            startChr = i;
-            startPos = Math.floor( chr.size * (this.dragStart-chr.x_pos)/chr.width );
-            
-          }
-          if (this.dragEnd > chr.x_pos && this.dragEnd < chr.x_pos + chr.width) {
-            endChr = i;
-            endPos = Math.floor( chr.size * (this.dragEnd-chr.x_pos)/chr.width );
-          }
-        }
+        let startLoc = this.pixelPosToGenomicLoc(this.dragStart);
+        let endLoc = this.pixelPosToGenomicLoc(event.x);
 
-        // Move interative view to this region
-        ic.chromosome = startChr;
+        // Move interactive view to selected region
+        ic.chromosome = startLoc.chrom;
 
         // Drag was within same chromosome
-        if( endChr == startChr ) {
-          if( startPos != endPos ) {
-            ic.start = Math.min(startPos,endPos);
-            ic.end   = Math.max(startPos,endPos);
+        if (startLoc.chrom == endLoc.chrom) {
+          if (startLoc.pos != endLoc.pos) {
+            ic.start = Math.min(startLoc.pos,endLoc.pos);
+            ic.end   = Math.max(startLoc.pos,endLoc.pos);
           }
           else { // Show whole chromosome if no X drag (basically click)
             ic.start = 0;
-            ic.end = this.dims[startChr].size-1;
+            ic.end = this.dims[startLoc.chrom].size-1;
           }
         }
 
         // If drag covers more than 1 chrom, restrict to first clicked chrom
-        else if (endChr > startChr) { // Somehow "X" > "22" in Javascript!
-          ic.start = startPos;
-          ic.end = this.dims[startChr].size-1;
+        else if (endLoc.chrom > startLoc.chrom) { // "X" > "22" in Javascript!
+          ic.start = startLoc.pos;
+          ic.end = this.dims[startLoc.chrom].size-1;
         }
-        else if (endChr < startChr) {
+        else if (endLoc.chrom < startLoc.chrom) {
           ic.start = 0;
-          ic.end = startPos;
+          ic.end = startLoc.pos;
         }
 
         // Update marked region before redrawing (makes thinks look snappier)
@@ -158,7 +138,21 @@ class OverviewCanvas {
 
     let _this = this;
   }
-  ////////////////////////
+
+
+
+
+  pixelPosToGenomicLoc(pixelpos) {
+    let match = {}
+    for(const i of this.chromosomes) {
+      const chr = this.dims[i];
+      if (pixelpos > chr.x_pos && pixelpos < chr.x_pos + chr.width) {
+        match.chrom = i;
+        match.pos = Math.floor( chr.size * (pixelpos-chr.x_pos)/chr.width );
+      }
+    }
+    return match;
+  }
 
   markRegion(chrom, start, end) {
     let scale = this.dims[chrom]['width'] / this.dims[chrom]['size'];
