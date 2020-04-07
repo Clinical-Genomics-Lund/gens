@@ -158,6 +158,13 @@ span.print-icon {
     grid-column: 1;
 }
 
+#overview-marker {
+    pointer-events:none;
+    position:relative;
+    background-color:#ABD6;
+    border:1px solid #ABDA;
+}
+
 .info-container[data-state=nodata] {
     height: 0px;
     border: none;

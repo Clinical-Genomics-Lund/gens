@@ -48,7 +48,11 @@ class OverviewCanvas {
     this.drawCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.drawCanvas.getContext('webgl2');
+
+    // Initialize marker div element
     this.markerElem = document.getElementById('overview-marker');
+    this.markerElem.style.height = (this.plotHeight*2 - 1)+"px";
+    this.markerElem.style.marginTop = 1 - (this.plotHeight+this.topBottomPadding)*2 +"px";
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
