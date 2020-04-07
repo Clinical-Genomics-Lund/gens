@@ -11,7 +11,7 @@ class InteractiveCanvas {
     this.leftRightPadding = 2; // Padding for left and right in graph
     this.topBottomPadding = 8; // margin for top and bottom in graph
     this.plotWidth = Math.min(1500, 0.9 * document.body.clientWidth - this.legendMargin); // Width of one plot
-    this.extraWidth = this.plotWidth / 2; // Width for loading in extra edge data
+    this.extraWidth = this.plotWidth / 1.5; // Width for loading in extra edge data
     this.plotHeight = 180; // Height of one plot
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
@@ -47,6 +47,7 @@ class InteractiveCanvas {
     this.staticCanvas.width = this.contentCanvas.width = document.body.clientWidth;
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
+    this.spinner = document.getElementById("progress-spinner")
     // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
@@ -227,6 +228,8 @@ class InteractiveCanvas {
 
   // Draw values for interactive canvas
   drawInteractiveContent () {
+    this.spinner.style.display = "inline";
+
     $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
       region: this.inputField.value,
       sample_name: this.sampleName,
@@ -284,6 +287,9 @@ class InteractiveCanvas {
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
     }).done((result) => {
+
+      this.spinner.style.display = "none";
+
       // Set values
       this.chromosome = result['chrom'];
       this.start = result['start'];
