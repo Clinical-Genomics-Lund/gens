@@ -59,6 +59,16 @@ class InteractiveCanvas {
     this.dragStart;
     this.dragEnd;
 
+    // Get chrosome dimensions
+    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+      hg_type: this.hgType,
+      x_pos: this.x,
+      y_pos: this.y,
+      full_plot_width: this.fullPlotWidth,
+    }).done( (result) => {
+      this.dims = result['chrom_dims'];
+    });
+
     // WebGL scene variables
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(this.drawWidth / -2, this.drawWidth / 2,
@@ -73,21 +83,36 @@ class InteractiveCanvas {
     this.camera.position.set(this.drawWidth / 2 - lineMargin,
       this.canvasHeight / 2 - lineMargin, 1);
 
+
+    this.scale = this.calcScale();
+
     // Setup listeners
     this.contentCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
       if (!this.drag && this.allowDraw) {
+
+        // Make sure scale factor is updated
+        this.scale = this.calcScale();
+
         this.dragStart = {
-          x: event.pageX - this.contentCanvas.offsetLeft,
-          y: event.pageY - this.contentCanvas.offsetTop
+          x: event.x,
+          y: event.y
         };
         this.dragEnd = {
-          x: event.pageX - this.contentCanvas.offsetLeft,
-          y: event.pageY - this.contentCanvas.offsetTop
+          x: event.x,
+          y: event.y
         };
+
+        // Set the boundaries of dragging (to avoid going outside of chrom)
+        this.maxDrag = {
+          up: (this.dims[this.chromosome].size - this.end) * this.scale,
+          down: -this.start * this.scale
+        }
+
         this.drag = true;
       }
     });
+
 
     // When in active dragging of the canvas
     this.contentCanvas.addEventListener('mousemove', (event) => {
@@ -95,9 +120,18 @@ class InteractiveCanvas {
       event.stopPropagation();
       if (this.drag) {
         this.dragEnd = {
-          x: event.pageX - this.contentCanvas.offsetLeft,
-          y: event.pageY - this.contentCanvas.offsetTop
+          x: event.x,
+          y: event.y
         };
+
+        // Restrict dragging to chromosome boundaries.
+        let dist = this.dragStart.x - this.dragEnd.x;
+        if( dist < this.maxDrag.down ) {
+          this.dragEnd.x = this.dragStart.x - this.maxDrag.down;
+        }
+        if( dist > this.maxDrag.up ) {
+          this.dragEnd.x = this.dragStart.x - this.maxDrag.up;
+        }
 
         // Clear whole content canvas
         this.contentCanvas.getContext('2d').clearRect(0,
@@ -125,8 +159,7 @@ class InteractiveCanvas {
       event.stopPropagation();
       if (this.drag) {
         this.drag = false;
-        let scale = this.plotWidth / (this.end - this.start);
-        let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / scale);
+        let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
         // Do not allow negative values
         if (this.start + moveDist < 0) {
@@ -403,5 +436,9 @@ class InteractiveCanvas {
       // Save current state
       state = { buffer: buffer, lastKeyTime: currentTime };
     });
+  }
+
+  calcScale() {
+    return this.plotWidth / (this.end - this.start);
   }
 }
