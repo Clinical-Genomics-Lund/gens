@@ -38,12 +38,18 @@ class OverviewCanvas {
       color: '#000000' // Viz color
     };
 
+    // Drag event variables
+    this.drag = false;
+    this.dragStart;
+    this.dragEnd;
+
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
     this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding; // Canvas height
     this.drawCanvas = new OffscreenCanvas(this.width, this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.drawCanvas.getContext('webgl2');
+    this.markerElem = document.getElementById('overview-marker');
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -58,32 +64,115 @@ class OverviewCanvas {
     // Set dimensions of overview canvases
     this.staticCanvas.width = this.width;
     this.staticCanvas.height = this.height;
-    let _this = this;
-  }
 
-  markRegion(chrom, start, end) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y,
       full_plot_width: this.fullPlotWidth,
     }).done( (result) => {
-
-      let dims = result['chrom_dims'];
-      let scale = dims[chrom]['width'] / dims[chrom]['size'];
-
-      let overviewMarker = document.getElementById('overview-marker');
-
-      // Calculate position and size of marker
-      let markerStartPos = 1+(dims[chrom]['x_pos']+start*scale);
-      let markerWidth = Math.ceil((end-start)*scale);
-
-      // Update the dom element
-      overviewMarker.style.left = markerStartPos+"px";
-      overviewMarker.style.width = (markerWidth)+"px";
+      this.dims = result['chrom_dims'];
     });
 
+
+    //// DRAG EVENTS /////
+    // Start dragging
+    this.staticCanvas.addEventListener('mousedown', (event) => {
+      event.stopPropagation();
+      if (!this.drag) {
+        this.dragStart = event.x;
+        this.dragEnd = event.x;
+        this.drag = true;
+
+        // Move marker to drag start  
+        //this.markerElem.style.left  = this.dragStart+"px";
+        //this.markerElem.style.width = "1px";
+      }
+    });
+
+    this.staticCanvas.addEventListener('mousemove', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.drag && this.dragStart != event.x) {
+        // Draw marker selection
+        this.markerElem.style.left  = Math.min(event.x, this.dragStart)+"px";
+        this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px"; 
+      }
+    });
+
+    // Stop dragging
+    this.staticCanvas.addEventListener('mouseup', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.drag) {
+        this.drag = false;
+        this.dragEnd = event.x;
+
+        // Find chromosomal positions for the drag start/end positions
+        let startChr, startPos, endChr, endPos;
+        for(const i of this.chromosomes) {
+          const chr = this.dims[i];
+          if (this.dragStart > chr.x_pos && this.dragStart < chr.x_pos + chr.width) {
+            startChr = i;
+            startPos = Math.floor( chr.size * (this.dragStart-chr.x_pos)/chr.width );
+            
+          }
+          if (this.dragEnd > chr.x_pos && this.dragEnd < chr.x_pos + chr.width) {
+            endChr = i;
+            endPos = Math.floor( chr.size * (this.dragEnd-chr.x_pos)/chr.width );
+          }
+        }
+
+        // Move interative view to this region
+        ic.chromosome = startChr;
+
+        // Drag was within same chromosome
+        if( endChr == startChr ) {
+          if( startPos != endPos ) {
+            ic.start = Math.min(startPos,endPos);
+            ic.end   = Math.max(startPos,endPos);
+          }
+          else { // Show whole chromosome if no X drag (basically click)
+            ic.start = 0;
+            ic.end = this.dims[startChr].size-1;
+          }
+        }
+
+        // If drag covers more than 1 chrom, restrict to first clicked chrom
+        else if (endChr > startChr) { // Somehow "X" > "22" in Javascript!
+          ic.start = startPos;
+          ic.end = this.dims[startChr].size-1;
+        }
+        else if (endChr < startChr) {
+          ic.start = 0;
+          ic.end = startPos;
+        }
+
+        // Update marked region before redrawing (makes thinks look snappier)
+        this.markRegion(ic.chromosome, ic.start, ic.end);
+
+        // Finally update the interactive region
+        ic.redraw();
+      }
+    });
+
+    let _this = this;
   }
+  ////////////////////////
+
+  markRegion(chrom, start, end) {
+    let scale = this.dims[chrom]['width'] / this.dims[chrom]['size'];
+    let overviewMarker = document.getElementById('overview-marker');
+
+    // Calculate position and size of marker
+    let markerStartPos = 1+(this.dims[chrom]['x_pos']+start*scale);
+    let markerWidth = Math.ceil((end-start)*scale);
+
+    // Update the dom element
+    overviewMarker.style.left = markerStartPos+"px";
+    overviewMarker.style.width = (markerWidth)+"px";
+  }
+
 
   drawOverviewContent (printing) {
     let drawnChrom = 0; // Amount of async drawn chromosomes
