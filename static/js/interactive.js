@@ -47,7 +47,14 @@ class InteractiveCanvas {
     this.staticCanvas.width = this.contentCanvas.width = document.body.clientWidth;
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight;
 
-    this.spinner = document.getElementById("progress-spinner")
+    // Setup loading div dimensions
+    this.loadingDiv = document.getElementById("loading-div")
+    this.loadingDiv.style.width = this.plotWidth+"px";
+    this.loadingDiv.style.left = (1+this.x)+"px";
+    this.loadingDiv.style.top = (32+1+this.y)+"px"; //32 is size of header bar.
+    this.loadingDiv.style.height = (2*this.plotHeight)+"px";
+
+
     // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
@@ -228,9 +235,8 @@ class InteractiveCanvas {
 
   // Draw values for interactive canvas
   drawInteractiveContent () {
-    this.spinner.style.display = "inline";
+    this.loadingDiv.style.display = "block";
     console.time("getcoverage");
-
 
     $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
       region: this.inputField.value,
@@ -292,7 +298,7 @@ class InteractiveCanvas {
       this.scene.remove.apply(this.scene, this.scene.children);
     }).done((result) => {
 
-      this.spinner.style.display = "none";
+      this.loadingDiv.style.display = "none";
 
       // Set values
       this.chromosome = result['chrom'];
