@@ -509,8 +509,8 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
         # Convert to screen coordinates
-        log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                             graph.log2_ypos - graph.log2_ampl * ypos, 0])
+        log2_records.extend([int(x_pos + x_ampl * (float(record[1]) - new_start_pos)),
+                             int(graph.log2_ypos - graph.log2_ampl * ypos), 0])
 
     # Gather the BAF records
     baf_records = []
@@ -521,8 +521,8 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
         # Convert to screen coordinates
-        baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                            graph.baf_ypos - graph.baf_ampl * ypos, 0])
+        baf_records.extend([int(x_pos + x_ampl * (float(record[1]) - new_start_pos)),
+                            int(graph.baf_ypos - graph.baf_ampl * ypos), 0])
 
     return log2_records, baf_records
 
