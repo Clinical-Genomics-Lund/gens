@@ -229,6 +229,8 @@ class InteractiveCanvas {
   // Draw values for interactive canvas
   drawInteractiveContent () {
     this.spinner.style.display = "inline";
+    console.time("getcoverage");
+
 
     $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
       region: this.inputField.value,
@@ -246,6 +248,8 @@ class InteractiveCanvas {
       log2_y_start: this.log2.yStart,
       log2_y_end: this.log2.yEnd
     }, (result) => {
+
+      console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
         this.contentCanvas.width, this.contentCanvas.height);
