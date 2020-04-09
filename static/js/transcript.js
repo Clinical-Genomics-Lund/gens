@@ -36,6 +36,8 @@ class Transcript extends Track {
       let latest_name_end = 0; // Latest annotations end position
       let latest_track_end = 0; // Latest annotations title's end position
 
+      this.clearTracks();
+
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['transcripts'].length; i++) {
         const track = result['transcripts'][i];
