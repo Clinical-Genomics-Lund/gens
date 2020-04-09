@@ -17,7 +17,7 @@ class InteractiveCanvas {
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight); // Height for whole canvas
     this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
-    this.borderColor = 'gray'; // Color of border
+    this.borderColor = '#666'; // Color of border
     this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
