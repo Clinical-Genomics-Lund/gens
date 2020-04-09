@@ -19,7 +19,7 @@ class OverviewCanvas {
     this.leftRightPadding = 2; // Padding for left and right in graph
     this.topBottomPadding = 8; // Padding for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.borderColor = 'gray'; // Color of border
+    this.borderColor = '#666'; // Color of border
     this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
@@ -51,8 +51,8 @@ class OverviewCanvas {
 
     // Initialize marker div element
     this.markerElem = document.getElementById('overview-marker');
-    this.markerElem.style.height = (this.plotHeight*2 - 1)+"px";
-    this.markerElem.style.marginTop = 1 - (this.plotHeight+this.topBottomPadding)*2 +"px";
+    this.markerElem.style.height = (this.plotHeight*2)+"px";
+    this.markerElem.style.marginTop = 1.5 - (this.plotHeight+this.topBottomPadding)*2 +"px";
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -90,7 +90,7 @@ class OverviewCanvas {
     // Move mouse during dragging
     this.staticCanvas.addEventListener('mousemove', (event) => {
       if (this.drag && this.dragStart != event.x) {
-        this.markerElem.style.left  = Math.min(event.x, this.dragStart)+"px";
+        this.markerElem.style.left  = 1+Math.min(event.x, this.dragStart)+"px";
         this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px"; 
       }
     });
@@ -162,9 +162,16 @@ class OverviewCanvas {
     let scale = this.dims[chrom]['width'] / this.dims[chrom]['size'];
     let overviewMarker = document.getElementById('overview-marker');
 
+    let markerStartPos, markerWidth;
     // Calculate position and size of marker
-    let markerStartPos = 1+(this.dims[chrom]['x_pos']+start*scale);
-    let markerWidth = Math.ceil((end-start)*scale);
+    if( (end-start)*scale < 2 ) {
+      markerStartPos = 1+(this.dims[chrom]['x_pos']+start*scale);
+      markerWidth = 2;
+    }
+    else{
+      markerStartPos = 1.5+(this.dims[chrom]['x_pos']+start*scale);
+      markerWidth = Math.max(2,Math.ceil((end-start)*scale)-1);
+    }
 
     // Update the dom element
     overviewMarker.style.left = markerStartPos+"px";
@@ -224,7 +231,7 @@ class OverviewCanvas {
             result['x_pos'] - this.leftRightPadding,
             result['y_pos'], width, this.plotHeight, this.topBottomPadding,
             this.baf.yStart, this.baf.yEnd, this.baf.step,
-            result['x_pos'] < this.leftmostPoint, this.borderColor);
+            result['x_pos'] < this.leftmostPoint, this.borderColor, i!=0);
           drawGraphLines(this.scene, result['x_pos'], result['y_pos'],
             this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
             width, this.plotHeight);
@@ -235,7 +242,7 @@ class OverviewCanvas {
             result['y_pos'] + this.plotHeight, width,
             this.plotHeight, this.topBottomPadding, this.log2.yStart,
             this.log2.yEnd, this.log2.step,
-            result['x_pos'] < this.leftmostPoint, this.borderColor);
+            result['x_pos'] < this.leftmostPoint, this.borderColor, i!=0);
           drawGraphLines(this.scene, result['x_pos'],
             result['y_pos'] + this.plotHeight, this.log2.yStart,
             this.log2.yEnd, this.log2.step, this.topBottomPadding,

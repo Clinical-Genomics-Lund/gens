@@ -16,7 +16,7 @@ function drawData (scene, data, color) {
 // The amplitude scales the values to drawing size
 function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
   width, yMargin, titleColor) {
-  const lineThickness = 2;
+  const lineThickness = 1;
   const lineWidth = 5;
   const regionSize = xEnd - xStart;
   const scale = width / regionSize;
@@ -44,7 +44,7 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
 
     // Draw tick line
     drawLine(scene, renderX + xStep, y - lineWidth, renderX + xStep, y,
-      lineThickness, 0x000000);
+      lineThickness, 0x707070);
   }
 }
 
@@ -53,20 +53,20 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
 // The amplitude scales the values to drawing size
 function drawGraphLines (scene, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
-  let lineThickness = 2;
+  let lineThickness = 1;
 
   for (let step = yStart; step >= yEnd; step -= stepLength) {
     // Draw horizontal line
-    drawLine(scene, x,
-      y + yMargin + (yStart - step) * ampl,
+    let yPos = y + yMargin + (yStart - step) * ampl;
+    drawLine(scene, x, yPos,
       x + width - 2 * lineThickness,
-      y + yMargin + (yStart - step) * ampl, lineThickness, 0xd3d3d3);
+      yPos, lineThickness, 0xe5e5e5);
   }
 }
 
 // Creates a graph for one chromosome data type
 function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
-  yEnd, step, addTicks, color) {
+  yEnd, step, addTicks, color, open) {
   // Draw tick marks
   if (addTicks) {
     drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width,
@@ -74,7 +74,7 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   }
 
   // Draw surrounding coordinate box
-  drawBox(scene, x, y, width, height, 2, color);
+  drawBox(scene, x, y, width, height, 2, color, open);
 }
 
 // Handle left button click
@@ -167,6 +167,10 @@ function drawText (canvas, x, y, text, textSize, align) {
 
 // Draws a line between point (x, y) and (x2, y2)
 function drawLine (scene, x, y, x2, y2, thickness, color) {
+  x = Math.floor(x)+0.5;
+  x2 = Math.floor(x2)+0.5;
+  y = Math.floor(y)+0.5;
+  y2 = Math.floor(y2)+0.5;
   var line = new THREE.Geometry();
   line.vertices.push(
     new THREE.Vector3(x, y, 0),
@@ -179,16 +183,32 @@ function drawLine (scene, x, y, x2, y2, thickness, color) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-function drawBox (scene, x, y, width, height, lineWidth, color) {
+function drawBox (scene, x, y, width, height, lineWidth, color, open) {
+  x = Math.floor(x)+0.5;
+  y = Math.floor(y)+0.5;
+  width = Math.floor(width);
   var coordAxes = new THREE.Geometry();
-  coordAxes.vertices.push(
-    new THREE.Vector3(x, y, 0),
-    new THREE.Vector3(x, y + height, 0),
-    new THREE.Vector3(x + width, y + height, 0),
-    new THREE.Vector3(x + width, y, 0),
-    new THREE.Vector3(x, y, 0)
-  );
 
+  // Draw box without left part, to allow stacking boxes 
+  // horizontally without getting double lines between them.
+  if(open === true) {
+    coordAxes.vertices.push(
+      new THREE.Vector3(x, y, 0),
+      new THREE.Vector3(x + width, y, 0),
+      new THREE.Vector3(x + width, y + height, 0),
+      new THREE.Vector3(x, y + height, 0)
+    );
+  // Draw normal 4-sided box  
+  } else {
+    coordAxes.vertices.push(
+      new THREE.Vector3(x, y, 0),
+      new THREE.Vector3(x, y + height, 0),
+      new THREE.Vector3(x + width, y + height, 0),
+      new THREE.Vector3(x + width, y, 0),
+      new THREE.Vector3(x, y, 0)
+    );
+
+  }
   var material = new THREE.LineBasicMaterial({ color: color, linewidth: lineWidth });
   coordAxes = new THREE.Line(coordAxes, material);
   scene.add(coordAxes);
