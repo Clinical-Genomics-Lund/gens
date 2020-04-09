@@ -337,10 +337,6 @@ class InteractiveCanvas {
 
     this.drawInteractiveContent();
 
-    // Clear tracks and annotations
-    tc.clearTracks();
-    ac.clearTracks();
-
     // Draw new tracks and annotations
     tc.drawTracks(this.inputField.value);
     ac.drawTracks(this.inputField.value);

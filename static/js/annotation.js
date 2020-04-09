@@ -23,7 +23,6 @@ class Annotation extends Track {
     this.sourceList = document.getElementById('source-list');
     this.sourceList.addEventListener('change', () => {
       this.expanded = false;
-      this.clearTracks;
       this.drawTracks(document.getElementById('region_field').value);
     })
     this.annotSourceList();
@@ -74,6 +73,8 @@ class Annotation extends Track {
       let latest_height = 0; // Latest height order for annotation
       let latest_name_end = 0; // Latest annotations end position
       let latest_track_end = 0; // Latest annotations title's end position
+
+      this.clearTracks();
 
       // Go through results and draw appropriate symbols
       for (let i = 0; i < result['annotations'].length; i++) {
