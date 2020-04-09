@@ -10,6 +10,7 @@ from os import path, walk
 from datetime import date
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
+import pysam
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -267,6 +268,19 @@ def get_annotation_sources():
 
 ### Help functions ###
 
+def get_chrom_size(chrom):
+    '''
+    Gets the size in base pairs of a chromosome
+    '''
+    hg_type = request.args.get('hg_type', '38')
+    collection = GENS_DB['chromsizes' + hg_type]
+    chrom_data = collection.find_one({'chrom': chrom})
+
+    if chrom_data:
+        return chrom_data['size']
+
+    return None
+
 def get_chrom_width(chrom, full_plot_width):
     '''
     Calculates width of chromosome based on its scale factor
@@ -362,21 +376,41 @@ def parse_region_str(region):
 
     return resolution, chrom, start, end
 
-def tabix_query(filename, chrom, start=None, end=None):
+def tabix_query(filename, res, chrom, start=None, end=None):
     """
     Call tabix and generate an array of strings for each line it returns.
     """
-    if not start and not end:
-        query = chrom
-    else:
-        query = '{}:{}-{}'.format(chrom, start, end)
+
+    # Bound start and end balues to 0-chrom_size
+    end = min(end, get_chrom_size(chrom))
+    start = max(start, 0)
+
+    # Get data from bed file
+    tb = pysam.TabixFile(filename)
     try:
-        process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
-    except CalledProcessError:
-        print('Could not open ' + filename)
-    else:
-        for line in process.stdout:
-            yield line.strip().split()
+        records = tb.fetch(res+"_"+chrom, start, end)
+    except ValueError as e:
+        print(e)
+        records = []
+
+    return [r.split("\t") for r in records]
+
+    # OLD METHOD
+    #values = []
+    # times.append(time.time())
+    # chrom = res+"_"+chrom
+    # if not start and not end:
+    #     query = chrom
+    # else:
+    #     query = '{}:{}-{}'.format(chrom, start, end)
+    # try:
+    #     process = Popen(['tabix', '-f', filename, query], stdout=PIPE)
+    # except CalledProcessError:
+    #     print('Could not open ' + filename)
+    # else:
+    #     for line in process.stdout:
+    #         values.append(line.strip().split())
+    # return values
 
 def dir_last_updated(folder):
     '''
@@ -447,12 +481,13 @@ def load_data(reg, new_start_pos, new_end_pos):
     hg_filedir = request.args.get('hg_filedir', None)
 
     # Fetch data with the defined range
-    log2_list = list(tabix_query(hg_filedir + sample_name + COV_END,
-                                 reg.res + '_' + reg.chrom,
-                                 new_start_pos, new_end_pos))
-    baf_list = list(tabix_query(hg_filedir + sample_name + BAF_END,
-                                reg.res + '_' + reg.chrom,
-                                new_start_pos, new_end_pos))
+    log2_list = tabix_query(hg_filedir + sample_name + COV_END,
+                                 reg.res, reg.chrom,
+                                 new_start_pos, new_end_pos)
+
+    baf_list = tabix_query(hg_filedir + sample_name + BAF_END,
+                                reg.res, reg.chrom,
+                                new_start_pos, new_end_pos)
 
     if not log2_list and not baf_list:
         print('Data for chromosome {} not available'.format(reg.chrom))
@@ -474,8 +509,8 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
         # Convert to screen coordinates
-        log2_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                             graph.log2_ypos - graph.log2_ampl * ypos, 0])
+        log2_records.extend([int(x_pos + x_ampl * (float(record[1]) - new_start_pos)),
+                             int(graph.log2_ypos - graph.log2_ampl * ypos), 0])
 
     # Gather the BAF records
     baf_records = []
@@ -486,8 +521,8 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
         # Convert to screen coordinates
-        baf_records.extend([x_pos + x_ampl * (float(record[1]) - new_start_pos),
-                            graph.baf_ypos - graph.baf_ampl * ypos, 0])
+        baf_records.extend([int(x_pos + x_ampl * (float(record[1]) - new_start_pos)),
+                            int(graph.baf_ypos - graph.baf_ampl * ypos), 0])
 
     return log2_records, baf_records
 
