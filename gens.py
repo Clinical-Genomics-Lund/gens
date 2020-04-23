@@ -33,6 +33,11 @@ FILE_DIR_HG38 = "/access/wgs/plot_data/"
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
+@APP.route('/')
+def gens_welcome():
+    return "Gens is running!"
+
+
 @APP.route('/', defaults={'sample_name': ''})
 @APP.route('/<path:sample_name>', methods=['GET'])
 def gens_view(sample_name):
