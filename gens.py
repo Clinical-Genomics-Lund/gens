@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 '''
 Whole genome visualization of BAF and log2 ratio
 '''
@@ -11,11 +11,12 @@ from datetime import date
 from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
 import pysam
+import config
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient(config.mongo["host"], config.mongo["port"])
 GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'log2_ampl', 'baf_ypos', 'log2_ypos'))
@@ -28,8 +29,8 @@ CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
                '22', 'X', 'Y']
 
-FILE_DIR_HG37 = "/access/wgs/plotdata/"
-FILE_DIR_HG38 = "/access/wgs/plot_data/"
+FILE_DIR_HG37 = config.data["hg19"]
+FILE_DIR_HG38 = config.data["hg38"]
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
