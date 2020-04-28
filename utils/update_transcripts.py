@@ -113,10 +113,14 @@ class UpdateTranscripts:
                                 'exon_number': exon_number,
                                 'start': start,
                                 'end': end})
-            print("Bulk update")
+            print("Bulk update (printing out every 100th id)")
             # Bulk update transcripts with features
+            # to add feedback we are printing out every 100th id
+            id_count = 0
             for transcript_id in features:
-                print(transcript_id)
+                if(id_count % 100 == 0):
+                    print(transcript_id,id_count)
+                id_count = id_count +1
                 self.temp_collection.update(
                     {'transcript_id': transcript_id},
                     {'$set': {'features': features[transcript_id]}}
