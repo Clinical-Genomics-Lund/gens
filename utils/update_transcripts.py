@@ -9,7 +9,7 @@ from functools import cmp_to_key
 from pymongo import MongoClient, ASCENDING
 from gtfparse import read_gtf
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient('127.0.0.1', 27017)
 GENS_DB = CLIENT['gens']
 
 class UpdateTranscripts:
@@ -36,6 +36,7 @@ class UpdateTranscripts:
         self.collection.create_index([('height_order', ASCENDING)], unique=False)
 
         # Set MANE transcripts
+        print("Reading MANE transcripts")
         with open(self.mane_file) as mane_file:
             cs_reader = csv.reader(mane_file, delimiter='\t')
             next(cs_reader) # Skip header
@@ -46,6 +47,7 @@ class UpdateTranscripts:
                 self.mane[ensemble_nuc] = {'hgnc_id': hgnc_id, 'refseq_id': refseq_id}
 
         # Set the rest
+        print("Reading annotation GTF")
         with open(self.input_file) as track_file:
             tracks = read_gtf(track_file)
             tracks = [list(a) for a in zip(tracks['seqname'], tracks['gene_name'],
@@ -56,6 +58,7 @@ class UpdateTranscripts:
                                            tracks['exon_number'])]
 
             # Sort transcripts to the top, also sort tracks belonging to the same gene
+            print("Sort transcripts")
             tracks.sort(key=cmp_to_key(self.track_sorter))
 
             # Variables for setting height order of track
@@ -65,6 +68,7 @@ class UpdateTranscripts:
             features = {}
 
             # Insert tracks in DB
+            print("Insert tracks to DB")
             for seqname, gene_name, feature, start, end, strand, transcript_id, \
                 transcript_biotype, exon_number in tracks:
 
@@ -109,9 +113,10 @@ class UpdateTranscripts:
                                 'exon_number': exon_number,
                                 'start': start,
                                 'end': end})
-
+            print("Bulk update")
             # Bulk update transcripts with features
             for transcript_id in features:
+                print(transcript_id)
                 self.temp_collection.update(
                     {'transcript_id': transcript_id},
                     {'$set': {'features': features[transcript_id]}}
@@ -176,10 +181,11 @@ def main():
                         help='Optional collection name', default='transcripts38')
     args = parser.parse_args()
 
-    print('Updating transcripts')
     update = UpdateTranscripts(args)
     try:
+        print('Updating transcripts')
         update.write_transcripts()
+        #import pdb; pdb.set_trace()
     except Exception as e:
         print(str(e))
         print('Error, could not update. Rollback')

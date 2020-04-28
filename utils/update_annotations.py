@@ -9,7 +9,7 @@ import os
 import glob
 from pymongo import MongoClient, ASCENDING
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient('127.0.0.1', 27017)
 GENS_DB = CLIENT['gens']
 
 class UpdateAnnotations:

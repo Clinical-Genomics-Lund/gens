@@ -7,7 +7,7 @@ import csv
 import argparse
 from pymongo import MongoClient
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient('127.0.0.1', 27017)
 GENS_DB = CLIENT['gens']
 
 class UpdateChromosomeSizes:

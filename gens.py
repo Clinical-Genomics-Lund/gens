@@ -15,7 +15,7 @@ import pysam
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient('127.0.0.1', 27017)
 GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'log2_ampl', 'baf_ypos', 'log2_ypos'))
@@ -29,7 +29,7 @@ CHROMOSOMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                '22', 'X', 'Y']
 
 FILE_DIR_HG37 = "/access/wgs/plotdata/"
-FILE_DIR_HG38 = "/access/wgs/plot_data/"
+FILE_DIR_HG38 = "/home/szilva/dev/Gens/data/"
 BAF_END = '.baf.bed.gz'
 COV_END = '.cov.bed.gz'
 
@@ -49,7 +49,7 @@ def gens_view(sample_name):
 
     # Check that BAF and Log2 file exists
     if not path.exists(hg_filedir + sample_name + BAF_END):
-        print('BAF file not found')
+        print("BAF file " + hg_filedir + sample_name + BAF_END + " not found")
         abort(404)
     if not path.exists(hg_filedir + sample_name + COV_END):
         print('Log2 file not found')
@@ -300,7 +300,9 @@ def parse_region_str(region):
     '''
     Parses a region string
     '''
+    region = region
     name_search = None
+    print("Parsing region "+region)
     try:
         # Split region in standard format chrom:start-stop
         if ':' in region:
@@ -555,12 +557,12 @@ def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
     for chrom in CHROMOSOMES:
         chrom_width = get_chrom_width(chrom, full_plot_width)
         if chrom_width is None:
-            print('Could not find chromosome data in DB')
+            print('Could not find chromosome width data in DB')
             return None
 
         chrom_data = collection.find_one({'chrom': chrom})
         if chrom_data is None:
-            print('Could not find chromosome data in DB')
+            print('Could not find chromosome data in DB for overview')
             return None
 
         chrom_dims[chrom] = ({'x_pos': x_pos, 'y_pos': y_pos,
