@@ -113,13 +113,13 @@ class UpdateTranscripts:
                                 'exon_number': exon_number,
                                 'start': start,
                                 'end': end})
-            print("Bulk update (printing out every 1000th id)")
+            print("Bulk update (printing out every 1000th id - there will be)")
             # Bulk update transcripts with features
             # to add feedback we are printing out every 100th id
             id_count = 0
             for transcript_id in features:
                 if(id_count % 1000 == 0):
-                    print(transcript_id,id_count)
+                    print(transcript_id,id_count, " of 84000")
                 id_count = id_count +1
                 self.temp_collection.update(
                     {'transcript_id': transcript_id},

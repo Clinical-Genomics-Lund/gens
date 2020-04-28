@@ -30,7 +30,5 @@ echo "#############################"
 
 # get annotations from ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz 
 # but be sure to add chrs like:
-# zcat Homo_sapiens.GRCh38.99.gtf.gz | awk '/#/{print}!/^#/&&/^[0-9XY]/{print "chr"$0}' > Homo_sapiens.GRCh38.99.chrs.gtf
 # get MANE from ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/
-# MANE for some reason in not screwed completely as expected
 python update_transcripts.py -f Homo_sapiens.GRCh38.99.gtf -m MANE.GRCh38.v0.9.select_ensembl_genomic.gtf
