@@ -16,7 +16,7 @@ echo "Update annotations using a BED annotation file"
 echo "##############################################"
 # you can download data from the Table Browser of
 # https://genome-euro.ucsc.edu/
-python update_annotations.py -f GENCODE.chr1.bed
+python update_annotations.py -f Gencode_v32.bed
 
 echo "########################"
 echo "Update choromosome sizes"
