@@ -3,7 +3,7 @@
 
 ## About
 
-**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things us IGV! 
+**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things use IGV! 
 
 This screenshot shows an 8 Kbp deletion (known polymorphism). Sorry about the boring screenshot, but we cannot show identifiable data.
 <img src="images/gens_screenshot.png">
