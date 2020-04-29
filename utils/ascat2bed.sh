@@ -63,6 +63,7 @@ get_new_average a_${RAW} o_${RAW} a_ o_
 
 echo "concatenating "
 OUT=${1%.*}.${2}.bed
+OUT=`basename ${OUT}`
 cat o_raw.baf a_raw.baf b_raw.baf c_raw.baf d_raw.baf > ${OUT}
 bgzip ${OUT}
 tabix ${OUT}.gz
