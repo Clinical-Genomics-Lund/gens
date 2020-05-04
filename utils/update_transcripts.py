@@ -113,7 +113,7 @@ class UpdateTranscripts:
                                 'exon_number': exon_number,
                                 'start': start,
                                 'end': end})
-            print("Bulk update (printing out every 1000th id - there will be)")
+            print("Bulk update (printing out every 1000th id - there will be around 84000 of them)")
             # Bulk update transcripts with features
             # to add feedback we are printing out every 100th id
             id_count = 0
