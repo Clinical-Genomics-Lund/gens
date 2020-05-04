@@ -160,24 +160,31 @@ When using conda, you can create an environment and add packages (providing mini
 
 ```
 $ conda create -n Gens
+[... some output ...]
+$ conda activate Gens
 $ conda install --file requirements.txt
 ```
 
-To populate the reference database download three annotation files first (I am using GRCh38 here):
+To populate the reference database download three annotation files first to the utils directory (I am using GRCh38 here):
 
  - Save gene annotations from [UCSC Table browser](https://genome-euro.ucsc.edu/) in BED format as Gencode\_v32.bed (Tools / Table browser / type to output file: "Gencode\_v32.bed", and press "get output") . 
- - Get MANE ENSEMBL from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/ like `wget ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.9/MANE.GRCh38.v0.9.select_ensembl_genomic.gtf.gz`)
- - get ENSEMBL from ftp://ftp.ensembl.org/pub/release-99/gtf/homo\_sapiens/Homo\_sapiens.GRCh38.99.gtf.gz 
+ - Get MANE ENSEMBL from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/) like
 
-unzip compressed files into the utils directory and run `utils/init_database.sh` - adding ENSEMBL annotations can take a while.
+  ```wget ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.9/MANE.GRCh38.v0.9.select_ensembl_genomic.gtf.gz```
+
+ - get [ENSEMBL annotations](ftp://ftp.ensembl.org/pub/release-99/gtf/homo\_sapiens) like
+
+  ```wget ftp://ftp.ensembl.org/pub/release-99/gtf/homo\_sapiens/Homo\_sapiens.GRCh38.99.gtf.gz```
+
+unzip compressed files into the utils directory and run `utils/init_database.sh`. Note, adding ENSEMBL annotations can take a while.
 
 
 ## Generating data from ASCAT runs
 
-[ASCAT](https://github.com/Crick-CancerGenomics/ascat) - besides many other files - creates two files with \*.BAF and \*.LogR extensions. To convert these to 
+[ASCAT](https://github.com/Crick-CancerGenomics/ascat) - besides many other files - creates two ones with \*.BAF and \*.LogR extensions. To convert these to 
 files that can be handled by Gens, use the `utils/ascat2bed.sh` script to get the `*.baf.bed.gz` and `*.cov.bed.gz` files. You have to have `bgzip` and `tabix`
 installed, first argument is the input file, second argument is either `baf` or `cov` like:
- 
+
 ```
 utils/ascat2bed.sh Sample.BAF baf
 utils/ascat2bed.sh Sample.LogR cov
