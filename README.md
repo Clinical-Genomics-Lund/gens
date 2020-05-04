@@ -27,7 +27,8 @@ $ export FLASK_APP=gens.py && flask run
 
 Make sure the application is running by loading http://127.0.0.1:5000/ in your web browser.
 
-Finally you need to populate the databases with chromosome sizes and gene/transcript data using the scripts **utils/update_chromsizes.py** and **utils/update_transcripts.py**. (TODO: Add more details here!)
+Finally you need to populate the databases with chromosome sizes and gene/transcript data using the scripts **utils/update_chromsizes.py** and **utils/update_transcripts.py**. (TODO: Add more details here! -- See 
+files for GRCh38 below for conda installation) 
 
 ## Data generation
 
@@ -152,3 +153,34 @@ We're using all SNPs in gnomAD with an total allele frequency > 5%, which in gno
 - Only works in web browsers supporting OffscreenCanvas ([MDN browser compatibility](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas#Browser_compatibility)). This means that it essentially only works in Chrome (and theoretically Edge and Opera, but that has not been tested). Unfortunately, enabling the experimental OffscreenCanvas support in Firefox does not appear to work (as of version 75). The OffscreenCanvas could probably be made optional, to support all modern web browsers.
 
 - Currently no efforts have been made to make it work for non-human organisms. Chromosome names are currently hardcoded to 1-23,X,Y.
+
+## Firing up using Conda
+
+When using conda, you can create an environment and add packages (providing miniconda is installed in your home directory) like
+
+```
+$ conda create -n Gens
+$ conda install --file requirements.txt
+```
+
+To populate the reference database download three annotation files first (I am using GRCh38 here):
+
+ - Save gene annotations from [UCSC Table browser](https://genome-euro.ucsc.edu/) in BED format as Gencode\_v32.bed (Tools / Table browser / type to output file: "Gencode\_v32.bed", and press "get output") . 
+ - Get MANE ENSEMBL from [NCBI](ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/ like `wget ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.9/MANE.GRCh38.v0.9.select_ensembl_genomic.gtf.gz`)
+ - get ENSEMBL from ftp://ftp.ensembl.org/pub/release-99/gtf/homo\_sapiens/Homo\_sapiens.GRCh38.99.gtf.gz 
+
+unzip compressed files into the utils directory and run `utils/init_database.sh` - adding ENSEMBL annotations can take a while.
+
+
+## Generating data from ASCAT runs
+
+[ASCAT](https://github.com/Crick-CancerGenomics/ascat) - besides many other files - creates two files with \*.BAF and \*.LogR extensions. To convert these to 
+files that can be handled by Gens, use the `utils/ascat2bed.sh` script to get the `*.baf.bed.gz` and `*.cov.bed.gz` files. You have to have `bgzip` and `tabix`
+installed, first argument is the input file, second argument is either `baf` or `cov` like:
+ 
+```
+utils/ascat2bed.sh Sample.BAF baf
+utils/ascat2bed.sh Sample.LogR cov
+```
+
+
