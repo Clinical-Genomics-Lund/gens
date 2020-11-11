@@ -12,17 +12,17 @@ This screenshot shows an 8 Kbp deletion (known polymorphism). Sorry about the bo
 
 Gens requires python 3.5 or later and mongodb. For testing/development purposes the easiest way to install it is to create a virtual environment:
 
-```
-$ git clone https://github.com/Clinical-Genomics-Lund/Gens.git
-$ cd Gens
-$ virtualenv -p python3 venv
-$ source venv/bin/activate
-$ pip install -r requirements.txt
+``` bash
+git clone https://github.com/Clinical-Genomics-Lund/Gens.git
+cd Gens
+virtualenv -p python3 venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 Start the application using:
-```
-$ export FLASK_APP=gens.py && flask run
+``` bash
+export FLASK_APP=gens.py && flask run
 ```
 
 Make sure the application is running by loading http://127.0.0.1:5000/ in your web browser.
@@ -38,31 +38,31 @@ We are using the GATK4 workflow for normalizing the read depth data. It is descr
 ### Create PON
 
 Create targets file:
-```
-gatk PreprocessIntervals \
-     --reference GRCh38.fa \
-     --bin-length 100 \
-     --interval-merging-rule OVERLAPPING_ONLY \
+``` bash
+gatk PreprocessIntervals                            \
+     --reference GRCh38.fa                          \
+     --bin-length 100                               \
+     --interval-merging-rule OVERLAPPING_ONLY       \
      -O targets_preprocessed_100bp.interval_list
 ```
 
 Build a panel of normals (PON). First run this command for all bam files that you want to include in the PON. We have one PON for males and one for females. We have approx. 100 individuals of each sex in the PONs, but less should be fine.
-```
-gatk CollectReadCounts \
-    -I sample1.bam \
-    -L targets_preprocessed_100bp_bins.interval_list \
-    --interval-merging-rule OVERLAPPING_ONLY \
+``` bash
+gatk CollectReadCounts                                  \
+    -I sample1.bam                                      \
+    -L targets_preprocessed_100bp_bins.interval_list    \
+    --interval-merging-rule OVERLAPPING_ONLY            \
     -O hdf5/sample1.hdf5
 ```
 
 Then build the PON. This is fairly memory intensive, so make sure you have enough memory and adjust the -Xmx if necessary.
-```
+``` bash
 gatk --java-options "-Xmx120000m" CreateReadCountPanelOfNormals \
-     --minimum-interval-median-percentile 10.0 \
-     --maximum-chunk-size 29349635 \
-     -O male_pon_100bp.hdf5 \
-     -I hdf5/sample1.hdf5 \
-     -I hdf5/sample2.hdf5 \
+     --minimum-interval-median-percentile 10.0                  \
+     --maximum-chunk-size 29349635                              \
+     -O male_pon_100bp.hdf5                                     \
+     -I hdf5/sample1.hdf5                                       \
+     -I hdf5/sample2.hdf5                                       \
      ...
      -I hdf5/sample99.hdf5
 ```
@@ -71,15 +71,15 @@ gatk --java-options "-Xmx120000m" CreateReadCountPanelOfNormals \
 
 Then in your pipeline. Use these commands to count and normalize the data of a sample:
 
-```
-gatk CollectReadCounts \
+``` bash
+gatk CollectReadCounts                                              \
     -I subject.bam -L targets_preprocessed_100bp_bins.interval_list \
     --interval-merging-rule OVERLAPPING_ONLY -O subject.hdf5
                                                                                                                                             
-gatk --java-options "-Xmx30g" DenoiseReadCounts \\                                                                                  
-    -I subject.hdf5 --count-panel-of-normals male_pon_100bp.hdf5 \\                                                                      
-    --standardized-copy-ratios subject.standardizedCR.tsv \\                                                                      
-    --denoised-copy-ratios subject.denoisedCR.tsv                                                                                 
+gatk --java-options "-Xmx30g" DenoiseReadCounts                     \
+    -I subject.hdf5 --count-panel-of-normals male_pon_100bp.hdf5    \
+    --standardized-copy-ratios subject.standardizedCR.tsv           \
+    --denoised-copy-ratios subject.denoisedCR.tsv
 ```
 
 ### Generate BAF data
@@ -90,7 +90,7 @@ It is possible to use the GATK tools to create BAF data as well, but we've found
 
 Once you have the standardized coverage file from GATK and a gVCF you can create Gens formatted data files using the command below. The script should accept any properly formatted gVCF but only output from GATK HaplotypeCaller and Sentieon DNAscope have been tested.
 
-```
+``` bash
 utils/generate_gens_data.pl subject.standardizedCR.tsv subject.gvcf SAMPLE_ID gnomad_hg38.0.05.txt.gz
 ```
 
