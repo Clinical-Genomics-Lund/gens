@@ -3,6 +3,8 @@
 Whole genome visualization of BAF and log2 ratio
 '''
 
+import logging
+from logging.config import dictConfig
 import re
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import namedtuple
@@ -13,6 +15,26 @@ from pymongo import MongoClient
 import pysam
 import config
 import os
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+    }
+)
+LOG = logging.getLogger(__name__)
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -50,7 +72,7 @@ def gens_view(sample_name):
     Expects sample_id as input to be able to load the sample data
     '''
     if not sample_name:
-        print('No sample requested')
+        LOG.error('No sample requested')
         abort(404)
 
     # Set whether to get HG37 och HG38 files
@@ -58,10 +80,10 @@ def gens_view(sample_name):
 
     # Check that BAF and Log2 file exists
     if not path.exists(hg_filedir + sample_name + BAF_END):
-        print('BAF file not found')
+        LOG.error('BAF file not found')
         abort(404)
     if not path.exists(hg_filedir + sample_name + COV_END):
-        print('Log2 file not found')
+        LOG.error('Log2 file not found')
         abort(404)
 
     # Fetch and parse region
@@ -107,7 +129,7 @@ def get_coverage():
     # Parse region
     parsed_region = parse_region_str(req.region)
     if not parsed_region:
-        print('No parsed region')
+        LOG.error('No parsed region')
         return abort(416)
 
     # Set values that are needed to convert coordinates to screen coordinates
@@ -123,7 +145,7 @@ def get_coverage():
                                              new_start_pos, x_ampl)
 
     if not new_start_pos and not log2_records and not baf_records:
-        print('No records')
+        LOG.error('No records')
         return abort(404)
 
     return jsonify(data=log2_records, baf=baf_records, status="ok",
@@ -156,7 +178,7 @@ def get_transcript_data():
     res, chrom, start_pos, end_pos = parse_region_str(region)
 
     if region is None:
-        print('Could not find transcript in database')
+        LOG.error('Could not find transcript in database')
         return abort(404)
 
     # Do not show transcripts at 'a'-resolution
@@ -212,7 +234,7 @@ def get_annotation_data():
     collapsed = request.args.get('collapsed', None)
 
     if region is None or source is None:
-        print('Could not find annotation data in DB')
+        LOG.error('Could not find annotation data in DB')
         return abort(404)
 
     res, chrom, start_pos, end_pos = parse_region_str(region)
@@ -302,7 +324,7 @@ def get_chrom_width(chrom, full_plot_width):
     if chrom_data:
         return full_plot_width * float(chrom_data['scale'])
 
-    print('Chromosome width not available')
+    LOG.warning('Chromosome width not available')
     return None
 
 def parse_region_str(region):
@@ -322,7 +344,7 @@ def parse_region_str(region):
             # or gene
             name_search = region
     except ValueError:
-        print('Wrong region formatting')
+        LOG.error('Wrong region formatting')
         return None
 
     hg_type = request.args.get('hg_type', '38')
@@ -347,7 +369,7 @@ def parse_region_str(region):
                 start = start['start']
                 end = end['end']
             else:
-                print('Did not find range for gene name')
+                LOG.warning('Did not find range for gene name')
                 return None
 
     # Get end position
@@ -355,7 +377,7 @@ def parse_region_str(region):
     chrom_data = collection.find_one({'chrom': chrom})
 
     if chrom_data is None:
-        print('Could not find chromosome data in DB')
+        LOG.warning('Could not find chromosome data in DB')
         return None
 
     # Set end position if it is not set
@@ -367,7 +389,7 @@ def parse_region_str(region):
     size = end - start
 
     if size <= 0:
-        print('Invalid input span')
+        LOG.error('Invalid input span')
         return None
 
     # Cap end to maximum range value for given chromosome
@@ -399,7 +421,7 @@ def tabix_query(filename, res, chrom, start=None, end=None):
     try:
         records = tb.fetch(res+"_"+chrom, start, end)
     except ValueError as e:
-        print(e)
+        LOG.error(e)
         records = []
 
     return [r.split("\t") for r in records]
@@ -499,7 +521,7 @@ def load_data(reg, new_start_pos, new_end_pos):
                                 new_start_pos, new_end_pos)
 
     if not log2_list and not baf_list:
-        print('Data for chromosome {} not available'.format(reg.chrom))
+        LOG.info('Data for chromosome {} not available'.format(reg.chrom))
         return abort(Response('Data for chromosome {} not available'.format(reg.chrom)))
 
     return log2_list, baf_list, new_start_pos
@@ -564,12 +586,12 @@ def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
     for chrom in CHROMOSOMES:
         chrom_width = get_chrom_width(chrom, full_plot_width)
         if chrom_width is None:
-            print('Could not find chromosome data in DB')
+            LOG.warning('Could not find chromosome data in DB')
             return None
 
         chrom_data = collection.find_one({'chrom': chrom})
         if chrom_data is None:
-            print('Could not find chromosome data in DB')
+            LOG.warning('Could not find chromosome data in DB')
             return None
 
         chrom_dims[chrom] = ({'x_pos': x_pos, 'y_pos': y_pos,
