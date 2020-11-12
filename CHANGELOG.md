@@ -10,6 +10,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Added Change log document
 ### Changed
  - Added description on how to use the containerized version of Gens
+### Fixed
+ - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
 
 ## [1.0.0]
 ### Added

@@ -114,7 +114,7 @@ class UpdateTranscripts:
 
             # Bulk update transcripts with features
             for transcript_id in features:
-                self.temp_collection.update(
+                self.temp_collection.update_one(
                     {'transcript_id': transcript_id},
                     {'$set': {'features': features[transcript_id]}}
                 )
