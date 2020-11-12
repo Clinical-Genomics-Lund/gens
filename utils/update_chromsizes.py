@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Write cromosome sizes to database
 '''
@@ -6,8 +6,10 @@ Write cromosome sizes to database
 import csv
 import argparse
 from pymongo import MongoClient
+import os
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient(host=os.environ.get('MONGO_HOST', '10.0.224.63'),
+                     port=os.environ.get('MONGO_PORT', 27017))
 GENS_DB = CLIENT['gens']
 
 class UpdateChromosomeSizes:

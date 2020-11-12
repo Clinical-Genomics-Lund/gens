@@ -1,0 +1,42 @@
+##
+# Gens
+#
+# @file
+# @version 0.1
+
+.DEFAULT_GOAL := help
+.PHONY: build run init prune logs help 
+
+build:    ## Build new images
+	docker-compose build
+init:    ## Initialize scout database
+	echo "Download Gene annotation & MANE files"
+	curl --silent --output ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.gtf.gz
+	gzip -df ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz
+	curl --silent --output ./volumes/gens/data/MANE.GRCh38.v0.92.summary.txt.gz ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.92/MANE.GRCh38.v0.92.summary.txt.gz
+	gzip -df ./volumes/gens/data/MANE.GRCh38.v0.92.summary.txt.gz
+	echo "Populate Gens database"
+	docker-compose run gens ./utils/update_chromsizes.py --file ./utils/chrom_sizes38.tsv
+	docker-compose run gens ./utils/update_transcripts.py --file /home/worker/data/Homo_sapiens.GRCh38.101.gtf --mane /home/worker/data/MANE.GRCh38.v0.92.summary.txt
+up:    ## Run Scout software
+	docker-compose up --detach
+down:    ## Take down Scout software
+	docker-compose down --volumes
+bash:    ## Remove dangling images, volumes and used data
+	docker-compose up --detach
+	docker-compose exec gens /bin/bash
+prune:    ## Remove dangling images, volumes and used data
+	docker-compose down --remove-orphans
+	rm -rf volumes/{mongodb,gens}/data/*
+	docker images prune
+SERVICE := 'all'
+logs:    ## Show logs for SERVICE, default all
+ifeq ($(SERVICE), 'all')
+	docker-compose logs --follow
+else
+	docker-compose logs --follow $(SERVICE)
+endif
+help:    ## Show this help.
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+# end

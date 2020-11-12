@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Write transcripts to DB
 '''
@@ -8,8 +8,10 @@ import argparse
 from functools import cmp_to_key
 from pymongo import MongoClient, ASCENDING
 from gtfparse import read_gtf
+import os
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient(host=os.environ.get('MONGO_HOST', '10.0.224.63'),
+                     port=os.environ.get('MONGO_PORT', 27017))
 GENS_DB = CLIENT['gens']
 
 class UpdateTranscripts:
@@ -112,7 +114,7 @@ class UpdateTranscripts:
 
             # Bulk update transcripts with features
             for transcript_id in features:
-                self.temp_collection.update(
+                self.temp_collection.update_one(
                     {'transcript_id': transcript_id},
                     {'$set': {'features': features[transcript_id]}}
                 )
