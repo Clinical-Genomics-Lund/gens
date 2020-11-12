@@ -79,11 +79,13 @@ def gens_view(sample_name):
     hg_filedir, hg_type = get_hg_type()
 
     # Check that BAF and Log2 file exists
-    if not path.exists(hg_filedir + sample_name + BAF_END):
-        LOG.error('BAF file not found')
+    baf_path = path.join(hg_filedir, sample_name + BAF_END)
+    if not path.exists(baf_path):
+        LOG.error(f'BAF file not found, expected: {baf_path}')
         abort(404)
-    if not path.exists(hg_filedir + sample_name + COV_END):
-        LOG.error('Log2 file not found')
+    cov_path = path.join(hg_filedir, sample_name + COV_END)
+    if not path.exists(cov_path):
+        LOG.error('Log2 file not found, expected: {cov_path}')
         abort(404)
 
     # Fetch and parse region
