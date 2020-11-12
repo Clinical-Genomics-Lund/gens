@@ -8,3 +8,8 @@ utils/MANE.GRCh38.v0.8.summary.txt
 utils/hg38_annotations/
 venv/
 config.py
+
+# docker volumes
+volumes/*/data/*
+!volumes/gens/data/.gitkeep
+!volumes/mongodb/data/.gitkeep
