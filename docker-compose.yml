@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    volumes:
+      - ./volumes/mongodb/data:/data/db
+    networks:
+      - gens-net
+  gens:
+    build: .
+    volumes:
+      - ./utils:/home/worker/app/utils
+      - ./gens.py:/home/worker/app/gens.py
+      - ./templates:/home/worker/app/templates
+      - ./static:/home/worker/app/static
+    environment:
+      - FLASK_ENV=development
+    ports:
+      - "5003:5000"
+    networks:
+      - gens-net
+    depends_on:
+      - mongodb
+    command: "flask run --host 0.0.0.0"
+networks:
+  gens-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/24
