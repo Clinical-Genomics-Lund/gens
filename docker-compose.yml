@@ -13,8 +13,10 @@ services:
       - ./gens.py:/home/worker/app/gens.py
       - ./templates:/home/worker/app/templates
       - ./static:/home/worker/app/static
+      - ./volumes/gens/data:/home/worker/data
     environment:
       - FLASK_ENV=development
+      - MONGO_HOST=mongodb
     ports:
       - "5003:5000"
     networks:

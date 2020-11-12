@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Parses files into mongo database
 '''
@@ -8,8 +8,10 @@ import argparse
 import os
 import glob
 from pymongo import MongoClient, ASCENDING
+import os
 
-CLIENT = MongoClient('10.0.224.63', 27017)
+CLIENT = MongoClient(host=os.environ.get('MONGO_HOST', '10.0.224.63'),
+                     port=os.environ.get('MONGO_PORT', 27017))
 GENS_DB = CLIENT['gens']
 
 class UpdateAnnotations:

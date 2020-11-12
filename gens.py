@@ -12,11 +12,14 @@ from flask import Flask, request, render_template, jsonify, abort, Response
 from pymongo import MongoClient
 import pysam
 import config
+import os
 
 APP = Flask(__name__)
 APP.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-CLIENT = MongoClient(config.mongo["host"], config.mongo["port"])
+
+CLIENT = MongoClient(host=os.environ.get('MONGO_HOST', '10.0.224.63'),
+                     port=os.environ.get('MONGO_PORT', 27017))
 GENS_DB = CLIENT['gens']
 
 GRAPH = namedtuple('graph', ('baf_ampl', 'log2_ampl', 'baf_ypos', 'log2_ypos'))
