@@ -14,6 +14,7 @@ services:
       - ./templates:/home/worker/app/templates
       - ./static:/home/worker/app/static
       - ./volumes/gens/data:/home/worker/data
+      - /media/isilon/backup_hopper/results/wgs:/access/wgs
     environment:
       - FLASK_ENV=development
       - MONGO_HOST=mongodb

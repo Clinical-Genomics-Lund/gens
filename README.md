@@ -31,15 +31,23 @@ Finally you need to populate the databases with chromosome sizes and gene/transc
 
 ### Docker image
 
-A simple demo and development instance of Gens can be launched either with the command `docker-compose run -d` or `make up`. It only require Docker to be installed. The first time you start Gens run `make init` to populate the database with chromosome size and transcripts.
+A simple demo and development instance of Gens can be launched either with the command `docker-compose run -d` or `make up`. It only require Docker to be installed. The first time you start Gens run `make init` to populate the database with chromosome size and transcripts. Gens requires access to a directory where the `xxx.baf.bed.gz` and `xxx.cov.bed.gz` files are stored. This can be achived by mounting the directory to `/access/wgs`, see sample docker-compose below.
 
-The repository contains a Makefile with common docker-compose shortcuts for interacting with the containerized Gens app. To see the full list of shortcuts use the command `Make help`.
+``` yaml
+services:
+  gens:
+    volumes:
+      - /media/isilon/backup_hopper/results/wgs:/access/wgs  # /path/on/host:/path/inside/container
+```
+
+The repository contains a Makefile with common docker-compose shortcuts for interacting with the containerized Gens app. To see the full list of shortcuts use the command `make help`.
 
 The dockerized app consists of 2 containers, the Gens app and a lightweight mongodb instance.
 
 Once the server has started you can open the app in your web browser at [http://localhost:5003](http://localhost:5003).
 
 To stop the instance use the command `docker-compose down`.
+
 
 ## Data generation
 
