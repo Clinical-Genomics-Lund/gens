@@ -25,9 +25,21 @@ Start the application using:
 export FLASK_APP=gens.py && flask run
 ```
 
-Make sure the application is running by loading http://127.0.0.1:5000/ in your web browser.
+Make sure the application is running by loading http://localhost:5000/ in your web browser.
 
-Finally you need to populate the databases with chromosome sizes and gene/transcript data using the scripts **utils/update_chromsizes.py** and **utils/update_transcripts.py**. (TODO: Add more details here!)
+Finally you need to populate the databases with chromosome sizes and gene/transcript data using the scripts `utils/update_chromsizes.py` and `utils/update_transcripts.py`. (TODO: Add more details here!)
+
+### Docker image
+
+A simple demo and development instance of Gens can be launched either with the command `docker-compose run -d` or `make up`. It only require Docker to be installed. The first time you start Gens run `make init` to populate the database with chromosome size and transcripts.
+
+The repository contains a Makefile with common docker-compose shortcuts for interacting with the containerized Gens app. To see the full list of shortcuts use the command `Make help`.
+
+The dockerized app consists of 2 containers, the Gens app and a lightweight mongodb instance.
+
+Once the server has started you can open the app in your web browser at [http://localhost:5003](http://localhost:5003).
+
+To stop the instance use the command `docker-compose down`.
 
 ## Data generation
 
