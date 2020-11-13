@@ -1,0 +1,17 @@
+# git
+.git
+.github
+.gitattributes
+.gitignore
+
+# python
+*.egg-info
+__pycache__
+tests
+
+# containers
+Dockerfile
+docker-compose.yml
+
+# volumes
+volumes
