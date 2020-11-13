@@ -22,7 +22,6 @@ RUN apt-get update &&                                   \
     rm -rf /var/lib/apt/lists/*
 
 USER worker
-
-ENV FLASK_APP gens.py
+ENV FLASK_APP="gens"
 
 EXPOSE 5000
