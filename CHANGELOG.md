@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
  - Runnable Gens development environment in docker
  - Added Change log document
+ - Development dependancies
 ### Changed
  - Added description on how to use the containerized version of Gens
  - Replaced print statements with logging to stderr
