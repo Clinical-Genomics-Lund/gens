@@ -9,9 +9,13 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Runnable Gens development environment in docker
  - Added Change log document
  - Development dependancies
+ - Set default annotation file with annotation="name" url argument
+ - Github action to enforce the use of a changelog
 ### Changed
  - Added description on how to use the containerized version of Gens
  - Replaced print statements with logging to stderr
+ - Refactored Gens as a python package
+ - Updated `start.sh` to work with packaged Gens
 ### Fixed
  - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
 
