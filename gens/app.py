@@ -12,13 +12,16 @@ from os import path, walk
 from subprocess import PIPE, CalledProcessError, Popen
 
 import pysam
-from flask import (Flask, Response, abort, current_app, jsonify,
-                   render_template, request)
+from flask import Flask, Response, abort, current_app, jsonify, render_template, request
 from pymongo import MongoClient
 
 from .__version__ import VERSION as version
-from .graph import (overview_chrom_dimensions, parse_region_str,
-                    set_graph_values, set_region_values)
+from .graph import (
+    overview_chrom_dimensions,
+    parse_region_str,
+    set_graph_values,
+    set_region_values,
+)
 from .io import BAF_SUFFIX, COV_SUFFIX, convert_data, load_data
 from .utils import dir_last_updated, get_hg_type
 
@@ -78,8 +81,7 @@ def create_app(test_config=None):
 
     @app.route("/")
     def gens_welcome():
-        return render_template('home.html',
-                               version=version)
+        return render_template("home.html", version=version)
 
     @app.route("/", defaults={"sample_name": ""})
     @app.route("/<path:sample_name>", methods=["GET"])
