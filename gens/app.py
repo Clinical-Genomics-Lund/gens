@@ -103,7 +103,7 @@ def create_app(test_config=None):
             abort(404)
         cov_path = path.join(hg_filedir, sample_name + COV_SUFFIX)
         if not path.exists(cov_path):
-            LOG.error("Log2 file not found, expected: {cov_path}")
+            LOG.error(f"Log2 file not found, expected: {cov_path}")
             abort(404)
 
         # Fetch and parse region
@@ -120,6 +120,9 @@ def create_app(test_config=None):
 
         _, chrom, start_pos, end_pos = parsed_region
 
+        # get annotation track
+        annotation = request.args.get("annotation")
+
         return render_template(
             "gens.html",
             chrom=chrom,
@@ -131,6 +134,7 @@ def create_app(test_config=None):
             hg_filedir=hg_filedir,
             print_page=print_page,
             todays_date=date.today(),
+            annotation=annotation,
         )
 
     @app.route("/_getcoverage", methods=["GET"])

@@ -100,8 +100,9 @@
 
     // FLASK values
     const sampleName = '{{ sample_name }}';
-    const hgType = {{hg_type}}
-    const hgFileDir = '{{hg_filedir}}'
+    const hgType = {{hg_type}};
+    const hgFileDir = '{{ hg_filedir }}';
+    const annotationFile = '{{ annotation }}';
 
     // WEBGL values
     const near = 0.1;
@@ -132,7 +133,7 @@
     tc.drawTracks(inputField.value);
 
     // Initiate and draw annotation canvas
-    let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType);
+    let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
 
     // Initiate and draw overview canvas
     let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
