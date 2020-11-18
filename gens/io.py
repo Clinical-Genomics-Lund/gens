@@ -3,7 +3,7 @@ import logging
 import os
 
 import pysam
-from flask import request
+from flask import Response, abort, request
 
 from .graph import get_chrom_size
 
