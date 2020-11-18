@@ -8,8 +8,10 @@ import re
 from collections import namedtuple
 from datetime import date
 from logging.config import dictConfig
-from os import path, walk
+from os import walk
+from .io import _get_filepath
 from subprocess import PIPE, CalledProcessError, Popen
+import json
 
 import pysam
 from flask import Flask, Response, abort, current_app, jsonify, render_template, request
@@ -121,11 +123,25 @@ def create_app(test_config=None):
 
         _, chrom, start_pos, end_pos = parsed_region
 
+        # get variants to display
+        variants = request.args.get("variants")
+        if not variants:
+            LOG.warning('Using default variant, remove before PR')
+            variants = [
+                {'variant_id': '1234', 'type': 'deletion', 'score': 2,
+                 'chromosome': 1, 'start': 64000, 'end': 66500,
+                 'region': 'intronic', 'function': 'intron_variant'},
+                {'variant_id': '3242', 'type': 'duplication', 'score': 14,
+                 'chromosome': 1, 'start': 67700, 'end': 71000,
+                 'region': 'intronic', 'function': 'intron_variant'},
+                        ]
+
         # get annotation track
         annotation = request.args.get("annotation")
 
         return render_template(
             "gens.html",
+            ui_colors=app.config['UI_COLORS'],
             chrom=chrom,
             start=start_pos,
             end=end_pos,
@@ -136,6 +152,7 @@ def create_app(test_config=None):
             print_page=print_page,
             todays_date=date.today(),
             annotation=annotation,
+            variants=variants,
         )
 
     @app.route("/_getcoverage", methods=["GET"])

@@ -342,6 +342,7 @@ class InteractiveCanvas {
 
     // Draw new tracks and annotations
     tc.drawTracks(this.inputField.value);
+    vc.drawTracks(this.inputField.value);
     ac.drawTracks(this.inputField.value);
   }
 
