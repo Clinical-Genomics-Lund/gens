@@ -68,17 +68,19 @@ def create_app(test_config=None):
 
     # configure app
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
-    client = MongoClient(
-        host=os.environ.get("MONGODB_HOST", "10.0.224.63"),
-        port=os.environ.get("MONGODB_PORT", 27017),
-    )
-    app.config["DB"] = client["gens"]
     app.config.from_object("gens.config")
     if os.environ.get("GENS_CONFIG") is None:
         LOG.warning("No user configuration set, set path with $GENS_CONFIG variable")
     else:
         app.config.from_envvar("GENS_CONFIG")
+    # connect to mongo client
+    client = MongoClient(
+        host=os.environ.get("MONGODB_HOST", app.config['MONGODB_HOST']),
+        port=os.environ.get("MONGODB_PORT", app.config['MONGODB_PORT']),
+    )
+    app.config["DB"] = client["gens"]
 
+    # define views
     @app.route("/")
     def gens_welcome():
         return render_template("home.html", version=version)
