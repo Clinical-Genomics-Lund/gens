@@ -1,4 +1,7 @@
 """Functions for loading and converting data."""
+import logging
+import os
+
 import pysam
 from flask import request
 
@@ -8,9 +11,18 @@ BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
 
 
-import logging
 
 LOG = logging.getLogger(__name__)
+
+
+def _get_filepath(*args, check=True):
+    """Utility function to get file paths with logs."""
+    path = os.path.join(*args)
+    if not os.path.isfile(path) and check:
+        msg = f'File not found: {path}'
+        LOG.error(msg)
+        raise FileNotFoundError(msg)
+    return path
 
 
 def load_data(reg, new_start_pos, new_end_pos):
@@ -24,7 +36,7 @@ def load_data(reg, new_start_pos, new_end_pos):
 
     # Fetch data with the defined range
     log2_list = tabix_query(
-        hg_filedir + sample_name + COV_SUFFIX,
+        _get_filepath(hg_filedir, sample_name + COV_SUFFIX),
         reg.res,
         reg.chrom,
         new_start_pos,
@@ -32,7 +44,7 @@ def load_data(reg, new_start_pos, new_end_pos):
     )
 
     baf_list = tabix_query(
-        hg_filedir + sample_name + BAF_SUFFIX,
+        _get_filepath(hg_filedir, sample_name + BAF_SUFFIX),
         reg.res,
         reg.chrom,
         new_start_pos,

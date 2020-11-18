@@ -99,13 +99,10 @@ def create_app(test_config=None):
             hg_filedir, hg_type = get_hg_type()
 
         # Check that BAF and Log2 file exists
-        baf_path = path.join(hg_filedir, sample_name + BAF_SUFFIX)
-        if not path.exists(baf_path):
-            LOG.error(f"BAF file not found, expected: {baf_path}")
-            abort(404)
-        cov_path = path.join(hg_filedir, sample_name + COV_SUFFIX)
-        if not path.exists(cov_path):
-            LOG.error(f"Log2 file not found, expected: {cov_path}")
+        try:
+            _get_filepath(hg_filedir, sample_name + BAF_SUFFIX)
+            _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
+        except FileNotFoundError:
             abort(404)
 
         # Fetch and parse region
