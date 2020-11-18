@@ -1,10 +1,10 @@
 class Transcript extends Track {
-  constructor (x, width, near, far, hgType) {
+  constructor (x, width, near, far, hgType, colorSchema) {
     // Dimensions of track canvas
     const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35; // Minimized height
 
-    super(width, near, far, visibleHeight, minHeight);
+    super(width, near, far, visibleHeight, minHeight, colorSchema);
 
     // Set inherited variables
     this.trackCanvas = document.getElementById('track-canvas');
@@ -51,7 +51,7 @@ class Transcript extends Track {
         const mane = track['mane']
         const refseqID = track['refseq_id']
         const hgncID = track['hgnc_id']
-        const color = strand == '+' ? 'blue' : 'red';
+        const color = strand == '+' ? this.colorSchema['strand_pos'] : this.colorSchema['strand_neg'];
         const canvasYPos = this.tracksYPos(height_order);
 
         // Only draw visible tracks

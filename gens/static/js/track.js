@@ -1,5 +1,5 @@
 class Track {
-  constructor (width, near, far, visibleHeight, minHeight) {
+  constructor (width, near, far, visibleHeight, minHeight, colorSchema) {
     // Track variables
     this.featureHeight = 20; // Max height for feature
     this.featureMargin = 14; // Margin for fitting gene name under track
@@ -10,6 +10,7 @@ class Track {
     this.arrowDistance = 200;
     this.arrowThickness = 1;
     this.expanded = false;
+    this.colorSchema = colorSchema;
 
     // Dimensions of track canvas
     this.width = width; // Width of canvas
@@ -129,6 +130,9 @@ class Track {
 
   // Draw a line from xStart to xStop at yPos
   drawLine (xStart, xStop, yPos, color) {
+    if (![xStart, xStop, yPos].every(n => typeof(n) == 'number')) {
+      throw `Invalid coordinates start: ${xStart}, stop: ${xStop}, yPos: ${yPos}; Cant draw line`
+    }
     this.trackContext.save();
     this.trackContext.strokeStyle = color;
     this.trackContext.lineWidth = 2;

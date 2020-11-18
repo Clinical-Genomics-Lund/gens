@@ -103,6 +103,7 @@
     const hgType = {{hg_type}};
     const hgFileDir = '{{ hg_filedir }}';
     const annotationFile = '{{ annotation }}';
+    const UiColors = {{ ui_colors | tojson | safe }};
 
     // WEBGL values
     const near = 0.1;
@@ -129,7 +130,7 @@
     ic.drawInteractiveContent();
 
     // Initiate and draw track canvas
-    let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType);
+    let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
     tc.drawTracks(inputField.value);
 
     // Initiate and draw annotation canvas
