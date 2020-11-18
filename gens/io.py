@@ -11,7 +11,6 @@ BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
 
 
-
 LOG = logging.getLogger(__name__)
 
 
@@ -19,7 +18,7 @@ def _get_filepath(*args, check=True):
     """Utility function to get file paths with logs."""
     path = os.path.join(*args)
     if not os.path.isfile(path) and check:
-        msg = f'File not found: {path}'
+        msg = f"File not found: {path}"
         LOG.error(msg)
         raise FileNotFoundError(msg)
     return path

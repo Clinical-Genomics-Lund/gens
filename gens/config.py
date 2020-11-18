@@ -3,5 +3,7 @@ MONGODB_PORT = 27017
 HG19_PATH = "/access/wgs/"
 HG38_PATH = "/access/wgs"
 # Colors for the UI
-UI_COLORS = {'variants': {'deletion': '#55a868', 'duplication': '#dd8452'},
-             'transcripts': {'strand_pos': '#4c72b0', 'strand_neg': '#c44e52'}}
+UI_COLORS = {
+    "variants": {"deletion": "#55a868", "duplication": "#dd8452"},
+    "transcripts": {"strand_pos": "#4c72b0", "strand_neg": "#c44e52"},
+}

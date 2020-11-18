@@ -77,8 +77,8 @@ def create_app(test_config=None):
         app.config.from_envvar("GENS_CONFIG")
     # connect to mongo client
     client = MongoClient(
-        host=os.environ.get("MONGODB_HOST", app.config['MONGODB_HOST']),
-        port=os.environ.get("MONGODB_PORT", app.config['MONGODB_PORT']),
+        host=os.environ.get("MONGODB_HOST", app.config["MONGODB_HOST"]),
+        port=os.environ.get("MONGODB_PORT", app.config["MONGODB_PORT"]),
     )
     app.config["DB"] = client["gens"]
 
@@ -126,22 +126,36 @@ def create_app(test_config=None):
         # get variants to display
         variants = request.args.get("variants")
         if not variants:
-            LOG.warning('Using default variant, remove before PR')
+            LOG.warning("Using default variant, remove before PR")
             variants = [
-                {'variant_id': '1234', 'type': 'deletion', 'score': 2,
-                 'chromosome': 1, 'start': 64000, 'end': 66500,
-                 'region': 'intronic', 'function': 'intron_variant'},
-                {'variant_id': '3242', 'type': 'duplication', 'score': 14,
-                 'chromosome': 1, 'start': 67700, 'end': 71000,
-                 'region': 'intronic', 'function': 'intron_variant'},
-                        ]
+                {
+                    "variant_id": "1234",
+                    "type": "deletion",
+                    "score": 2,
+                    "chromosome": 1,
+                    "start": 64000,
+                    "end": 66500,
+                    "region": "intronic",
+                    "function": "intron_variant",
+                },
+                {
+                    "variant_id": "3242",
+                    "type": "duplication",
+                    "score": 14,
+                    "chromosome": 1,
+                    "start": 67700,
+                    "end": 71000,
+                    "region": "intronic",
+                    "function": "intron_variant",
+                },
+            ]
 
         # get annotation track
         annotation = request.args.get("annotation")
 
         return render_template(
             "gens.html",
-            ui_colors=app.config['UI_COLORS'],
+            ui_colors=app.config["UI_COLORS"],
             chrom=chrom,
             start=start_pos,
             end=end_pos,
