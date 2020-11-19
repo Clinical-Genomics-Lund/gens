@@ -30,6 +30,7 @@ from .utils import dir_last_updated, get_hg_type
 dictConfig(
     {
         "version": 1,
+        "disable_existing_loggers": False,
         "formatters": {
             "default": {
                 "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
@@ -108,6 +109,8 @@ def create_app(test_config=None):
             _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
         except FileNotFoundError:
             abort(404)
+        else:
+            LOG.info(f'Found BAF and COV files for {sample_name}')
 
         # Fetch and parse region
         region = request.args.get("region", None)
