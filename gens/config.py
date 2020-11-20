@@ -1,7 +1,7 @@
 MONGODB_HOST = "mongodb"
 MONGODB_PORT = 27017
-HG19_PATH = "/access/wgs/hg19"
-HG38_PATH = "/access/wgs/hg38"
+HG19_PATH = "/access/wgs/plotdata"
+HG38_PATH = "/access/wgs/plot_data"
 # Colors for the UI
 UI_COLORS = {
     "variants": {"deletion": "#55a868", "duplication": "#dd8452"},
