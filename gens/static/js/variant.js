@@ -53,7 +53,7 @@ class Variant extends Track {
     // Draw track
     for (let i = 0; i < variants.length; i++) {
       const track = variants[i];
-      const variantId = 'Fool';
+      const variantId = track['variant_id'];
       const chrom = track['chromosome'];
       const type = track['type'];
       const score = track['score'];
@@ -98,7 +98,7 @@ class Variant extends Track {
         textYPos + this.featureHeight, textSize, latest_name_end);
 
       // Set tooltip text
-      let variantText = `${variantId}\n` +
+      let variantText = `Id: ${variantId}\n` +
                         `Position: ${chrom}:${start}-${end}\n` +
                         `Type: type${type}\n` +
                         `Function: ${variantFunction}\n`;
