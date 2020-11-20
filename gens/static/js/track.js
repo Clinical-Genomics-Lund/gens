@@ -129,16 +129,55 @@ class Track {
   }
 
   // Draw a line from xStart to xStop at yPos
-  drawLine (xStart, xStop, yPos, color) {
+  drawLine (xStart, xStop, yPos, lineWidth=2, color) {
     if (![xStart, xStop, yPos].every(n => typeof(n) == 'number')) {
       throw `Invalid coordinates start: ${xStart}, stop: ${xStop}, yPos: ${yPos}; Cant draw line`
     }
     this.trackContext.save();
     this.trackContext.strokeStyle = color;
-    this.trackContext.lineWidth = 2;
+    this.trackContext.lineWidth = lineWidth;
     this.trackContext.beginPath();
     this.trackContext.moveTo(xStart, yPos);
     this.trackContext.lineTo(xStop, yPos);
+    this.trackContext.stroke();
+    this.trackContext.restore();
+  }
+
+  // Draw a wave line from xStart to xStop at yPos where yPos is top left of the line.
+  // Pattern is drawn by incrementing pointer by a half wave length and plot either
+  // upward (/) or downward (\) line.
+  // if the end is trunctated a partial wave is plotted.
+  drawWaveLine (xStart, xStop, yPos, height, lineWidth=2, color) {
+    if (![xStart, xStop, yPos, height].every(n => typeof(n) == 'number')) {
+      throw `Invalid coordinates start: ${xStart}, stop: ${xStop}, yPos: ${yPos}; Cant draw line`
+    }
+    this.trackContext.save();
+    this.trackContext.strokeStyle = color;
+    this.trackContext.lineWidth = lineWidth;
+    this.trackContext.beginPath();
+    console.log(`Start pos: ${xStart}, ${yPos}`)
+    console.log(`Move pointer to: ${xStart}, ${yPos}`)
+    this.trackContext.moveTo(xStart, yPos);  // begin at bottom left
+    const waveLength = 2 * (height / Math.tan(45));
+    const lineLength = xStop - xStart + 1;
+    console.log(`Height: ${height}; WaveLength: ${waveLength}; Line len: ${lineLength}`)
+    // plot whole wave pattern
+    let midline = yPos - height / 2 // middle of line
+    let lastXpos = xStart;
+    for (let i = 0; i < Math.floor(lineLength / (waveLength / 2)); i++){
+      lastXpos += waveLength / 2;
+      height *= -1  // reverse sign
+      console.log(`Draw line to: ${lastXpos}, ${midline - height / 2}`)
+      this.trackContext.lineTo(lastXpos, midline + height / 2); // move up
+    }
+    // plot partial wave patterns
+    const partialWaveLength = lineLength % (waveLength / 2);
+    if (partialWaveLength != 0) {
+      height *= -1  // reverse sign
+      let partialWaveHeight = partialWaveLength * Math.tan(45);
+      console.log(`Partial wave: ${partialWaveHeight}; Height: ${height}`)
+      this.trackContext.lineTo(xStop, yPos - Math.sign(height) * partialWaveHeight);
+    }
     this.trackContext.stroke();
     this.trackContext.restore();
   }
@@ -156,7 +195,7 @@ class Track {
   // Draw arrows for a segment
   drawArrows(start, stop, yPos, direction, color) {
     // Calculate width of a segment to draw the arrow in
-    const width = stop - start
+    const width = stop - start;
     if (width < this.arrowWidth) {
       // Arrow does not fit, do nothing
       return;

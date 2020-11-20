@@ -50,7 +50,7 @@ class Variant extends Track {
     this.clearTracks();
 
 
-    // Test draw symbols
+    // Draw track
     for (let i = 0; i < variants.length; i++) {
       const track = variants[i];
       const variantId = 'Fool';
@@ -82,8 +82,14 @@ class Variant extends Track {
         latestTrackEnd = 0;
       }
 
-      this.drawLine(scale * (start - startPos),
-        scale * (end - startPos), canvasYPos, color);
+      // Draw motif line
+      if (type == 'deletion') {
+        const waveHeight = 7;
+        this.drawWaveLine(scale * (start - startPos), scale * (end - startPos), canvasYPos + waveHeight / 2, waveHeight, color);
+      } else {
+        this.drawLine(scale * (start - startPos), scale * (end - startPos), canvasYPos + 4, color);
+        this.drawLine(scale * (start - startPos), scale * (end - startPos), canvasYPos, color);
+      }
 
       // Draw variant type
       const textYPos = this.tracksYPos(heightOrder);
