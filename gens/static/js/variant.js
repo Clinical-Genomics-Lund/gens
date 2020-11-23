@@ -25,14 +25,14 @@ class Variant extends Track {
   drawTracks (region) {
     // parse region
     let selectedChrom, startPos, endPos;
-    let regionMatch = region.match('(.+):([0-9]+)-([0-9]+)')
+    let regionMatch = region.match('(.+):([0-9]+)-([0-9]+|None)')
     if ( regionMatch != null ) {
       selectedChrom = regionMatch[1];
       startPos = Number(regionMatch[2]);
-      endPos = Number(regionMatch[3]);
+      endPos = regionMatch[3] != 'None' ? Number(regionMatch[3]) : null;
     } else {
-      console.log(`Bad region format: {region}`);
-      throw `Bad region format: {region}`;
+      console.log(`Bad region format: ${region}`);
+      throw `Bad region format: ${region}`;
     }
 
     const scale = this.trackCanvas.width / (endPos - startPos);
