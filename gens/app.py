@@ -4,19 +4,16 @@ Whole genome visualization of BAF and log2 ratio
 
 import logging
 import os
-import re
 from collections import namedtuple
 from datetime import date
 from logging.config import dictConfig
-from os import walk
 from .io import _get_filepath
-from subprocess import PIPE, CalledProcessError, Popen
-import json
+from flask import Flask, abort, jsonify, render_template, request
+from flask_debugtoolbar import DebugToolbarExtension
 
-import pysam
-from flask import Flask, Response, abort, current_app, jsonify, render_template, request
 from pymongo import MongoClient
 
+from .cache import cache
 from .__version__ import VERSION as version
 from .graph import (
     overview_chrom_dimensions,
@@ -27,6 +24,7 @@ from .graph import (
 from .io import BAF_SUFFIX, COV_SUFFIX, convert_data, load_data
 from .utils import dir_last_updated, get_hg_type
 
+toolbar = DebugToolbarExtension()
 dictConfig(
     {
         "version": 1,
@@ -66,9 +64,7 @@ REQUEST = namedtuple(
 
 def create_app(test_config=None):
     """Create and setup Gens application."""
-
     app = Flask(__name__)
-
     # configure app
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
     app.config.from_object("gens.config")
@@ -81,15 +77,21 @@ def create_app(test_config=None):
         host=os.environ.get("MONGODB_HOST", app.config["MONGODB_HOST"]),
         port=os.environ.get("MONGODB_PORT", app.config["MONGODB_PORT"]),
     )
+    app.config["DEBUG"] = True
+    app.config['SECRET_KEY'] = 'pass'
+    app.config['DEBUG_TB_PROFILER_ENABLED'] = 'pass'
     app.config["DB"] = client["gens"]
+    cache.init_app(app)
 
     # define views
     @app.route("/")
     def gens_welcome():
-        return render_template("home.html", version=version)
+        #return render_template("home.html", version=version)
+        return request.environ.get('SERVER_PROTOCOL')
 
     @app.route("/", defaults={"sample_name": ""})
     @app.route("/<path:sample_name>", methods=["GET"])
+    @cache.cached(timeout=60)
     def gens_view(sample_name):
         """
         Renders the Gens template
@@ -439,5 +441,4 @@ def create_app(test_config=None):
         collection = app.config["DB"]["annotations"]
         sources = collection.distinct("source", {"hg_type": hg_type})
         return jsonify(status="ok", sources=sources)
-
     return app

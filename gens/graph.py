@@ -4,6 +4,7 @@ from collections import namedtuple
 
 from flask import current_app as app
 from flask import request
+from .cache import cache
 
 LOG = logging.getLogger(__name__)
 
@@ -119,6 +120,7 @@ def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
     return chrom_dims
 
 
+@cache.memoize(50)
 def parse_region_str(region):
     """
     Parses a region string

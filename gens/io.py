@@ -1,11 +1,14 @@
 """Functions for loading and converting data."""
 import logging
 import os
+import itertools
+from fractions import Fraction
 
 import pysam
 from flask import Response, abort, request
 
 from .graph import get_chrom_size
+from .cache import cache
 
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
@@ -24,6 +27,7 @@ def _get_filepath(*args, check=True):
     return path
 
 
+@cache.memoize(0)
 def load_data(reg, new_start_pos, new_end_pos):
     """
     Loads data for Log2 and BAF
@@ -57,6 +61,7 @@ def load_data(reg, new_start_pos, new_end_pos):
     return log2_list, baf_list, new_start_pos
 
 
+@cache.memoize(120)
 def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
     """
     Converts data for Log2 ratio and BAF to screen coordinates
@@ -99,7 +104,7 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, x_ampl):
     return log2_records, baf_records
 
 
-def tabix_query(filename, res, chrom, start=None, end=None):
+def tabix_query(filename, res, chrom, start=None, end=None, reduce=.01):
     """
     Call tabix and generate an array of strings for each line it returns.
     """
@@ -111,12 +116,18 @@ def tabix_query(filename, res, chrom, start=None, end=None):
     # Get data from bed file
     tb = pysam.TabixFile(filename)
     try:
-        records = tb.fetch(res + "_" + chrom, start, end)
+        record_name = f"{res}_{chrom}"
+        LOG.info(f"Query {filename}; {record_name} {start} {end}")
+        records = tb.fetch(record_name, start, end)
     except ValueError as e:
         LOG.error(e)
         records = []
 
-    return [r.split("\t") for r in records]
+    if reduce is not None:
+        n_true, tot = Fraction(reduce).limit_denominator(1000).as_integer_ratio()
+        cmap = itertools.cycle([1] * n_true + [0] * (tot - n_true))
+        records = itertools.compress(records, cmap)
+    return [r.split('\t') for r in records]
 
     # OLD METHOD
     # values = []
