@@ -5,18 +5,19 @@
   {{ super() }}
 {% endblock css_style %}
 {% block scripts %}
-    {{ super() }}
-    <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/genecanvas.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/interactive.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/track.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/transcript.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/variant.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/annotation.js') }}?u={{ last_updated }}'></script>
-    <script src='{{ url_for('static', filename='js/overview.js') }}?u={{ last_updated }}'></script>
+  {{ super() }}
+	{% assets "js_gens" %}
+    <script type="text/javascript" src='{{ ASSET_URL }}?u={{ last_updated }}'></script>
+	{% endassets %}
 {% endblock scripts %}
 {% block body %}
-<div id='progress-container'>
+<div class="loading-view">
+    <div class="loading-container">
+        <p class="message">Loading sample</p>
+        <div class="spinner"></div>
+    </div>
+</div>
+<div id='progress-container' hidden>
     <span class='print-icon print' id='print-progress'></span>
     <progress value="0" max="1" id='progress-bar'></progress>
 </div>

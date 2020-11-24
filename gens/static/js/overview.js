@@ -91,7 +91,7 @@ class OverviewCanvas {
     this.staticCanvas.addEventListener('mousemove', (event) => {
       if (this.drag && this.dragStart != event.x) {
         this.markerElem.style.left  = 1+Math.min(event.x, this.dragStart)+"px";
-        this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px"; 
+        this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px";
       }
     });
 
@@ -143,9 +143,6 @@ class OverviewCanvas {
     let _this = this;
   }
 
-
-
-
   pixelPosToGenomicLoc(pixelpos) {
     let match = {}
     for(const i of this.chromosomes) {
@@ -181,101 +178,110 @@ class OverviewCanvas {
   }
 
 
-  drawOverviewContent (printing) {
-    let drawnChrom = 0; // Amount of async drawn chromosomes
-
+  drawOverviewContent(printing) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y,
       full_plot_width: this.fullPlotWidth,
-    }).done( (result) => {
+    }).done((result) => {
       let dims = result['chrom_dims'];
-      for (let i = 0; i < this.chromosomes.length; i++) {
-        let chrom = this.chromosomes[i];
-        // Draw data
-        $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
-          region: chrom + ':0-None',
+      // make index of chromosome screen positions
+      const chrom_pos = this.chromosomes.reduce(
+        (o, chrom) => (
+          {
+            ...o, [chrom]: {
+              xpos: dims[chrom]['x_pos'] + this.leftRightPadding,
+              ypos: dims[chrom]['y_pos'],
+              x_ampl: dims[chrom]['width'] - 2 * this.leftRightPadding,
+            }
+          }), {}
+      );
+      // make a single request with all chromosome positions
+      $.ajax({
+        type: "POST",
+        url: $SCRIPT_ROOT + '/_getcoverages',
+        contentType: 'application/json',
+        data: JSON.stringify({
           sample_name: this.sampleName,
           hg_type: this.hgType,
           hg_filedir: this.hgFileDir,
-          xpos: dims[chrom]['x_pos'] + this.leftRightPadding,
-          ypos: dims[chrom]['y_pos'],
           plot_height: this.plotHeight,
+          chromosome_pos: chrom_pos,
           top_bottom_padding: this.topBottomPadding,
-          x_ampl: dims[chrom]['width'] - 2 * this.leftRightPadding,
           baf_y_start: this.baf.yStart,
           baf_y_end: this.baf.yEnd,
           log2_y_start: this.log2.yStart,
           log2_y_end: this.log2.yEnd,
-          overview: 'True'
-        }, (result) => {
-          let staticCanvas = document.getElementById('overview-static');
-          chrom = result['chrom']
-          let width = dims[chrom]['width']
+          overview: 'True',
+          reduce_data: 0.01
+        }),
+        success: (covData) => {
+          const staticCanvas = document.getElementById('overview-static');
+          const chromSubset = Object.keys(covData['results']); // get chromosome in subset
+          for (let i = 0; i < chromSubset.length; i++) {
+            const chrom = chromSubset[i];
+            const width = dims[chrom]['width'];
+            const chromCovData = covData['results'][chrom];
 
-          // Draw chromosome title
-          drawText(staticCanvas,
-            result['x_pos'] - this.leftRightPadding + width / 2,
-            result['y_pos'] - this.titleMargin,
-            result['chrom'], 10, 'center');
+            // Draw chromosome title
+            drawText(staticCanvas,
+              chromCovData['x_pos'] - this.leftRightPadding + width / 2,
+              chromCovData['y_pos'] - this.titleMargin,
+              chromCovData['chrom'], 10, 'center');
 
-          // Draw rotated y-axis legends
-          if (result['x_pos'] < this.leftmostPoint) {
-            drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, result['x_pos'] - this.legendMargin,
-              result['y_pos'] + this.plotHeight / 2, -Math.PI / 2, this.titleColor);
-            drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, result['x_pos'] - this.legendMargin,
-              result['y_pos'] + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
-          }
-
-          // Draw BAF
-          createGraph(this.scene, staticCanvas,
-            result['x_pos'] - this.leftRightPadding,
-            result['y_pos'], width, this.plotHeight, this.topBottomPadding,
-            this.baf.yStart, this.baf.yEnd, this.baf.step,
-            result['x_pos'] < this.leftmostPoint, this.borderColor, i!=0);
-          drawGraphLines(this.scene, result['x_pos'], result['y_pos'],
-            this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
-            width, this.plotHeight);
-
-          // Draw Log 2 ratio
-          createGraph(this.scene, staticCanvas,
-            result['x_pos'] - this.leftRightPadding,
-            result['y_pos'] + this.plotHeight, width,
-            this.plotHeight, this.topBottomPadding, this.log2.yStart,
-            this.log2.yEnd, this.log2.step,
-            result['x_pos'] < this.leftmostPoint, this.borderColor, i!=0);
-          drawGraphLines(this.scene, result['x_pos'],
-            result['y_pos'] + this.plotHeight, this.log2.yStart,
-            this.log2.yEnd, this.log2.step, this.topBottomPadding,
-            width, this.plotHeight);
-
-          // Plot scatter data
-          drawData(this.scene, result['baf'], this.baf.color);
-          drawData(this.scene, result['data'], this.log2.color);
-        }).done( (result) =>  {
-          if (++drawnChrom === this.numChrom) {
-            // Render scene and transfer to visible canvas
-            this.renderer.render(this.scene, this.camera);
-            this.staticCanvas.getContext('2d').drawImage(
-              this.drawCanvas.transferToImageBitmap(), 0, 0);
-            document.getElementById('progress-bar').remove();
-            document.getElementById('progress-container').remove();
-            document.getElementById('grid-container').style.visibility =
-              'visible';
-            document.getElementById('grid-container').style.display = 'grid';
-            if (printing == true) {
-              printPage();
+            // Draw rotated y-axis legends
+            if (chromCovData['x_pos'] < this.leftmostPoint) {
+              drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, chromCovData['x_pos'] - this.legendMargin,
+                chromCovData['y_pos'] + this.plotHeight / 2, -Math.PI / 2, this.titleColor);
+              drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, chromCovData['x_pos'] - this.legendMargin,
+                chromCovData['y_pos'] + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
             }
-          } else {
-            document.getElementById('progress-bar').value =
-              drawnChrom / this.numChrom;
+
+            // Draw BAF
+            createGraph(this.scene, staticCanvas,
+              chromCovData['x_pos'] - this.leftRightPadding,
+              chromCovData['y_pos'], width, this.plotHeight, this.topBottomPadding,
+              this.baf.yStart, this.baf.yEnd, this.baf.step,
+              chromCovData['x_pos'] < this.leftmostPoint, this.borderColor, i != 0);
+            drawGraphLines(this.scene, chromCovData['x_pos'], result['y_pos'],
+              this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
+              width, this.plotHeight);
+
+            // Draw Log 2 ratio
+            createGraph(this.scene, staticCanvas,
+              chromCovData['x_pos'] - this.leftRightPadding,
+              chromCovData['y_pos'] + this.plotHeight, width,
+              this.plotHeight, this.topBottomPadding, this.log2.yStart,
+              this.log2.yEnd, this.log2.step,
+              chromCovData['x_pos'] < this.leftmostPoint, this.borderColor, i != 0);
+            drawGraphLines(this.scene, chromCovData['x_pos'],
+              chromCovData['y_pos'] + this.plotHeight, this.log2.yStart,
+              this.log2.yEnd, this.log2.step, this.topBottomPadding,
+              width, this.plotHeight);
+
+            // Plot scatter data
+            drawData(this.scene, chromCovData['baf'], this.baf.color);
+            drawData(this.scene, chromCovData['data'], this.log2.color)
           }
-        }).fail( (result) => {
-          console.log(result['responseText']);
-          drawnChrom++;
-        });
-      }
+        },
+        dataType: 'json',
+      }).done(() => {
+        // Render scene and transfer to visible canvas
+        this.renderer.render(this.scene, this.camera);
+        this.staticCanvas.getContext('2d').drawImage(
+          this.drawCanvas.transferToImageBitmap(), 0, 0);
+        document.querySelector('.loading-view').toggleAttribute('hidden');
+        document.querySelector('#grid-container').style.visibility =
+          'visible';
+        document.querySelector('#grid-container').style.display = 'grid';
+        if (printing == true) {
+          printPage();
+        }
+      }).fail((result) => {
+        console.log(result['responseText']);
+        //window.location.href = "/404"
+      });
     });
   }
 }
