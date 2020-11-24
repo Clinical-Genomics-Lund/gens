@@ -132,7 +132,7 @@ class OverviewCanvas {
           ic.end = startLoc.pos;
         }
 
-        // Update marked region before redrawing (makes thinks look snappier)
+        // Update marked region before redrawing (makes things look snappier)
         this.markRegion(ic.chromosome, ic.start, ic.end);
 
         // Finally update the interactive region
@@ -159,23 +159,25 @@ class OverviewCanvas {
   }
 
   markRegion(chrom, start, end) {
-    let scale = this.dims[chrom]['width'] / this.dims[chrom]['size'];
-    let overviewMarker = document.getElementById('overview-marker');
+    if ( this.dims != null ) {
+      let scale = this.dims[chrom]['width'] / this.dims[chrom]['size'];
+      let overviewMarker = document.getElementById('overview-marker');
 
-    let markerStartPos, markerWidth;
-    // Calculate position and size of marker
-    if( (end-start)*scale < 2 ) {
-      markerStartPos = 1+(this.dims[chrom]['x_pos']+start*scale);
-      markerWidth = 2;
-    }
-    else{
-      markerStartPos = 1.5+(this.dims[chrom]['x_pos']+start*scale);
-      markerWidth = Math.max(2,Math.ceil((end-start)*scale)-1);
-    }
+      let markerStartPos, markerWidth;
+      // Calculate position and size of marker
+      if( (end-start)*scale < 2 ) {
+        markerStartPos = 1+(this.dims[chrom]['x_pos']+start*scale);
+        markerWidth = 2;
+      }
+      else{
+        markerStartPos = 1.5+(this.dims[chrom]['x_pos']+start*scale);
+        markerWidth = Math.max(2,Math.ceil((end-start)*scale)-1);
+      }
 
-    // Update the dom element
-    overviewMarker.style.left = markerStartPos+"px";
-    overviewMarker.style.width = (markerWidth)+"px";
+      // Update the dom element
+      overviewMarker.style.left = markerStartPos+"px";
+      overviewMarker.style.width = (markerWidth)+"px";
+    }
   }
 
 
