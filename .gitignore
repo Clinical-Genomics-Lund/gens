@@ -1,15 +1,16 @@
 *~
 \#*
 *.pyc
+.mypy_cache
 deploy.sh
 utils/Homo_sapiens.GRCh37.87.gtf
 utils/Homo_sapiens.GRCh38.99.gtf
 utils/MANE.GRCh38.v0.8.summary.txt
 utils/hg38_annotations/
 venv/
-config.py
 
 # docker volumes
 volumes/*/data/*
+volumes/*/wgs/*
 !volumes/gens/data/.gitkeep
 !volumes/mongodb/data/.gitkeep
