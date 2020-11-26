@@ -1,3 +1,9 @@
+// Define global colors
+$menubar-font-color: #fff;
+$menubar-bg-color: grey;
+$default-font-color: #000;
+$default-bg-color: white;
+
 html, body {
     max-width: 100%;
     min-height: 100%;
@@ -31,7 +37,7 @@ html, body {
     box-sizing: border-box;
     padding-top: 210px;
     z-index: 10;
-    background-color:#fff8;
+    background-color:white;
 }
 
 .header {
@@ -177,7 +183,7 @@ span.print-icon {
 #overview-marker {
     pointer-events:none;
     position:relative;
-    background-color:#ABD6;
+    background-color:lightblue;
 }
 
 .info-container[data-state=nodata] {
@@ -351,4 +357,56 @@ span#info {
     #button-container {
         page-break-after: always;
     }
+}
+
+.loading-view {
+    $black: #000;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    grid-row: 1;
+    grid-column: 1;
+    background-color: $default-bg-color;
+    .loading-container {
+        position: relative;
+        top: 30%;
+        margin: auto;
+        display: flex;
+        width: 190px;
+        padding: 10px;
+        justify-content: center;
+        align-items: center;
+    }
+    .message {
+        font: italic 1.2em sans-serif;
+        padding-right: 12px;
+        color: $default-font-color;
+        flex: 1;
+    }
+    .spinner {
+        border-top: 3px solid rgba($black, 0.5);
+        border-right: 3px solid transparent;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin .8s linear infinite;
+    }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.content {
+    font-style: sans-serif;
+    padding-left: 10px;
+    h1 {
+        margin: 2px;
+        font-size: 1.5em;
+    }
+
+    p { margin: 2px 2px 10px 0px;}
+
+    .version { font-weight: bold;}
 }
