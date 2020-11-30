@@ -11,13 +11,15 @@ from flask import Flask, abort, jsonify, render_template, request
 from flask_debugtoolbar import DebugToolbarExtension
 from pymongo import MongoClient
 
-from flask_assets import Bundle, Environment
-
 from .__version__ import VERSION as version
 from .cache import cache
 from .exceptions import NoRecordsException, RegionParserException
-from .graph import (REQUEST, get_overview_cov, overview_chrom_dimensions,
-                    parse_region_str)
+from .graph import (
+    REQUEST,
+    get_overview_cov,
+    overview_chrom_dimensions,
+    parse_region_str,
+)
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath, get_tabix_files
 from .utils import dir_last_updated, get_hg_type
 
@@ -43,22 +45,12 @@ dictConfig(
 )
 LOG = logging.getLogger(__name__)
 
+
 def create_app(test_config=None):
     """Create and setup Gens application."""
     app = Flask(__name__)
-    # register static asset bundels
-    assets = Environment(app)
-    js = Bundle('js/jquery-3.1.1.min.js', 'js/three.min.js', 'js/genecanvas.js',
-                'js/track.js', 'js/interactive.js', 'js/overview.js',
-                'js/annotation.js', 'js/transcript.js', 'js/variant.js',
-               filters='jsmin', output='generated_assets/gens.min.js')
-    scss = Bundle('css/gens.scss', filters='pyscss',
-                  output='generated_assets/gens.min.css')
-    assets.register('js_gens', js)
-    assets.register('css_gens', scss)
     # configure app
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
-    app.config["ASSETS_DEBUG"] = True
     app.config.from_object("gens.config")
     if os.environ.get("GENS_CONFIG") is None:
         LOG.warning("No user configuration set, set path with $GENS_CONFIG variable")
@@ -70,8 +62,8 @@ def create_app(test_config=None):
         port=os.environ.get("MONGODB_PORT", app.config["MONGODB_PORT"]),
     )
     app.config["DEBUG"] = True
-    app.config['SECRET_KEY'] = 'pass'
-    app.config['DEBUG_TB_PROFILER_ENABLED'] = 'pass'
+    app.config["SECRET_KEY"] = "pass"
+    app.config["DEBUG_TB_PROFILER_ENABLED"] = "pass"
     app.config["DB"] = client["gens"]
     cache.init_app(app)
 
@@ -103,7 +95,7 @@ def create_app(test_config=None):
         except FileNotFoundError:
             abort(404)
         else:
-            LOG.info(f'Found BAF and COV files for {sample_name}')
+            LOG.info(f"Found BAF and COV files for {sample_name}")
 
         # Fetch and parse region
         region = request.args.get("region", None)
@@ -172,29 +164,34 @@ def create_app(test_config=None):
         data = request.get_json()
         LOG.info(f'Got request for all chromosome coverages: {data["sample_name"]}')
 
-        sample_name = data['sample_name']
-        cov_file, baf_file = get_tabix_files(sample_name, data['hg_filedir'])
+        sample_name = data["sample_name"]
+        cov_file, baf_file = get_tabix_files(sample_name, data["hg_filedir"])
         # open tabix filehandles
         results = {}
         for chrom, pos in data["chromosome_pos"].items():
             # Set some input values
             req = REQUEST(
-                f'{chrom}:0-None',
-                pos['xpos'],
-                pos['ypos'],
-                data['plot_height'],
-                data['top_bottom_padding'],
-                data['baf_y_start'],
-                data['baf_y_end'],
-                data['log2_y_start'],
-                data['log2_y_end'],
-                data['hg_type'],
+                f"{chrom}:0-None",
+                pos["xpos"],
+                pos["ypos"],
+                data["plot_height"],
+                data["top_bottom_padding"],
+                data["baf_y_start"],
+                data["baf_y_end"],
+                data["log2_y_start"],
+                data["log2_y_end"],
+                data["hg_type"],
                 data["reduce_data"],
             )
 
             try:
                 with app.app_context():
-                    reg, log2_rec, baf_rec = get_overview_cov(req, baf_file, cov_file, pos['x_ampl'],)
+                    reg, log2_rec, baf_rec = get_overview_cov(
+                        req,
+                        baf_file,
+                        cov_file,
+                        pos["x_ampl"],
+                    )
             except RegionParserException as err:
                 LOG.error(f"{type(err).__name__} - {err}")
                 return abort(416)
@@ -207,19 +204,18 @@ def create_app(test_config=None):
                 return abort(500)
 
             results[chrom] = {
-                'data': log2_rec,
-                'baf': baf_rec,
-                'chrom': reg.chrom,
-                'x_pos': round(req.x_pos),
-                'y_pos': round(req.y_pos),
-                'start': reg.start_pos,
-                'end': reg.end_pos,
+                "data": log2_rec,
+                "baf": baf_rec,
+                "chrom": reg.chrom,
+                "x_pos": round(req.x_pos),
+                "y_pos": round(req.y_pos),
+                "start": reg.start_pos,
+                "end": reg.end_pos,
             }
         return jsonify(
             results=results,
             status="ok",
         )
-
 
     @app.route("/_getcoverage", methods=["GET"])
     def get_coverage():
@@ -228,7 +224,7 @@ def create_app(test_config=None):
         Returns the coverage in screen coordinates for frontend rendering
         """
         # Validate input
-        for arg in ['sample_name', 'hg_filedir']:
+        for arg in ["sample_name", "hg_filedir"]:
             if request.args.get(arg) is None:
                 LOG.error(f"getcoverage - Missing argument: {arg}")
                 return abort(416)
@@ -245,19 +241,22 @@ def create_app(test_config=None):
             float(request.args.get("log2_y_start", 0)),
             float(request.args.get("log2_y_end", 0)),
             int(request.args.get("hg_type", 38)),
-            float(request.args['reduce_data']) if 'reduce_data' in request.args else None,
+            float(request.args["reduce_data"])
+            if "reduce_data" in request.args
+            else None,
         )
         x_ampl = float(request.args.get("x_ampl", 1))
 
         cov_file, baf_file = get_tabix_files(
-            request.args.get('sample_name'),
-            request.args.get('hg_filedir'),
+            request.args.get("sample_name"),
+            request.args.get("hg_filedir"),
         )
         # Parse region
         try:
             with app.app_context():
-                reg, log2_rec, baf_rec = get_overview_cov(req, baf_file,
-                                                          cov_file, x_ampl)
+                reg, log2_rec, baf_rec = get_overview_cov(
+                    req, baf_file, cov_file, x_ampl
+                )
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
             return abort(416)
@@ -290,7 +289,7 @@ def create_app(test_config=None):
         y_pos = float(request.args.get("y_pos", 0))
         full_plot_width = float(request.args.get("full_plot_width", 0))
 
-        LOG.info(f'Get overview chromosome dim: {x_pos}, {y_pos}, {full_plot_width}')
+        LOG.info(f"Get overview chromosome dim: {x_pos}, {y_pos}, {full_plot_width}")
         chrom_dims = overview_chrom_dimensions(x_pos, y_pos, full_plot_width)
 
         return jsonify(status="ok", chrom_dims=chrom_dims)
@@ -481,4 +480,5 @@ def create_app(test_config=None):
         collection = app.config["DB"]["annotations"]
         sources = collection.distinct("source", {"hg_type": hg_type})
         return jsonify(status="ok", sources=sources)
+
     return app

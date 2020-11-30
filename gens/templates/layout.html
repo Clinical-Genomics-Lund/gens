@@ -5,9 +5,7 @@
         <title>GENS - {% block title %}{% endblock title %}</title>
         <link rel='icon' href='data:,'>
         {% block css_style %}
-				  {% assets "css_gens" %}
-					  <link rel='stylesheet' href='{{ ASSET_URL }}' type='text/css'>
-				  {% endassets %}
+					  <link rel='stylesheet' href='{{ url_for('static', filename='css/gens.css') }}' type='text/css'>
         {% endblock css_style %}
         {% block scripts %}
         {% endblock scripts %}

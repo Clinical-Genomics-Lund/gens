@@ -5,11 +5,17 @@
   {{ super() }}
 {% endblock css_style %}
 {% block scripts %}
-  {{ super() }}
-	{% assets "js_gens" %}
-    <script type="text/javascript" src='{{ ASSET_URL }}?u={{ last_updated }}'></script>
-	{% endassets %}
+    <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/track.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/variant.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
 {% endblock scripts %}
+
 {% block body %}
 <div class="loading-view">
     <div class="loading-container">
@@ -21,6 +27,7 @@
 <div id='main-container'>
     <div class="header">
         <div id='left-group'>
+            <p></p>
             <span class='header-icon no-print' id='info'></span>
             <iframe id='info-box'
                 src='{{ url_for('static', filename='snippets/info.html')}}?u={{ last_updated }}'>
@@ -136,25 +143,39 @@
 
 
     // Initiate and draw interactive canvas
+    console.time('get interactive content');
     let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
         sampleName, hgType, hgFileDir);
+    console.timeEnd('get interactive content');
+    console.time('draw static content');
     ic.drawStaticContent();
+    console.timeEnd('draw static content');
+    console.time('draw interactive content');
     ic.drawInteractiveContent();
+    console.timeEnd('draw interactive content');
 
     // Initiate and draw variants canvas
+    console.time('draw variant content');
     let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants']);
+    console.timeEnd('draw variant content');
     vc.drawTracks(inputField.value);
 
     // Initiate and draw track canvas
+    console.time('draw transcript content');
     let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
+    console.timeEnd('draw transcript content');
     tc.drawTracks(inputField.value);
 
     // Initiate and draw annotation canvas
+    console.time('draw annotation content');
     let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
+    console.timeEnd('draw annotation content');
 
     // Initiate and draw overview canvas
+    console.time('draw overview content');
     let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
         far, sampleName, hgType, hgFileDir);
+    console.timeEnd('draw overview content');
     oc.drawOverviewContent(printing);
 
     // Redraw when new region is requested
