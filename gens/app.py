@@ -46,7 +46,7 @@ LOG = logging.getLogger(__name__)
 def create_app(test_config=None):
     """Create and setup Gens application."""
     app = Flask(__name__)
-    # register static assets
+    # register static asset bundels
     assets = Environment(app)
     js = Bundle('js/jquery-3.1.1.min.js', 'js/three.min.js', 'js/genecanvas.js',
                 'js/track.js', 'js/interactive.js', 'js/overview.js',
@@ -162,6 +162,7 @@ def create_app(test_config=None):
             todays_date=date.today(),
             annotation=annotation,
             variants=variants,
+            version=version,
         )
 
     @app.route("/_getcoverages", methods=["POST"])

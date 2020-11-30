@@ -13,13 +13,10 @@
 {% block body %}
 <div class="loading-view">
     <div class="loading-container">
-        <p class="message">Loading sample</p>
+        <p id="loading" class="message">Loading sample</p>
+        <p id="printing" class="message" hidden>Preparing to print</p>
         <div class="spinner"></div>
     </div>
-</div>
-<div id='progress-container' hidden>
-    <span class='print-icon print' id='print-progress'></span>
-    <progress value="0" max="1" id='progress-bar'></progress>
 </div>
 <div id='main-container'>
     <div class="header">
@@ -31,9 +28,11 @@
             <span>{{todays_date}}</span>
         </div>
         <div id='center-group'>
-            <span title='Sample ID'><b>{{sample_name}}</b> (genome build: {{hg_type}})</span>
+            <span class='bold' title='Sample ID'>{{sample_name}}</span>
+            <span class='version'>(Genome build: {{hg_type}})</span>
         </div>
         <div id='right-group'>
+            <span class='version'>Gens v{{ version }}</span>
             <span class='header-icon print no-print'
                 onclick='loadPrintPage(inputField.value);' title='Print'>
             </span>
@@ -102,9 +101,12 @@
     let printing = false;
     if ('{{print_page}}' == 'true') {
         printing = true;
-        document.body.style.width = '1122px';
-        document.body.style.overflowY = 'hidden';
-        document.getElementById('print-progress').style.visibility = 'visible';
+        let mainContainer = document.querySelector('#main-container');
+        mainContainer.style.width = '1122px';
+        mainContainer.style.overflowY = 'hidden';
+        let loading = document.querySelector('.loading-container');
+        loading.querySelector("#loading").toggleAttribute("hidden")
+        loading.querySelector("#printing").toggleAttribute("hidden")
     }
 
     // FLASK values

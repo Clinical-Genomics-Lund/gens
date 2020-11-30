@@ -189,7 +189,7 @@ function drawBox (scene, x, y, width, height, lineWidth, color, open) {
   width = Math.floor(width);
   var coordAxes = new THREE.Geometry();
 
-  // Draw box without left part, to allow stacking boxes 
+  // Draw box without left part, to allow stacking boxes
   // horizontally without getting double lines between them.
   if(open === true) {
     coordAxes.vertices.push(
@@ -198,7 +198,7 @@ function drawBox (scene, x, y, width, height, lineWidth, color, open) {
       new THREE.Vector3(x + width, y + height, 0),
       new THREE.Vector3(x, y + height, 0)
     );
-  // Draw normal 4-sided box  
+  // Draw normal 4-sided box
   } else {
     coordAxes.vertices.push(
       new THREE.Vector3(x, y, 0),
@@ -222,7 +222,8 @@ function numberWithCommas (x) {
 // Reloads page to printable size
 function loadPrintPage(region) {
   let location = window.location.href.replace(/region=.*&/, 'region=' + region + '&');
-  window.location.replace(location + "&print_page=true");
+  location = location.includes('?') ? `${location}&print_page=true` : `${location}?print_page=true`
+  window.location.replace(location);
 }
 
 // Show print prompt and reloads page after print
