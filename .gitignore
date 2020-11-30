@@ -14,3 +14,7 @@ volumes/*/data/*
 volumes/*/wgs/*
 !volumes/gens/data/.gitkeep
 !volumes/mongodb/data/.gitkeep
+
+# generated assets
+.webassets-cache
+generated_assets
