@@ -51,8 +51,9 @@ def create_app(test_config=None):
     js = Bundle('js/jquery-3.1.1.min.js', 'js/three.min.js', 'js/genecanvas.js',
                 'js/track.js', 'js/interactive.js', 'js/overview.js',
                 'js/annotation.js', 'js/transcript.js', 'js/variant.js',
-               filters='jsmin', output='gen/gens_packed.js')
-    scss = Bundle('css/gens.scss', filters='pyscss', output='gen/all.css')
+               filters='jsmin', output='generated_assets/gens.min.js')
+    scss = Bundle('css/gens.scss', filters='pyscss',
+                  output='generated_assets/gens.min.css')
     assets.register('js_gens', js)
     assets.register('css_gens', scss)
     # configure app

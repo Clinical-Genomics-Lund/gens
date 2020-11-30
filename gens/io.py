@@ -2,12 +2,12 @@
 import itertools
 import logging
 import os
+from fractions import Fraction
 
 import pysam
 from flask import Response, abort, request
 
 from .cache import cache
-from fractions import Fraction
 
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
