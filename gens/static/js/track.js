@@ -84,7 +84,7 @@ class Track {
   }
 
   // Draws text underneath a track box
-  drawText(text, xPos, yPos, textHeight, latest_name_end) {
+  async drawText(text, xPos, yPos, textHeight, latest_name_end) {
     this.trackContext.save();
     this.trackContext.font = 'bold ' + textHeight + 'px Arial';
     this.trackContext.fillStyle = 'black';

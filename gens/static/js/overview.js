@@ -178,7 +178,7 @@ class OverviewCanvas {
   }
 
 
-  drawOverviewContent(printing) {
+  async drawOverviewContent(printing) {
     $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
       hg_type: this.hgType,
       x_pos: this.x,

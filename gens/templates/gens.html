@@ -142,41 +142,28 @@
     };
 
 
-    // Initiate and draw interactive canvas
+    // Initiate interactive canvas
     console.time('get interactive content');
     let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
         sampleName, hgType, hgFileDir);
     console.timeEnd('get interactive content');
-    console.time('draw static content');
-    ic.drawStaticContent();
-    console.timeEnd('draw static content');
-    console.time('draw interactive content');
-    ic.drawInteractiveContent();
-    console.timeEnd('draw interactive content');
 
-    // Initiate and draw variants canvas
-    console.time('draw variant content');
+    // Initiate variant, annotation and transcript canvases
     let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants']);
-    console.timeEnd('draw variant content');
-    vc.drawTracks(inputField.value);
-
-    // Initiate and draw track canvas
-    console.time('draw transcript content');
     let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
-    console.timeEnd('draw transcript content');
-    tc.drawTracks(inputField.value);
-
-    // Initiate and draw annotation canvas
-    console.time('draw annotation content');
     let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
-    console.timeEnd('draw annotation content');
-
     // Initiate and draw overview canvas
-    console.time('draw overview content');
     let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
         far, sampleName, hgType, hgFileDir);
-    console.timeEnd('draw overview content');
-    oc.drawOverviewContent(printing);
+
+    // Draw content
+    Promise.all([
+            ic.drawStaticContent(),
+            ic.drawInteractiveContent(),
+            vc.drawTracks(inputField.value),
+            tc.drawTracks(inputField.value),
+            oc.drawOverviewContent(printing),
+        ]);
 
     // Redraw when new region is requested
     document.getElementById('region_form').addEventListener('submit',

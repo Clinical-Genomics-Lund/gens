@@ -194,7 +194,7 @@ class InteractiveCanvas {
   }
 
   // Draw static content for interactive canvas
-  drawStaticContent () {
+  async drawStaticContent () {
     const linePadding = 2;
     const staticContext = this.staticCanvas.getContext('2d');
 
@@ -234,7 +234,7 @@ class InteractiveCanvas {
   }
 
   // Draw values for interactive canvas
-  drawInteractiveContent () {
+  async drawInteractiveContent () {
     this.loadingDiv.style.display = "block";
     console.time("getcoverage");
 
@@ -341,9 +341,11 @@ class InteractiveCanvas {
     this.drawInteractiveContent();
 
     // Draw new tracks and annotations
-    tc.drawTracks(this.inputField.value);
-    vc.drawTracks(this.inputField.value);
-    ac.drawTracks(this.inputField.value);
+    Promise.all([
+      tc.drawTracks(this.inputField.value),
+      vc.drawTracks(this.inputField.value),
+      ac.drawTracks(this.inputField.value),
+    ])
   }
 
   // Key listener for quickly navigating between chromosomes
