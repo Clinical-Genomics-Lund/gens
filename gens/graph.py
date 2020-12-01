@@ -332,7 +332,7 @@ def get_chrom_data(chrom, hg_type=38):
     """
     Gets the size in base pairs of a chromosome
     """
-    chrom_data = app.config["DB"][f"chromsizes{hg_type}"].find_one({"chrom": chrom})
+    chrom_data = app.config["GENS_DB"][f"chromsizes{hg_type}"].find_one({"chrom": chrom})
     if chrom_data is None:
         raise ValueError(f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}")
     return chrom_data
