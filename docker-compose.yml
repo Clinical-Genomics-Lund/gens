@@ -1,30 +1,53 @@
 version: "3.8"
 services:
   mongodb:
+    container_name: mongodb
     image: mongo
     volumes:
       - ./volumes/mongodb/data:/data/db
     networks:
-      - gens-net
+      - scout-net
   gens:
     build: .
     volumes:
       - ./utils:/home/worker/app/utils
       - ./gens:/home/worker/app/gens
       - ./volumes/gens/data:/home/worker/data
-      - /fs1/results/wgs:/access/wgs
+      - ./volumes/gens/wgs:/access/wgs
     environment:
       - FLASK_ENV=development
       - MONGO_HOST=mongodb
+    expose:
+      - '5000'
     ports:
       - "5003:5000"
     networks:
-      - gens-net
+      - scout-net
     depends_on:
       - mongodb
     command: "flask run --host 0.0.0.0"
+  scout:
+    image: clinicalgenomics/scout
+    container_name: scout-web
+    expose:
+      - '5000'
+    ports:
+      - '5000:5000'
+    command: scout --host mongodb serve --host 0.0.0.0
+    networks:
+      - scout-net
+    depends_on:
+      - mongodb
+  scout-cli:
+    image: clinicalgenomics/scout
+    container_name: scout-cli
+    command: scout --host mongodb setup database
+    networks:
+      - scout-net
+    depends_on:
+      - mongodb
 networks:
-  gens-net:
+  scout-net:
     driver: bridge
     ipam:
       driver: default
