@@ -10,6 +10,10 @@
 build:    ## Build new images
 	docker-compose build
 init:    ## Initialize scout database
+	echo "Setup scout database and load demo cases"
+	docker-compose run scout scout --host mongodb setup database --yes
+	docker-compose run scout scout --host mongodb load panel scout/demo/panel_1.txt
+	docker-compose run scout scout --host mongodb load case scout/demo/643594.config.yaml
 	echo "Download Gene annotation & MANE files"
 	curl --silent --output ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.gtf.gz
 	gzip -df ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz
