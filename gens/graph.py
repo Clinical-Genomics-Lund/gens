@@ -181,7 +181,7 @@ def parse_region_str(region):
             chrom = name_search.upper()
         else:
             # Lookup queried gene
-            collection = app.config["DB"]["transcripts" + hg_type]
+            collection = app.config["GENS_DB"]["transcripts" + hg_type]
             start = collection.find_one(
                 {
                     "gene_name": re.compile(

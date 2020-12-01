@@ -9,17 +9,13 @@ from logging.config import dictConfig
 import pysam
 from flask import Flask, abort, jsonify, render_template, request
 from flask_debugtoolbar import DebugToolbarExtension
-from pymongo import MongoClient
-
+nn
+from .db import init_database, query_records_in_region, RecordType
 from .__version__ import VERSION as version
 from .cache import cache
 from .exceptions import NoRecordsException, RegionParserException
-from .graph import (
-    REQUEST,
-    get_overview_cov,
-    overview_chrom_dimensions,
-    parse_region_str,
-)
+from .graph import (REQUEST, get_overview_cov, overview_chrom_dimensions,
+                    parse_region_str)
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath, get_tabix_files
 from .utils import dir_last_updated, get_hg_type
 
@@ -56,15 +52,12 @@ def create_app(test_config=None):
         LOG.warning("No user configuration set, set path with $GENS_CONFIG variable")
     else:
         app.config.from_envvar("GENS_CONFIG")
+    # initialize database and store db content
+    with app.app_context():
+        init_database()
     # connect to mongo client
-    client = MongoClient(
-        host=os.environ.get("MONGODB_HOST", app.config["MONGODB_HOST"]),
-        port=os.environ.get("MONGODB_PORT", app.config["MONGODB_PORT"]),
-    )
     app.config["DEBUG"] = True
     app.config["SECRET_KEY"] = "pass"
-    app.config["DEBUG_TB_PROFILER_ENABLED"] = "pass"
-    app.config["DB"] = client["gens"]
     cache.init_app(app)
 
     # define views
@@ -105,38 +98,15 @@ def create_app(test_config=None):
 
         # Parse region
         with app.app_context():
-            parsed_region = parse_region_str(region)
+            hg_type = request.args.get("hg_type", "38")
+            parsed_region = parse_region_str(region, hg_type)
         if not parsed_region:
             return abort(416)
 
         _, chrom, start_pos, end_pos = parsed_region
 
-        # get variants to display
-        variants = request.args.get("variants")
-        if not variants:
-            LOG.warning("Using default variant, remove before PR")
-            variants = [
-                {
-                    "variant_id": "1234",
-                    "type": "deletion",
-                    "score": 2,
-                    "chromosome": 1,
-                    "start": 64000,
-                    "end": 66500,
-                    "region": "intronic",
-                    "function": "intron_variant",
-                },
-                {
-                    "variant_id": "3242",
-                    "type": "duplication",
-                    "score": 14,
-                    "chromosome": 1,
-                    "start": 67700,
-                    "end": 71000,
-                    "region": "intronic",
-                    "function": "intron_variant",
-                },
-            ]
+        # which variant to highlight as focused
+        hightlighted_variant = request.args.get("variant")
 
         # get annotation track
         annotation = request.args.get("annotation")
@@ -320,50 +290,15 @@ def create_app(test_config=None):
             )
 
         hg_type = request.args.get("hg_type", "38")
-        collection = app.config["DB"]["transcripts" + hg_type]
+        collection = app.config["GENS_DB"]["transcripts" + hg_type]
 
         # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
-        if collapsed == "true":
-            # Only fetch transcripts with height_order = 1 in collapsed view
-            transcripts = collection.find(
-                {
-                    "chrom": chrom,
-                    "height_order": 1,
-                    "$or": [
-                        {"start": {"$gte": start_pos, "$lte": end_pos}},
-                        {"end": {"$gte": start_pos, "$lte": end_pos}},
-                        {
-                            "$and": [
-                                {"start": {"$lte": start_pos}},
-                                {"end": {"$gte": end_pos}},
-                            ]
-                        },
-                    ],
-                },
-                {"_id": False},
-                sort=[("start", 1)],
-            )
-        else:
-            # Fetch all transcripts
-            transcripts = collection.find(
-                {
-                    "chrom": chrom,
-                    "$or": [
-                        {"start": {"$gte": start_pos, "$lte": end_pos}},
-                        {"end": {"$gte": start_pos, "$lte": end_pos}},
-                        {
-                            "$and": [
-                                {"start": {"$lte": start_pos}},
-                                {"end": {"$gte": end_pos}},
-                            ]
-                        },
-                    ],
-                },
-                {"_id": False},
-                sort=[("height_order", 1), ("start", 1)],
-            )
-        transcripts = list(transcripts)
-
+        transcripts = list(query_records_in_region(record_type=RecordType.TRANSCRIPT,
+                                                   chrom=chrom,
+                                                   start_pos=start_pos,
+                                                   end_pos=end_pos,
+                                                   hg_type=hg_type,
+                                                   height_order=1 if collapsed else None))
         # Calculate maximum height order
         max_height_order = 1
         if transcripts:
@@ -405,55 +340,15 @@ def create_app(test_config=None):
                 end_pos=end_pos,
                 max_height_order=0,
             )
-
-        collection = app.config["DB"]["annotations"]
-
         # Get annotations within span [start_pos, end_pos] or annotations that
         # go over the span
-        if collapsed == "true":
-            # Only fetch annotations with height_order = 1 in collapsed view
-            annotations = collection.find(
-                {
-                    "chrom": chrom,
-                    "source": source,
-                    "hg_type": hg_type,
-                    "height_order": 1,
-                    "$or": [
-                        {"start": {"$gte": start_pos, "$lte": end_pos}},
-                        {"end": {"$gte": start_pos, "$lte": end_pos}},
-                        {
-                            "$and": [
-                                {"start": {"$lte": start_pos}},
-                                {"end": {"$gte": end_pos}},
-                            ]
-                        },
-                    ],
-                },
-                {"_id": False},
-                sort=[("start", 1)],
-            )
-        else:
-            # Fetch all annotations
-            annotations = collection.find(
-                {
-                    "chrom": chrom,
-                    "source": source,
-                    "hg_type": hg_type,
-                    "$or": [
-                        {"start": {"$gte": start_pos, "$lte": end_pos}},
-                        {"end": {"$gte": start_pos, "$lte": end_pos}},
-                        {
-                            "$and": [
-                                {"start": {"$lte": start_pos}},
-                                {"end": {"$gte": end_pos}},
-                            ]
-                        },
-                    ],
-                },
-                {"_id": False},
-                sort=[("height_order", 1), ("start", 1)],
-            )
-        annotations = list(annotations)
+        annotations = list(query_records_in_region(record_type=RecordType.ANNOTATION,
+                                                   chrom=chrom,
+                                                   start_pos=start_pos,
+                                                   end_pos=end_pos,
+                                                   hg_type=hg_type,
+                                                   source=source,
+                                                   height_order=1 if collapsed else None))
 
         # Calculate maximum height order
         if annotations:
@@ -477,7 +372,7 @@ def create_app(test_config=None):
         Returns available annotation source files
         """
         hg_type = request.args.get("hg_type", None)
-        collection = app.config["DB"]["annotations"]
+        collection = app.config["GENS_DB"]["annotations"]
         sources = collection.distinct("source", {"hg_type": hg_type})
         return jsonify(status="ok", sources=sources)
 
