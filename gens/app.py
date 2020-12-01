@@ -124,7 +124,7 @@ def create_app(test_config=None):
             print_page=print_page,
             todays_date=date.today(),
             annotation=annotation,
-            variants=variants,
+            hightlighted_variant=hightlighted_variant,
             version=version,
         )
 
@@ -263,6 +263,16 @@ def create_app(test_config=None):
         chrom_dims = overview_chrom_dimensions(x_pos, y_pos, full_plot_width)
 
         return jsonify(status="ok", chrom_dims=chrom_dims)
+
+    @app.route("/_getvariantdata", methods=['GET'])
+    def get_variant_data():
+        """Search Scout database for variants associated with a case and return info in JSON format."""
+        region = request.args.get("region", None)
+        collapsed = request.args.get("collapsed", None)
+
+        hg_type = request.args.get("hg_type", "38")
+        res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
+
 
     @app.route("/_gettranscriptdata", methods=["GET"])
     def get_transcript_data():

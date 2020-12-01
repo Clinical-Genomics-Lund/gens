@@ -23,24 +23,14 @@ class Variant extends Track {
 
   // Draws variants in given range
   drawTracks (region) {
-    // parse region
-    let selectedChrom, startPos, endPos;
-    let regionMatch = region.match('(.+):([0-9]+)-([0-9]+|None)')
-    if ( regionMatch != null ) {
-      selectedChrom = regionMatch[1];
-      startPos = Number(regionMatch[2]);
-      endPos = regionMatch[3] != 'None' ? Number(regionMatch[3]) : null;
-    } else {
-      console.log(`Bad region format: ${region}`);
-      throw `Bad region format: ${region}`;
-    }
+    $.getJSON($SCRIPT_ROOT + '/_getvariantdata', {
+    }, (queryResult) => {
+      const scale = this.trackCanvas.width / (endPos - startPos);
+      const titleMargin = 2;
+      const textSize = 10;
 
-    const scale = this.trackCanvas.width / (endPos - startPos);
-    const titleMargin = 2;
-    const textSize = 10;
-
-    // Set the needed height
-    this.setContainerHeight(1);
+      // Set needed height of visible canvas and transcript tooltips
+      this.setContainerHeight(result['max_height_order']);
 
     // Keeps track of previous values
     let latest_height = 0; // Latest height order for annotation
@@ -48,7 +38,6 @@ class Variant extends Track {
     let latestTrackEnd = 0; // Latest annotations title's end position
 
     this.clearTracks();
-
 
     // Draw track
     for (let i = 0; i < variants.length; i++) {
@@ -112,5 +101,6 @@ class Variant extends Track {
         this.featureHeight + textSize + 'px',
         0, latestTrackEnd);
     }
+    })
   }
 }
