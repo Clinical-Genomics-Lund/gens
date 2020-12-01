@@ -26,9 +26,10 @@ up:    ## Run Scout software
 	docker-compose up --detach
 down:    ## Take down Scout software
 	docker-compose down --volumes
+SERV = "gens"
 bash:    ## Remove dangling images, volumes and used data
 	docker-compose up --detach
-	docker-compose exec gens /bin/bash
+	docker-compose exec $(SERV) /bin/bash
 prune:    ## Remove dangling images, volumes and used data
 	docker-compose down --remove-orphans
 	rm -rf volumes/{mongodb,gens}/data/*
