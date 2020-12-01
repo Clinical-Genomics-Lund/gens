@@ -1,13 +1,14 @@
 """Functions for getting information from Gens views."""
 import itertools
 import logging
-from collections import namedtuple
 import re
+from collections import namedtuple
 
 from flask import current_app as app
 from flask import request
 
 from .cache import cache
+from .exceptions import NoRecordsException, RegionParserException
 from .io import tabix_query
 
 LOG = logging.getLogger(__name__)
