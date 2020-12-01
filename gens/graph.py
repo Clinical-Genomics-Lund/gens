@@ -2,6 +2,7 @@
 import itertools
 import logging
 from collections import namedtuple
+import re
 
 from flask import current_app as app
 from flask import request
@@ -151,7 +152,7 @@ def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
 
 
 @cache.memoize(50)
-def parse_region_str(region):
+def parse_region_str(region, hg_type):
     """
     Parses a region string
     """
@@ -170,8 +171,6 @@ def parse_region_str(region):
     except ValueError:
         LOG.error("Wrong region formatting")
         return None
-
-    hg_type = request.args.get("hg_type", "38")
 
     if name_search is not None:
         # Query is for a full range chromosome

@@ -273,7 +273,8 @@ def create_app(test_config=None):
         region = request.args.get("region", None)
         collapsed = request.args.get("collapsed", None)
 
-        res, chrom, start_pos, end_pos = parse_region_str(region)
+        hg_type = request.args.get("hg_type", "38")
+        res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
 
         if region is None:
             LOG.error("Could not find transcript in database")
@@ -329,7 +330,8 @@ def create_app(test_config=None):
             LOG.error("Could not find annotation data in DB")
             return abort(404)
 
-        res, chrom, start_pos, end_pos = parse_region_str(region)
+        hg_type = request.args.get("hg_type", "38")
+        res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
 
         # Do not show annotations at 'a'-resolution
         if not res or res == "a":
