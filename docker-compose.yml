@@ -16,7 +16,10 @@ services:
       - ./volumes/gens/wgs:/access/wgs
     environment:
       - FLASK_ENV=development
-      - MONGO_HOST=mongodb
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - SCOUT_DBNAME=scout
+      - GENS_DBNAME=gens
     expose:
       - '5000'
     ports:
