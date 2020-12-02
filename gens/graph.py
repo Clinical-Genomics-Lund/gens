@@ -60,6 +60,7 @@ REQUEST = namedtuple(
     ),
 )
 
+
 @cache.memoize(0)
 def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl):
     """
@@ -103,16 +104,6 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_am
     return log2_records, baf_records
 
 
-def get_chrom_width(chrom, full_plot_width):
-    """
-    Calculates width of chromosome based on its scale factor
-    and input width for the whole plot
-    """
-    hg_type = request.args.get("hg_type", "38")
-    chrom_data = get_chrom_data(chrom, hg_type)
-    return full_plot_width * float(chrom_data["scale"])
-
-
 def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     """
     Returns which chromosome the current position belongs to in the overview graph
@@ -132,15 +123,14 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     return current_chrom
 
 
-def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
+def overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
-    hg_type = request.args.get("hg_type", "38")
     chrom_dims = {}
     for chrom in CHROMOSOMES:
-        chrom_width = get_chrom_width(chrom, full_plot_width)
         chrom_data = get_chrom_data(chrom, hg_type)
+        chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
             "y_pos": y_pos,
@@ -148,7 +138,6 @@ def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
             "size": chrom_data["size"],
         }
         x_pos += chrom_width
-
     return chrom_dims
 
 
@@ -279,20 +268,21 @@ def set_region_values(parsed_region, x_ampl):
         extra_plot_width,
     )
 
+
 def get_overview_cov(req, baf_fh, cov_fh, x_ampl):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
     graph = set_graph_values(req)
     # parse region
-    parsed_region = parse_region_str(req.region)
+    parsed_region = parse_region_str(req.region, req.hg_type)
     if not parsed_region:
-        raise RegionParserException('No parsed region')
+        raise RegionParserException("No parsed region")
 
     # Set values that are needed to convert coordinates to screen coordinates
     reg, new_start_pos, new_end_pos, new_x_ampl, extra_plot_width = set_region_values(
         parsed_region, x_ampl
     )
     # Bound start and end balues to 0-chrom_size
-    end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)['size'])
+    end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)["size"])
     start = max(new_start_pos, 0)
 
     # Load BAF and Log2 data from tabix files
@@ -333,7 +323,11 @@ def get_chrom_data(chrom, hg_type=38):
     """
     Gets the size in base pairs of a chromosome
     """
-    chrom_data = app.config["GENS_DB"][f"chromsizes{hg_type}"].find_one({"chrom": chrom})
+    chrom_data = app.config["GENS_DB"][f"chromsizes{hg_type}"].find_one(
+        {"chrom": chrom}
+    )
     if chrom_data is None:
-        raise ValueError(f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}")
+        raise ValueError(
+            f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}"
+        )
     return chrom_data

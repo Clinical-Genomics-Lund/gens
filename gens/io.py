@@ -5,6 +5,7 @@ import os
 from fractions import Fraction
 
 import pysam
+
 from flask import Response, abort, request
 
 from .cache import cache
@@ -28,7 +29,7 @@ def _get_filepath(*args, check=True):
 
 def get_tabix_files(sample_name, hg_path):
     """Get tabix files for sample."""
-    LOG.info(f'Get tabix names for sample: {sample_name}, path: {hg_path}')
+    LOG.info(f"Get tabix names for sample: {sample_name}, path: {hg_path}")
     cov_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + COV_SUFFIX))
     baf_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + BAF_SUFFIX))
     return cov_file, baf_file
@@ -52,4 +53,4 @@ def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
         n_true, tot = Fraction(reduce).limit_denominator(1000).as_integer_ratio()
         cmap = itertools.cycle([1] * n_true + [0] * (tot - n_true))
         records = itertools.compress(records, cmap)
-    return [r.split('\t') for r in records]
+    return [r.split("\t") for r in records]

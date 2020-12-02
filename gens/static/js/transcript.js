@@ -19,7 +19,7 @@ class Transcript extends Track {
 
   // Draws transcripts in given range
   drawTracks (region) {
-    $.getJSON($SCRIPT_ROOT + '/_gettranscriptdata', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-transcript-data', {
       region: region,
       hg_type: this.hgType,
       collapsed: this.expanded ? false : true

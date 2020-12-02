@@ -68,11 +68,11 @@ class InteractiveCanvas {
     this.dragEnd;
 
     // Get chrosome dimensions
-    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      hg_type: this.hgType,
+    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
       x_pos: this.x,
       y_pos: this.y,
-      full_plot_width: this.fullPlotWidth,
+      plot_width: this.plotWidth,
+      hg_type: this.hgType,
     }).done( (result) => {
       this.dims = result['chrom_dims'];
     });
@@ -238,13 +238,13 @@ class InteractiveCanvas {
     this.loadingDiv.style.display = "block";
     console.time("getcoverage");
 
-    $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-coverage', {
       region: this.inputField.value,
-      sample_name: this.sampleName,
+      case_id: this.sampleName,
       hg_type: this.hgType,
       hg_filedir: this.hgFileDir,
-      xpos: this.extraWidth,
-      ypos: this.y,
+      x_pos: this.extraWidth,
+      y_pos: this.y,
       plot_height: this.plotHeight,
       extra_plot_width: this.extraWidth,
       top_bottom_padding: this.topBottomPadding,

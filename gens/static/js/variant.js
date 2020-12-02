@@ -23,7 +23,10 @@ class Variant extends Track {
 
   // Draws variants in given range
   drawTracks (region) {
-    $.getJSON($SCRIPT_ROOT + '/_getvariantdata', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-variant-data', {
+      region:region,
+      hg_type: this.hgType,
+      collapsed: this.expanded ? false : true,
     }, (queryResult) => {
       const scale = this.trackCanvas.width / (endPos - startPos);
       const titleMargin = 2;

@@ -30,7 +30,7 @@ class Annotation extends Track {
 
   // Fills the list with source files
   annotSourceList (defaultAnntotation='misbrunnr') {
-    $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-annotation-sources', {
       hg_type: this.hgType
     }, (result) => {
       if(result['sources'].length > 0) {
@@ -57,7 +57,7 @@ class Annotation extends Track {
 
   // Draws annotations in given range
   drawTracks (region) {
-    $.getJSON($SCRIPT_ROOT + '/_getannotationdata', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-annotation-data', {
       region: region,
       hg_type: this.hgType,
       source: this.sourceList.value,

@@ -34,6 +34,7 @@ setup(
         "gtfparse>=1.2.0",
         "pysam>=0.15.4",
         "pyyaml",
+        "connexion[swagger-ui]",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "mongomock"],

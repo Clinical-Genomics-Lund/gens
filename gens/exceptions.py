@@ -9,10 +9,6 @@ class DatabaseException(BaseException):
     """Paranet class for database releated errors."""
 
 
-class NoDbResultsException(DatabaseException):
-    """No result in the database."""
-
-
 class GraphException(BaseException):
     """Parent class for graph and coordinate exceptions."""
 

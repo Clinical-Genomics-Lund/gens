@@ -67,12 +67,11 @@ class OverviewCanvas {
     // Set dimensions of overview canvases
     this.staticCanvas.width = this.width;
     this.staticCanvas.height = this.height;
-
-    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      hg_type: this.hgType,
+    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
       x_pos: this.x,
       y_pos: this.y,
-      full_plot_width: this.fullPlotWidth,
+      plot_width: this.fullPlotWidth,
+      hg_type: this.hgType,
     }).done( (result) => {
       this.dims = result['chrom_dims'];
     });
@@ -179,11 +178,11 @@ class OverviewCanvas {
 
 
   async drawOverviewContent(printing) {
-    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
       hg_type: this.hgType,
       x_pos: this.x,
       y_pos: this.y,
-      full_plot_width: this.fullPlotWidth,
+      plot_width: this.fullPlotWidth,
     }).done((result) => {
       let dims = result['chrom_dims'];
       // make index of chromosome screen positions
@@ -200,12 +199,11 @@ class OverviewCanvas {
       // make a single request with all chromosome positions
       $.ajax({
         type: "POST",
-        url: $SCRIPT_ROOT + '/_getcoverages',
+        url: $SCRIPT_ROOT + '/api/get-multiple-coverages',
         contentType: 'application/json',
         data: JSON.stringify({
-          sample_name: this.sampleName,
+          case_id: this.sampleName,
           hg_type: this.hgType,
-          hg_filedir: this.hgFileDir,
           plot_height: this.plotHeight,
           chromosome_pos: chrom_pos,
           top_bottom_padding: this.topBottomPadding,
