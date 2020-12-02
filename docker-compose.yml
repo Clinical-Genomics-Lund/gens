@@ -38,14 +38,6 @@ services:
       - scout-net
     depends_on:
       - mongodb
-  scout-cli:
-    image: clinicalgenomics/scout
-    container_name: scout-cli
-    command: scout --host mongodb setup database
-    networks:
-      - scout-net
-    depends_on:
-      - mongodb
 networks:
   scout-net:
     driver: bridge
