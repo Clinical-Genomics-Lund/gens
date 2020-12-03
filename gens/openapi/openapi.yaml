@@ -23,7 +23,6 @@ paths:
             type: string
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -158,7 +157,6 @@ paths:
             default: 0
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -222,7 +220,6 @@ paths:
             type: string
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -274,7 +271,6 @@ paths:
             type: string
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -320,7 +316,6 @@ paths:
             type: string
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -360,7 +355,6 @@ paths:
       parameters:
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -404,7 +398,6 @@ paths:
             type: number
         - name: hg_type
           in: query
-          description: hg type
           required: true
           schema:
             $ref: '#/components/schemas/HgType'
@@ -426,8 +419,7 @@ components:
   schemas:
     ScreenCoordinate:
       description: Screen coordinate
-      type: integer
-      format: int32
+      type: number
       minimum: 1
     HgType:
       description: hg type
