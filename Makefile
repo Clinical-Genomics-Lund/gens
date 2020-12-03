@@ -5,15 +5,15 @@
 # @version 0.1
 
 .DEFAULT_GOAL := help
-.PHONY: build run init prune logs help 
+.PHONY: build run init prune logs help
 
 build:    ## Build new images
 	docker-compose build
 init:    ## Initialize scout database
 	echo "Setup scout database and load demo cases"
-	docker-compose run scout scout --host mongodb setup database --yes
-	docker-compose run scout scout --host mongodb load panel scout/demo/panel_1.txt
-	docker-compose run scout scout --host mongodb load case scout/demo/643594.config.yaml
+	docker-compose run scout scout --host mongo_db setup database --yes
+	docker-compose run scout scout --host mongo_db load panel scout/demo/panel_1.txt
+	docker-compose run scout scout --host mongo_db load case scout/demo/643594.config.yaml
 	echo "Download Gene annotation & MANE files"
 	curl --silent --output ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.gtf.gz
 	gzip -df ./volumes/gens/data/Homo_sapiens.GRCh38.101.gtf.gz
@@ -22,6 +22,7 @@ init:    ## Initialize scout database
 	echo "Populate Gens database"
 	docker-compose run gens ./utils/update_chromsizes.py --file ./utils/chrom_sizes38.tsv
 	docker-compose run gens ./utils/update_transcripts.py --file /home/worker/data/Homo_sapiens.GRCh38.101.gtf --mane /home/worker/data/MANE.GRCh38.v0.92.summary.txt
+	docker-compose run gens ./utils/update_annotations.py --file /home/worker/data/hg38_annotations
 up:    ## Run Scout software
 	docker-compose up --detach
 down:    ## Take down Scout software
