@@ -3,16 +3,20 @@
 Write cromosome sizes to database
 """
 
-import csv
 import argparse
-from pymongo import MongoClient
+import csv
 import os
 
+from pymongo import MongoClient
+
+host = os.environ.get("MONGODB_HOST", "10.0.224.63")
+port = int(os.environ.get("MONGODB_PORT", 27017)
+print(f"connecting to db: {host}:{port}")
 CLIENT = MongoClient(
-    host=os.environ.get("MONGO_HOST", "10.0.224.63"),
-    port=os.environ.get("MONGO_PORT", 27017),
+    host=host,
+    port=port,
 )
-GENS_DB = CLIENT["gens"]
+GENS_DB = CLIENT[os.environ["GENS_DBNAME"]]
 
 
 class UpdateChromosomeSizes:
