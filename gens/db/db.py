@@ -1,29 +1,14 @@
 """Functions for handeling database connection."""
 import logging
 import os
-from enum import Enum
 
 from flask import current_app as app
 from pymongo import MongoClient
 
-from .exceptions import ConfigurationException
+from gens.exceptions import ConfigurationException
+from .models import VariantCategory, RecordType
 
 LOG = logging.getLogger(__name__)
-
-
-class VariantCategory(Enum):
-    """Valid categories for variants."""
-
-    STRUCTURAL = "str"
-    SINGLE_VAR = "sv"
-    SINGLE_NT_VAR = "snv"
-
-
-class RecordType(Enum):
-    """Valid record types in the database."""
-
-    ANNOTATION = "annotations"
-    TRANSCRIPT = "transcripts"
 
 
 def _get_config_var(name: str, app: app) -> str:
@@ -35,7 +20,7 @@ def _get_config_var(name: str, app: app) -> str:
     return
 
 
-def init_database() -> None:
+def init_database_connection() -> None:
     """Initialize database connection and store variables to the two databases."""
     # verify that database was properly configured
     variables = {}
