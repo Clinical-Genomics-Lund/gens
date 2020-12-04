@@ -186,23 +186,21 @@ class OverviewCanvas {
     }).done((result) => {
       let dims = result['chrom_dims'];
       // make index of chromosome screen positions
-      const chrom_pos = this.chromosomes.reduce(
-        (o, chrom) => (
-          {
-            ...o, [chrom]: {
-              xpos: dims[chrom]['x_pos'] + this.leftRightPadding,
-              ypos: dims[chrom]['y_pos'],
-              x_ampl: dims[chrom]['width'] - 2 * this.leftRightPadding,
-            }
-          }), {}
-      );
+      const chrom_pos = this.chromosomes.map(chrom => {
+        return {
+        region: `${chrom}:0-None`,
+        x_pos: dims[chrom]['x_pos'] + this.leftRightPadding,
+        y_pos: dims[chrom]['y_pos'],
+        x_ampl: dims[chrom]['width'] - 2 * this.leftRightPadding,
+        }
+      })
       // make a single request with all chromosome positions
       $.ajax({
         type: "POST",
         url: $SCRIPT_ROOT + '/api/get-multiple-coverages',
         contentType: 'application/json',
         data: JSON.stringify({
-          case_id: this.sampleName,
+          sample_id: this.sampleName,
           hg_type: this.hgType,
           plot_height: this.plotHeight,
           chromosome_pos: chrom_pos,

@@ -14,40 +14,44 @@ paths:
       summary: Get BAF and LOG2 coverage information
       description: Get BAF and LOG2 coverage information
       operationId: gens.api.get_multiple_coverages
-      parameters:
-        - name: case_id
-          in: query
-          description: The unique id for the case
-          required: true
-          schema:
-            type: string
-        - name: hg_type
-          in: query
-          required: true
-          schema:
-            $ref: '#/components/schemas/HgType'
-        - name: overview
-          in: query
-          description: Display overview
-          required: true
-          schema:
-            type: boolean
-            default: false
-        - name: reduce_data
-          in: query
-          description: The fraction of which to reduce the reported data points.
-          schema:
-            type: number
-            nullable: true
-            default: null
       requestBody:
         description: Coverage parameters for each chromosome for bulk query
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChromPosition'
+              type: object
+              properties:
+                sample_id:
+                  description: Sample id
+                  type: string
+                baf_y_start:
+                  description: Y coordinate from where to draw BAF track.
+                  type: number
+                  default: 0
+                baf_y_end:
+                  description: Y coordinate from where to end draw BAF track.
+                  type: number
+                  default: 0
+                log2_y_start:
+                  description: Y coordinate from where to start drawing the log2 track.
+                  type: number
+                  default: 0
+                log2_y_end:
+                  description: Y coordinate from where to end the drawing of the log2 track.
+                  type: number
+                  default: 0
+                hg_type:
+                  $ref: '#/components/schemas/HgType'
+                reduce_data:
+                  description: The fraction of which to reduce the reported data points.
+                  type: number
+                  nullable: true
+                  default: null
+                chromosome_pos:
+                  description: Array containing objects describing which regions of chromsomes to get
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChromosomePosition'
       responses:
         '200':
           description: BAF and LOG2 coverage for region
@@ -425,6 +429,21 @@ components:
       description: hg type
       type: integer
       default: 38
+    ChromosomePosition:
+      description: Positional information of which part of the chromosome to get information of.
+      required:
+        - region
+      properties:
+        region:
+          description: Regional description string (<chrom>:<start>-<end>)
+          type: string
+        x_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        y_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        x_ampl:
+          type: number
+          default: 0
     ChromPosition:
       description: Positional information of which part of the chromosome to get information of.
       required:

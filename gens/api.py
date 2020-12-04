@@ -3,6 +3,7 @@ import logging
 from datetime import date
 
 from flask import abort, current_app, jsonify, request
+import connexion
 
 from .db import RecordType, init_database, query_records_in_region
 from .exceptions import RegionParserException
@@ -146,39 +147,28 @@ def get_variant_data(region, hg_type, collapsed):
     )
 
 
-def get_multiple_coverages(
-    case_id,
-    hg_type,
-    reduce_data,
-    plot_height,
-    top_bottom_padding,
-    baf_y_start,
-    baf_y_end,
-    log2_y_start,
-    log2_y_end,
-    overview,
-    **kwargs,
-):
+def get_multiple_coverages():
     """Read default Log2 ratio and BAF values for overview graph."""
-    LOG.info(f"Got request for all chromosome coverages: {case_id}")
     if connexion.request.is_json:
-        body = connexion.request.get_json()
-    return body, 201
+        data = connexion.request.get_json()
+    else:
+        return data, 404
+    sample_id = data["sample_id"]
+    hg_type = data["hg_type"]
+    LOG.info(f"Got request for all chromosome coverages: {sample_id}")
 
     # open tabix filehandles
     cov_file, baf_file = get_tabix_files(
-        case_id,
+        sample_id,
         current_app.config[f"HG{hg_type}_PATH"],  # dir where cov files are stored
     )
-    data = kwargs.get("body", {})  # get request body
     if "chromosome_pos" not in data:
         raise ValueError(f"Chromosome position not sent to API")
     results = {}
     for chrom_info in data["chromosome_pos"]:
         # Set some input values
-        chromosome = chrom_info["chromosome"]
         req = REQUEST(
-            f"{chromosome}:0-None",
+            chrom_info["region"],
             chrom_info["x_pos"],
             chrom_info["y_pos"],
             data["plot_height"],
@@ -190,7 +180,7 @@ def get_multiple_coverages(
             data["hg_type"],
             data["reduce_data"],
         )
-
+        chromosome = chrom_info["region"].split(":")[0]
         try:
             with current_app.app_context():
                 reg, log2_rec, baf_rec = get_overview_cov(
