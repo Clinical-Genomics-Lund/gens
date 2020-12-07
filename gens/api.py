@@ -4,18 +4,103 @@ from datetime import date
 
 from flask import abort, current_app, jsonify, request
 import connexion
+import cattr
 
-from .db import RecordType, init_database, query_records_in_region
-from .exceptions import RegionParserException
-from .graph import (
+from gens.db import RecordType, query_records_in_region, query_variants, VariantCategory
+from gens.exceptions import RegionParserException
+from gens.graph import (
     REQUEST,
     get_overview_cov,
     overview_chrom_dimensions,
     parse_region_str,
 )
 from .io import get_tabix_files
+import attr
+from typing import List
+import re
 
 LOG = logging.getLogger(__name__)
+
+CHROMOSOMES = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "X",
+    "Y",
+]
+
+HG_TYPE = (38, 19)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ChromosomePosition:
+    """Data model for the chromosome position data"""
+
+    region: str = attr.ib()
+    x_pos: float
+    y_pos: float
+    x_ampl: float
+
+    @region.validator
+    def valid_region(self, attribute, value):
+        """Validate region string.
+
+        Expected format <chom>:<start>-<end>
+        chrom: in CHROMOSOMES
+        start: >= 0
+        end: [0-9]+|None
+        """
+        chrom, start, end = re.search(r"^(.+):(.+)-(.+)$", value).groups()
+        if chrom not in CHROMOSOMES:
+            raise ValueError(f"{chrom} is not a valid chromosome name")
+        if 0 > float(start):
+            raise ValueError(f"{start} is not a valid start position")
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class ChromCoverageRequest:
+    """Request for getting coverage from multiple chromosome and regions."""
+
+    sample_id: str
+    hg_type: int = attr.ib()
+    plot_height: float
+    top_bottom_padding: float
+    baf_y_start: float
+    baf_y_end: float
+    log2_y_start: float
+    log2_y_end: float
+    overview: bool
+    reduce_data: float = attr.ib()
+    chromosome_pos: List[ChromosomePosition]
+
+    @hg_type.validator
+    def valid_hg_type(self, attribute, value):
+        if not value in HG_TYPE:
+            raise ValueError(f"{value} is not of valid hg types; {HG_TYPES}")
+
+    @reduce_data.validator
+    def valid_perc(self, attribute, value):
+        if not 0 <= value <= 1:
+            raise ValueError(f"{value} is not within 0-1")
 
 
 def get_overview_chrom_dim(x_pos, y_pos, plot_width, hg_type):
@@ -135,59 +220,89 @@ def get_transcript_data(region, hg_type, collapsed):
     )
 
 
-def get_variant_data(region, hg_type, collapsed):
+def get_variant_data(sample_id, variant_category, **optional_kwargs):
     """Search Scout database for variants associated with a case and return info in JSON format."""
-    res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
-    return jsonify(
-        status="ok",
-        variants=[],
-        start_pos=start_pos,
-        end_pos=end_pos,
-        res=res,
+    default_height_order = 0
+    base_return = {"status": "ok"}
+    # get optional variables
+    hg_type = optional_kwargs.get("hg_type")
+    region = optional_kwargs.get("region")
+    # if getting variants from specific regions
+    region_params = {}
+    if region is not None and hg_type is not None:
+        res, chromosome, start_pos, end_pos = parse_region_str(region, hg_type)
+        region_params = {
+            "chromosome": chromosome,
+            "start_pos": start_pos,
+            "end_pos": end_pos,
+        }
+        base_return = {
+            **base_return,
+            **region_params,
+            "res": res,
+            "max_height_order": default_height_order,
+        }
+        # limit renders to b or greater resolution
+        if not res or res == "a":
+            return jsonify({"variants": [], **base_return}), 200
+    # query variants
+    variants = list(
+        query_variants(
+            sample_id,
+            cattr.structure(variant_category, VariantCategory),
+            **region_params,
+        )
+    )
+    # return all detected variants
+    return (
+        jsonify(
+            {
+                **base_return,
+                "variants": list(variants),
+                "max_height_order": 1,
+            }
+        ),
+        200,
     )
 
 
 def get_multiple_coverages():
     """Read default Log2 ratio and BAF values for overview graph."""
     if connexion.request.is_json:
-        data = connexion.request.get_json()
+        data = cattr.structure(connexion.request.get_json(), ChromCoverageRequest)
     else:
         return data, 404
-    sample_id = data["sample_id"]
-    hg_type = data["hg_type"]
-    LOG.info(f"Got request for all chromosome coverages: {sample_id}")
+    LOG.info(f"Got request for all chromosome coverages: {data.sample_id}")
 
     # open tabix filehandles
     cov_file, baf_file = get_tabix_files(
-        sample_id,
-        current_app.config[f"HG{hg_type}_PATH"],  # dir where cov files are stored
+        data.sample_id,
+        current_app.config[f"HG{data.hg_type}_PATH"],  # dir where cov files are stored
     )
-    if "chromosome_pos" not in data:
-        raise ValueError(f"Chromosome position not sent to API")
     results = {}
-    for chrom_info in data["chromosome_pos"]:
+    for chrom_info in data.chromosome_pos:
         # Set some input values
         req = REQUEST(
-            chrom_info["region"],
-            chrom_info["x_pos"],
-            chrom_info["y_pos"],
-            data["plot_height"],
-            data["top_bottom_padding"],
-            data["baf_y_start"],
-            data["baf_y_end"],
-            data["log2_y_start"],
-            data["log2_y_end"],
-            data["hg_type"],
-            data["reduce_data"],
+            chrom_info.region,
+            chrom_info.x_pos,
+            chrom_info.y_pos,
+            data.plot_height,
+            data.top_bottom_padding,
+            data.baf_y_start,
+            data.baf_y_end,
+            data.log2_y_start,
+            data.log2_y_end,
+            data.hg_type,
+            data.reduce_data,
         )
-        chromosome = chrom_info["region"].split(":")[0]
+        chromosome = chrom_info.region.split(":")[0]
         try:
             with current_app.app_context():
                 reg, log2_rec, baf_rec = get_overview_cov(
                     req,
                     baf_file,
                     cov_file,
-                    chrom_info["x_ampl"],
+                    chrom_info.x_ampl,
                 )
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
@@ -216,7 +331,7 @@ def get_multiple_coverages():
 
 
 def get_coverage(
-    case_id,
+    sample_id,
     region,
     x_pos,
     y_pos,
@@ -235,8 +350,8 @@ def get_coverage(
     Returns the coverage in screen coordinates for frontend rendering
     """
     # Validate input
-    if case_id == "":
-        LOG.error(f"Invalid case_id: {case_id}")
+    if sample_id == "":
+        LOG.error(f"Invalid case_id: {sample_id}")
         return abort(416)
 
     # Set some input values
@@ -255,7 +370,7 @@ def get_coverage(
     )
 
     hg_filedir = current_app.config[f"HG{hg_type}_PATH"]
-    cov_file, baf_file = get_tabix_files(case_id, hg_filedir)
+    cov_file, baf_file = get_tabix_files(sample_id, hg_filedir)
     # Parse region
     try:
         with current_app.app_context():

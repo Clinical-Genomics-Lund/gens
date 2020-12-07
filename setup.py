@@ -34,6 +34,8 @@ setup(
         "gtfparse>=1.2.0",
         "pysam>=0.15.4",
         "pyyaml",
+        "attrs",
+        "cattrs",
         "connexion[swagger-ui]",
     ],
     setup_requires=["pytest-runner"],

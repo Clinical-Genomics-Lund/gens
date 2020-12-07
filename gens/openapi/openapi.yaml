@@ -92,7 +92,7 @@ paths:
       description: Get BAF and LOG2 coverage information
       operationId: gens.api.get_coverage
       parameters:
-        - name: case_id
+        - name: sample_id
           in: query
           description: Region selector
           required: true
@@ -216,23 +216,32 @@ paths:
       description: Get annotation data
       operationId: gens.api.get_variant_data
       parameters:
+        - name: sample_id
+          in: query
+          description: Unique sample identifier
+          required: true
+          schema:
+            type: string
+        - name: variant_category
+          in: query
+          description: Type of variants to get.
+          required: true
+          schema:
+            type: string
         - name: region
           in: query
           description: Region selector
-          required: true
           schema:
             type: string
         - name: hg_type
           in: query
-          required: true
           schema:
             $ref: '#/components/schemas/HgType'
         - name: collapsed
           in: query
-          description: get information for collapsed track
-          required: true
+          description: If the track is rendered as collapsed or not
           schema:
-            type: boolean
+            $ref: '#/components/schemas/CollapsedTrack'
       responses:
         '200':
           description: Annotation data
@@ -280,10 +289,9 @@ paths:
             $ref: '#/components/schemas/HgType'
         - name: collapsed
           in: query
-          description: get information for collapsed track
-          required: true
+          description: If the track is rendered as collapsed or not
           schema:
-            type: boolean
+            $ref: '#/components/schemas/CollapsedTrack'
       responses:
         '200':
           description: Annotation data
@@ -325,10 +333,9 @@ paths:
             $ref: '#/components/schemas/HgType'
         - name: collapsed
           in: query
-          description: get information for collapsed track
-          required: true
+          description: If the track is rendered as collapsed or not
           schema:
-            type: boolean
+            $ref: '#/components/schemas/CollapsedTrack'
       responses:
         '200':
           description: Annotation data
@@ -429,6 +436,10 @@ components:
       description: hg type
       type: integer
       default: 38
+    CollapsedTrack:
+      description: If track should be rendered as collapsed or not
+      type: boolean
+      default: false
     ChromosomePosition:
       description: Positional information of which part of the chromosome to get information of.
       required:

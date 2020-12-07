@@ -240,7 +240,7 @@ class InteractiveCanvas {
 
     $.getJSON($SCRIPT_ROOT + '/api/get-coverage', {
       region: this.inputField.value,
-      case_id: this.sampleName,
+      sample_id: this.sampleName,
       hg_type: this.hgType,
       hg_filedir: this.hgFileDir,
       x_pos: this.extraWidth,
@@ -252,9 +252,9 @@ class InteractiveCanvas {
       baf_y_start: this.baf.yStart,
       baf_y_end: this.baf.yEnd,
       log2_y_start: this.log2.yStart,
-      log2_y_end: this.log2.yEnd
+      log2_y_end: this.log2.yEnd,
+      reduce_data: 1,
     }, (result) => {
-
       console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,

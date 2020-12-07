@@ -1,4 +1,6 @@
 // Draw variants
+VARIANT_TR_TABLE = {'del': 'deletion', 'dup': 'duplication'}
+
 class Variant extends Track {
   constructor (x, width, near, far, hgType, colorSchema) {
     // Dimensions of track canvas
@@ -24,16 +26,20 @@ class Variant extends Track {
   // Draws variants in given range
   drawTracks (region) {
     $.getJSON($SCRIPT_ROOT + '/api/get-variant-data', {
-      region:region,
-      hg_type: this.hgType,
+      sample_id: oc.sampleName,
+      variant_category: 'sv',
+      region: region,
+      hg_type: hgType,
       collapsed: this.expanded ? false : true,
     }, (queryResult) => {
-      const scale = this.trackCanvas.width / (endPos - startPos);
+      const startQueryPos = queryResult['start_pos'];
+      const endQueryPos = queryResult['end_pos'];
+      const scale = this.trackCanvas.width / (endQueryPos - startQueryPos);
       const titleMargin = 2;
       const textSize = 10;
 
       // Set needed height of visible canvas and transcript tooltips
-      this.setContainerHeight(result['max_height_order']);
+      this.setContainerHeight(queryResult['max_height_order']);
 
     // Keeps track of previous values
     let latest_height = 0; // Latest height order for annotation
@@ -43,25 +49,20 @@ class Variant extends Track {
     this.clearTracks();
 
     // Draw track
-    for (let i = 0; i < variants.length; i++) {
-      const track = variants[i];
-      const variantId = track['variant_id'];
-      const chrom = track['chromosome'];
-      const type = track['type'];
-      const score = track['score'];
-      const variantFunction = track['function'];
-      const variantRegion = track['region'];
-      const start = track['start'];
-      const end = track['end'];
-      const color = this.colorSchema[type];
+    for (let i = 0; i < queryResult.variants.length; i++) {
+      const variant = queryResult.variants[i];  // store variant
+      const variantId = variant['display_name'];
+      const chrom = variant['chromosome'];
+      const variantCategory = variant['sub_category'];  // del or dup
+      const variantType = variant['variant_type'];
+      const variantLength = variant['length'];
+      const quality = variant['quality'];
+      const rankScore = variant['rank_score'];
+      const variantStart = variant['position'];
+      const variantEnd = variant['end'];
+      const color = this.colorSchema[variantCategory];
       const heightOrder = 1;
       const canvasYPos = this.tracksYPos(heightOrder);
-
-      // only draw variants on selected chromosome
-      if ( selectedChrom != chrom ) {
-        console.log(`skipping: ${selectedChrom} != ${chrom}`)
-        continue;
-      }
 
       // Only draw visible tracks
       if (!this.expanded && heightOrder != 1)
@@ -74,33 +75,42 @@ class Variant extends Track {
         latestTrackEnd = 0;
       }
 
+      // if set begining draw
+      //const drawStartCoord = variantStart - startQueryPos > 0 ? scale * (variantStart - startQueryPos) : 0;
+      //const drawEndCoord = variantEnd > endQueryPos ? scale * endQueryPos : scale * (variantEnd - startQueryPos);
+      const drawStartCoord = scale * (variantStart - startQueryPos);
+      const drawEndCoord = scale * (variantEnd - startQueryPos);
       // Draw motif line
-      if (type == 'deletion') {
+      if (variantCategory == 'del') {
         const waveHeight = 7;
-        this.drawWaveLine(scale * (start - startPos), scale * (end - startPos), canvasYPos + waveHeight / 2, waveHeight, color);
+        this.drawWaveLine(drawStartCoord,
+                          drawEndCoord,
+                          canvasYPos + waveHeight / 2,
+                          waveHeight, color);
       } else {
-        this.drawLine(scale * (start - startPos), scale * (end - startPos), canvasYPos + 4, color);
-        this.drawLine(scale * (start - startPos), scale * (end - startPos), canvasYPos, color);
+        this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color);
+        this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color);
       }
 
       // Draw variant type
       const textYPos = this.tracksYPos(heightOrder);
-      latest_name_end = this.drawText(`${variantRegion} ${type}`,
-        scale * ((start + end) / 2 - startPos),
+      latest_name_end = this.drawText(`${variant["category"]} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+        scale * ((variantStart + variantEnd) / 2 - startQueryPos),
         textYPos + this.featureHeight, textSize, latest_name_end);
 
       // Set tooltip text
       let variantText = `Id: ${variantId}\n` +
-                        `Position: ${chrom}:${start}-${end}\n` +
-                        `Type: type${type}\n` +
-                        `Function: ${variantFunction}\n`;
+                        `Position: ${chrom}:${variantStart}-${variantEnd}\n` +
+                        `Type: ${variantType} ${variantCategory}\n` +
+                        `Quality: ${quality}\n` +
+                        `Rank score: ${rankScore}\n`;
 
 
       // Add tooltip title for whole gene
       latestTrackEnd = this.hoverText(variantText,
-        titleMargin + scale * (start - startPos) + 'px',
+        titleMargin + scale * (variantStart - startQueryPos) + 'px',
         titleMargin + textYPos - this.featureHeight / 2 + 'px',
-        scale * (end - start) + 'px',
+        scale * (variantEnd - variantStart) + 'px',
         this.featureHeight + textSize + 'px',
         0, latestTrackEnd);
     }

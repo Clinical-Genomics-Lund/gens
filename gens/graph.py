@@ -13,6 +13,27 @@ from .io import tabix_query
 
 LOG = logging.getLogger(__name__)
 
+
+GRAPH = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
+REGION = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
+
+REQUEST = namedtuple(
+    "request",
+    (
+        "region",
+        "x_pos",
+        "y_pos",
+        "plot_height",
+        "top_bottom_padding",
+        "baf_y_start",
+        "baf_y_end",
+        "log2_y_start",
+        "log2_y_end",
+        "hg_type",
+        "reduce_data",
+    ),
+)
+
 CHROMOSOMES = [
     "1",
     "2",
@@ -39,26 +60,6 @@ CHROMOSOMES = [
     "X",
     "Y",
 ]
-
-GRAPH = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
-REGION = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
-
-REQUEST = namedtuple(
-    "request",
-    (
-        "region",
-        "x_pos",
-        "y_pos",
-        "plot_height",
-        "top_bottom_padding",
-        "baf_y_start",
-        "baf_y_end",
-        "log2_y_start",
-        "log2_y_end",
-        "hg_type",
-        "reduce_data",
-    ),
-)
 
 
 @cache.memoize(0)
