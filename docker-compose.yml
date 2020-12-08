@@ -1,10 +1,10 @@
 version: "3.8"
 services:
-  mongodb:
-    container_name: mongodb
+  mongo_db:
+    container_name: mongo_db
     image: mongo
     volumes:
-      - ./volumes/mongodb/data:/data/db
+      - ./volumes/mongo_db/data:/data/db
     networks:
       - scout-net
   gens:
@@ -14,9 +14,10 @@ services:
       - ./gens:/home/worker/app/gens
       - ./volumes/gens/data:/home/worker/data
       - ./volumes/gens/wgs:/access/wgs
+        #- /media/isilon/backup_hopper/results/wgs:/access/wgs
     environment:
       - FLASK_ENV=development
-      - MONGODB_HOST=mongodb
+      - MONGODB_HOST=mongo_db
       - MONGODB_PORT=27017
       - SCOUT_DBNAME=scout
       - GENS_DBNAME=gens
@@ -27,20 +28,20 @@ services:
     networks:
       - scout-net
     depends_on:
-      - mongodb
+      - mongo_db
     command: "flask run --host 0.0.0.0"
   scout:
     image: clinicalgenomics/scout
-    container_name: scout-web
+    container_name: scout
     expose:
       - '5000'
     ports:
       - '5000:5000'
-    command: scout --host mongodb serve --host 0.0.0.0
+    command: scout --host mongo_db serve --host 0.0.0.0
     networks:
       - scout-net
     depends_on:
-      - mongodb
+      - mongo_db
 networks:
   scout-net:
     driver: bridge
