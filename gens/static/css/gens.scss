@@ -171,10 +171,13 @@ span.print-icon {
     grid-column: 1;
 }
 
-#overview-marker {
-    pointer-events:none;
+.highlight {
     position:relative;
     background-color: $highlight-color;
+}
+
+#overview-marker {
+    pointer-events:none;
 }
 
 .info-container[data-state=nodata] {
