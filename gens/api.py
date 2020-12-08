@@ -137,8 +137,8 @@ def get_annotation_data(region, source, hg_type, collapsed):
     hg_type = request.args.get("hg_type", "38")
     res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
 
-    # Do not show annotations at 'a'-resolution
-    if not res or res == "a":
+    # Show reduced number of annotations for the highest resolution
+    if not res:
         return jsonify(
             status="ok",
             annotations=[],
