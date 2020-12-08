@@ -108,7 +108,7 @@ def create_app():
         _, chrom, start_pos, end_pos = parsed_region
 
         # which variant to highlight as focused
-        hightlighted_variant = request.args.get("variant")
+        selected_variant = request.args.get("variant")
 
         # get annotation track
         annotation = request.args.get("annotation")
@@ -126,7 +126,7 @@ def create_app():
             print_page=print_page,
             todays_date=date.today(),
             annotation=annotation,
-            hightlighted_variant=hightlighted_variant,
+            selected_variant=selected_variant,
             version=version,
         )
 

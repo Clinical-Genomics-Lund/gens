@@ -2,7 +2,7 @@
 VARIANT_TR_TABLE = {'del': 'deletion', 'dup': 'duplication'}
 
 class Variant extends Track {
-  constructor (x, width, near, far, hgType, colorSchema) {
+  constructor (x, width, near, far, hgType, colorSchema, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35; // Minimized height
@@ -21,6 +21,17 @@ class Variant extends Track {
 
     this.trackContainer.style.marginTop = '-1px';
     this.hgType = hgType;
+
+    // Initialize highlighted variant
+    this.highlightedVariantId = highlightedVariantId;
+  }
+
+  // Draw highlight for a given region
+  drawHighlight (startPos, endPos) {
+    this.drawBox(startPos, 0,
+      endPos - startPos + 1,
+      this.visibleHeight,
+      'rgb(235,235,33, 0.4)')
   }
 
   // Draws variants in given range
@@ -51,16 +62,16 @@ class Variant extends Track {
     // Draw track
     for (let i = 0; i < queryResult.variants.length; i++) {
       const variant = queryResult.variants[i];  // store variant
-      const variantId = variant['display_name'];
+      const variantName = variant['display_name']; // varaint name
       const chrom = variant['chromosome'];
-      const variantCategory = variant['sub_category'];  // del or dup
+      const variantCategory = variant['sub_category'];  // del, dup, sv, str
       const variantType = variant['variant_type'];
       const variantLength = variant['length'];
       const quality = variant['quality'];
       const rankScore = variant['rank_score'];
       const variantStart = variant['position'];
       const variantEnd = variant['end'];
-      const color = this.colorSchema[variantCategory];
+      const color = this.colorSchema[variantCategory] || this.colorSchema['default'] || 'black';
       const heightOrder = 1;
       const canvasYPos = this.tracksYPos(heightOrder);
 
@@ -81,15 +92,25 @@ class Variant extends Track {
       const drawStartCoord = scale * (variantStart - startQueryPos);
       const drawEndCoord = scale * (variantEnd - startQueryPos);
       // Draw motif line
-      if (variantCategory == 'del') {
-        const waveHeight = 7;
-        this.drawWaveLine(drawStartCoord,
-                          drawEndCoord,
-                          canvasYPos + waveHeight / 2,
-                          waveHeight, color);
-      } else {
-        this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color);
-        this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color);
+      switch (variantCategory) {
+        case 'del':
+          const waveHeight = 7;
+          this.drawWaveLine(drawStartCoord,
+                            drawEndCoord,
+                            canvasYPos + waveHeight / 2,
+                            waveHeight, color);
+          break;
+        case 'dup':
+          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color);
+          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color);
+          break;
+        default:  // other types of elements
+          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color);
+          console.log(`Unhandled variant type ${variantCategory}; drawing default shape`)
+      }
+      // Move and display highlighted region
+      if (variant._id == this.highlightedVariantId) {
+        this.drawHighlight(drawStartCoord, drawEndCoord);
       }
 
       // Draw variant type
@@ -99,7 +120,7 @@ class Variant extends Track {
         textYPos + this.featureHeight, textSize, latest_name_end);
 
       // Set tooltip text
-      let variantText = `Id: ${variantId}\n` +
+      let variantText = `Id: ${variantName}\n` +
                         `Position: ${chrom}:${variantStart}-${variantEnd}\n` +
                         `Type: ${variantType} ${variantCategory}\n` +
                         `Quality: ${quality}\n` +

@@ -1,4 +1,4 @@
-
+<!-- GENS overview template -->
 {% extends "layout.html" %}
 {% block title %}Visualization{% endblock title %}
 {% block css_style %}
@@ -96,7 +96,7 @@
 
             <div id='overview-container'>
                 <canvas id='overview-static'></canvas>
-                <div id='overview-marker'></div>
+                <div class='highlight' id='overview-marker'></div>
             </div>
         </div>
     </div>
@@ -121,7 +121,7 @@
     const hgType = {{ hg_type }};
     const hgFileDir = '{{ hg_filedir }}';
     const annotationFile = '{{ annotation }}';
-    const highlightedVariant = '{{ highlighted_variant }}'
+    const selectedVariant = "{{ selected_variant }}";
     const UiColors = {{ ui_colors | tojson | safe }};
 
     // WEBGL values
@@ -149,7 +149,7 @@
     console.timeEnd('get interactive content');
 
     // Initiate variant, annotation and transcript canvases
-    let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants']);
+    let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
     let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
     let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
     // Initiate and draw overview canvas
