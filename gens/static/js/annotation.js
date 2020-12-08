@@ -1,7 +1,7 @@
 class Annotation extends Track {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
     // Dimensions of track canvas
-    const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
+    const visibleHeight = 300; // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35; // Minimized height
 
     super(width, near, far, visibleHeight, minHeight);
