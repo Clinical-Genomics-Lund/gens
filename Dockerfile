@@ -6,10 +6,9 @@ LABEL about.license="MIT License (MIT)"
 
 # Run commands as non-root user
 RUN useradd -ms /bin/bash worker
-RUN chown worker:worker -R /home/worker
-
 WORKDIR /home/worker/app
 COPY . /home/worker/app
+RUN chown worker:worker -R /home/worker
 
 RUN apt-get update &&                                   \
     apt-get upgrade -y &&                               \
@@ -21,7 +20,7 @@ RUN apt-get update &&                                   \
     # clean up                                          \
     rm -rf /var/lib/apt/lists/*
 
-USER worker
+#USER worker
 ENV FLASK_APP="gens"
 
 EXPOSE 5000
