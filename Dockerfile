@@ -1,26 +1,47 @@
-FROM python:3.8-slim
+###########
+# BUILDER #
+###########
 
-LABEL base_image="python:3.8-slim"
+FROM python:3.8.1-slim as builder
+
+WORKDIR /usr/src/app
+
+# Set build variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+COPY . /usr/src/app
+RUN apt-get update &&                                                     \
+    apt-get upgrade -y &&                                                 \
+    apt-get install -y --no-install-recommends python3-pip                \
+    python3-wheel &&                                                      \
+    pip install --no-cache-dir --upgrade pip &&                           \
+    pip install --no-cache-dir gunicorn &&                                \
+    pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels    \
+    --requirement requirements.txt
+
+
+#########
+# FINAL #
+#########
+
+FROM python:3.8.1-slim
+
+LABEL base_image="python:3.8.1-slim"
 LABEL about.home="https://github.com/Clinical-Genomics-Lund/Gens"
-LABEL about.license="MIT License (MIT)"
 
 # Run commands as non-root user
-RUN useradd -ms /bin/bash worker
-WORKDIR /home/worker/app
-COPY . /home/worker/app
-RUN chown worker:worker -R /home/worker
+RUN useradd -m app && mkdir -p /home/app/app
+WORKDIR /home/app/app
 
-RUN apt-get update &&                                   \
-    apt-get upgrade -y &&                               \
-    # Install required libs                             \
-    apt-get install -y python3-pip python3-wheel &&     \
-    # Install Gens                                      \
-    pip install --no-cache-dir --upgrade pip            \
-    pip install --no-cache-dir -r requirements.txt &&   \
-    # clean up                                          \
+# Copy pyhon wheels and install software
+COPY --from=builder /usr/src/app/wheels /wheels
+RUN pip install --no-cache-dir --upgrade pip &&   \
+    pip install --no-cache-dir /wheels/* &&       \
     rm -rf /var/lib/apt/lists/*
 
-#USER worker
-ENV FLASK_APP="gens"
-
-EXPOSE 5000
+# Chown all the files to the app user
+COPY . /home/app/app
+RUN chown -R app:app /home/app/app
+# Change the user to app
+USER app
