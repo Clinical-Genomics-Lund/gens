@@ -36,8 +36,10 @@ WORKDIR /home/app/app
 
 # Copy pyhon wheels and install software
 COPY --from=builder /usr/src/app/wheels /wheels
-RUN pip install --no-cache-dir --upgrade pip &&   \
-    pip install --no-cache-dir /wheels/* &&       \
+RUN apt-get update &&                              \
+    apt-get install -y ssh sshfs &&                \
+    pip install --no-cache-dir --upgrade pip &&    \
+    pip install --no-cache-dir /wheels/* &&        \
     rm -rf /var/lib/apt/lists/*
 
 # Chown all the files to the app user
@@ -45,3 +47,4 @@ COPY . /home/app/app
 RUN chown -R app:app /home/app/app
 # Change the user to app
 USER app
+ENTRYPOINT ["./entrypoint.sh"]
