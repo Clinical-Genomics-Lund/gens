@@ -139,6 +139,7 @@ def get_annotation_data(region, source, hg_type, collapsed):
 
     # Show reduced number of annotations for the highest resolution
     if not res:
+        LOG.info(f"Query variant database: {query}")
         return jsonify(
             status="ok",
             annotations=[],
