@@ -68,11 +68,11 @@ class InteractiveCanvas {
     this.dragEnd;
 
     // Get chrosome dimensions
-    $.getJSON($SCRIPT_ROOT + '/_overviewchromdim', {
-      hg_type: this.hgType,
+    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
       x_pos: this.x,
       y_pos: this.y,
-      full_plot_width: this.fullPlotWidth,
+      plot_width: this.plotWidth,
+      hg_type: this.hgType,
     }).done( (result) => {
       this.dims = result['chrom_dims'];
     });
@@ -194,7 +194,7 @@ class InteractiveCanvas {
   }
 
   // Draw static content for interactive canvas
-  drawStaticContent () {
+  async drawStaticContent () {
     const linePadding = 2;
     const staticContext = this.staticCanvas.getContext('2d');
 
@@ -234,17 +234,17 @@ class InteractiveCanvas {
   }
 
   // Draw values for interactive canvas
-  drawInteractiveContent () {
+  async drawInteractiveContent () {
     this.loadingDiv.style.display = "block";
     console.time("getcoverage");
 
-    $.getJSON($SCRIPT_ROOT + '/_getcoverage', {
+    $.getJSON($SCRIPT_ROOT + '/api/get-coverage', {
       region: this.inputField.value,
-      sample_name: this.sampleName,
+      sample_id: this.sampleName,
       hg_type: this.hgType,
       hg_filedir: this.hgFileDir,
-      xpos: this.extraWidth,
-      ypos: this.y,
+      x_pos: this.extraWidth,
+      y_pos: this.y,
       plot_height: this.plotHeight,
       extra_plot_width: this.extraWidth,
       top_bottom_padding: this.topBottomPadding,
@@ -252,9 +252,9 @@ class InteractiveCanvas {
       baf_y_start: this.baf.yStart,
       baf_y_end: this.baf.yEnd,
       log2_y_start: this.log2.yStart,
-      log2_y_end: this.log2.yEnd
+      log2_y_end: this.log2.yEnd,
+      reduce_data: 1,
     }, (result) => {
-
       console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -341,8 +341,11 @@ class InteractiveCanvas {
     this.drawInteractiveContent();
 
     // Draw new tracks and annotations
-    tc.drawTracks(this.inputField.value);
-    ac.drawTracks(this.inputField.value);
+    Promise.all([
+      tc.drawTracks(this.inputField.value),
+      vc.drawTracks(this.inputField.value),
+      ac.drawTracks(this.inputField.value),
+    ])
   }
 
   // Key listener for quickly navigating between chromosomes

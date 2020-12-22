@@ -3,7 +3,7 @@
 
 ## About
 
-**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things use IGV! 
+**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things use IGV!
 
 This screenshot shows an 8 Kbp deletion (known polymorphism). Sorry about the boring screenshot, but we cannot show identifiable data.
 <img src="images/gens_screenshot.png">
@@ -37,7 +37,8 @@ A simple demo and development instance of Gens can be launched either with the c
 services:
   gens:
     volumes:
-      - /media/isilon/backup_hopper/results/wgs:/access/wgs  # /path/on/host:/path/inside/container
+      - /fs1/results/wgs/plotdata:/access/wgs/hg19  # /path/on/host:/path/inside/container
+      - /fs1/results/wgs/plot_data:/access/wgs/hg38
 ```
 
 The repository contains a Makefile with common docker-compose shortcuts for interacting with the containerized Gens app. To see the full list of shortcuts use the command `make help`.
@@ -95,7 +96,7 @@ Then in your pipeline. Use these commands to count and normalize the data of a s
 gatk CollectReadCounts                                              \
     -I subject.bam -L targets_preprocessed_100bp_bins.interval_list \
     --interval-merging-rule OVERLAPPING_ONLY -O subject.hdf5
-                                                                                                                                            
+
 gatk --java-options "-Xmx30g" DenoiseReadCounts                     \
     -I subject.hdf5 --count-panel-of-normals male_pon_100bp.hdf5    \
     --standardized-copy-ratios subject.standardizedCR.tsv           \
@@ -114,13 +115,13 @@ Once you have the standardized coverage file from GATK and a gVCF you can create
 utils/generate_gens_data.pl subject.standardizedCR.tsv subject.gvcf SAMPLE_ID gnomad_hg38.0.05.txt.gz
 ```
 
-The script requires that **bgzip** and **tabix** are installed in a $PATH directory. 
+The script requires that **bgzip** and **tabix** are installed in a $PATH directory.
 
 The final output should be two files named: **SAMPLE_ID.baf.bed.gz** and **SAMPLE_ID.cov.bed.gz**
 
 ## Loading data into Gens
 
-The generated data files should be put in one of the folders defined in config.py, depending on which genome build you've used. To load the data in a web browser simplt enter the URL **hostname.com:5000/SAMPLE_ID**. By default it will look for files in the hg38 folder. In order to use data from the hg19/GRCh37 folder, use **hostname.com:5000/SAMPLE_ID?hg_type=37** 
+The generated data files should be put in one of the folders defined in config.py, depending on which genome build you've used. To load the data in a web browser simplt enter the URL **hostname.com:5000/SAMPLE_ID**. By default it will look for files in the hg38 folder. In order to use data from the hg19/GRCh37 folder, use **hostname.com:5000/SAMPLE_ID?hg_type=37**
 
 
 ## Data format

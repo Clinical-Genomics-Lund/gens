@@ -5,10 +5,9 @@
         <title>GENS - {% block title %}{% endblock title %}</title>
         <link rel='icon' href='data:,'>
         {% block css_style %}
-        <link rel='stylesheet' href='{{ url_for('static', filename='css/gens.css') }}?u={{ last_updated }}' type='text/css'>
+					  <link rel='stylesheet' href='{{ url_for('static', filename='css/gens.css') }}' type='text/css'>
         {% endblock css_style %}
         {% block scripts %}
-        <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
         {% endblock scripts %}
     </head>
     <body>

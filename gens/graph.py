@@ -1,11 +1,38 @@
 """Functions for getting information from Gens views."""
+import itertools
 import logging
+import re
 from collections import namedtuple
 
 from flask import current_app as app
 from flask import request
 
+from .cache import cache
+from .exceptions import NoRecordsException, RegionParserException
+from .io import tabix_query
+
 LOG = logging.getLogger(__name__)
+
+
+GRAPH = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
+REGION = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
+
+REQUEST = namedtuple(
+    "request",
+    (
+        "region",
+        "x_pos",
+        "y_pos",
+        "plot_height",
+        "top_bottom_padding",
+        "baf_y_start",
+        "baf_y_end",
+        "log2_y_start",
+        "log2_y_end",
+        "hg_type",
+        "reduce_data",
+    ),
+)
 
 CHROMOSOMES = [
     "1",
@@ -34,38 +61,48 @@ CHROMOSOMES = [
     "Y",
 ]
 
-GRAPH = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
-REGION = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
 
-
-def get_chrom_size(chrom):
+@cache.memoize(0)
+def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl):
     """
-    Gets the size in base pairs of a chromosome
+    Converts data for Log2 ratio and BAF to screen coordinates
+    Also caps the data
     """
-    hg_type = request.args.get("hg_type", "38")
-    collection = app.config["DB"]["chromsizes" + hg_type]
-    chrom_data = collection.find_one({"chrom": chrom})
+    #  Normalize and calculate the Lo2 ratio
+    log2_records = []
+    for record in log2_list:
+        # Cap values to end points
+        ypos = float(record[3])
+        ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
+        ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
-    if chrom_data:
-        return chrom_data["size"]
+        # Convert to screen coordinates
+        log2_records.extend(
+            [
+                int(x_pos + new_x_ampl * (float(record[1]) - new_start_pos)),
+                int(graph.log2_ypos - graph.log2_ampl * ypos),
+                0,
+            ]
+        )
 
-    return None
+    # Gather the BAF records
+    baf_records = []
+    for record in baf_list:
+        # Cap values to end points
+        ypos = float(record[3])
+        ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
+        ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
+        # Convert to screen coordinates
+        baf_records.extend(
+            [
+                int(x_pos + new_x_ampl * (float(record[1]) - new_start_pos)),
+                int(graph.baf_ypos - graph.baf_ampl * ypos),
+                0,
+            ]
+        )
 
-def get_chrom_width(chrom, full_plot_width):
-    """
-    Calculates width of chromosome based on its scale factor
-    and input width for the whole plot
-    """
-    hg_type = request.args.get("hg_type", "38")
-    collection = app.config["DB"]["chromsizes" + hg_type]
-    chrom_data = collection.find_one({"chrom": chrom})
-
-    if chrom_data:
-        return full_plot_width * float(chrom_data["scale"])
-
-    LOG.warning("Chromosome width not available")
-    return None
+    return log2_records, baf_records
 
 
 def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
@@ -87,39 +124,26 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     return current_chrom
 
 
-def overview_chrom_dimensions(x_pos, y_pos, full_plot_width):
+def overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
-
-    hg_type = request.args.get("hg_type", "38")
-    collection = app.config["DB"]["chromsizes" + hg_type]
-
     chrom_dims = {}
     for chrom in CHROMOSOMES:
-        chrom_width = get_chrom_width(chrom, full_plot_width)
-        if chrom_width is None:
-            LOG.warning("Could not find chromosome data in DB")
-            return None
-
-        chrom_data = collection.find_one({"chrom": chrom})
-        if chrom_data is None:
-            LOG.warning("Could not find chromosome data in DB")
-            return None
-
+        chrom_data = get_chrom_data(chrom, hg_type)
+        chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
             "y_pos": y_pos,
             "width": chrom_width,
             "size": chrom_data["size"],
         }
-
         x_pos += chrom_width
-
     return chrom_dims
 
 
-def parse_region_str(region):
+@cache.memoize(50)
+def parse_region_str(region, hg_type):
     """
     Parses a region string
     """
@@ -139,8 +163,6 @@ def parse_region_str(region):
         LOG.error("Wrong region formatting")
         return None
 
-    hg_type = request.args.get("hg_type", "38")
-
     if name_search is not None:
         # Query is for a full range chromosome
         if name_search.upper() in CHROMOSOMES:
@@ -149,7 +171,7 @@ def parse_region_str(region):
             chrom = name_search.upper()
         else:
             # Lookup queried gene
-            collection = app.config["DB"]["transcripts" + hg_type]
+            collection = app.config["GENS_DB"]["transcripts" + hg_type]
             start = collection.find_one(
                 {
                     "gene_name": re.compile(
@@ -174,14 +196,7 @@ def parse_region_str(region):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    # Get end position
-    collection = app.config["DB"]["chromsizes" + hg_type]
-    chrom_data = collection.find_one({"chrom": chrom})
-
-    if chrom_data is None:
-        LOG.warning("Could not find chromosome data in DB")
-        return None
-
+    chrom_data = get_chrom_data(chrom, hg_type)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
@@ -253,3 +268,67 @@ def set_region_values(parsed_region, x_ampl):
         x_ampl,
         extra_plot_width,
     )
+
+
+def get_overview_cov(req, baf_fh, cov_fh, x_ampl):
+    """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
+    graph = set_graph_values(req)
+    # parse region
+    parsed_region = parse_region_str(req.region, req.hg_type)
+    if not parsed_region:
+        raise RegionParserException("No parsed region")
+
+    # Set values that are needed to convert coordinates to screen coordinates
+    reg, new_start_pos, new_end_pos, new_x_ampl, extra_plot_width = set_region_values(
+        parsed_region, x_ampl
+    )
+    # Bound start and end balues to 0-chrom_size
+    end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)["size"])
+    start = max(new_start_pos, 0)
+
+    # Load BAF and Log2 data from tabix files
+    log2_list = tabix_query(
+        cov_fh,
+        reg.res,
+        reg.chrom,
+        start,
+        end,
+        req.reduce_data,
+    )
+    baf_list = tabix_query(
+        baf_fh,
+        reg.res,
+        reg.chrom,
+        start,
+        end,
+        req.reduce_data,
+    )
+
+    # Convert the data to screen coordinates
+    log2_records, baf_records = convert_data(
+        graph,
+        req,
+        log2_list,
+        baf_list,
+        req.x_pos - extra_plot_width,
+        new_start_pos,
+        new_x_ampl,
+    )
+    if not new_start_pos and not log2_records and not baf_records:
+        raise NoRecordsException("No records")
+    return reg, log2_records, baf_records
+
+
+@cache.memoize(60)
+def get_chrom_data(chrom, hg_type=38):
+    """
+    Gets the size in base pairs of a chromosome
+    """
+    chrom_data = app.config["GENS_DB"][f"chromsizes{hg_type}"].find_one(
+        {"chrom": chrom}
+    )
+    if chrom_data is None:
+        raise ValueError(
+            f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}"
+        )
+    return chrom_data

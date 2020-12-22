@@ -3,18 +3,23 @@
 Write transcripts to DB
 """
 
-import csv
 import argparse
-from functools import cmp_to_key
-from pymongo import MongoClient, ASCENDING
-from gtfparse import read_gtf
+import csv
 import os
+from functools import cmp_to_key
 
+from pymongo import ASCENDING, MongoClient
+
+from gtfparse import read_gtf
+
+host = os.environ.get("MONGODB_HOST", "10.0.224.63")
+port = int(os.environ.get("MONGODB_PORT", 27017))
+print(f"connecting to db: {port}:{host}")
 CLIENT = MongoClient(
-    host=os.environ.get("MONGO_HOST", "10.0.224.63"),
-    port=os.environ.get("MONGO_PORT", 27017),
+    host=host,
+    port=port,
 )
-GENS_DB = CLIENT["gens"]
+GENS_DB = CLIENT[os.environ["GENS_DBNAME"]]
 
 
 class UpdateTranscripts:
