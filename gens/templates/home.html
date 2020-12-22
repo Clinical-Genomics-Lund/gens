@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}Welcome{% endblock title %}
+{% block css_style %}
+  {{ super() }}
+{% endblock css_style %}
+{% block scripts %}
+  {{ super() }}
+{% endblock scripts %}
+{% block content %}
+<h1>Gens - Genome coverage and variant visualization</h1>
+<p>Software version: {{ version }}</p>
+{% endblock content %}

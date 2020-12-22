@@ -1,5 +1,5 @@
 class Annotation extends Track {
-  constructor (x, width, near, far, hgType) {
+  constructor (x, width, near, far, hgType, defaultAnnotation) {
     // Dimensions of track canvas
     const visibleHeight = 100; // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35; // Minimized height
@@ -25,11 +25,11 @@ class Annotation extends Track {
       this.expanded = false;
       this.drawTracks(document.getElementById('region_field').value);
     })
-    this.annotSourceList();
+    this.annotSourceList(defaultAnnotation);
   }
 
   // Fills the list with source files
-  annotSourceList () {
+  annotSourceList (defaultAnntotation='misbrunnr') {
     $.getJSON($SCRIPT_ROOT + '/_getannotationsources', {
       hg_type: this.hgType
     }, (result) => {
@@ -45,7 +45,7 @@ class Annotation extends Track {
         opt.innerHTML = file_name;
 
         // Set mimisbrunnr as default file
-        if (file_name.match('misbrunnr')) {
+        if (file_name.match(defaultAnntotation)) {
           opt.setAttribute('selected', true);
         }
         this.sourceList.appendChild(opt);
