@@ -78,67 +78,17 @@ class OverviewCanvas {
       this.dims = result['chrom_dims'];
     });
 
-
-    // Start dragging
+    // Select a chromosome in overview track
     this.staticCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
-      if (!this.drag) {
-        this.dragStart = event.x;
-        this.drag = true;
-      }
-    });
-
-    // Move mouse during dragging
-    this.staticCanvas.addEventListener('mousemove', (event) => {
-      if (this.drag && this.dragStart != event.x) {
-        this.markerElem.style.left  = 1+Math.min(event.x, this.dragStart)+"px";
-        this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px";
-      }
-    });
-
-    // Stop dragging
-    window.addEventListener('mouseup', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (this.drag) {
-        this.drag = false;
-
-        // Find chromosomal positions for the drag start/end positions
-        let startLoc = this.pixelPosToGenomicLoc(this.dragStart);
-        let endLoc = this.pixelPosToGenomicLoc(event.x);
-
-        // Move interactive view to selected region
-        ic.chromosome = startLoc.chrom;
-
-        // Drag was within same chromosome
-        if (startLoc.chrom == endLoc.chrom) {
-          if (startLoc.pos != endLoc.pos) {
-            ic.start = Math.min(startLoc.pos,endLoc.pos);
-            ic.end   = Math.max(startLoc.pos,endLoc.pos);
-          }
-          else { // Show whole chromosome if no X drag (basically click)
-            ic.start = 0;
-            ic.end = this.dims[startLoc.chrom].size-1;
-          }
-        }
-
-        // If drag covers more than 1 chrom, restrict to first clicked chrom
-        else if (endLoc.chrom > startLoc.chrom) { // "X" > "22" in Javascript!
-          ic.start = startLoc.pos;
-          ic.end = this.dims[startLoc.chrom].size-1;
-        }
-        else if (endLoc.chrom < startLoc.chrom) {
-          ic.start = 0;
-          ic.end = startLoc.pos;
-        }
-
-        // Update marked region before redrawing (makes things look snappier)
-        this.markRegion(ic.chromosome, ic.start, ic.end);
-
-        // Finally update the interactive region
-        ic.redraw();
-      }
+      let selectedChrom = this.pixelPosToGenomicLoc(event.x);
+      // Move interactive view to selected region
+      ic.chromosome = this.pixelPosToGenomicLoc(event.x).chrom;
+      ic.start = 0;
+      ic.end = this.dims[ic.chromosome].size - 1;
+      // Mark region
+      this.markRegion(selectedChrom.chrom, ic.start, ic.end);
+      ic.redraw();  // redraw canvas
     });
 
     let _this = this;
