@@ -82,13 +82,16 @@ class OverviewCanvas {
     this.staticCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
       let selectedChrom = this.pixelPosToGenomicLoc(event.x);
-      // Move interactive view to selected region
-      ic.chromosome = this.pixelPosToGenomicLoc(event.x).chrom;
-      ic.start = 0;
-      ic.end = this.dims[ic.chromosome].size - 1;
-      // Mark region
-      this.markRegion(selectedChrom.chrom, ic.start, ic.end);
-      ic.redraw();  // redraw canvas
+      // Dont update if chrom previously selected
+      if ( ic.chromosome != selectedChrom.chrom ) {
+        // Move interactive view to selected region
+        ic.chromosome = selectedChrom.chrom;
+        ic.start = 0;
+        ic.end = this.dims[ic.chromosome].size - 1;
+        // Mark region
+        this.markRegion(selectedChrom.chrom, ic.start, ic.end);
+        ic.redraw();  // redraw canvas
+      }
     });
 
     let _this = this;
