@@ -12,6 +12,7 @@ from .cache import cache
 
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
+JSON_SUFFIX = ".overview.json.gz"
 
 
 LOG = logging.getLogger(__name__)
@@ -33,6 +34,17 @@ def get_tabix_files(sample_name, hg_path):
     cov_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + COV_SUFFIX))
     baf_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + BAF_SUFFIX))
     return cov_file, baf_file
+
+
+def get_overview_json_path(sample_name, hg_path):
+    """Get json file with cov and baf data for overview."""
+    LOG.info(f"Getting overview json file for smaple: {sample_name}, path: {hg_path}")
+    try:
+        json_file = _get_filepath(hg_path, sample_name + JSON_SUFFIX)
+    except FileNotFoundError:
+        LOG.info(f"No overview json file found. Will fall back to slow BED fetching!")
+        json_file = None
+    return json_file
 
 
 def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
