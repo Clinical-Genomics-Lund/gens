@@ -63,23 +63,28 @@ CHROMOSOMES = [
 
 
 @cache.memoize(0)
-def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl):
+def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl, data_type="bed"):
     """
     Converts data for Log2 ratio and BAF to screen coordinates
     Also caps the data
     """
+
+    chrpos_idx, value_idx = 1, 3
+    if data_type == "json":
+        chrpos_idx, value_idx = 0, 1
+
     #  Normalize and calculate the Lo2 ratio
     log2_records = []
     for record in log2_list:
         # Cap values to end points
-        ypos = float(record[3])
+        ypos = float(record[value_idx])
         ypos = req.log2_y_start + 0.2 if ypos > req.log2_y_start else ypos
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
         # Convert to screen coordinates
         log2_records.extend(
             [
-                int(x_pos + new_x_ampl * (float(record[1]) - new_start_pos)),
+                int(x_pos + new_x_ampl * (float(record[chrpos_idx]) - new_start_pos)),
                 int(graph.log2_ypos - graph.log2_ampl * ypos),
                 0,
             ]
@@ -89,14 +94,14 @@ def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_am
     baf_records = []
     for record in baf_list:
         # Cap values to end points
-        ypos = float(record[3])
+        ypos = float(record[value_idx])
         ypos = req.baf_y_start + 0.2 if ypos > req.baf_y_start else ypos
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
         # Convert to screen coordinates
         baf_records.extend(
             [
-                int(x_pos + new_x_ampl * (float(record[1]) - new_start_pos)),
+                int(x_pos + new_x_ampl * (float(record[chrpos_idx]) - new_start_pos)),
                 int(graph.baf_ypos - graph.baf_ampl * ypos),
                 0,
             ]
