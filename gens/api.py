@@ -5,16 +5,18 @@ from datetime import date
 from flask import abort, current_app, jsonify, request
 import connexion
 import cattr
+import gzip
+import json
 
 from gens.db import RecordType, query_records_in_region, query_variants, VariantCategory
 from gens.exceptions import RegionParserException
 from gens.graph import (
     REQUEST,
-    get_overview_cov,
+    get_cov,
     overview_chrom_dimensions,
     parse_region_str,
 )
-from .io import get_tabix_files
+from .io import get_tabix_files, get_overview_json_path
 import attr
 from typing import List
 import re
@@ -275,11 +277,19 @@ def get_multiple_coverages():
         return data, 404
     LOG.info(f"Got request for all chromosome coverages: {data.sample_id}")
 
-    # open tabix filehandles
-    cov_file, baf_file = get_tabix_files(
-        data.sample_id,
-        current_app.config[f"HG{data.hg_type}_PATH"],  # dir where cov files are stored
-    )
+    json_data, cov_file, baf_file = None, None, None
+    data_dir = current_app.config[f"HG{data.hg_type}_PATH"]
+
+    # Try to find and load an overview json data file
+    overview_json_path = get_overview_json_path(data.sample_id, data_dir)
+    if overview_json_path:
+        with gzip.open(overview_json_path, 'r') as json_gz:
+            json_data = json.loads(json_gz.read().decode('utf-8'))
+
+    # Fall back to BED file is no json exists
+    if not json_data:
+        cov_file, baf_file = get_tabix_files(data.sample_id, data_dir)
+
     results = {}
     for chrom_info in data.chromosome_pos:
         # Set some input values
@@ -299,11 +309,12 @@ def get_multiple_coverages():
         chromosome = chrom_info.region.split(":")[0]
         try:
             with current_app.app_context():
-                reg, log2_rec, baf_rec = get_overview_cov(
+                reg, log2_rec, baf_rec = get_cov(
                     req,
-                    baf_file,
-                    cov_file,
                     chrom_info.x_ampl,
+                    json_data=json_data,
+                    cov_fh=cov_file,
+                    baf_fh=baf_file
                 )
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
@@ -375,7 +386,7 @@ def get_coverage(
     # Parse region
     try:
         with current_app.app_context():
-            reg, log2_rec, baf_rec = get_overview_cov(req, baf_file, cov_file, x_ampl)
+            reg, log2_rec, baf_rec = get_cov(req, x_ampl, cov_fh=cov_file, baf_fh=baf_file)
     except RegionParserException as err:
         LOG.error(f"{type(err).__name__} - {err}")
         return abort(416)

@@ -275,7 +275,7 @@ def set_region_values(parsed_region, x_ampl):
     )
 
 
-def get_overview_cov(req, baf_fh, cov_fh, x_ampl):
+def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
     graph = set_graph_values(req)
     # parse region
@@ -287,27 +287,35 @@ def get_overview_cov(req, baf_fh, cov_fh, x_ampl):
     reg, new_start_pos, new_end_pos, new_x_ampl, extra_plot_width = set_region_values(
         parsed_region, x_ampl
     )
-    # Bound start and end balues to 0-chrom_size
-    end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)["size"])
-    start = max(new_start_pos, 0)
 
-    # Load BAF and Log2 data from tabix files
-    log2_list = tabix_query(
-        cov_fh,
-        reg.res,
-        reg.chrom,
-        start,
-        end,
-        req.reduce_data,
-    )
-    baf_list = tabix_query(
-        baf_fh,
-        reg.res,
-        reg.chrom,
-        start,
-        end,
-        req.reduce_data,
-    )
+    if json_data:
+        data_type = "json"
+        baf_list = json_data[reg.chrom]["baf"]
+        log2_list = json_data[reg.chrom]["cov"]
+    else:
+        data_type = "bed"
+
+        # Bound start and end balues to 0-chrom_size
+        end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)["size"])
+        start = max(new_start_pos, 0)
+
+        # Load BAF and Log2 data from tabix files
+        log2_list = tabix_query(
+            cov_fh,
+            reg.res,
+            reg.chrom,
+            start,
+            end,
+            req.reduce_data,
+        )
+        baf_list = tabix_query(
+            baf_fh,
+            reg.res,
+            reg.chrom,
+            start,
+            end,
+            req.reduce_data,
+        )
 
     # Convert the data to screen coordinates
     log2_records, baf_records = convert_data(
@@ -318,6 +326,7 @@ def get_overview_cov(req, baf_fh, cov_fh, x_ampl):
         req.x_pos - extra_plot_width,
         new_start_pos,
         new_x_ampl,
+        data_type=data_type
     )
     if not new_start_pos and not log2_records and not baf_records:
         raise NoRecordsException("No records")
