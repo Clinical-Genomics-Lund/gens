@@ -22,6 +22,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Made Gens (and db update scripts) read db configuration from env variables
  - Increased the expanded annoation track with to 300px
  - All annotations are allways being displayed
+ - Eliminate use of offScreenCanvas in order to support Firefox/Gecko
 ### Fixed
  - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
 
