@@ -13,6 +13,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Added tack with variants from the Scout database where the selected variant is highlighted
  - Github action to enforce the use of a changelog
  - Described Gens APIs in openAPI specification file
+ - Add possibility to load overview data from a JSON, which substantially improves initial load times.
 ### Changed
  - Added description on how to use the containerized version of Gens
  - Replaced print statements with logging to stderr

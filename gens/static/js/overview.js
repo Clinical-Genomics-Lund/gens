@@ -195,6 +195,7 @@ class OverviewCanvas {
         }
       })
       // make a single request with all chromosome positions
+      console.time("getcov-overview");
       $.ajax({
         type: "POST",
         url: $SCRIPT_ROOT + '/api/get-multiple-coverages',
@@ -210,9 +211,10 @@ class OverviewCanvas {
           log2_y_start: this.log2.yStart,
           log2_y_end: this.log2.yEnd,
           overview: 'True',
-          reduce_data: 0.01
+          reduce_data: 1
         }),
         success: (covData) => {
+          console.timeEnd("getcov-overview");
           const staticCanvas = document.getElementById('overview-static');
           const chromSubset = Object.keys(covData['results']); // get chromosome in subset
           for (let i = 0; i < chromSubset.length; i++) {

@@ -9,6 +9,7 @@ from logging.config import dictConfig
 import connexion
 from flask import abort, render_template, request
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_compress import Compress
 
 from .__version__ import VERSION as version
 from .cache import cache
@@ -61,6 +62,7 @@ def create_app():
     app.config["DEBUG"] = True
     app.config["SECRET_KEY"] = "pass"
     cache.init_app(app)
+    Compress(app)
 
     # define views
     @app.route("/")
