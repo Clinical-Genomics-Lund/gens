@@ -170,6 +170,14 @@ We're using all SNPs in gnomAD with an total allele frequency > 5%, which in gno
 
 ## Limitations
 
-- Only works in web browsers supporting OffscreenCanvas ([MDN browser compatibility](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas#Browser_compatibility)). This means that it essentially only works in Chrome (and theoretically Edge and Opera, but that has not been tested). Unfortunately, enabling the experimental OffscreenCanvas support in Firefox does not appear to work (as of version 75). The OffscreenCanvas could probably be made optional, to support all modern web browsers.
-
 - Currently no efforts have been made to make it work for non-human organisms. Chromosome names are currently hardcoded to 1-23,X,Y.
+
+## Browser compatibility
+
+This table lists the browsers and versions where Gens has been tested and deemed to be functional. The versions are by no means the minimum required version, but rather the earliest versions we've tested Gens in since starting this table.
+
+| Browser | Functional | Versions | Issues |
+|---------|------------|----------|--------|
+| Chrome  | YES        | >=87     |        |
+| Firefox | YES        | >=84     |        |
+| Edge    | YES        | >=87     |        |

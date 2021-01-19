@@ -16,7 +16,6 @@ class InteractiveCanvas {
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight); // Height for whole canvas
-    this.moveImg = null; // Holds a copy of latest drawn scene, used for dragging interactive canvas
     this.borderColor = '#666'; // Color of border
     this.titleColor = 'black'; // Color of titles/legends
 
@@ -38,7 +37,9 @@ class InteractiveCanvas {
 
     // Setup draw canvas
     this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, document.body.clientWidth); // Draw-canvas width
-    this.drawCanvas = new OffscreenCanvas(parseInt(this.drawWidth), parseInt(this.canvasHeight));
+    this.drawCanvas = document.createElement('canvas');
+    this.drawCanvas.width = parseInt(this.drawWidth);
+    this.drawCanvas.height = parseInt(this.canvasHeight);
     this.context = this.drawCanvas.getContext('webgl2');
 
     // Setup visible canvases
@@ -149,7 +150,7 @@ class InteractiveCanvas {
 
         // Copy draw image to content Canvas
         let lineMargin = 2;
-        this.contentCanvas.getContext('2d').drawImage(this.moveImg,
+        this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
           this.extraWidth - (this.dragEnd.x - this.dragStart.x),
           this.y + lineMargin,
           this.plotWidth + 2 * this.leftRightPadding,
@@ -227,7 +228,7 @@ class InteractiveCanvas {
     this.renderer.render(this.scene, this.camera);
 
     // Transfer image to visible canvas
-    staticContext.drawImage(this.drawCanvas.transferToImageBitmap(), 0, 0);
+    staticContext.drawImage(this.drawCanvas, 0, 0);
 
     // Clear scene for next render
     this.scene.remove.apply(this.scene, this.scene.children);
@@ -287,10 +288,8 @@ class InteractiveCanvas {
         result['y_pos'] - this.titleMargin,
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
-      this.moveImg = this.drawCanvas.transferToImageBitmap();
-
       // Transfer image to visible canvas
-      this.contentCanvas.getContext('2d').drawImage(this.moveImg,
+      this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
         this.extraWidth, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight,
         this.x, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight);
 

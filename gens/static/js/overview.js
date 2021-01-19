@@ -45,7 +45,9 @@ class OverviewCanvas {
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
     this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding; // Canvas height
-    this.drawCanvas = new OffscreenCanvas(this.width, this.height);
+    this.drawCanvas = document.createElement('canvas');
+    this.drawCanvas.width = parseInt(this.width);
+    this.drawCanvas.height = parseInt(this.height);
     this.staticCanvas = document.getElementById('overview-static');
     this.context = this.drawCanvas.getContext('webgl2');
 
@@ -267,8 +269,7 @@ class OverviewCanvas {
       }).done(() => {
         // Render scene and transfer to visible canvas
         this.renderer.render(this.scene, this.camera);
-        this.staticCanvas.getContext('2d').drawImage(
-          this.drawCanvas.transferToImageBitmap(), 0, 0);
+        this.staticCanvas.getContext('2d').drawImage(this.drawCanvas, 0, 0);
         document.querySelector('.loading-view').toggleAttribute('hidden');
         document.querySelector('#grid-container').style.visibility =
           'visible';
