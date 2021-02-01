@@ -21,8 +21,8 @@ init:    ## Initialize scout database
 	gzip -df ./volumes/gens/data/MANE.GRCh38.v0.92.summary.txt.gz
 	echo "Populate Gens database"
 	docker-compose run gens ./utils/update_chromsizes.py --file ./utils/chrom_sizes38.tsv
-	docker-compose run gens ./utils/update_transcripts.py --file /home/worker/data/Homo_sapiens.GRCh38.101.gtf --mane /home/worker/data/MANE.GRCh38.v0.92.summary.txt
-	docker-compose run gens ./utils/update_annotations.py --file /home/worker/data/hg38_annotations
+	docker-compose run gens ./utils/update_transcripts.py --file /home/app/data/Homo_sapiens.GRCh38.101.gtf --mane /home/app/data/MANE.GRCh38.v0.92.summary.txt
+	docker-compose run gens ./utils/update_annotations.py --file /home/app/data/hg38_annotations
 up:    ## Run Scout software
 	docker-compose up --detach
 down:    ## Take down Scout software
