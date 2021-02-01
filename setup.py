@@ -37,6 +37,7 @@ setup(
         "attrs",
         "cattrs",
         "connexion[swagger-ui]",
+        "flask-compress",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "mongomock"],
