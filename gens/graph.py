@@ -347,8 +347,8 @@ def get_chrom_data(chrom, hg_type=38):
 
     chrom_data = app.config["GENS_DB"][RecordType.CHROM_SIZE.value].find_one(
         {
-            "chrom": chrom,
-            "hg_type": hg_type,
+            "chrom": str(chrom),
+            "hg_type": int(hg_type),
         }
     )
     if chrom_data is None:

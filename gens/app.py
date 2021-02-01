@@ -113,7 +113,9 @@ def create_app():
         selected_variant = request.args.get("variant")
 
         # get annotation track
-        annotation = request.args.get("annotation")
+        annotation = request.args.get(
+            "annotation", app.config["DEFAULT_ANNOTATION_TRACK"]
+        )
 
         return render_template(
             "gens.html",
