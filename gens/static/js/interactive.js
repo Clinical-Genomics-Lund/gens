@@ -64,19 +64,11 @@ class InteractiveCanvas {
     this.allowDraw = true;
 
     // Listener values
+    this.pressedKeys = {};
+    this.markRegion = false;
     this.drag = false;
     this.dragStart;
     this.dragEnd;
-
-    // Get chrosome dimensions
-    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
-      x_pos: this.x,
-      y_pos: this.y,
-      plot_width: this.plotWidth,
-      hg_type: this.hgType,
-    }).done( (result) => {
-      this.dims = result['chrom_dims'];
-    });
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -112,12 +104,6 @@ class InteractiveCanvas {
           y: event.y
         };
 
-        // Set the boundaries of dragging (to avoid going outside of chrom)
-        this.maxDrag = {
-          up: (this.dims[this.chromosome].size - this.end) * this.scale,
-          down: -this.start * this.scale
-        }
-
         this.drag = true;
       }
     });
@@ -133,32 +119,30 @@ class InteractiveCanvas {
           y: event.y
         };
 
-        // Restrict dragging to chromosome boundaries.
-        let dist = this.dragStart.x - this.dragEnd.x;
-        if( dist < this.maxDrag.down ) {
-          this.dragEnd.x = this.dragStart.x - this.maxDrag.down;
-        }
-        if( dist > this.maxDrag.up ) {
-          this.dragEnd.x = this.dragStart.x - this.maxDrag.up;
-        }
+        if ( this.pressedKeys['Shift'] ) {  // mark region
+          if ( !this.markRegion ) {
+            alert('f')
+          }
+          this.markRegion = true;
+        } else {  // pan content canvas
+          // Clear whole content canvas
+          this.contentCanvas.getContext('2d').clearRect(0,
+            this.titleMargin / 2,
+            this.contentCanvas.width,
+            this.contentCanvas.height);
 
-        // Clear whole content canvas
-        this.contentCanvas.getContext('2d').clearRect(0,
-          this.titleMargin / 2,
-          this.contentCanvas.width,
-          this.contentCanvas.height);
-
-        // Copy draw image to content Canvas
-        let lineMargin = 2;
-        this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
-          this.extraWidth - (this.dragEnd.x - this.dragStart.x),
-          this.y + lineMargin,
-          this.plotWidth + 2 * this.leftRightPadding,
-          this.canvasHeight,
-          this.x,
-          this.y + lineMargin,
-          this.plotWidth + 2 * this.leftRightPadding,
-          this.canvasHeight);
+          // Copy draw image to content Canvas
+          let lineMargin = 2;
+          this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
+            this.extraWidth - (this.dragEnd.x - this.dragStart.x),
+            this.y + lineMargin,
+            this.plotWidth + 2 * this.leftRightPadding,
+            this.canvasHeight,
+            this.x,
+            this.y + lineMargin,
+            this.plotWidth + 2 * this.leftRightPadding,
+            this.canvasHeight);
+        }
       }
     });
 
@@ -167,6 +151,7 @@ class InteractiveCanvas {
       event.preventDefault();
       event.stopPropagation();
       if (this.drag) {
+        this.markRegion = false;
         this.drag = false;
         let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
@@ -347,7 +332,7 @@ class InteractiveCanvas {
     ])
   }
 
-  // Key listener for quickly navigating between chromosomes
+  // Key listener for handling shortcuts
   keyMapper (options) {
     const keystrokeDelay = options.keystrokeDelay || 1000;
 
@@ -363,6 +348,9 @@ class InteractiveCanvas {
       const target = eventType.target || eventType.scrElement;
       const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
       let buffer = '';
+
+      this.pressedKeys[key] = true;  // recored pressed keys
+      console.log(this.pressedKeys)
 
       // Do not listen to keydown events for active fields
       if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
@@ -450,6 +438,7 @@ class InteractiveCanvas {
       // Save current state
       state = { buffer: buffer, lastKeyTime: currentTime };
     });
+    document.addEventListener('keyup', event => {delete this.pressedKeys[event.key]});
   }
 
   calcScale() {
