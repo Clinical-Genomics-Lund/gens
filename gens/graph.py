@@ -10,6 +10,7 @@ from flask import request
 from .cache import cache
 from .exceptions import NoRecordsException, RegionParserException
 from .io import tabix_query
+from .db import RecordType
 
 LOG = logging.getLogger(__name__)
 
@@ -63,7 +64,9 @@ CHROMOSOMES = [
 
 
 @cache.memoize(0)
-def convert_data(graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl, data_type="bed"):
+def convert_data(
+    graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl, data_type="bed"
+):
     """
     Converts data for Log2 ratio and BAF to screen coordinates
     Also caps the data
@@ -329,7 +332,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         req.x_pos - extra_plot_width,
         new_start_pos,
         new_x_ampl,
-        data_type=data_type
+        data_type=data_type,
     )
     if not new_start_pos and not log2_records and not baf_records:
         raise NoRecordsException("No records")
@@ -341,8 +344,12 @@ def get_chrom_data(chrom, hg_type=38):
     """
     Gets the size in base pairs of a chromosome
     """
-    chrom_data = app.config["GENS_DB"][f"chromsizes{hg_type}"].find_one(
-        {"chrom": chrom}
+
+    chrom_data = app.config["GENS_DB"][RecordType.CHROM_SIZE.value].find_one(
+        {
+            "chrom": chrom,
+            "hg_type": hg_type,
+        }
     )
     if chrom_data is None:
         raise ValueError(

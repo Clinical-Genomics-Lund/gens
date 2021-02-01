@@ -10,7 +10,7 @@ import os
 from pymongo import MongoClient
 
 host = os.environ.get("MONGODB_HOST", "10.0.224.63")
-port = int(os.environ.get("MONGODB_PORT", 27017)
+port = int(os.environ.get("MONGODB_PORT", 27017))
 print(f"connecting to db: {host}:{port}")
 CLIENT = MongoClient(
     host=host,
@@ -27,13 +27,17 @@ class UpdateChromosomeSizes:
     def __init__(self, args):
         self.input_file = args.file
         self.temp_collection = GENS_DB[args.collection + "temp"]
+        self.hg_type = args.hg_type
         self.collection_name = args.collection
         self.collection = GENS_DB[args.collection]
+        self.update = args.update  # if shuld update existing db
 
     def write_chromsizes(self):
         """
         Write cromosome sizes to database
         """
+        if self.update:
+            self.temp_collection.insert_many(self.collection.find())
         with open(self.input_file) as cs_file:
             first_chrom_len = 1
             cs_reader = csv.reader(cs_file, delimiter="\t")
@@ -49,7 +53,14 @@ class UpdateChromosomeSizes:
                 scale = round(chrom_size / first_chrom_len, 2)
                 tot_scale += round(chrom_size / first_chrom_len, 2)
 
-                chrom_sizes.append({"chrom": chrom, "size": chrom_size, "scale": scale})
+                chrom_sizes.append(
+                    {
+                        "chrom": chrom,
+                        "hg_type": int(self.hg_type),
+                        "size": chrom_size,
+                        "scale": scale,
+                    }
+                )
             for chrom in chrom_sizes:
                 chrom["scale"] /= tot_scale
             self.temp_collection.insert_many(chrom_sizes)
@@ -69,6 +80,8 @@ class UpdateChromosomeSizes:
 
         # Rename temp collection to target collection
         self.temp_collection.rename(self.collection_name)
+        # Index on hg type
+        self.collection.create_index("hg_type", unique=False)
 
 
 def main():
@@ -86,7 +99,14 @@ def main():
         help="Input file for updating mongoDB with chromosome sizes",
     )
     parser.add_argument(
-        "-c", "--collection", help="Optional collection name", default="chromsizes38"
+        "-u",
+        "--update",
+        help="Update existing database with new information",
+        action="store_true",
+    )
+    parser.add_argument("-hg", "--hg_type", help="Set hg-type", default="38")
+    parser.add_argument(
+        "-c", "--collection", help="Optional collection name", default="chromsizes"
     )
     args = parser.parse_args()
 

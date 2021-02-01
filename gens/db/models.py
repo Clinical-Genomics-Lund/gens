@@ -16,3 +16,4 @@ class RecordType(Enum):
 
     ANNOTATION = "annotations"
     TRANSCRIPT = "transcripts"
+    CHROM_SIZE = "chromsizes"

@@ -31,20 +31,25 @@ class UpdateTranscripts:
         self.input_file = args.file
         self.mane_file = args.mane
         self.mane = {}
+        self.hg_type = args.hg_type
         self.temp_collection = GENS_DB[args.collection + "temp"]
         self.collection_name = args.collection
         self.collection = GENS_DB[args.collection]
+        self.update = args.update  # if shuld update existing db
 
     def write_transcripts(self):
         """
         Write transcripts to database
         """
+        if self.update:
+            self.temp_collection.insert_many(self.collection.find())
 
         # Set index to be able to sort quicker
         self.temp_collection.create_index([("start", ASCENDING)], unique=False)
         self.temp_collection.create_index([("end", ASCENDING)], unique=False)
         self.temp_collection.create_index([("chrom", ASCENDING)], unique=False)
         self.collection.create_index([("height_order", ASCENDING)], unique=False)
+        self.collection.create_index("hg_type", unique=False)
 
         # Set MANE transcripts
         with open(self.mane_file) as mane_file:
@@ -118,6 +123,7 @@ class UpdateTranscripts:
                     self.temp_collection.insert_one(
                         {
                             "chrom": seqname,
+                            "hg_type": int(self.hg_type),
                             "gene_name": gene_name,
                             "start": start,
                             "end": end,
@@ -213,8 +219,15 @@ def main():
         help="Input file for updating mongoDB with chromosome transcripts",
     )
     parser.add_argument("-m", "--mane", help="Mane file for updating transcripts")
+    parser.add_argument("-hg", "--hg_type", help="Set hg-type", default="38")
     parser.add_argument(
-        "-c", "--collection", help="Optional collection name", default="transcripts38"
+        "-u",
+        "--update",
+        help="Update existing database with new information",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-c", "--collection", help="Optional collection name", default="transcripts"
     )
     args = parser.parse_args()
 
