@@ -1,3 +1,48 @@
+class KeyLogger {
+  // Records keypress combinations
+  constructor(bufferSize=10) {
+    // Setup variables
+    this.bufferSize = bufferSize;
+    this.lastKeyTime = Date.now();
+    this.heldKeys = {};  // store held keys
+    this.keyBuffer = [];  // store recent keys
+    // Add listending functions
+    document.addEventListener('keydown', event => {
+      // store event
+      const eventData = {
+        'key': event.key,
+        'target': window.event.target.nodeName,
+        'time': Date.now(),
+      };
+      const keyEvent = new CustomEvent('keyevent', {'detail': eventData});
+      this.heldKeys[event.key] = true;  // recored pressed keys
+      this.keyBuffer.push(eventData)
+      // empty buffer
+      while (this.keyBuffer.length > this.bufferSize ) {this.keyBuffer.shift()}
+      document.dispatchEvent(keyEvent)  // event information
+    });
+    document.addEventListener('keyup', event => {
+      delete this.heldKeys[event.key]
+    });
+  }
+
+  heldKeys() {
+    // list held keys
+    return Object.keys(this.heldKeys)
+  }
+
+  recentKeys(timeWindow) {
+    // get keys pressed within a window of time.
+    const currentTime = Date.now();
+    return this.keyBuffer.filter(keyEvent =>
+                                 timeWindow > currentTime - keyEvent.time);
+  }
+
+  lastKeypressTime() {
+    return this.keyBuffer[this.keyBuffer.length - 1] - Date.now()
+  }
+}
+
 class FrequencyTrack {
   constructor(sampleName, hgType, hgFileDir) {
     // setup IO
@@ -22,6 +67,7 @@ class InteractiveCanvas extends FrequencyTrack {
     super(sampleName, hgType, hgFileDir);
     // The canvas input field to display and fetch chromosome range from
     this.inputField = inputField;
+    this.keyLogger = new KeyLogger();  // start log keys
 
     // Plot variables
     this.titleMargin = 80; // Margin between plot and title
@@ -68,7 +114,6 @@ class InteractiveCanvas extends FrequencyTrack {
     this.loadingDiv.style.left = (1+this.x)+"px";
     this.loadingDiv.style.top = (32+1+this.y)+"px"; //32 is size of header bar.
     this.loadingDiv.style.height = (2*this.plotHeight)+"px";
-
 
     // State values
     const input = inputField.value.split(/:|-/);
@@ -164,16 +209,55 @@ class InteractiveCanvas extends FrequencyTrack {
       }
     });
 
-    // Setup key down events to be handled by the key mapper
+    // Setup handling of keydown events
     document.addEventListener('DOMContentLoaded', () => {
-      'use strict';
+      const keystrokeDelay = 1000;
+      document.addEventListener('keyevent', event => {
+        const key = event.detail.key;
+        const excludeFileds = ['input', 'select', 'textarea'];
 
-      const options = {
-        eventType: 'keydown',
-        keystrokeDelay: 1000
-      };
-
-      this.keyMapper(options);
+        if ( key === 'Enter' ) {
+          // Enter was pressed, process previous key presses.
+          const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
+          const lastKey = recentKeys[recentKeys.length - 1];
+          const numKeys = parseInt((recentKeys
+                                    .slice(lastKeys.length - 2)
+                                    .filter(val => parseInt(val.key))
+                                    .join('')))
+          // process keys
+          if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
+            this.loadChromosome(lastkey.key);
+          } else if ( numKeys && 0 < numkeys < 23 ) {
+            this.loadChromosome(numKeys);
+          } else {
+            return;
+          }
+        }
+        switch (key) {
+          case 'ArrowLeft':
+            this.nextChromosome()
+            break;
+          case 'ArrowRight':
+            this.previousChromosome()
+            break;
+          case 'a':
+            this.panTracksLeft();
+            break;
+          case 'd':
+            this.panTracksRight();
+            break;
+          case 'w':
+          case '+':
+            this.zoomIn();
+            break;
+          case 's':
+          case '-':
+            this.zoomOut();
+            break;
+          default:
+            return;
+        }
+      });
     });
   }
 
@@ -328,87 +412,6 @@ class InteractiveCanvas extends FrequencyTrack {
       vc.drawTracks(this.inputField.value),
       ac.drawTracks(this.inputField.value),
     ])
-  }
-
-  // Key listener for handling shortcuts
-  keyMapper (options) {
-    const keystrokeDelay = options.keystrokeDelay || 1000;
-
-    let state = {
-      buffer: '',
-      lastKeyTime: Date.now()
-    };
-
-    document.addEventListener('keydown', event => {
-      const key = event.key;
-      const currentTime = Date.now();
-      const eventType = window.event;
-      const target = eventType.target || eventType.scrElement;
-      const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
-      let buffer = '';
-
-      this.pressedKeys[key] = true;  // recored pressed keys
-      console.log(this.pressedKeys)
-
-      // Do not listen to keydown events for active fields
-      if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-        return;
-      }
-
-      if (key === 'Enter' &&
-        currentTime - state.lastKeyTime < keystrokeDelay) {
-        // Enter was pressed, process previous key presses.
-        if (state.buffer <= 22 && state.buffer > 0) {
-          this.chromosome = state.buffer;
-        } else if (state.buffer.toUpperCase() == 'X' || state.buffer.toUpperCase() == 'Y') {
-          this.chromosome = state.buffer.toUpperCase();
-        } else {
-          // No valid key pressed
-          return;
-        }
-        this.redraw (this.chromosome + ':0-None');
-      } else if (!isFinite(key) && key != 'x' && key != 'y') {
-        // Arrow keys for moving graph
-        switch (key) {
-          case 'ArrowLeft':
-            this.nextChromosome()
-            break;
-          case 'ArrowRight':
-            this.previousChromosome()
-            break;
-          case 'a':
-            this.panTracksLeft();
-            break;
-          case 'd':
-            this.panTracksRight();
-            break;
-          case 'w':
-          case '+':
-            this.zoomIn();
-            break;
-          case 's':
-          case '-':
-            this.zoomOut();
-            break;
-          default:
-            return;
-        }
-      } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
-        // Reset buffer
-        buffer = key;
-      } else {
-        if (state.buffer.length > 1) {
-          // Buffer contains more than two digits, keep the last digit
-          buffer = state.buffer[state.buffer.length - 1] + key;
-        } else {
-          // Add new digit to buffer
-          buffer = state.buffer + key;
-        }
-      }
-      // Save current state
-      state = { buffer: buffer, lastKeyTime: currentTime };
-    });
-    document.addEventListener('keyup', event => {delete this.pressedKeys[event.key]});
   }
 
   calcScale() {
