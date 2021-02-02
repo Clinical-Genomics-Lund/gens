@@ -29,7 +29,7 @@ class Annotation extends Track {
   }
 
   // Fills the list with source files
-  annotSourceList (defaultAnntotation='misbrunnr') {
+  annotSourceList (defaultAnntotation) {
     $.getJSON($SCRIPT_ROOT + '/api/get-annotation-sources', {
       hg_type: this.hgType
     }, (result) => {
