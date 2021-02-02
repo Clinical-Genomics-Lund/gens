@@ -1,9 +1,27 @@
-class InteractiveCanvas {
-  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
-    this.inputField = inputField; // The canvas input field to display and fetch chromosome range from
+class FrequencyTrack {
+  constructor(sampleName, hgType, hgFileDir) {
+    // setup IO
     this.sampleName = sampleName; // File name to load data from
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
     this.hgFileDir = hgFileDir; // File directory
+    // For looping purposes
+    this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+      '22', 'X', 'Y']
+    // Border
+    this.borderColor = '#666'; // Color of border
+    this.titleColor = 'black'; // Color of titles/legends
+    // Setup canvas
+    this.drawCanvas = document.createElement('canvas');
+    this.context = this.drawCanvas.getContext('webgl2');
+  }
+}
+
+class InteractiveCanvas extends FrequencyTrack {
+  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
+    super(sampleName, hgType, hgFileDir);
+    // The canvas input field to display and fetch chromosome range from
+    this.inputField = inputField;
 
     // Plot variables
     this.titleMargin = 80; // Margin between plot and title
@@ -16,8 +34,6 @@ class InteractiveCanvas {
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight); // Height for whole canvas
-    this.borderColor = '#666'; // Color of border
-    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -37,10 +53,8 @@ class InteractiveCanvas {
 
     // Setup draw canvas
     this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, document.body.clientWidth); // Draw-canvas width
-    this.drawCanvas = document.createElement('canvas');
     this.drawCanvas.width = parseInt(this.drawWidth);
     this.drawCanvas.height = parseInt(this.canvasHeight);
-    this.context = this.drawCanvas.getContext('webgl2');
 
     // Setup visible canvases
     this.contentCanvas = document.getElementById('interactive-content');
@@ -121,27 +135,11 @@ class InteractiveCanvas {
 
         if ( this.pressedKeys['Shift'] ) {  // mark region
           if ( !this.markRegion ) {
-            alert('f')
+            this.highlightRegion()
           }
           this.markRegion = true;
         } else {  // pan content canvas
-          // Clear whole content canvas
-          this.contentCanvas.getContext('2d').clearRect(0,
-            this.titleMargin / 2,
-            this.contentCanvas.width,
-            this.contentCanvas.height);
-
-          // Copy draw image to content Canvas
-          let lineMargin = 2;
-          this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
-            this.extraWidth - (this.dragEnd.x - this.dragStart.x),
-            this.y + lineMargin,
-            this.plotWidth + 2 * this.leftRightPadding,
-            this.canvasHeight,
-            this.x,
-            this.y + lineMargin,
-            this.plotWidth + 2 * this.leftRightPadding,
-            this.canvasHeight);
+          this.panContent(this.dragEnd.x - this.dragStart.x)
         }
       }
     });
@@ -373,52 +371,24 @@ class InteractiveCanvas {
         // Arrow keys for moving graph
         switch (key) {
           case 'ArrowLeft':
-            switch(this.chromosome) {
-              case 'Y':
-                this.chromosome = 'X';
-                break;
-              case 'X':
-                this.chromosome = '22';
-                break;
-              case '1':
-                this.chromosome = 'Y';
-                break;
-              default:
-                this.chromosome = String(parseInt(this.chromosome) - 1);
-                break;
-            }
-            this.redraw (this.chromosome + ':0-None');
+            this.nextChromosome()
             break;
           case 'ArrowRight':
-            switch(this.chromosome) {
-              case '22':
-                this.chromosome = 'X';
-                break;
-              case 'X':
-                this.chromosome = 'Y';
-                break;
-              case 'Y':
-                this.chromosome = '1';
-                break;
-              default:
-                this.chromosome = String(parseInt(this.chromosome) + 1);
-                break;
-            }
-            this.redraw (this.chromosome + ':0-None');
+            this.previousChromosome()
             break;
           case 'a':
-            left(this);
+            this.panTracksLeft();
             break;
           case 'd':
-            right(this);
+            this.panTracksRight();
             break;
           case 'w':
           case '+':
-            zoomIn(this);
+            this.zoomIn();
             break;
           case 's':
           case '-':
-            zoomOut(this);
+            this.zoomOut();
             break;
           default:
             return;
@@ -443,5 +413,81 @@ class InteractiveCanvas {
 
   calcScale() {
     return this.plotWidth / (this.end - this.start);
+  }
+
+  // Function for highlighting region
+  highlightRegion() {
+    alert('f')
+  }
+
+  // Move track x distance
+  panContent(distance) {
+    // Clear whole content canvas
+    this.contentCanvas.getContext('2d').clearRect(0,
+                                                  this.titleMargin / 2,
+                                                  this.contentCanvas.width,
+                                                  this.contentCanvas.height);
+    // Copy draw image to content Canvas
+    const lineMargin = 2;
+    this.contentCanvas.getContext('2d').drawImage(
+      this.drawCanvas,
+      this.extraWidth - distance,
+      this.y + lineMargin,
+      this.plotWidth + 2 * this.leftRightPadding,
+      this.canvasHeight,
+      this.x,
+      this.y + lineMargin,
+      this.plotWidth + 2 * this.leftRightPadding,
+      this.canvasHeight);
+  }
+
+  // Load coverage of a chromosome
+  loadChromosome(chrom, start=0, end='None') {
+    this.chromosome = chrom;
+    this.redraw(`${this.chromosome}:${start}-${end}`)
+  }
+
+  nextChromosome() {
+    this.loadChromosome(
+      this.chromosomes[this.chromosomes.indexOf(this.chromosome) - 1]);
+  }
+
+  previousChromosome() {
+    this.loadChromosome(
+      this.chromosomes[this.chromosomes.indexOf(this.chromosome) + 1]);
+  }
+
+  // Pan whole canvas and tracks to the left
+  panTracksLeft() {
+    let distance = Math.floor(0.1 * (this.end - this.start));
+    // Don't allow negative values
+    distance = (this.start < distance) ? distance + (this.start - distance) : distance
+    this.start -= distance;
+    this.end -= distance;
+    this.redraw(null);
+  }
+
+  // Pan whole canvas and tracks to the right
+  panTracksRight() {
+    const distance = Math.floor(0.1 * (this.end - this.start));
+    this.start += distance;
+    this.end += distance;
+    this.redraw(null);
+  }
+
+  // Handle zoom in button click
+  zoomIn() {
+    const factor = Math.floor((this.end - this.start) * 0.2);
+    this.start += factor;
+    this.end -= factor;
+    this.redraw(null);
+  }
+
+  // Handle zoom out button click
+  zoomOut() {
+    const factor = Math.floor((this.end - this.start) / 3);
+    this.start = (this.start - factor) < 1 ? 1 : this.start - factor;
+    this.end += factor;
+    this.redraw(null);
   }
 }

@@ -1,26 +1,18 @@
-class OverviewCanvas {
+class OverviewCanvas extends FrequencyTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
-    this.sampleName = sampleName; // File name to load data from
-    this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
-    this.hgFileDir = hgFileDir; // File directory
+    super(sampleName, hgType, hgFileDir)
 
     // Plot variables
-    this.numChrom = 24; // Number of displayable chromosomes
     this.fullPlotWidth = fullPlotWidth; // Width for all chromosomes to fit in
     this.plotHeight = 180; // Height of one plot
     this.titleMargin = 10; // Margin between plot and title
     this.legendMargin = 45; // Margin between legend and plot
     this.x = xPos; // Starting x-position for plot
     this.y = 20 + this.titleMargin + 2 * lineMargin; // Starting y-position for plot
-    this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
-      '22', 'X', 'Y'] // For looping purposes
     this.leftRightPadding = 2; // Padding for left and right in graph
     this.topBottomPadding = 8; // Padding for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.borderColor = '#666'; // Color of border
-    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -38,18 +30,12 @@ class OverviewCanvas {
       color: '#000000' // Viz color
     };
 
-    // Drag event variables
-    this.drag = false;
-    this.dragStart;
-
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
     this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding; // Canvas height
-    this.drawCanvas = document.createElement('canvas');
     this.drawCanvas.width = parseInt(this.width);
     this.drawCanvas.height = parseInt(this.height);
     this.staticCanvas = document.getElementById('overview-static');
-    this.context = this.drawCanvas.getContext('webgl2');
 
     // Initialize marker div element
     this.markerElem = document.getElementById('overview-marker');

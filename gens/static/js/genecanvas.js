@@ -77,28 +77,6 @@ function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
   drawBox(scene, x, y, width, height, 2, color, open);
 }
 
-// Handle left button click
-function left (ic) {
-  let size = ic.end - ic.start;
-  let moveDist = Math.floor(0.1 * size);
-
-  // Don't allow negative values
-  if (ic.start - moveDist < 0) {
-    moveDist += (ic.start - moveDist);
-  }
-  ic.start -= moveDist;
-  ic.end -= moveDist;
-  ic.redraw(null);
-}
-
-// Handle right button click
-function right (ic) {
-  let size = ic.end - ic.start;
-  ic.start += Math.floor(0.1 * size);
-  ic.end += Math.floor(0.1 * size);
-  ic.redraw (null);
-}
-
 // Handle zoom in button click
 function zoomIn (ic) {
   let size = ic.end - ic.start;
