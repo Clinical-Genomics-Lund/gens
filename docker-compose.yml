@@ -13,7 +13,7 @@ services:
       - ./utils:/home/app/app/utils
       - ./gens:/home/app/app/gens
       - ./volumes/gens/data:/home/app/data
-      - ./volumes/gens/wgs:/access/wgs
+      - ./volumes/gens/wgs:/home/app/access/wgs
         #- /media/isilon/backup_hopper/results/wgs:/access/wgs
     environment:
       - FLASK_APP=gens/app.py

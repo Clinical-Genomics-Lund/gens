@@ -1,3 +1,4 @@
+// Functions for rendering the interactive canvas
 class KeyLogger {
   // Records keypress combinations
   constructor(bufferSize=10) {
@@ -37,7 +38,6 @@ class KeyLogger {
     return this.keyBuffer[this.keyBuffer.length - 1] - Date.now()
   }
 }
-
 
 class FrequencyTrack {
   constructor(sampleName, hgType, hgFileDir) {
