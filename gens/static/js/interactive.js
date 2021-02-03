@@ -26,11 +26,6 @@ class KeyLogger {
     });
   }
 
-  heldKeys() {
-    // list held keys
-    return Object.keys(this.heldKeys)
-  }
-
   recentKeys(timeWindow) {
     // get keys pressed within a window of time.
     const currentTime = Date.now();
@@ -42,6 +37,7 @@ class KeyLogger {
     return this.keyBuffer[this.keyBuffer.length - 1] - Date.now()
   }
 }
+
 
 class FrequencyTrack {
   constructor(sampleName, hgType, hgFileDir) {
@@ -115,6 +111,11 @@ class InteractiveCanvas extends FrequencyTrack {
     this.loadingDiv.style.top = (32+1+this.y)+"px"; //32 is size of header bar.
     this.loadingDiv.style.height = (2*this.plotHeight)+"px";
 
+    // Initialize marker div
+    this.markerElem = document.getElementById('interactive-marker');
+    this.markerElem.style.height = (this.plotHeight*2)+"px";
+    this.markerElem.style.top = (this.contentCanvas.getBoundingClientRect().y + this.y) + "px";
+
     // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
@@ -124,7 +125,7 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Listener values
     this.pressedKeys = {};
-    this.markRegion = false;
+    this.markingRegion = false;
     this.drag = false;
     this.dragStart;
     this.dragEnd;
@@ -143,47 +144,53 @@ class InteractiveCanvas extends FrequencyTrack {
     this.camera.position.set(this.drawWidth / 2 - lineMargin,
       this.canvasHeight / 2 - lineMargin, 1);
 
-
     this.scale = this.calcScale();
 
     // Setup listeners
     this.contentCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
-      if (!this.drag && this.allowDraw) {
-
-        // Make sure scale factor is updated
-        this.scale = this.calcScale();
-
-        this.dragStart = {
-          x: event.x,
-          y: event.y
-        };
-        this.dragEnd = {
-          x: event.x,
-          y: event.y
-        };
-
-        this.drag = true;
+      if ( this.allowDraw && !this.drag ) {
+        if ( this.keyLogger.heldKeys['Control'] ) {
+          this.zoomOut()
+        } else {  // Related to dragging
+          // If region should be marked
+          if ( this.keyLogger.heldKeys['Shift'] ) {
+            this.markingRegion = true;
+          }
+          // Make sure scale factor is updated
+          this.scale = this.calcScale();
+          // store coordinates
+          this.dragStart = {
+            x: event.x,
+            y: event.y
+          };
+          this.dragEnd = {
+            x: event.x,
+            y: event.y
+          };
+          this.drag = true;
+        }
       }
     });
-
 
     // When in active dragging of the canvas
     this.contentCanvas.addEventListener('mousemove', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      // If region should be marked
+      if ( this.keyLogger.heldKeys['Shift'] && this.allowDraw ) {
+        this.markingRegion = true;
+      }
       if (this.drag) {
         this.dragEnd = {
           x: event.x,
           y: event.y
         };
 
-        if ( this.pressedKeys['Shift'] ) {  // mark region
-          if ( !this.markRegion ) {
-            this.highlightRegion()
-          }
-          this.markRegion = true;
-        } else {  // pan content canvas
+        if ( this.markingRegion ) {
+          this.markRegion(this.dragStart.x, this.dragEnd.x);
+        } else {  
+          // pan content canvas
           this.panContent(this.dragEnd.x - this.dragStart.x)
         }
       }
@@ -193,8 +200,21 @@ class InteractiveCanvas extends FrequencyTrack {
     this.contentCanvas.addEventListener('mouseup', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      // reset marking region
+      if ( this.markingRegion ) {
+        this.markingRegion = false;
+        this.resetRegionMarker();
+        const scale = this.calcScale();
+        console.log(this.start, this.dragStart, this.dragEnd, scale)
+        this.loadChromosome(this.chromosome,
+                            this.start + Math.round(
+                              (this.dragStart.x - this.x) / scale),
+                            this.start + Math.round(
+                              (this.dragEnd.x - this.x) / scale))
+      }
+      // reload window when stop draging
       if (this.drag) {
-        this.markRegion = false;
+        this.markingRegion = false;
         this.drag = false;
         let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
@@ -419,8 +439,15 @@ class InteractiveCanvas extends FrequencyTrack {
   }
 
   // Function for highlighting region
-  highlightRegion() {
-    alert('f')
+  markRegion(start, end) {
+    // Update the dom element
+    this.markerElem.style.left = start + "px";
+    this.markerElem.style.width = (end - start + 1) + "px";
+  }
+
+  resetRegionMarker() {
+    this.markerElem.style.left = "0px";
+    this.markerElem.style.width = "0px";
   }
 
   // Move track x distance
@@ -447,7 +474,8 @@ class InteractiveCanvas extends FrequencyTrack {
   // Load coverage of a chromosome
   loadChromosome(chrom, start=0, end='None') {
     this.chromosome = chrom;
-    this.redraw(`${this.chromosome}:${start}-${end}`)
+    this.redraw(`${this.chromosome}:${start}-${end}`);
+    console.log(chrom, start, end);
   }
 
   nextChromosome() {

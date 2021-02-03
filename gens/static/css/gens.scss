@@ -172,12 +172,17 @@ span.print-icon {
 }
 
 .highlight {
-    position:relative;
     background-color: $highlight-color;
+    pointer-events:none;
 }
 
 #overview-marker {
-    pointer-events:none;
+    position:relative;
+}
+
+#interactive-marker {
+    position: absolute;
+    z-index: 1;
 }
 
 .info-container[data-state=nodata] {
