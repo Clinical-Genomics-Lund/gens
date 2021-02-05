@@ -39,6 +39,7 @@ class KeyLogger {
   }
 }
 
+
 class FrequencyTrack {
   constructor(sampleName, hgType, hgFileDir) {
     // setup IO
@@ -380,9 +381,16 @@ class InteractiveCanvas extends FrequencyTrack {
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
       // Transfer image to visible canvas
-      this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
-        this.extraWidth, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight,
-        this.x, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight);
+      this.contentCanvas.getContext('2d').drawImage(
+        this.drawCanvas,  // source image
+        this.extraWidth,  // sX
+        0,                // sY
+        this.plotWidth + 2 * this.leftRightPadding,  // sWidth
+        this.canvasHeight,                           // sHeight
+        this.x,                                      // dX
+        0,                                           // dY
+        this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+        this.canvasHeight);                          // dHeight
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);

@@ -140,6 +140,7 @@ def get_annotation_data(region, source, hg_type, collapsed):
     res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
 
     # Show reduced number of annotations for the highest resolution
+    """
     if not res:
         LOG.info(f"Query variant database: {query}")
         return jsonify(
@@ -149,6 +150,7 @@ def get_annotation_data(region, source, hg_type, collapsed):
             end_pos=end_pos,
             max_height_order=0,
         )
+    """
     # Get annotations within span [start_pos, end_pos] or annotations that
     # go over the span
     annotations = list(
@@ -167,6 +169,7 @@ def get_annotation_data(region, source, hg_type, collapsed):
 
     return jsonify(
         status="ok",
+        chromosome=chrom,
         annotations=annotations,
         start_pos=start_pos,
         end_pos=end_pos,
@@ -246,8 +249,10 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
             "max_height_order": default_height_order,
         }
         # limit renders to b or greater resolution
+        """
         if not res or res == "a":
             return jsonify({"variants": [], **base_return}), 200
+        """
     # query variants
     variants = list(
         query_variants(

@@ -7,9 +7,10 @@ class Transcript extends Track {
     super(width, near, far, visibleHeight, minHeight, colorSchema);
 
     // Set inherited variables
-    this.trackCanvas = document.getElementById('track-canvas');
-    this.trackTitle = document.getElementById('track-titles');
-    this.trackContainer = document.getElementById('track-container');
+    this.trackCanvas = document.getElementById('transcript-content');
+    this.trackTitle = document.getElementById('transcript-titles');
+    this.trackContainer = document.getElementById('transcript-container');
+    this.staticCanvas = document.getElementById('transcript-static');
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1);

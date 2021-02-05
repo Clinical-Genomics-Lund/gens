@@ -185,6 +185,9 @@ span.print-icon {
     z-index: 1;
 }
 
+.static-container {
+    opacity: 0;
+}
 .info-container[data-state=nodata] {
     height: 0px;
     border: none;

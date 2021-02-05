@@ -9,6 +9,7 @@
     <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
     <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
     <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/fetch.js') }}'></script>
     <script src='{{ url_for('static', filename='js/track.js') }}'></script>
     <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
     <script src='{{ url_for('static', filename='js/variant.js') }}'></script>
@@ -60,18 +61,20 @@
             </div>
 
             <div id='variant-container' class='info-container'>
-                <canvas id='variant-canvas' class='info-canvas'></canvas>
+                <canvas id='variant-content' class='info-canvas'></canvas>
+                <canvas id='variant-static' class='info-canvas static-canvas'></canvas>
                 <div id='variant-titles' class='info-titles'></div>
             </div>
 
-            <div id='track-container' class='info-container'>
-                <canvas id='track-canvas' class='info-canvas'></canvas>
-                <div id='track-titles' class='info-titles'></div>
+            <div id='transcript-container' class='info-container'>
+                <canvas id='transcript-content' class='info-canvas'></canvas>
+                <canvas id='transcript-static' class='info-canvas static-canvas'></canvas>
+                <div id='transcript-titles' class='info-titles'></div>
             </div>
 
-
             <div id='annotation-container' class='info-container'>
-                <canvas id='annotation-canvas' class='info-canvas'></canvas>
+                <canvas id='annotation-content' class='info-canvas'></canvas>
+                <canvas id='annotation-draw' class='info-canvas'></canvas>
                 <div id='annotation-titles' class='info-titles'></div>
             </div>
 
@@ -83,7 +86,7 @@
                 <button onclick='ic.panTracksRight();' class='icon no-print'>
                     <span class='icon arrow-right' title='Right'></span>
                 </button>
-                <button onclick='ic.zoomIn();' class='icon no-print'>
+                <button onclick='ix.zoomIn();' class='icon no-print'>
                     <span class='icon search-plus' title='Zoom in'></span>
                 </button>
                 <button onclick='ic.zoomOut();' class='icon no-print'>
@@ -104,6 +107,7 @@
 </div>
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    const _apiHost = 'api/';
 
     // Print page settings
     let printing = false;

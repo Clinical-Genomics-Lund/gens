@@ -1,10 +1,10 @@
+// Generic functions related to annotation tracks
 class Track {
   constructor (width, near, far, visibleHeight, minHeight, colorSchema) {
     // Track variables
     this.featureHeight = 20; // Max height for feature
     this.featureMargin = 14; // Margin for fitting gene name under track
     this.yPos = this.featureHeight / 2; // First y-position
-    this.tracksYPos = function(height_order) { return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)};
     this.arrowColor =  'white';
     this.arrowWidth = 4;
     this.arrowDistance = 200;
@@ -13,7 +13,8 @@ class Track {
     this.colorSchema = colorSchema;
 
     // Dimensions of track canvas
-    this.width = width; // Width of canvas
+    this.width = width; // Width of displayed canvas
+    this.drawCanvasMultiplier = 3;
     this.maxHeight = 16000; // Max height of canvas
     this.visibleHeight = visibleHeight; // Visible height for expanded canvas, overflows for scroll
     this.minHeight = minHeight; // Minimized height
@@ -22,17 +23,27 @@ class Track {
     this.trackCanvas = null; // Set in parent class
     this.trackTitle = null; // Set in parent class
     this.trackContainer = null; // Set in parent class
+    // Canvases for static content
+    this.staticCanvas = null;
+    this.trackData = null;
   }
 
+  tracksYPos(height_order) {
+    return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)
+  };
+
   setupHTML(xPos) {
-    // Setup container
+    this.staticCanvas.style.width = this.width + 'px';
+    // Setup variant canvas
     this.trackContainer.style.marginLeft = xPos + 'px';
     this.trackContainer.style.width = this.width + 'px';
 
     // Setup initial track Canvas
     this.trackContext = this.trackCanvas.getContext('2d');
-    this.trackCanvas.width = this.width;
+    this.trackCanvas.width = this.width * this.drawCanvasMultiplier;
     this.trackCanvas.height = this.minHeight;
+    this.staticCanvas.width = this.width;
+    this.staticCanvas.height = this.minHeight;
 
     // Setup track div
     this.trackTitle.style.width = this.width + 'px';
@@ -48,6 +59,12 @@ class Track {
 
         this.drawTracks(inputField.value);
       }, false);
+  }
+
+  panTracksLeft() {
+  }
+
+  panTracksRight() {
   }
 
   // Clears previous tracks
@@ -229,5 +246,80 @@ class Track {
     this.trackContext.lineTo(xpos - width / 2, ypos + height / 2);
     this.trackContext.stroke();
     this.trackContext.restore();
+  }
+
+  // Calculate offscreen position
+  calculateOffscreenWindiowPos(start, end) {
+    const width = end - start
+    const padding = ((width * this.drawCanvasMultiplier) - width) / 2;
+    const paddedStart = start - padding;
+    const paddedEnd = end + padding;
+    return {start: paddedStart, end: paddedEnd};
+  }
+
+  async drawTracks(region) {
+    // TODO migrate from region sting to object
+    const chromosome = region.split(':')[0];
+    let [start, end] = region.split(':')[1].split('-');
+    start = parseInt(start);
+    end = parseInt(end);
+    const width = end - start + 1;
+    //  verify that either data is loaded or the right chromosome is loaded
+    if ( !this.trackData || this.trackData !== chromosome ) {
+      this.trackData = await get(
+        this.apiEntrypoint,
+        Object.assign({
+          sample_id: oc.sampleName,
+          region: region,
+          hg_type: this.hgType,
+          collapsed: this.expanded ? false : true
+        }, this.additionalQueryParams)
+      )
+    }
+    // redraw offscreen canvas if,
+    // 1. not drawn before;
+    // 2. if onscreen canvas close of offscreen canvas edge
+    // 3. size of region has been changed, zoom in or out
+    if ( !this.offscreenPosition.start ||
+         start < this.offscreenPosition.start + width ||
+         this.offscreenPosition.end - width < end ||
+         this.offscreenPosition.scale !== this.staticCanvas.width / (end - start)
+       ) {
+      const offscreenPos = this.calculateOffscreenWindiowPos(start, end);
+      // draw offscreen position for the first time
+      await this.drawOffScreenTracks({
+        chromosome: this.trackData.chromosome,
+        start_pos: offscreenPos.start,
+        end_pos: offscreenPos.end,
+        rawStart: start,
+        rawEnd: end,
+        max_height_order: this.trackData.max_height_order,
+        data: this.trackData,
+      });
+    }
+    //  blit image from offscreen canvas to onscreen canvas
+    this.blitCanvas(start, end);
+  }
+
+  blitCanvas(chromStart, chromEnd) {
+    // blit drawCanvas to content canvas.
+    // clear current canvas
+    this.staticCanvas
+      .getContext('2d')
+      .clearRect(0, 0, this.staticCanvas.width, this.staticCanvas.height);
+    const width = chromEnd - chromStart + 1;
+    // normalize the genomic coordinates to screen coordinates
+    const ctx = this.staticCanvas.getContext('2d');
+    ctx.drawImage(
+      this.trackCanvas,  // source image
+      (chromStart - this.offscreenPosition.start + 1) * this.offscreenPosition.scale,  // sx
+      0,                 // sY
+      width * this.offscreenPosition.scale,  // sWidth
+      this.maxHeight,    // sHeight
+      0,                 // dX
+      0,                 // dY
+      this.staticCanvas.width,  // dWidth
+      this.maxHeight,    //dHeight
+    );
   }
 }
