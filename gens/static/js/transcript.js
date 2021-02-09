@@ -28,7 +28,15 @@ class Transcript extends Track {
       .transcripts
       .filter(trans => trans.end > queryResult.queryStart ||
               trans.start < queryResult.queryEnd)
-    const scale = this.drawCanvas.width / (queryResult['end_pos'] - queryResult['start_pos']);
+
+    //    store positions used when rendering the canvas
+    this.offscreenPosition = {
+      start: queryResult.start_pos,
+      end: queryResult.end_pos,
+      scale: (this.drawCanvas.width /
+              (queryResult['end_pos'] - queryResult['start_pos'])),
+    };
+    const scale = this.offscreenPosition.scale;
     const titleMargin = 2;
     const textSize = 10;
 
@@ -50,8 +58,8 @@ class Transcript extends Track {
       const chrom = track['chrom'];
       const height_order = track['height_order'];
       const strand = track['strand'];
-      const start = track['start'];
-      const end = track['end'];
+      const trStart = track['start'];
+      const trEnd = track['end'];
       const mane = track['mane']
       const refseqID = track['refseq_id']
       const hgncID = track['hgnc_id']
@@ -70,37 +78,45 @@ class Transcript extends Track {
       }
 
       // Draw a line to mark gene's length
-      this.drawLine(scale * (start - queryResult['start_pos']),
-        scale * (end - queryResult['start_pos']), canvasYPos, color);
+      // cap lines at offscreen canvas start/end
+      const displayedTrStart = (trStart > this.offscreenPosition.start
+                                ? this.offscreenPosition.scale * (trStart - this.offscreenPosition.start)
+                                : 0)
+      const displayedTrEnd = (this.offscreenPosition.end > trEnd
+                              ? this.offscreenPosition.scale * (trEnd - this.offscreenPosition.start)
+                              : this.offscreenPosition.end)
+      this.drawLine(displayedTrStart, displayedTrEnd, canvasYPos, color);
 
       // Draw gene name
       const textYPos = this.tracksYPos(height_order);
-      latest_name_end = this.drawText(geneName,
-        scale * ((start + end) / 2 - queryResult['start_pos']),
-        textYPos + this.featureHeight, textSize, latest_name_end);
+      latest_name_end = this.drawText(
+        geneName,
+        scale * ((displayedTrStart + displayedTrEnd) / 2 - this.offscreenPosition.start),
+        textYPos + this.featureHeight,
+        textSize, latest_name_end);
 
       // Set tooltip text
       let geneText = '';
       if (mane == true) {
-        geneText = `${geneName} [MANE]\nchr${chrom}:${start}-${end}\n` +
+        geneText = `${geneName} [MANE]\nchr${chrom}:${trStart}-${trEnd}\n` +
         `id = ${transcriptID}\nrefseq_id = ${refseqID}\nhgnc = ${hgncID}`;
       } else {
-        geneText = `${geneName}\nchr${chrom}:${start}-${end}\n` +
+        geneText = `${geneName}\nchr${chrom}:${trStart}-${trEnd}\n` +
         `id = ${transcriptID}`;
       }
 
       // Add tooltip title for whole gene
       latest_track_end = this.hoverText(geneText,
-        titleMargin + scale * (start - queryResult['start_pos']) + 'px',
+        titleMargin + scale * (trStart - queryResult['start_pos']) + 'px',
         titleMargin + textYPos - this.featureHeight / 2 + 'px',
-        scale * (end - start) + 'px',
+        scale * (trEnd - trStart) + 'px',
         this.featureHeight + textSize + 'px',
         0, latest_track_end);
 
       // Go trough feature list and draw geometries
-      let latestFeaturePos = start;
+      let latestFeaturePos = trStart;
       for (let j = 0; j < track['features'].length; j++) {
-        let feature = track['features'][j];
+        const feature = track['features'][j];
 
         // Draw arrows
         let diff = feature['start'] - latestFeaturePos;
@@ -122,18 +138,19 @@ class Transcript extends Track {
 
             // Add tooltip title for whole gene
             latest_track_end = this.hoverText(exonText,
-              titleMargin + scale * (feature['start'] - queryResult['start_pos']) + 'px',
+              titleMargin + scale * (feature['start'] - queryResult.queryStart) + 'px',
               titleMargin + textYPos - this.featureHeight / 2 + 'px',
               scale * (feature['end'] - feature['start']) + 'px',
               this.featureHeight + 'px',
               1, latest_track_end);
-
-            this.drawBox(scale * (feature['start'] - queryResult['start_pos']),
+            this.drawBox(
+              scale * (feature['start'] - this.offscreenPosition.start),
               canvasYPos, scale * (feature['end'] - feature['start']),
               this.featureHeight, color);
             break;
           case 'three_prime_utr':
-            this.drawBox(scale * (feature['start'] - queryResult['start_pos']),
+            this.drawBox(
+              scale * (feature['start'] - this.offscreenPosition.start),
               canvasYPos, scale * (feature['end'] - feature['start']),
               this.featureHeight / 2, color);
             break;

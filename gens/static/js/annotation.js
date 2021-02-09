@@ -74,7 +74,14 @@ class Annotation extends Track {
     const scale = this.drawCanvas.width / (this.trackData.end_pos - this.trackData.start_pos);
     const textSize = 10;
 
-    // Set needed height of visible canvas and transcript tooltips
+    // store positions used when rendering the canvas
+    this.offscreenPosition = {
+      start: queryResult.start_pos,
+      end: queryResult.end_pos,
+      scale: scale
+    };
+
+    //  Set needed height of visible canvas and transcript tooltips
     this.setContainerHeight(this.trackData['max_height_order']);
 
     // Keeps track of previous values
