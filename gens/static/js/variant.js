@@ -10,17 +10,12 @@ class Variant extends Track {
     super(width, near, far, visibleHeight, minHeight, colorSchema);
 
     // Set inherited variables
-    this.trackCanvas = document.getElementById('variant-content');
+    this.drawCanvas = document.getElementById('variant-draw');
+    this.contentCanvas = document.getElementById('variant-content');
     this.trackTitle = document.getElementById('variant-titles');
     this.trackContainer = document.getElementById('variant-container');
-    this.staticCanvas = document.getElementById('variant-static');
     this.featureHeight = 18;
     this.arrowThickness = 2;
-
-    this.trackCanvas.toggleAttribute('hidden');
-    // Store coordinates of offscreen canvas
-    this.offscreenPosition = {start: null, end: null, scale: null};
-    this.onscreenPosition = {start: null, end: null, scale: null};
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1);
@@ -44,16 +39,16 @@ class Variant extends Track {
       'rgb(235,235,33, 0.4)')
   }
 
-  async drawOffScreenTracks(queryResult) {
+  async drawOffScreenTrack(queryResult) {
     queryResult.variants = queryResult
       .data
       .variants
-      .filter(variant => variant.end > queryResult.rawStart ||
-              variant.start < queryResult.rawEnd)
+      .filter(variant => variant.end > queryResult.queryStart ||
+              variant.start < queryResult.queryEnd)
     //  Draws variants in given range
     const startQueryPos = queryResult['start_pos'];
     const endQueryPos = queryResult['end_pos'];
-    const scale = this.trackCanvas.width / (endQueryPos - startQueryPos);
+    const scale = this.drawCanvas.width / (endQueryPos - startQueryPos);
     const titleMargin = 2;
     const textSize = 10;
     // store positions used when rendering the canvas

@@ -1,4 +1,5 @@
 // Generic functions related to annotation tracks
+
 class Track {
   constructor (width, near, far, visibleHeight, minHeight, colorSchema) {
     // Track variables
@@ -20,12 +21,35 @@ class Track {
     this.minHeight = minHeight; // Minimized height
 
     // Canvases
-    this.trackCanvas = null; // Set in parent class
-    this.trackTitle = null; // Set in parent class
+    // the drawCanvas is used to draw objects offscreen
+    // the region to be displayed is blitted to the onscreen contentCanvas
+    this.trackTitle = null;     // Set in parent class
     this.trackContainer = null; // Set in parent class
+    this.drawCanvas = null;    // Set in parent class
     // Canvases for static content
-    this.staticCanvas = null;
+    this.contentCanvas = null;
     this.trackData = null;
+
+    // Store coordinates of offscreen canvas
+    this.offscreenPosition = {start: null, end: null, scale: null};
+    this.onscreenPosition = {start: null, end: null, scale: null};
+  }
+
+  // parse chromosomal region designation string
+  // return chromosome, start and end position
+  // eg 1:12-220 --> 1, 12 220
+  parseRegionDesignation(regionString)  {
+    const chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+      '22', 'X', 'Y']
+    const chromosome = regionString.split(':')[0];
+    if ( !chromosomes.includes(chromosome) ) {
+      throw `${chromosome} is not a valid chromosome`;
+    }
+    let [start, end] = regionString.split(':')[0].split('-');
+    start = parseInt(start);
+    end = parseInt(end);
+    return [chromosome, start, end];
   }
 
   tracksYPos(height_order) {
@@ -33,17 +57,17 @@ class Track {
   };
 
   setupHTML(xPos) {
-    this.staticCanvas.style.width = this.width + 'px';
+    this.contentCanvas.style.width = this.width + 'px';
     // Setup variant canvas
     this.trackContainer.style.marginLeft = xPos + 'px';
     this.trackContainer.style.width = this.width + 'px';
 
     // Setup initial track Canvas
-    this.trackContext = this.trackCanvas.getContext('2d');
-    this.trackCanvas.width = this.width * this.drawCanvasMultiplier;
-    this.trackCanvas.height = this.minHeight;
-    this.staticCanvas.width = this.width;
-    this.staticCanvas.height = this.minHeight;
+    this.trackContext = this.drawCanvas.getContext('2d');
+    this.drawCanvas.width = this.width * this.drawCanvasMultiplier;
+    this.drawCanvas.height = this.minHeight;
+    this.contentCanvas.width = this.width;
+    this.contentCanvas.height = this.minHeight;
 
     // Setup track div
     this.trackTitle.style.width = this.width + 'px';
@@ -70,7 +94,7 @@ class Track {
   // Clears previous tracks
   clearTracks() {
     // Clear canvas
-    this.trackContext.clearRect(0, 0, this.trackCanvas.width, this.trackCanvas.height);
+    this.trackContext.clearRect(0, 0, this.drawCanvas.width, this.drawCanvas.height);
 
     // Clear tooltip titles
     $('#' + this.trackTitle.id).empty();
@@ -80,20 +104,20 @@ class Track {
   setContainerHeight(maxHeightOrder) {
     if (maxHeightOrder == 0) {
       // No results, do not show tracks
-      this.trackCanvas.height = 0;
+      this.drawCanvas.height = 0;
       this.trackTitle.style.height = 0 + 'px';
       this.trackContainer.style.height = 0 + 'px';
       this.trackContainer.setAttribute('data-state', 'nodata');
     } else if (this.expanded) {
       // Set variables for an expanded view
       const maxYPos = this.tracksYPos(maxHeightOrder + 1);
-      this.trackCanvas.height = maxYPos;
+      this.drawCanvas.height = maxYPos;
       this.trackTitle.style.height = maxYPos + 'px';
       this.trackContainer.style.height = this.visibleHeight + 'px';
       this.trackContainer.setAttribute('data-state', 'expanded');
     } else {
       // Set variables for a collapsed view
-      this.trackCanvas.height = this.minHeight;
+      this.drawCanvas.height = this.minHeight;
       this.trackTitle.style.height = this.minHeight + 'px';
       this.trackContainer.style.height = this.minHeight + 'px';
       this.trackContainer.setAttribute('data-state', 'collapsed');
@@ -112,8 +136,8 @@ class Track {
 
     // Cap text to outer edges
     xPos = xPos < 0 ? 0 : xPos;
-    if (xPos >= this.trackCanvas.width - textWidth) {
-      xPos = this.trackCanvas.width - textWidth;
+    if (xPos >= this.drawCanvas.width - textWidth) {
+      xPos = this.drawCanvas.width - textWidth;
     }
     if (xPos < latest_name_end) {
       return latest_name_end;
@@ -257,24 +281,28 @@ class Track {
     return {start: paddedStart, end: paddedEnd};
   }
 
-  async drawTracks(region) {
-    // TODO migrate from region sting to object
-    const chromosome = region.split(':')[0];
-    let [start, end] = region.split(':')[1].split('-');
-    start = parseInt(start);
-    end = parseInt(end);
+  // Draw annotation track
+  // the first time annotation data is cached for given chromosome
+  // and a larger region is rendered on an offscreen canvas
+  // if new chromosome selected --> cache all annotations for chrom
+  // if new region in offscreen canvas --> blit image
+  // if new region outside offscreen canvas --> redraw offscreen using cache
+  async drawTrack(regionString) {
+    let [chromosome, start, end] = this.parseRegionDesignation(regionString);
     const width = end - start + 1;
     //  verify that either data is loaded or the right chromosome is loaded
-    if ( !this.trackData || this.trackData !== chromosome ) {
+    if ( !this.trackData || this.trackData.chromosome !== chromosome ) {
       this.trackData = await get(
         this.apiEntrypoint,
-        Object.assign({
+        Object.assign({  // build query parameters
           sample_id: oc.sampleName,
-          region: region,
+          region: regionString,
           hg_type: this.hgType,
           collapsed: this.expanded ? false : true
-        }, this.additionalQueryParams)
+        }, this.additionalQueryParams)  // parameters specific to track type
       )
+      start = this.trackData.start_pos
+      end = this.trackData.end_pos
     }
     // redraw offscreen canvas if,
     // 1. not drawn before;
@@ -283,16 +311,16 @@ class Track {
     if ( !this.offscreenPosition.start ||
          start < this.offscreenPosition.start + width ||
          this.offscreenPosition.end - width < end ||
-         this.offscreenPosition.scale !== this.staticCanvas.width / (end - start)
+         this.offscreenPosition.scale !== this.contentCanvas.width / (end - start)
        ) {
       const offscreenPos = this.calculateOffscreenWindiowPos(start, end);
       // draw offscreen position for the first time
-      await this.drawOffScreenTracks({
+      await this.drawOffScreenTrack({
         chromosome: this.trackData.chromosome,
         start_pos: offscreenPos.start,
         end_pos: offscreenPos.end,
-        rawStart: start,
-        rawEnd: end,
+        queryStart: start,
+        queryEnd: end ? end : offscreenPos.end,  // default to chromosome end
         max_height_order: this.trackData.max_height_order,
         data: this.trackData,
       });
@@ -304,21 +332,21 @@ class Track {
   blitCanvas(chromStart, chromEnd) {
     // blit drawCanvas to content canvas.
     // clear current canvas
-    this.staticCanvas
+    this.contentCanvas
       .getContext('2d')
-      .clearRect(0, 0, this.staticCanvas.width, this.staticCanvas.height);
+      .clearRect(0, 0, this.contentCanvas.width, this.contentCanvas.height);
     const width = chromEnd - chromStart + 1;
     // normalize the genomic coordinates to screen coordinates
-    const ctx = this.staticCanvas.getContext('2d');
+    const ctx = this.contentCanvas.getContext('2d');
     ctx.drawImage(
-      this.trackCanvas,  // source image
+      this.drawCanvas,  // source image
       (chromStart - this.offscreenPosition.start + 1) * this.offscreenPosition.scale,  // sx
       0,                 // sY
       width * this.offscreenPosition.scale,  // sWidth
       this.maxHeight,    // sHeight
       0,                 // dX
       0,                 // dY
-      this.staticCanvas.width,  // dWidth
+      this.contentCanvas.width,  // dWidth
       this.maxHeight,    //dHeight
     );
   }

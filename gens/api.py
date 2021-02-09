@@ -170,9 +170,9 @@ def get_annotation_data(region, source, hg_type, collapsed):
     return jsonify(
         status="ok",
         chromosome=chrom,
-        annotations=annotations,
         start_pos=start_pos,
         end_pos=end_pos,
+        annotations=annotations,
         max_height_order=max_height_order,
         res=res,
     )
@@ -190,14 +190,19 @@ def get_transcript_data(region, hg_type, collapsed):
         return abort(404)
 
     # Do not show transcripts at 'a'-resolution
+    """
     if not res or res == "a":
         return jsonify(
             status="ok",
+            chromosome=chrom,
+            start_pos=start_pos,
+            end_pos=end_pos,
             transcripts=[],
             start_pos=start_pos,
             end_pos=end_pos,
             max_height_order=0,
         )
+    """
 
     with current_app.app_context():
         collection = current_app.config["GENS_DB"][f"transcripts{hg_type}"]
@@ -218,11 +223,12 @@ def get_transcript_data(region, hg_type, collapsed):
 
     return jsonify(
         status="ok",
-        transcripts=list(transcripts),
+        chromosome=chrom,
         start_pos=start_pos,
         end_pos=end_pos,
         max_height_order=max_height_order,
         res=res,
+        transcripts=list(transcripts),
     )
 
 

@@ -440,9 +440,9 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Draw new tracks and annotations
     Promise.all([
-      tc.drawTracks(this.inputField.value),
-      vc.drawTracks(this.inputField.value),
-      ac.drawTracks(this.inputField.value),
+      tc.drawTrack(this.inputField.value),
+      vc.drawTrack(this.inputField.value),
+      ac.drawTrack(this.inputField.value),
     ])
   }
 

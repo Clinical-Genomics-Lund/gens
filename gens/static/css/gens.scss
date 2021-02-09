@@ -185,9 +185,6 @@ span.print-icon {
     z-index: 1;
 }
 
-.static-container {
-    opacity: 0;
-}
 .info-container[data-state=nodata] {
     height: 0px;
     border: none;
@@ -202,6 +199,10 @@ span.print-icon {
 .info-container[data-state=expanded] {
     padding-right: 6px;
     border: 1px solid gray;
+}
+
+.offscreen {
+    display: hidden;
 }
 
 .info-container {

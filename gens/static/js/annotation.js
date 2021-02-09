@@ -8,10 +8,10 @@ class Annotation extends Track {
 
     // Set inherited variables
     // TODO use the names contentCanvas and drawCanvas
-    this.trackCanvas = document.getElementById('annotation-content');
+    this.drawCanvas = document.getElementById('annotation-draw');
+    this.contentCanvas = document.getElementById('annotation-content');
     this.trackTitle = document.getElementById('annotation-titles');
     this.trackContainer = document.getElementById('annotation-container');
-    this.staticCanvas = document.getElementById('annotation-draw');
     this.featureHeight = 18;
     this.arrowThickness = 2;
 
@@ -27,9 +27,14 @@ class Annotation extends Track {
     this.sourceList = document.getElementById('source-list');
     this.sourceList.addEventListener('change', () => {
       this.expanded = false;
-      this.drawTracks(document.getElementById('region_field').value);
+      this.additionalQueryParams = {source: this.sourceList.value};
+      this.drawTrack(document.getElementById('region_field').value);
     })
     this.annotSourceList(defaultAnnotation);
+
+    // GENS api parameters
+    this.apiEntrypoint = 'get-annotation-data';
+    this.additionalQueryParams = {source: defaultAnnotation}
   }
 
   // Fills the list with source files
@@ -55,73 +60,18 @@ class Annotation extends Track {
         this.sourceList.appendChild(opt);
       }
     }).done((result) => {
-      this.drawTracks(document.getElementById('region_field').value);
+      this.drawTrack(document.getElementById('region_field').value);
     });
-  }
-
-  // Get annotation data
-  async getTrackData(region) {
-    const urlParams = objectToQueryString({
-      region: region,
-      hg_type: this.hgType,
-      source: this.sourceList.value,
-      collapsed: this.expanded ? false : true})
-    const response = await fetch($SCRIPT_ROOT + '/api/get-annotation-data?' + urlParams, {
-      method: 'GET',
-    });
-    if (response.status !== 200) {
-      return {status: 'error', message: 'The server responded with an error'}
-    }
-    const result = await response.json();
-    return result;
-  }
-
-  // WIP blitting code
-  async drawTracks(region) {
-    // TODO migrate from region sting to object
-    const chromosome = region.split(':')[0];
-    let [start, end] = region.split(':')[1].split('-');
-    start = parseInt(start);
-    end = parseInt(end);
-    //  verify that either data is loaded or the right chromosome is loaded
-    if ( !this.trackData || this.trackData !== chromosome ) {
-      this.trackData = await this.getTrackData(chromosome + ':1-None');
-    }
-    // render
-    if ( start < this.offScreenPosition.start + 100 || this.offScreenPosition.end - 100 < end ) {
-      // blit image
-      this.blitCanvas(start, end);
-    } else {
-      // redraw image
-      width = end - start + 1
-      drawOffScreenTracks(`${chromosome}:${start - (width / 2)}-${end + (width / 2)}`)
-      this.blitCanvas(start, end)
-    }
-  }
-
-  blitCanvas(start, end) {
-    // blit drawCanvas to content canvas.
-    const width = end - start + 1;
-    const context = this.staticCanvas.getContext('2d');
-
-    //context.clearRect(0, 0, this.staticCanvas.width, this.staticCanvas.height);
-    context.drawImage(this.trackCanvas, 0, 0)
-    // context.drawImage(
-    //   this.contentCanvas,  // image
-    //   (start - this.offScreenPosition.start) + 1,  // sx
-    //   0,  // sy
-    //   width,  // swidth
-    //   this.maxHeight,  // sheight
-    //   0,  // dx
-    //   0,  // dy
-    //   width,  // dWidth
-    //   this.maxHeight,  //dHeight
-    // );
   }
 
   // Draws annotations in given range
-  async drawOffScreenTracks(region) {
-    const scale = this.trackCanvas.width / (this.trackData.end_pos - this.trackData.start_pos);
+  async drawOffScreenTrack(queryResult) {
+    queryResult.annotaions = queryResult
+      .data
+      .annotations
+      .filter(annot => annot.end > queryResult.queryStart ||
+              annot.start < queryResult.queryEnd)
+    const scale = this.drawCanvas.width / (this.trackData.end_pos - this.trackData.start_pos);
     const textSize = 10;
 
     // Set needed height of visible canvas and transcript tooltips

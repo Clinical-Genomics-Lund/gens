@@ -62,19 +62,19 @@
 
             <div id='variant-container' class='info-container'>
                 <canvas id='variant-content' class='info-canvas'></canvas>
-                <canvas id='variant-static' class='info-canvas static-canvas'></canvas>
+                <canvas id='variant-draw' class='info-canvas offscreen'></canvas>
                 <div id='variant-titles' class='info-titles'></div>
             </div>
 
             <div id='transcript-container' class='info-container'>
                 <canvas id='transcript-content' class='info-canvas'></canvas>
-                <canvas id='transcript-static' class='info-canvas static-canvas'></canvas>
+                <canvas id='transcript-draw' class='info-canvas offscreen'></canvas>
                 <div id='transcript-titles' class='info-titles'></div>
             </div>
 
             <div id='annotation-container' class='info-container'>
                 <canvas id='annotation-content' class='info-canvas'></canvas>
-                <canvas id='annotation-draw' class='info-canvas'></canvas>
+                <canvas id='annotation-draw' class='info-canvas offscreen'></canvas>
                 <div id='annotation-titles' class='info-titles'></div>
             </div>
 
@@ -154,19 +154,18 @@
     console.timeEnd('get interactive content');
 
     // Initiate variant, annotation and transcript canvases
-    let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
-    let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
-    let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
+    const vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
+    const tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
+    const ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
     // Initiate and draw overview canvas
-    let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
+    const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
         far, sampleName, hgType, hgFileDir);
-
     // Draw content
     Promise.all([
             ic.drawStaticContent(),
             ic.drawInteractiveContent(),
-            vc.drawTracks(inputField.value),
-            tc.drawTracks(inputField.value),
+            vc.drawTrack(inputField.value),
+            tc.drawTrack(inputField.value),
             oc.drawOverviewContent(printing),
         ]);
 
