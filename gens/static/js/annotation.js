@@ -39,28 +39,26 @@ class Annotation extends Track {
 
   // Fills the list with source files
   annotSourceList (defaultAnntotation) {
-    $.getJSON($SCRIPT_ROOT + '/api/get-annotation-sources', {
-      hg_type: this.hgType
-    }, (result) => {
-      if(result['sources'].length > 0) {
-        this.sourceList.style.visibility = 'visible';
-      }
-
-      for (let i = 0; i < result['sources'].length; i++) {
-        // Add annotation file name to list
-        let opt = document.createElement('option');
-        const file_name = result['sources'][i];
-        opt.value = file_name;
-        opt.innerHTML = file_name;
-
-        // Set mimisbrunnr as default file
-        if (file_name.match(defaultAnntotation)) {
-          opt.setAttribute('selected', true);
+    get('get-annotation-sources', {hg_type: this.hgType})
+      .then( result => {
+        if(result.sources.length > 0) {
+          this.sourceList.style.visibility = 'visible';
         }
-        this.sourceList.appendChild(opt);
-      }
-    }).done((result) => {
-      this.drawTrack(document.getElementById('region_field').value);
+        for (let i = 0; i < result.sources.length; i++) {
+          // Add annotation file name to list
+          let opt = document.createElement('option');
+          const file_name = result.sources[i];
+          opt.value = file_name;
+          opt.innerHTML = file_name;
+
+          // Set mimisbrunnr as default file
+          if (file_name.match(defaultAnntotation)) {
+            opt.setAttribute('selected', true);
+          }
+          this.sourceList.appendChild(opt);
+        }})
+      .then( result => {
+        this.drawTrack(document.getElementById('region_field').value);
     });
   }
 

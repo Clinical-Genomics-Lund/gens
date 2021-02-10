@@ -220,11 +220,11 @@ class InteractiveCanvas extends FrequencyTrack {
         let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
         // Do not allow negative values
-        if (this.start + moveDist < 0) {
-          moveDist -= (this.start + moveDist);
+        if (parseInt(this.start) + moveDist < 0) {
+          moveDist -= (parseInt(this.start) + moveDist);
         }
-        this.start += moveDist;
-        this.end += moveDist;
+        this.start = parseInt(this.start) + moveDist;
+        this.end = parseInt(this.end) + moveDist;
 
         this.redraw(null);
       }
@@ -330,8 +330,7 @@ class InteractiveCanvas extends FrequencyTrack {
   async drawInteractiveContent () {
     this.loadingDiv.style.display = "block";
     console.time("getcoverage");
-
-    $.getJSON($SCRIPT_ROOT + '/api/get-coverage', {
+    get('get-coverage', {
       region: this.inputField.value,
       sample_id: this.sampleName,
       hg_type: this.hgType,
@@ -347,7 +346,7 @@ class InteractiveCanvas extends FrequencyTrack {
       log2_y_start: this.log2.yStart,
       log2_y_end: this.log2.yEnd,
       reduce_data: 1,
-    }, (result) => {
+    }).then( result => {
       console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -394,19 +393,18 @@ class InteractiveCanvas extends FrequencyTrack {
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
-    }).done((result) => {
-
+    }).then( result => {
       this.loadingDiv.style.display = "none";
 
       // Set values
       this.chromosome = result['chrom'];
-      this.start = result['start'];
-      this.end = result['end'];
+      this.start = parseInt(result.start);
+      this.end = parseInt(result.end);
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
       this.inputField.placeholder = this.inputField.value;
       this.allowDraw = true;
       this.inputField.blur();
-    }).fail((result) => {
+    }).catch( () => {
       this.allowDraw = true;
 
       // Signal bad input by adding error class
@@ -481,6 +479,11 @@ class InteractiveCanvas extends FrequencyTrack {
       this.y + lineMargin,
       this.plotWidth + 2 * this.leftRightPadding,
       this.canvasHeight);
+    // todo fix unified metric. distance is cumulative from mouse centerpoint
+    // need to take that into account.
+    console.log(distance)
+    vc.panTrackRight(distance);
+    tc.panTrackRight(distance);
   }
 
   // Load coverage of a chromosome

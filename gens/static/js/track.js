@@ -90,7 +90,7 @@ class Track {
     this.drawCtx.clearRect(0, 0, this.drawCanvas.width, this.drawCanvas.height);
 
     // Clear tooltip titles
-    $('#' + this.trackTitle.id).empty();
+    this.trackTitle.innerHTML = '';
   }
 
   // Sets the container height depending on maximum height of tracks
