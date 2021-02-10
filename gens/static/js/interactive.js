@@ -1,9 +1,69 @@
-class InteractiveCanvas {
-  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
-    this.inputField = inputField; // The canvas input field to display and fetch chromosome range from
+// Functions for rendering the interactive canvas
+class KeyLogger {
+  // Records keypress combinations
+  constructor(bufferSize=10) {
+    // Setup variables
+    this.bufferSize = bufferSize;
+    this.lastKeyTime = Date.now();
+    this.heldKeys = {};  // store held keys
+    this.keyBuffer = [];  // store recent keys
+    // Add listending functions
+    document.addEventListener('keydown', event => {
+      // store event
+      const eventData = {
+        'key': event.key,
+        'target': window.event.target.nodeName,
+        'time': Date.now(),
+      };
+      const keyEvent = new CustomEvent('keyevent', {'detail': eventData});
+      this.heldKeys[event.key] = true;  // recored pressed keys
+      this.keyBuffer.push(eventData)
+      // empty buffer
+      while (this.keyBuffer.length > this.bufferSize ) {this.keyBuffer.shift()}
+      document.dispatchEvent(keyEvent)  // event information
+    });
+    document.addEventListener('keyup', event => {
+      delete this.heldKeys[event.key]
+    });
+  }
+
+  recentKeys(timeWindow) {
+    // get keys pressed within a window of time.
+    const currentTime = Date.now();
+    return this.keyBuffer.filter(keyEvent =>
+                                 timeWindow > currentTime - keyEvent.time);
+  }
+
+  lastKeypressTime() {
+    return this.keyBuffer[this.keyBuffer.length - 1] - Date.now()
+  }
+}
+
+class FrequencyTrack {
+  constructor(sampleName, hgType, hgFileDir) {
+    // setup IO
     this.sampleName = sampleName; // File name to load data from
     this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
     this.hgFileDir = hgFileDir; // File directory
+    // For looping purposes
+    this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+      '22', 'X', 'Y']
+    // Border
+    this.borderColor = '#666'; // Color of border
+    this.titleColor = 'black'; // Color of titles/legends
+    // Setup canvas
+    this.drawCanvas = document.createElement('canvas');
+    this.context = this.drawCanvas.getContext('webgl2');
+  }
+}
+
+class InteractiveCanvas extends FrequencyTrack {
+  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
+    super(sampleName, hgType, hgFileDir);
+    // The canvas input field to display and fetch chromosome range from
+    this.inputField = inputField;
+    this.keyLogger = new KeyLogger();  // start log keys
 
     // Plot variables
     this.titleMargin = 80; // Margin between plot and title
@@ -16,8 +76,6 @@ class InteractiveCanvas {
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2; // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin; // Y-position for first plot
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight); // Height for whole canvas
-    this.borderColor = '#666'; // Color of border
-    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -37,10 +95,8 @@ class InteractiveCanvas {
 
     // Setup draw canvas
     this.drawWidth = Math.max(this.plotWidth + 2 * this.extraWidth, document.body.clientWidth); // Draw-canvas width
-    this.drawCanvas = document.createElement('canvas');
     this.drawCanvas.width = parseInt(this.drawWidth);
     this.drawCanvas.height = parseInt(this.canvasHeight);
-    this.context = this.drawCanvas.getContext('webgl2');
 
     // Setup visible canvases
     this.contentCanvas = document.getElementById('interactive-content');
@@ -55,6 +111,10 @@ class InteractiveCanvas {
     this.loadingDiv.style.top = (32+1+this.y)+"px"; //32 is size of header bar.
     this.loadingDiv.style.height = (2*this.plotHeight)+"px";
 
+    // Initialize marker div
+    this.markerElem = document.getElementById('interactive-marker');
+    this.markerElem.style.height = `${this.plotHeight * 2}px`;
+    this.markerElem.style.top = (this.contentCanvas.getBoundingClientRect().y + this.y + 2) + "px";
 
     // State values
     const input = inputField.value.split(/:|-/);
@@ -64,19 +124,11 @@ class InteractiveCanvas {
     this.allowDraw = true;
 
     // Listener values
+    this.pressedKeys = {};
+    this.markingRegion = false;
     this.drag = false;
     this.dragStart;
     this.dragEnd;
-
-    // Get chrosome dimensions
-    $.getJSON($SCRIPT_ROOT + '/api/get-overview-chrom-dim', {
-      x_pos: this.x,
-      y_pos: this.y,
-      plot_width: this.plotWidth,
-      hg_type: this.hgType,
-    }).done( (result) => {
-      this.dims = result['chrom_dims'];
-    });
 
     // WebGL scene variables
     this.scene = new THREE.Scene();
@@ -92,73 +144,55 @@ class InteractiveCanvas {
     this.camera.position.set(this.drawWidth / 2 - lineMargin,
       this.canvasHeight / 2 - lineMargin, 1);
 
-
     this.scale = this.calcScale();
 
     // Setup listeners
     this.contentCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
-      if (!this.drag && this.allowDraw) {
-
-        // Make sure scale factor is updated
-        this.scale = this.calcScale();
-
-        this.dragStart = {
-          x: event.x,
-          y: event.y
-        };
-        this.dragEnd = {
-          x: event.x,
-          y: event.y
-        };
-
-        // Set the boundaries of dragging (to avoid going outside of chrom)
-        this.maxDrag = {
-          up: (this.dims[this.chromosome].size - this.end) * this.scale,
-          down: -this.start * this.scale
+      if ( this.allowDraw && !this.drag ) {
+        if ( this.keyLogger.heldKeys['Control'] ) {
+          this.zoomOut()
+        } else {  // Related to dragging
+          // If region should be marked
+          if ( this.keyLogger.heldKeys['Shift'] ) {
+            this.markingRegion = true;
+          }
+          // Make sure scale factor is updated
+          this.scale = this.calcScale();
+          // store coordinates
+          this.dragStart = {
+            x: event.x,
+            y: event.y
+          };
+          this.dragEnd = {
+            x: event.x,
+            y: event.y
+          };
+          this.drag = true;
         }
-
-        this.drag = true;
       }
     });
-
 
     // When in active dragging of the canvas
     this.contentCanvas.addEventListener('mousemove', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      // If region should be marked
+      if ( this.keyLogger.heldKeys['Shift'] && this.allowDraw ) {
+        this.markingRegion = true;
+      }
       if (this.drag) {
         this.dragEnd = {
           x: event.x,
           y: event.y
         };
 
-        // Restrict dragging to chromosome boundaries.
-        let dist = this.dragStart.x - this.dragEnd.x;
-        if( dist < this.maxDrag.down ) {
-          this.dragEnd.x = this.dragStart.x - this.maxDrag.down;
+        if ( this.markingRegion ) {
+          this.markRegion(this.dragStart.x, this.dragEnd.x);
+        } else {  
+          // pan content canvas
+          this.panContent(this.dragEnd.x - this.dragStart.x)
         }
-        if( dist > this.maxDrag.up ) {
-          this.dragEnd.x = this.dragStart.x - this.maxDrag.up;
-        }
-
-        // Clear whole content canvas
-        this.contentCanvas.getContext('2d').clearRect(0,
-          this.titleMargin / 2,
-          this.contentCanvas.width,
-          this.contentCanvas.height);
-
-        // Copy draw image to content Canvas
-        let lineMargin = 2;
-        this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
-          this.extraWidth - (this.dragEnd.x - this.dragStart.x),
-          this.y + lineMargin,
-          this.plotWidth + 2 * this.leftRightPadding,
-          this.canvasHeight,
-          this.x,
-          this.y + lineMargin,
-          this.plotWidth + 2 * this.leftRightPadding,
-          this.canvasHeight);
       }
     });
 
@@ -166,7 +200,21 @@ class InteractiveCanvas {
     this.contentCanvas.addEventListener('mouseup', (event) => {
       event.preventDefault();
       event.stopPropagation();
+      // reset marking region
+      if ( this.markingRegion ) {
+        this.markingRegion = false;
+        this.resetRegionMarker();
+        const scale = this.calcScale();
+        console.log(this.start, this.dragStart, this.dragEnd, scale)
+        this.loadChromosome(this.chromosome,
+                            this.start + Math.round(
+                              (this.dragStart.x - this.x) / scale),
+                            this.start + Math.round(
+                              (this.dragEnd.x - this.x) / scale))
+      }
+      // reload window when stop draging
       if (this.drag) {
+        this.markingRegion = false;
         this.drag = false;
         let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
@@ -181,16 +229,59 @@ class InteractiveCanvas {
       }
     });
 
-    // Setup key down events to be handled by the key mapper
+    // Setup handling of keydown events
     document.addEventListener('DOMContentLoaded', () => {
-      'use strict';
+      const keystrokeDelay = 2000;
+      document.addEventListener('keyevent', event => {
+        const key = event.detail.key;
+        const excludeFileds = ['input', 'select', 'textarea'];
 
-      const options = {
-        eventType: 'keydown',
-        keystrokeDelay: 1000
-      };
-
-      this.keyMapper(options);
+        if ( key === 'Enter' ) {
+          // Enter was pressed, process previous key presses.
+          const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
+          recentKeys.pop();  // skip Enter key
+          const lastKey = recentKeys[recentKeys.length - 1];
+          const numKeys = parseInt((recentKeys
+                                    .slice(lastKey.length - 2)
+                                    .filter(val => parseInt(val.key))
+                                    .map(val => val.key)
+                                    .join('')))
+          // process keys
+          if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
+            this.loadChromosome(lastKey.key);
+          } else if ( numKeys && 0 < numKeys < 23 ) {
+            this.loadChromosome(numKeys);
+          } else {
+            return;
+          }
+        }
+        switch (key) {
+          case 'ArrowLeft':
+            this.nextChromosome()
+            break;
+          case 'ArrowRight':
+            this.previousChromosome()
+            break;
+          case 'a':
+            this.panTracksLeft();
+            break;
+          case 'd':
+            this.panTracksRight();
+            break;
+          case 'ArrowUp':
+          case 'w':
+          case '+':
+            this.zoomIn();
+            break;
+          case 'ArrowDown':
+          case 's':
+          case '-':
+            this.zoomOut();
+            break;
+          default:
+            return;
+        }
+      });
     });
   }
 
@@ -347,112 +438,91 @@ class InteractiveCanvas {
     ])
   }
 
-  // Key listener for quickly navigating between chromosomes
-  keyMapper (options) {
-    const keystrokeDelay = options.keystrokeDelay || 1000;
-
-    let state = {
-      buffer: '',
-      lastKeyTime: Date.now()
-    };
-
-    document.addEventListener('keydown', event => {
-      const key = event.key;
-      const currentTime = Date.now();
-      const eventType = window.event;
-      const target = eventType.target || eventType.scrElement;
-      const targetTagName = (target.nodeType === 1) ? target.nodeName.toUpperCase() : '';
-      let buffer = '';
-
-      // Do not listen to keydown events for active fields
-      if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-        return;
-      }
-
-      if (key === 'Enter' &&
-        currentTime - state.lastKeyTime < keystrokeDelay) {
-        // Enter was pressed, process previous key presses.
-        if (state.buffer <= 22 && state.buffer > 0) {
-          this.chromosome = state.buffer;
-        } else if (state.buffer.toUpperCase() == 'X' || state.buffer.toUpperCase() == 'Y') {
-          this.chromosome = state.buffer.toUpperCase();
-        } else {
-          // No valid key pressed
-          return;
-        }
-        this.redraw (this.chromosome + ':0-None');
-      } else if (!isFinite(key) && key != 'x' && key != 'y') {
-        // Arrow keys for moving graph
-        switch (key) {
-          case 'ArrowLeft':
-            switch(this.chromosome) {
-              case 'Y':
-                this.chromosome = 'X';
-                break;
-              case 'X':
-                this.chromosome = '22';
-                break;
-              case '1':
-                this.chromosome = 'Y';
-                break;
-              default:
-                this.chromosome = String(parseInt(this.chromosome) - 1);
-                break;
-            }
-            this.redraw (this.chromosome + ':0-None');
-            break;
-          case 'ArrowRight':
-            switch(this.chromosome) {
-              case '22':
-                this.chromosome = 'X';
-                break;
-              case 'X':
-                this.chromosome = 'Y';
-                break;
-              case 'Y':
-                this.chromosome = '1';
-                break;
-              default:
-                this.chromosome = String(parseInt(this.chromosome) + 1);
-                break;
-            }
-            this.redraw (this.chromosome + ':0-None');
-            break;
-          case 'a':
-            left(this);
-            break;
-          case 'd':
-            right(this);
-            break;
-          case 'w':
-          case '+':
-            zoomIn(this);
-            break;
-          case 's':
-          case '-':
-            zoomOut(this);
-            break;
-          default:
-            return;
-        }
-      } else if (currentTime - state.lastKeyTime > keystrokeDelay) {
-        // Reset buffer
-        buffer = key;
-      } else {
-        if (state.buffer.length > 1) {
-          // Buffer contains more than two digits, keep the last digit
-          buffer = state.buffer[state.buffer.length - 1] + key;
-        } else {
-          // Add new digit to buffer
-          buffer = state.buffer + key;
-        }
-      }
-      // Save current state
-      state = { buffer: buffer, lastKeyTime: currentTime };
-    });
-  }
-
   calcScale() {
     return this.plotWidth / (this.end - this.start);
+  }
+
+  // Function for highlighting region
+  markRegion(start, end) {
+    // Update the dom element
+    this.markerElem.style.left = start + "px";
+    this.markerElem.style.width = (end - start + 1) + "px";
+  }
+
+  resetRegionMarker() {
+    this.markerElem.style.left = "0px";
+    this.markerElem.style.width = "0px";
+  }
+
+  // Move track x distance
+  panContent(distance) {
+    // Clear whole content canvas
+    this.contentCanvas.getContext('2d').clearRect(0,
+                                                  this.titleMargin / 2,
+                                                  this.contentCanvas.width,
+                                                  this.contentCanvas.height);
+    // Copy draw image to content Canvas
+    const lineMargin = 2;
+    this.contentCanvas.getContext('2d').drawImage(
+      this.drawCanvas,
+      this.extraWidth - distance,
+      this.y + lineMargin,
+      this.plotWidth + 2 * this.leftRightPadding,
+      this.canvasHeight,
+      this.x,
+      this.y + lineMargin,
+      this.plotWidth + 2 * this.leftRightPadding,
+      this.canvasHeight);
+  }
+
+  // Load coverage of a chromosome
+  loadChromosome(chrom, start=0, end='None') {
+    this.chromosome = chrom;
+    this.redraw(`${this.chromosome}:${start}-${end}`);
+    console.log(chrom, start, end);
+  }
+
+  nextChromosome() {
+    this.loadChromosome(
+      this.chromosomes[this.chromosomes.indexOf(this.chromosome) - 1]);
+  }
+
+  previousChromosome() {
+    this.loadChromosome(
+      this.chromosomes[this.chromosomes.indexOf(this.chromosome) + 1]);
+  }
+
+  // Pan whole canvas and tracks to the left
+  panTracksLeft() {
+    let distance = Math.floor(0.1 * (this.end - this.start));
+    // Don't allow negative values
+    distance = (this.start < distance) ? distance + (this.start - distance) : distance
+    this.start -= distance;
+    this.end -= distance;
+    this.redraw(null);
+  }
+
+  // Pan whole canvas and tracks to the right
+  panTracksRight() {
+    const distance = Math.floor(0.1 * (this.end - this.start));
+    this.start += distance;
+    this.end += distance;
+    this.redraw(null);
+  }
+
+  // Handle zoom in button click
+  zoomIn() {
+    const factor = Math.floor((this.end - this.start) * 0.2);
+    this.start += factor;
+    this.end -= factor;
+    this.redraw(null);
+  }
+
+  // Handle zoom out button click
+  zoomOut() {
+    const factor = Math.floor((this.end - this.start) / 3);
+    this.start = (this.start - factor) < 1 ? 1 : this.start - factor;
+    this.end += factor;
+    this.redraw(null);
   }
 }

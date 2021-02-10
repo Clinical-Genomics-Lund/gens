@@ -55,6 +55,7 @@
             <div id='interactive-container'>
                 <canvas id='interactive-content'></canvas>
                 <canvas id='interactive-static'></canvas>
+                <div id='interactive-marker' class='highlight'></div>
                 <div id='loading-div'>LOADING...</div>
             </div>
 
@@ -76,16 +77,16 @@
 
             <div id='button-container'>
                 <select id='source-list'></select>
-                <button onclick='left(ic);' class='icon no-print'>
+                <button onclick='ic.panTracksLeft();' class='icon no-print'>
                     <span class='icon arrow-left' title='Left'></span>
                 </button>
-                <button onclick='right(ic);' class='icon no-print'>
+                <button onclick='ic.panTracksRight();' class='icon no-print'>
                     <span class='icon arrow-right' title='Right'></span>
                 </button>
-                <button onclick='zoomIn(ic);' class='icon no-print'>
+                <button onclick='ix.zoomIn();' class='icon no-print'>
                     <span class='icon search-plus' title='Zoom in'></span>
                 </button>
-                <button onclick='zoomOut(ic);' class='icon no-print'>
+                <button onclick='ic.zoomOut();' class='icon no-print'>
                     <span class='icon search-minus' title='Zoom out'></span>
                 </button>
                 <form id='region_form'>

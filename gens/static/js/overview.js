@@ -1,26 +1,18 @@
-class OverviewCanvas {
+class OverviewCanvas extends FrequencyTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
-    this.sampleName = sampleName; // File name to load data from
-    this.hgType = hgType; // Whether to load HG37 or HG38, default is HG38
-    this.hgFileDir = hgFileDir; // File directory
+    super(sampleName, hgType, hgFileDir)
 
     // Plot variables
-    this.numChrom = 24; // Number of displayable chromosomes
     this.fullPlotWidth = fullPlotWidth; // Width for all chromosomes to fit in
     this.plotHeight = 180; // Height of one plot
     this.titleMargin = 10; // Margin between plot and title
     this.legendMargin = 45; // Margin between legend and plot
     this.x = xPos; // Starting x-position for plot
     this.y = 20 + this.titleMargin + 2 * lineMargin; // Starting y-position for plot
-    this.chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
-      '22', 'X', 'Y'] // For looping purposes
     this.leftRightPadding = 2; // Padding for left and right in graph
     this.topBottomPadding = 8; // Padding for top and bottom in graph
     this.leftmostPoint = this.x + 10; // Draw y-values for graph left of this point
-    this.borderColor = '#666'; // Color of border
-    this.titleColor = 'black'; // Color of titles/legends
 
     // BAF values
     this.baf = {
@@ -38,18 +30,12 @@ class OverviewCanvas {
       color: '#000000' // Viz color
     };
 
-    // Drag event variables
-    this.drag = false;
-    this.dragStart;
-
     // Canvas variables
     this.width = document.body.clientWidth; // Canvas width
     this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding; // Canvas height
-    this.drawCanvas = document.createElement('canvas');
     this.drawCanvas.width = parseInt(this.width);
     this.drawCanvas.height = parseInt(this.height);
     this.staticCanvas = document.getElementById('overview-static');
-    this.context = this.drawCanvas.getContext('webgl2');
 
     // Initialize marker div element
     this.markerElem = document.getElementById('overview-marker');
@@ -78,66 +64,19 @@ class OverviewCanvas {
       this.dims = result['chrom_dims'];
     });
 
-
-    // Start dragging
+    // Select a chromosome in overview track
     this.staticCanvas.addEventListener('mousedown', (event) => {
       event.stopPropagation();
-      if (!this.drag) {
-        this.dragStart = event.x;
-        this.drag = true;
-      }
-    });
-
-    // Move mouse during dragging
-    this.staticCanvas.addEventListener('mousemove', (event) => {
-      if (this.drag && this.dragStart != event.x) {
-        this.markerElem.style.left  = 1+Math.min(event.x, this.dragStart)+"px";
-        this.markerElem.style.width = Math.abs(event.x-this.dragStart)+"px";
-      }
-    });
-
-    // Stop dragging
-    window.addEventListener('mouseup', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (this.drag) {
-        this.drag = false;
-
-        // Find chromosomal positions for the drag start/end positions
-        let startLoc = this.pixelPosToGenomicLoc(this.dragStart);
-        let endLoc = this.pixelPosToGenomicLoc(event.x);
-
+      let selectedChrom = this.pixelPosToGenomicLoc(event.x);
+      // Dont update if chrom previously selected
+      if ( ic.chromosome != selectedChrom.chrom ) {
         // Move interactive view to selected region
-        ic.chromosome = startLoc.chrom;
-
-        // Drag was within same chromosome
-        if (startLoc.chrom == endLoc.chrom) {
-          if (startLoc.pos != endLoc.pos) {
-            ic.start = Math.min(startLoc.pos,endLoc.pos);
-            ic.end   = Math.max(startLoc.pos,endLoc.pos);
-          }
-          else { // Show whole chromosome if no X drag (basically click)
-            ic.start = 0;
-            ic.end = this.dims[startLoc.chrom].size-1;
-          }
-        }
-
-        // If drag covers more than 1 chrom, restrict to first clicked chrom
-        else if (endLoc.chrom > startLoc.chrom) { // "X" > "22" in Javascript!
-          ic.start = startLoc.pos;
-          ic.end = this.dims[startLoc.chrom].size-1;
-        }
-        else if (endLoc.chrom < startLoc.chrom) {
-          ic.start = 0;
-          ic.end = startLoc.pos;
-        }
-
-        // Update marked region before redrawing (makes things look snappier)
-        this.markRegion(ic.chromosome, ic.start, ic.end);
-
-        // Finally update the interactive region
-        ic.redraw();
+        ic.chromosome = selectedChrom.chrom;
+        ic.start = 0;
+        ic.end = this.dims[ic.chromosome].size - 1;
+        // Mark region
+        this.markRegion(selectedChrom.chrom, ic.start, ic.end);
+        ic.redraw();  // redraw canvas
       }
     });
 
