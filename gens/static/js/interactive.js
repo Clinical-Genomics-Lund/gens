@@ -120,8 +120,8 @@ class InteractiveCanvas extends FrequencyTrack {
     // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
-    this.start = input[1];
-    this.end = input[2];
+    this.start = parseInt(input[1]);
+    this.end = parseInt(input[2]);
     this.allowDraw = true;
 
     // Listener values
@@ -346,7 +346,7 @@ class InteractiveCanvas extends FrequencyTrack {
       log2_y_start: this.log2.yStart,
       log2_y_end: this.log2.yEnd,
       reduce_data: 1,
-    }).then( result => {
+    }).then( (result) => {
       console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -393,7 +393,8 @@ class InteractiveCanvas extends FrequencyTrack {
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
-    }).then( result => {
+      return result
+    }).then( (result) => {
       this.loadingDiv.style.display = "none";
 
       // Set values
@@ -470,20 +471,23 @@ class InteractiveCanvas extends FrequencyTrack {
     // Copy draw image to content Canvas
     const lineMargin = 2;
     this.contentCanvas.getContext('2d').drawImage(
-      this.drawCanvas,
-      this.extraWidth - distance,
-      this.y + lineMargin,
-      this.plotWidth + 2 * this.leftRightPadding,
-      this.canvasHeight,
-      this.x,
-      this.y + lineMargin,
-      this.plotWidth + 2 * this.leftRightPadding,
-      this.canvasHeight);
+      this.drawCanvas,             // source image
+      this.extraWidth - distance,  // sX
+      this.y + lineMargin,         // sY
+      this.plotWidth + 2 * this.leftRightPadding,  // sWidth
+      this.canvasHeight,           // sHeight
+      this.x,                      // dX
+      this.y + lineMargin,         // dY
+      this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+      this.canvasHeight);          // dHeight
     // todo fix unified metric. distance is cumulative from mouse centerpoint
     // need to take that into account.
-    console.log(distance)
-    vc.panTrackRight(distance);
-    tc.panTrackRight(distance);
+    const scale = this.calcScale();
+    const dist = distance / scale;
+    const region = `${this.chromosome}:${this.start - dist}-${this.end - dist}`;
+    vc.drawTrack(region);
+    tc.drawTrack(region);
+    ac.drawTrack(region);
   }
 
   // Load coverage of a chromosome
