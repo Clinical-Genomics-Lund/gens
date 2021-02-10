@@ -363,13 +363,13 @@ class Track {
   //
 
   // Pan tracks x number of nt
-  panTracksRight(ntDistance) {
+  panTrackRight(ntDistance) {
     const start = this.onscreenPosition.start - ntDistance;
     const end = this.onscreenPosition.end - ntDistance;
     this.drawTrack(`${this.trackData.chromosome}:${start}-${end}`)
   }
 
-  panTracksLeft(ntDistance) {
+  panTrackLeft(ntDistance) {
     const start = this.onscreenPosition.start + ntDistance;
     const end = this.onscreenPosition.end + ntDistance;
     this.drawTrack(`${this.trackData.chromosome}:${start}-${end}`)
