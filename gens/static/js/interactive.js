@@ -113,8 +113,8 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
-    this.markerElem.style.height = (this.plotHeight*2)+"px";
-    this.markerElem.style.top = (this.contentCanvas.getBoundingClientRect().y + this.y) + "px";
+    this.markerElem.style.height = `${this.plotHeight * 2}px`;
+    this.markerElem.style.top = (this.contentCanvas.getBoundingClientRect().y + this.y + 2) + "px";
 
     // State values
     const input = inputField.value.split(/:|-/);
