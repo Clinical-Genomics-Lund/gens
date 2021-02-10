@@ -231,7 +231,7 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Setup handling of keydown events
     document.addEventListener('DOMContentLoaded', () => {
-      const keystrokeDelay = 1000;
+      const keystrokeDelay = 2000;
       document.addEventListener('keyevent', event => {
         const key = event.detail.key;
         const excludeFileds = ['input', 'select', 'textarea'];
@@ -239,15 +239,17 @@ class InteractiveCanvas extends FrequencyTrack {
         if ( key === 'Enter' ) {
           // Enter was pressed, process previous key presses.
           const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
+          recentKeys.pop();  // skip Enter key
           const lastKey = recentKeys[recentKeys.length - 1];
           const numKeys = parseInt((recentKeys
-                                    .slice(lastKeys.length - 2)
+                                    .slice(lastKey.length - 2)
                                     .filter(val => parseInt(val.key))
+                                    .map(val => val.key)
                                     .join('')))
           // process keys
           if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
-            this.loadChromosome(lastkey.key);
-          } else if ( numKeys && 0 < numkeys < 23 ) {
+            this.loadChromosome(lastKey.key);
+          } else if ( numKeys && 0 < numKeys < 23 ) {
             this.loadChromosome(numKeys);
           } else {
             return;
