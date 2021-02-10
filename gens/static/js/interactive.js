@@ -106,10 +106,10 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Setup loading div dimensions
     this.loadingDiv = document.getElementById("loading-div")
-    this.loadingDiv.style.width = (this.plotWidth-1)+"px";
+    this.loadingDiv.style.width = (this.plotWidth-2.5)+"px";
     this.loadingDiv.style.left = (3+this.x)+"px";
     this.loadingDiv.style.top = (56+1+this.y)+"px"; //56 is size of header bar.
-    this.loadingDiv.style.height = (2*this.plotHeight-1)+"px";
+    this.loadingDiv.style.height = (2*this.plotHeight-2.5)+"px";
 
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
