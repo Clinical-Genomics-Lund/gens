@@ -1,5 +1,5 @@
 # GENS
-
+[![CodeFactor](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens/badge)](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens)
 
 ## About
 
