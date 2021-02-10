@@ -266,10 +266,12 @@ class InteractiveCanvas extends FrequencyTrack {
           case 'd':
             this.panTracksRight();
             break;
+          case 'ArrowUp':
           case 'w':
           case '+':
             this.zoomIn();
             break;
+          case 'ArrowDown':
           case 's':
           case '-':
             this.zoomOut();
