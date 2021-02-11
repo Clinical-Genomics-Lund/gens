@@ -206,12 +206,9 @@ class InteractiveCanvas extends FrequencyTrack {
         this.markingRegion = false;
         this.resetRegionMarker();
         const scale = this.calcScale();
-        console.log(this.start, this.dragStart, this.dragEnd, scale)
-        this.loadChromosome(this.chromosome,
-                            this.start + Math.round(
-                              (this.dragStart.x - this.x) / scale),
-                            this.start + Math.round(
-                              (this.dragEnd.x - this.x) / scale))
+        const [start, end] = [this.start + Math.round((this.dragStart.x - this.x) / scale),
+                              this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort();
+        this.loadChromosome(this.chromosome, start, end)
       }
       // reload window when stop draging
       if (this.drag) {
@@ -452,8 +449,8 @@ class InteractiveCanvas extends FrequencyTrack {
   // Function for highlighting region
   markRegion(start, end) {
     // Update the dom element
-    this.markerElem.style.left = start + "px";
-    this.markerElem.style.width = (end - start + 1) + "px";
+    this.markerElem.style.left = start < end ? `${start}px` : `${end}px`;
+    this.markerElem.style.width = `${Math.abs(end - start) + 1}px`;
   }
 
   resetRegionMarker() {
