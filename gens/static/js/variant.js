@@ -27,6 +27,7 @@ class Variant extends Track {
     this.apiEntrypoint = 'get-variant-data';
     this.additionalQueryParams = {variant_category: 'sv'}
 
+    this.maxResolution = null; // allways draw variants
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId;
   }
@@ -67,6 +68,11 @@ class Variant extends Track {
     let latestTrackEnd = 0; // Latest annotations title's end position
 
     this.clearTracks();
+
+    // limit drawing of annotations to pre-defined resolutions
+    if (this.getResolution > this.maxResolution) {
+      queryResult.transcripts = [];
+    }
 
     // Draw track
     for (let i = 0; i < queryResult.variants.length; i++) {

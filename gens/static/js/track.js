@@ -33,6 +33,9 @@ class Track {
     // Store coordinates of offscreen canvas
     this.offscreenPosition = {start: null, end: null, scale: null};
     this.onscreenPosition = {start: null, end: null};
+
+    // Max resolution
+    this.maxResolution = 3;
   }
 
   // parse chromosomal region designation string
@@ -373,5 +376,21 @@ class Track {
     const start = this.onscreenPosition.start + ntDistance;
     const end = this.onscreenPosition.end + ntDistance;
     this.drawTrack(`${this.trackData.chromosome}:${start}-${end}`)
+  }
+
+  //  Classify the resolution wich can be used chose when to display variants
+  get getResolution() {
+    const width = this.offscreenPosition.end - this.offscreenPosition.start + 1;
+    let resolution;
+    if ( width > 1.5 * Math.pow(10, 7) ) {
+      resolution = 4;
+    } else if ( width > 1.4 * Math.pow(10, 6) ) {
+      resolution = 3;
+    } else if ( width > 2 * Math.pow(10, 5) ) {
+      resolution = 2;
+    } else {
+      resolution = 1;
+    }
+    return resolution;
   }
 }

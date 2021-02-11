@@ -89,6 +89,11 @@ class Annotation extends Track {
 
     this.clearTracks();
 
+    // limit drawing of annotations to pre-defined resolutions
+    if (this.getResolution > this.maxResolution) {
+      queryResult.transcripts = [];
+    }
+
     // Go through results and draw appropriate symbols
     for (let i = 0; i < this.trackData.annotations.length; i++) {
       const track = this.trackData['annotations'][i];

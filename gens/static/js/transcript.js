@@ -36,6 +36,7 @@ class Transcript extends Track {
       scale: (this.drawCanvas.width /
               (queryResult['end_pos'] - queryResult['start_pos'])),
     };
+    // calculate positions
     const scale = this.offscreenPosition.scale;
     const titleMargin = 2;
     const textSize = 10;
@@ -49,6 +50,11 @@ class Transcript extends Track {
     let latest_track_end = 0; // Latest annotations title's end position
 
     this.clearTracks();
+
+    // limit drawing of transcript to pre-defined resolutions
+    if (this.getResolution > this.maxResolution) {
+      queryResult.transcripts = [];
+    }
 
     // Go through queryResults and draw appropriate symbols
     for (let i = 0; i < queryResult['transcripts'].length; i++) {
