@@ -152,6 +152,22 @@
         sampleName, hgType, hgFileDir);
     console.timeEnd('get interactive content');
 
+    // Setup functions to run when the data has finished loading
+    document.addEventListener('data-loaded', () => {
+        // hide loading
+        document.querySelector('.loading-view')
+                .toggleAttribute('hidden');
+        // display grid containers
+        document.querySelector('#grid-container')
+                .style.visibility = 'visible';
+        document.querySelector('#grid-container')
+                .style.display = 'grid';
+        // display printing
+        if (printing == true) {
+          printPage();
+        }
+    });
+
     // Initiate variant, annotation and transcript canvases
     const vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
     const tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
@@ -159,6 +175,7 @@
     // Initiate and draw overview canvas
     const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
         far, sampleName, hgType, hgFileDir);
+
     // Draw content
     Promise.all([
             ic.drawStaticContent(),
@@ -174,5 +191,6 @@
             event.preventDefault();
             ic.redraw(inputField.value);
         });
+
 </script>
 {% endblock body %}

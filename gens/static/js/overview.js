@@ -196,13 +196,8 @@ class OverviewCanvas extends FrequencyTrack {
         // Render scene and transfer to visible canvas
         this.renderer.render(this.scene, this.camera);
         this.staticCanvas.getContext('2d').drawImage(this.drawCanvas, 0, 0);
-        document.querySelector('.loading-view').toggleAttribute('hidden');
-        document.querySelector('#grid-container').style.visibility =
-          'visible';
-        document.querySelector('#grid-container').style.display = 'grid';
-        if (printing == true) {
-          printPage();
-        }
+        // communicate that data is loaded
+        document.dispatchEvent(new Event('data-loaded'));
       }).catch( result => {
         console.log(result['responseText']);
         //window.location.href = "/404"
