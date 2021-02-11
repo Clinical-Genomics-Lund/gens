@@ -206,7 +206,7 @@ function loadPrintPage(region) {
 
 // Show print prompt and reloads page after print
 function printPage () {
-  $('.no-print').hide();
+  document.querySelector('.no-print').toggleAttribute('hidden');
   window.addEventListener('afterprint', function() {
     window.location.replace(window.location.href.replace('&print_page=true', ''))
   }, {once : true});
