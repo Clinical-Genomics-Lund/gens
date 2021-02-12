@@ -23,18 +23,12 @@ class Transcript extends Track {
 
   //  Draws transcripts in given range
   async drawOffScreenTrack(queryResult) {
-    queryResult.transcripts = queryResult
-      .data
-      .transcripts
-      .filter(trans => trans.end > queryResult.queryStart ||
-              trans.start < queryResult.queryEnd)
-
     //    store positions used when rendering the canvas
     this.offscreenPosition = {
       start: queryResult.start_pos,
       end: queryResult.end_pos,
       scale: (this.drawCanvas.width /
-              (queryResult['end_pos'] - queryResult['start_pos'])),
+              (queryResult.end_pos - queryResult.start_pos)),
     };
     // calculate positions
     const scale = this.offscreenPosition.scale;
@@ -42,7 +36,7 @@ class Transcript extends Track {
     const textSize = 10;
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(queryResult['max_height_order']);
+    this.setContainerHeight(queryResult.max_height_order);
 
     // Keeps track of previous values
     let latest_height = 0; // Latest height order for annotation
@@ -52,13 +46,24 @@ class Transcript extends Track {
     this.clearTracks();
 
     // limit drawing of transcript to pre-defined resolutions
-    if (this.getResolution > this.maxResolution) {
-      queryResult.transcripts = [];
+    let filteredTranscripts = [];
+    if (this.getResolution < this.maxResolution + 1) {
+      filteredTranscripts = queryResult.data.transcripts.filter(
+        transc => isElementOverlapping(
+          transc, {start: queryResult.start_pos, end: queryResult.end_pos}
+        )
+      );
+    }
+    // dont show tracks with no data in them
+    if ( filteredTranscripts.length > 0 ) {
+      this.trackContainer.setAttribute('data-state', 'collapsed');
+    } else {
+      this.trackContainer.setAttribute('data-state', 'nodata');
     }
 
     // Go through queryResults and draw appropriate symbols
-    for (let i = 0; i < queryResult['transcripts'].length; i++) {
-      const track = queryResult['transcripts'][i];
+    for (let i = 0; i < filteredTranscripts.length; i++) {
+      const track = filteredTranscripts[i];
       const geneName = track['gene_name'];
       const transcriptID = track['transcript_id'];
       const chrom = track['chrom'];
@@ -113,7 +118,7 @@ class Transcript extends Track {
 
       // Add tooltip title for whole gene
       latest_track_end = this.hoverText(geneText,
-        titleMargin + scale * (trStart - queryResult['start_pos']) + 'px',
+        titleMargin + scale * (trStart - queryResult.start_pos) + 'px',
         titleMargin + textYPos - this.featureHeight / 2 + 'px',
         scale * (trEnd - trStart) + 'px',
         this.featureHeight + textSize + 'px',

@@ -64,11 +64,6 @@ class Annotation extends Track {
 
   // Draws annotations in given range
   async drawOffScreenTrack(queryResult) {
-    queryResult.annotaions = queryResult
-      .data
-      .annotations
-      .filter(annot => annot.end > queryResult.queryStart ||
-              annot.start < queryResult.queryEnd)
     const scale = this.drawCanvas.width / (this.trackData.end_pos - this.trackData.start_pos);
     const textSize = 10;
 
@@ -80,7 +75,7 @@ class Annotation extends Track {
     };
 
     //  Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(this.trackData['max_height_order']);
+    this.setContainerHeight(this.trackData.max_height_order);
 
     // Keeps track of previous values
     let latest_height = 0; // Latest height order for annotation
@@ -89,14 +84,26 @@ class Annotation extends Track {
 
     this.clearTracks();
 
-    // limit drawing of annotations to pre-defined resolutions
-    if (this.getResolution > this.maxResolution) {
-      queryResult.transcripts = [];
+    // limit drawing of transcript to pre-defined resolutions
+    let filteredAnnotations = [];
+    if (this.getResolution < this.maxResolution + 1) {
+      filteredAnnotations = queryResult
+        .data
+        .annotations
+        .filter(annot => isElementOverlapping(annot,
+                                              {start: queryResult.start_pos,
+                                               end: queryResult.end_pos}));
+    }
+    // dont show tracks with no data in them
+    if ( filteredAnnotations.length > 0 ) {
+      this.trackContainer.setAttribute('data-state', 'collapsed');
+    } else {
+      this.trackContainer.setAttribute('data-state', 'nodata');
     }
 
     // Go through results and draw appropriate symbols
-    for (let i = 0; i < this.trackData.annotations.length; i++) {
-      const track = this.trackData['annotations'][i];
+    for (let i = 0; i < filteredAnnotations.length; i++) {
+      const track = filteredAnnotations[i];
       const annotationName = track['name'];
       const chrom = track['chrom'];
       const height_order = track['height_order'];

@@ -1,5 +1,20 @@
 // Generic functions related to annotation tracks
 
+// Check if two geometries are overlapping
+// each input is an object with start/ end coordinates
+// f          >----------------<
+// s   >---------<
+function isElementOverlapping(first, second) {
+  if ( ( first.start > second.start && first.start < second.end ) || //
+       ( first.end > second.start && first.end < second.end ) ||
+       ( second.start > first.start && second.start <  first.end) ||
+       ( second.end > first.start && second.end <  first.end)) {
+    return true;
+  }
+  return false;
+}
+
+
 class Track {
   constructor (width, near, far, visibleHeight, minHeight, colorSchema) {
     // Track variables
@@ -272,6 +287,7 @@ class Track {
   calculateOffscreenWindiowPos(start, end) {
     const width = end - start
     const padding = ((width * this.drawCanvasMultiplier) - width) / 2;
+    //const paddedStart = (start - padding) > 0 ? (start - padding) : 1;
     const paddedStart = start - padding;
     const paddedEnd = end + padding;
     return {start: paddedStart, end: paddedEnd};
@@ -298,14 +314,14 @@ class Track {
         this.apiEntrypoint,
         Object.assign({  // build query parameters
           sample_id: oc.sampleName,
-          region: regionString,
+          region: `${chromosome}:1-None`,
           hg_type: this.hgType,
           collapsed: this.expanded ? false : true
         }, this.additionalQueryParams)  // parameters specific to track type
       )
       this.trackData.expanded = this.expanded;
-      start = this.trackData.start_pos
-      end = this.trackData.end_pos
+      // the track data is used to determine the new start/ end positions
+      end = end > this.trackData.end_pos ? this.trackData.end_pos : end
       updatedData = true;
     }
     // redraw offscreen canvas if,

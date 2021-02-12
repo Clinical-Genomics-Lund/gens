@@ -41,11 +41,6 @@ class Variant extends Track {
   }
 
   async drawOffScreenTrack(queryResult) {
-    queryResult.variants = queryResult
-      .data
-      .variants
-      .filter(variant => variant.end > queryResult.queryStart ||
-              variant.start < queryResult.queryEnd)
     //  Draws variants in given range
     const startQueryPos = queryResult['start_pos'];
     const endQueryPos = queryResult['end_pos'];
@@ -60,7 +55,7 @@ class Variant extends Track {
     };
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(queryResult['max_height_order']);
+    this.setContainerHeight(queryResult.max_height_order);
 
     // Keeps track of previous values
     let latest_height = 0; // Latest height order for annotation
@@ -70,13 +65,25 @@ class Variant extends Track {
     this.clearTracks();
 
     // limit drawing of annotations to pre-defined resolutions
-    if (this.getResolution > this.maxResolution) {
-      queryResult.transcripts = [];
+    let filteredVariants = [];
+    if (this.getResolution < this.maxResolution + 1) {
+      filteredVariants = queryResult
+      .data
+      .variants
+      .filter(variant => isElementOverlapping(variant,
+                                              {start: queryResult.queryStart,
+                                               end: queryResult.queryEnd}));
+    }
+    // dont show tracks with no data in them
+    if ( filteredVariants.length > 0 ) {
+      this.trackContainer.setAttribute('data-state', 'collapsed');
+    } else {
+      this.trackContainer.setAttribute('data-state', 'nodata');
     }
 
     // Draw track
-    for (let i = 0; i < queryResult.variants.length; i++) {
-      const variant = queryResult.variants[i];  // store variant
+    for (let i = 0; i < filteredVariants.length; i++) {
+      const variant = filteredVariants[i];  // store variant
       const variantName = variant['display_name']; // varaint name
       const chrom = variant['chromosome'];
       const variantCategory = variant['sub_category'];  // del, dup, sv, str
