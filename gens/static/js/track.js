@@ -396,7 +396,7 @@ class Track {
 
   //  Classify the resolution wich can be used chose when to display variants
   get getResolution() {
-    const width = this.offscreenPosition.end - this.offscreenPosition.start + 1;
+    const width = this.onscreenPosition.end - this.onscreenPosition.start + 1;
     let resolution;
     if ( width > 1.5 * Math.pow(10, 7) ) {
       resolution = 4;
