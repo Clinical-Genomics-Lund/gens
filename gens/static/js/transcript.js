@@ -19,6 +19,121 @@ class Transcript extends Track {
     this.apiEntrypoint = 'get-transcript-data';
 
     this.hgType = hgType;
+    this.maxResolution = 4;
+  }
+
+  // Draw direction arrow
+  _drawGeneDirection(latestFeaturePos, featureStart, queryStart,
+                     strand, canvasYPos, color) {
+    // Draw arrows
+    const diff = featureStart - latestFeaturePos;
+    const scale = this.offscreenPosition.scale;
+    if (scale * diff >= this.arrowWidth && strand) {
+      this.drawArrows(
+        scale * (latestFeaturePos - queryStart),
+        scale * (featureStart - queryStart),
+        canvasYPos,
+        strand == '+' ? 1 : -1,
+        color)
+    }
+  }
+
+  // draw feature
+  _drawFeature(feature, element, queryResult, canvasYPos, geneText,
+               color, plotFormat) {
+    // Go trough feature list and draw geometries
+    const titleMargin = plotFormat.titleMargin;
+    const textYPos = this.tracksYPos(element.height_order);
+    let latestFeaturePos = element.start;
+    const scale = this.offscreenPosition.scale;
+    for (let feature of element.features) {
+      latestFeaturePos = feature.end;
+      // Draw the geometry that represents the feature
+      if ( feature.feature == 'exon') {
+        const exonText = `${geneText}
+${"-".repeat(30)}
+Exon number: ${feature.exon_number}
+chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
+        // Add tooltip title for whole gene
+        this.heightOrderRecord.latestTrackEnd = this.hoverText(
+          exonText,
+          `${titleMargin + scale * (feature.start - queryResult.queryStart)}px`,
+          `${titleMargin + textYPos - (this.featureHeight / 2)}px`,
+          `${scale * (feature.end - feature.start)}px`,
+          `${this.featureHeight}px`,
+          1,
+          this.heightOrderRecord.latestTrackEnd);
+        this.drawBox(
+          scale * (feature.start - this.offscreenPosition.start),
+          canvasYPos, scale * (feature.end - feature.start),
+          this.featureHeight, color);
+      } else if ( feature.feature == 'exon' ) {
+          this.drawBox(
+            scale * (feature.start - this.offscreenPosition.start),
+            canvasYPos, scale * (feature.end - feature.start),
+            this.featureHeight / 2, color);
+      }
+    }
+  }
+
+  // draw transcript figures
+  async _drawTranscript(element, queryResult, color, plotFormat) {
+    const geneName = element.gene_name;
+    const transcriptID = element.transcript_id;
+    const chrom = element.chrom;
+    const trStart = element.start;
+    const trEnd = element.end;
+    const canvasYPos = this.tracksYPos(element.height_order);
+    const scale = this.offscreenPosition.scale;
+    // sizes
+    const textSize = plotFormat.textSize;
+    const titleMargin = plotFormat.titleMargin;
+
+    // Keep track of latest track
+    if ( this.heightOrderRecord.latestHeight != element.height_order ) {
+      this.heightOrderRecord = {
+        latestHeight: element.height_order,
+        latestNameEnd: 0,
+        latestTrackEnd: 0,
+      }
+    }
+    // Draw a line to mark gene's length
+    // cap lines at offscreen canvas start/end
+    const displayedTrStart = (trStart > this.offscreenPosition.start
+                              ? scale * (trStart - this.offscreenPosition.start)
+                              : 0)
+    const displayedTrEnd = (this.offscreenPosition.end > trEnd
+                            ? scale * (trEnd - this.offscreenPosition.start)
+                            : this.offscreenPosition.end)
+    this.drawLine(displayedTrStart, displayedTrEnd, canvasYPos, color);
+    // Draw gene name
+    const textYPos = this.tracksYPos(element.height_order);
+    this.heightOrderRecord.latestNameEnd = this.drawText(
+      geneName,
+      scale * ((displayedTrStart + displayedTrEnd) / 2 - this.offscreenPosition.start),
+      textYPos + this.featureHeight,
+      textSize,
+      this.heightOrderRecord.latestNameEnd);
+
+    // Set tooltip text
+    let geneText = '';
+    if (element.mane == true) {
+      geneText = `${geneName} [MANE]\nchr${chrom}:${trStart}-${trEnd}\n` +
+      `id = ${transcriptID}\nrefseq_id = ${element.refseqID}\nhgnc = ${element.hgncID}`;
+    } else {
+      geneText = `${geneName}\nchr${chrom}:${trStart}-${trEnd}\n` +
+      `id = ${transcriptID}`;
+    }
+    // Add tooltip title for whole gene
+    this.heightOrderRecord.latestTrackEnd = this.hoverText(
+      geneText,
+      `${titleMargin + scale * (trStart - queryResult.start_pos)}px`,
+      `${titleMargin + textYPos - this.featureHeight / 2}px`,
+      `${scale * (trEnd - trStart)}px`,
+      `${this.featureHeight + textSize}px`,
+      0,
+      this.heightOrderRecord.latestTrackEnd);
+    return geneText;
   }
 
   //  Draws transcripts in given range
@@ -30,20 +145,16 @@ class Transcript extends Track {
       scale: (this.drawCanvas.width /
               (queryResult.end_pos - queryResult.start_pos)),
     };
-    // calculate positions
-    const scale = this.offscreenPosition.scale;
-    const titleMargin = 2;
-    const textSize = 10;
 
     // Set needed height of visible canvas and transcript tooltips
     this.setContainerHeight(queryResult.max_height_order);
 
     // Keeps track of previous values
-    let latest_height = 0; // Latest height order for annotation
-    let latest_name_end = 0; // Latest annotations end position
-    let latest_track_end = 0; // Latest annotations title's end position
-
-    this.clearTracks();
+    this.heightOrderRecord = {
+      latestHeight: 0,    // Latest height order for annotation
+      latestNameEnd: 0,  // Latest annotations end position
+      latestTrackEnd: 0, // Latest annotations title's end position
+    };
 
     // limit drawing of transcript to pre-defined resolutions
     let filteredTranscripts = [];
@@ -56,115 +167,45 @@ class Transcript extends Track {
     }
     // dont show tracks with no data in them
     if ( filteredTranscripts.length > 0 ) {
-      this.trackContainer.setAttribute('data-state', 'collapsed');
+      this.setContainerHeight(this.trackData.max_height_order);
     } else {
-      this.trackContainer.setAttribute('data-state', 'nodata');
+      this.setContainerHeight(0);
+    }
+    this.clearTracks();
+
+    // define plot formating parameters
+    const plotFormat = {
+      textSize: 10,
+      titleMargin: 2,
     }
 
     // Go through queryResults and draw appropriate symbols
-    for (let i = 0; i < filteredTranscripts.length; i++) {
-      const track = filteredTranscripts[i];
-      const geneName = track['gene_name'];
-      const transcriptID = track['transcript_id'];
-      const chrom = track['chrom'];
-      const height_order = track['height_order'];
-      const strand = track['strand'];
-      const trStart = track['start'];
-      const trEnd = track['end'];
-      const mane = track['mane']
-      const refseqID = track['refseq_id']
-      const hgncID = track['hgnc_id']
-      const color = strand == '+' ? this.colorSchema['strand_pos'] : this.colorSchema['strand_neg'];
-      const canvasYPos = this.tracksYPos(height_order);
-
-      // Only draw visible tracks
-      if (!this.expanded && height_order != 1)
+    for ( let transc of filteredTranscripts ) {
+      if (!this.expanded && transc.height_order != 1)
         continue
-
-      // Keep track of latest track
-      if (latest_height != height_order) {
-        latest_height = height_order;
-        latest_name_end = 0;
-        latest_track_end = 0;
-      }
-
-      // Draw a line to mark gene's length
-      // cap lines at offscreen canvas start/end
-      const displayedTrStart = (trStart > this.offscreenPosition.start
-                                ? this.offscreenPosition.scale * (trStart - this.offscreenPosition.start)
-                                : 0)
-      const displayedTrEnd = (this.offscreenPosition.end > trEnd
-                              ? this.offscreenPosition.scale * (trEnd - this.offscreenPosition.start)
-                              : this.offscreenPosition.end)
-      this.drawLine(displayedTrStart, displayedTrEnd, canvasYPos, color);
-
-      // Draw gene name
-      const textYPos = this.tracksYPos(height_order);
-      latest_name_end = this.drawText(
-        geneName,
-        scale * ((displayedTrStart + displayedTrEnd) / 2 - this.offscreenPosition.start),
-        textYPos + this.featureHeight,
-        textSize, latest_name_end);
-
-      // Set tooltip text
-      let geneText = '';
-      if (mane == true) {
-        geneText = `${geneName} [MANE]\nchr${chrom}:${trStart}-${trEnd}\n` +
-        `id = ${transcriptID}\nrefseq_id = ${refseqID}\nhgnc = ${hgncID}`;
-      } else {
-        geneText = `${geneName}\nchr${chrom}:${trStart}-${trEnd}\n` +
-        `id = ${transcriptID}`;
-      }
-
-      // Add tooltip title for whole gene
-      latest_track_end = this.hoverText(geneText,
-        titleMargin + scale * (trStart - queryResult.start_pos) + 'px',
-        titleMargin + textYPos - this.featureHeight / 2 + 'px',
-        scale * (trEnd - trStart) + 'px',
-        this.featureHeight + textSize + 'px',
-        0, latest_track_end);
-
-      // Go trough feature list and draw geometries
-      let latestFeaturePos = trStart;
-      for (let j = 0; j < track['features'].length; j++) {
-        const feature = track['features'][j];
-
-        // Draw arrows
-        let diff = feature['start'] - latestFeaturePos;
-        if (scale * diff >= this.arrowWidth) {
-          if (strand) {
-            let direction = strand == '+' ? 1 : -1;
-            this.drawArrows(scale * (latestFeaturePos - queryResult['start_pos']),
-              scale * (feature['start'] - queryResult['start_pos']), canvasYPos,
-              direction, color)
-          }
+      // draw base transcript
+      const canvasYPos = this.tracksYPos(transc.height_order);
+      const color = transc.strand == '+'
+            ? this.colorSchema.strand_pos
+            : this.colorSchema.strand_neg;
+      const geneText = await this._drawTranscript(transc, queryResult, color,
+                                                  plotFormat)
+      // draw featues
+      let latestFeaturePos = transc.start;
+      for (let feature of transc.features) {
+        // only write features in high resolutions
+        if ( this.getResolution < 4 ) {
+          // draw arrow
+          this._drawGeneDirection(latestFeaturePos, feature.start,
+                                  queryResult.start_pos, transc.strand,
+                                  canvasYPos, color);
         }
-        latestFeaturePos = feature['end'];
-
-        // Draw the geometry that represents the feature
-        switch(feature['feature']) {
-          case 'exon':
-            let exonText = geneText + '\n' + '-'.repeat(30) + '\nExon number: ' + feature['exon_number'] +
-              '\nchr' + chrom + ':' + feature['start'] + '-' + feature['end'];
-
-            // Add tooltip title for whole gene
-            latest_track_end = this.hoverText(exonText,
-              titleMargin + scale * (feature['start'] - queryResult.queryStart) + 'px',
-              titleMargin + textYPos - this.featureHeight / 2 + 'px',
-              scale * (feature['end'] - feature['start']) + 'px',
-              this.featureHeight + 'px',
-              1, latest_track_end);
-            this.drawBox(
-              scale * (feature['start'] - this.offscreenPosition.start),
-              canvasYPos, scale * (feature['end'] - feature['start']),
-              this.featureHeight, color);
-            break;
-          case 'three_prime_utr':
-            this.drawBox(
-              scale * (feature['start'] - this.offscreenPosition.start),
-              canvasYPos, scale * (feature['end'] - feature['start']),
-              this.featureHeight / 2, color);
-            break;
+        if ( this.getResolution < 2 ) {
+          // draw feature
+          this._drawFeature(
+            feature, transc, queryResult,
+            canvasYPos, geneText, color, plotFormat
+          );
         }
       }
     }

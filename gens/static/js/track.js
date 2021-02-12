@@ -30,7 +30,7 @@ class Track {
 
     // Dimensions of track canvas
     this.width = Math.round(width); // Width of displayed canvas
-    this.drawCanvasMultiplier = 10;
+    this.drawCanvasMultiplier = 4;
     this.maxHeight = 16000; // Max height of canvas
     this.visibleHeight = visibleHeight; // Visible height for expanded canvas, overflows for scroll
     this.minHeight = minHeight; // Minimized height
@@ -50,7 +50,7 @@ class Track {
     this.onscreenPosition = {start: null, end: null};
 
     // Max resolution
-    this.maxResolution = 3;
+    this.maxResolution = 4;
   }
 
   // parse chromosomal region designation string
@@ -70,8 +70,8 @@ class Track {
     return [chromosome, start, end];
   }
 
-  tracksYPos(height_order) {
-    return this.yPos + (height_order - 1) * (this.featureHeight + this.featureMargin)
+  tracksYPos(heightOrder) {
+    return this.yPos + (heightOrder - 1) * (this.featureHeight + this.featureMargin);
   };
 
   setupHTML(xPos) {
@@ -83,7 +83,7 @@ class Track {
     // Setup initial track Canvas
     this.drawCtx = this.drawCanvas.getContext('2d');
     this.drawCanvas.width = this.width * this.drawCanvasMultiplier;
-    this.drawCanvas.height = this.minHeight;
+    this.drawCanvas.height = this.maxHeight;
     this.contentCanvas.width = this.width;
     this.contentCanvas.height = this.minHeight;
 
@@ -93,12 +93,27 @@ class Track {
 
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',
-      (event) => {
+      async (event) => {
         event.preventDefault();
-
         // Toggle between expanded/collapsed view
         this.expanded = !this.expanded;
-        this.drawTrack(inputField.value);
+        // set datastate for css
+        if ( this.expanded ) {
+          this.trackContainer.setAttribute('data-state', 'expanded');
+        } else {
+          this.trackContainer.setAttribute('data-state', 'collapsed');
+        }
+        //  this.drawTrack(inputField.value);
+        await this.drawOffScreenTrack({
+          chromosome: this.trackData.chromosome,
+          start_pos: this.offscreenPosition.start,
+          end_pos: this.offscreenPosition.end,
+          queryStart: this.onscreenPosition.start,
+          queryEnd: this.onscreenPosition.end,  // default to chromosome end
+          max_height_order: this.expanded ? this.trackData.max_height_order : 1,
+          data: this.trackData,
+        });
+        this.blitCanvas(this.onscreenPosition.start, this.onscreenPosition.end);
       }, false);
   }
 
@@ -115,22 +130,24 @@ class Track {
   setContainerHeight(maxHeightOrder) {
     if (maxHeightOrder == 0) {
       // No results, do not show tracks
-      this.drawCanvas.height = 0;
-      this.trackTitle.style.height = 0 + 'px';
-      this.trackContainer.style.height = 0 + 'px';
+      this.contentCanvas.height = 0;
+      this.trackTitle.style.height = '0px';
+      this.trackContainer.style.height = '0px';
       this.trackContainer.setAttribute('data-state', 'nodata');
     } else if (this.expanded) {
       // Set variables for an expanded view
       const maxYPos = this.tracksYPos(maxHeightOrder + 1);
+      this.contentCanvas.height = maxYPos;
       this.drawCanvas.height = maxYPos;
-      this.trackTitle.style.height = maxYPos + 'px';
-      this.trackContainer.style.height = this.visibleHeight + 'px';
+      this.trackTitle.style.height = `${maxYPos}px`;
+      this.trackContainer.style.height = `${this.visibleHeight}px`;
       this.trackContainer.setAttribute('data-state', 'expanded');
     } else {
       // Set variables for a collapsed view
+      this.contentCanvas.height = this.minHeight;
       this.drawCanvas.height = this.minHeight;
-      this.trackTitle.style.height = this.minHeight + 'px';
-      this.trackContainer.style.height = this.minHeight + 'px';
+      this.trackTitle.style.height = `${this.minHeight}px`;
+      this.trackContainer.style.height = `${this.minHeight}px`;
       this.trackContainer.setAttribute('data-state', 'collapsed');
     }
   }
@@ -236,7 +253,7 @@ class Track {
   }
 
   // Draws a box
-  drawBox (xpos, ypos, width, height, color) {
+  async drawBox (xpos, ypos, width, height, color) {
     this.drawCtx.save();
     this.drawCtx.fillStyle = color;
     this.drawCtx.beginPath();
@@ -246,7 +263,7 @@ class Track {
   }
 
   // Draw arrows for a segment
-  drawArrows(start, stop, yPos, direction, color) {
+  async drawArrows(start, stop, yPos, direction, color) {
     // Calculate width of a segment to draw the arrow in
     const width = stop - start;
     if (width < this.arrowWidth) {
@@ -269,7 +286,7 @@ class Track {
   // Draw an arrow in desired direction
   // Forward arrow: direction = 1
   // Reverse arrow: direction = -1
-  drawArrow (xpos, ypos, direction, height, color) {
+  async drawArrow (xpos, ypos, direction, height, color) {
     let width = direction * this.arrowWidth;
     this.drawCtx.save();
     this.drawCtx.strokeStyle = color;
@@ -299,8 +316,11 @@ class Track {
   // if new chromosome selected --> cache all annotations for chrom
   // if new region in offscreen canvas --> blit image
   // if new region outside offscreen canvas --> redraw offscreen using cache
-  async drawTrack(regionString) {
+  async drawTrack(regionString, forceRedraw=false) {
+    // store genomic position of the region to draw
     let [chromosome, start, end] = this.parseRegionDesignation(regionString);
+    this.onscreenPosition.start = start;
+    this.onscreenPosition.end = end;
     const width = end - start + 1;
     let updatedData = false;
     //  verify that
@@ -309,17 +329,16 @@ class Track {
     //  3. right expansion
     if ( !this.trackData ||
          this.trackData.chromosome !== chromosome ||
-         this.trackData.expanded != this.expanded ) {
+         forceRedraw) {
       this.trackData = await get(
         this.apiEntrypoint,
         Object.assign({  // build query parameters
           sample_id: oc.sampleName,
           region: `${chromosome}:1-None`,
           hg_type: this.hgType,
-          collapsed: this.expanded ? false : true
+          collapsed: false  // allways get all height orders
         }, this.additionalQueryParams)  // parameters specific to track type
       )
-      this.trackData.expanded = this.expanded;
       // the track data is used to determine the new start/ end positions
       end = end > this.trackData.end_pos ? this.trackData.end_pos : end
       updatedData = true;
@@ -364,17 +383,17 @@ class Track {
     const offscreenOffset = Math.round((chromStart - this.offscreenPosition.start) * this.offscreenPosition.scale)
     const elementWidth = Math.round(width * this.offscreenPosition.scale)
 
-    // normalize the genomic coordinates to screen coordinates
+    //  normalize the genomic coordinates to screen coordinates
     ctx.drawImage(
       this.drawCanvas,  // source image
       offscreenOffset,  // sX
       0,                 // sY
       elementWidth,  // sWidth
-      this.maxHeight,    // sHeight
+      this.drawCanvas.height,    // sHeight
       0,                 // dX
       0,                 // dY
       this.contentCanvas.width,  // dWidth
-      this.maxHeight,    //dHeight
+      this.drawCanvas.height,    //dHeight
     );
   }
 
@@ -398,9 +417,13 @@ class Track {
   get getResolution() {
     const width = this.onscreenPosition.end - this.onscreenPosition.start + 1;
     let resolution;
-    if ( width > 1.5 * Math.pow(10, 7) ) {
+    if ( width > 5 * Math.pow(10, 7) ) {
+      resolution = 6;
+    } else if ( width > 1.5 * Math.pow(10, 7) ) {
+      resolution = 5;
+    } else if ( width > 4 * Math.pow(10, 6) ) {
       resolution = 4;
-    } else if ( width > 1.4 * Math.pow(10, 6) ) {
+    } else if ( width > 1 * Math.pow(10, 6) ) {
       resolution = 3;
     } else if ( width > 2 * Math.pow(10, 5) ) {
       resolution = 2;

@@ -27,7 +27,6 @@ class Variant extends Track {
     this.apiEntrypoint = 'get-variant-data';
     this.additionalQueryParams = {variant_category: 'sv'}
 
-    this.maxResolution = null; // allways draw variants
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId;
   }
@@ -42,58 +41,60 @@ class Variant extends Track {
 
   async drawOffScreenTrack(queryResult) {
     //  Draws variants in given range
-    const startQueryPos = queryResult['start_pos'];
-    const endQueryPos = queryResult['end_pos'];
-    const scale = this.drawCanvas.width / (endQueryPos - startQueryPos);
     const titleMargin = 2;
     const textSize = 10;
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: startQueryPos,
-      end: endQueryPos,
-      scale: scale
+      start: queryResult.start_pos,
+      end: queryResult.end_pos,
+      scale: this.drawCanvas.width /
+        (queryResult.end_pos - queryResult.start_pos),
     };
+    const scale = this.offscreenPosition.scale;
 
     // Set needed height of visible canvas and transcript tooltips
     this.setContainerHeight(queryResult.max_height_order);
 
     // Keeps track of previous values
-    let latest_height = 0; // Latest height order for annotation
-    let latest_name_end = 0; // Latest annotations end position
-    let latestTrackEnd = 0; // Latest annotations title's end position
+    this.heightOrderRecord = {
+      latestHeight: 0,    // Latest height order for annotation
+      latestNameEnd: 0,  // Latest annotations end position
+      latestTrackEnd: 0, // Latest annotations title's end position
+    };
 
-    this.clearTracks();
 
     // limit drawing of annotations to pre-defined resolutions
     let filteredVariants = [];
     if (this.getResolution < this.maxResolution + 1) {
       filteredVariants = queryResult
-      .data
-      .variants
-      .filter(variant => isElementOverlapping(variant,
-                                              {start: queryResult.queryStart,
-                                               end: queryResult.queryEnd}));
+        .data
+        .variants
+        .filter(variant => isElementOverlapping(
+          {start: variant.position, end: variant.end},
+          {start: queryResult.start_pos, end: queryResult.end_pos}));
     }
     // dont show tracks with no data in them
-    if ( filteredVariants.length > 0 ) {
-      this.trackContainer.setAttribute('data-state', 'collapsed');
+    if ( filteredVariants.length > 0 &&
+         this.getResolution < this.maxResolution + 1
+       ) {
+      this.setContainerHeight(this.trackData.max_height_order);
     } else {
-      this.trackContainer.setAttribute('data-state', 'nodata');
+      this.setContainerHeight(0);
     }
+    this.clearTracks();
 
     // Draw track
-    for (let i = 0; i < filteredVariants.length; i++) {
-      const variant = filteredVariants[i];  // store variant
-      const variantName = variant['display_name']; // varaint name
-      const chrom = variant['chromosome'];
-      const variantCategory = variant['sub_category'];  // del, dup, sv, str
-      const variantType = variant['variant_type'];
-      const variantLength = variant['length'];
-      const quality = variant['quality'];
-      const rankScore = variant['rank_score'];
-      const variantStart = variant['position'];
-      const variantEnd = variant['end'];
-      const color = this.colorSchema[variantCategory] || this.colorSchema['default'] || 'black';
+    for ( const variant of filteredVariants ) {
+      const variantName = variant.display_name; // varaint name
+      const chrom = variant.chromosome;
+      const variantCategory = variant.sub_category;  // del, dup, sv, str
+      const variantType = variant.variant_type;
+      const variantLength = variant.length;
+      const quality = variant.quality;
+      const rankScore = variant.rank_score;
+      const variantStart = variant.position;
+      const variantEnd = variant.end;
+      const color = this.colorSchema[variantCategory] || this.colorSchema.default || 'black';
       const heightOrder = 1;
       const canvasYPos = this.tracksYPos(heightOrder);
 
@@ -102,15 +103,16 @@ class Variant extends Track {
         continue
 
       // Keep track of latest track
-      if (latest_height != heightOrder) {
-        latest_height = heightOrder;
-        latest_name_end = 0;
-        latestTrackEnd = 0;
+      if ( this.heightOrderRecord.latestHeight != heightOrder ) {
+        this.heightOrderRecord = {
+          latestHeight: heightOrder,
+          latestNameEnd: 0,
+          latestTrackEnd: 0,
+        }
       }
-
       // if set begining draw
-      const drawStartCoord = scale * (variantStart - startQueryPos);
-      const drawEndCoord = scale * (variantEnd - startQueryPos);
+      const drawStartCoord = scale * (variantStart - this.offscreenPosition.start);
+      const drawEndCoord = scale * (variantEnd - this.offscreenPosition.start);
       // Draw motif line
       switch (variantCategory) {
         case 'del':
@@ -118,7 +120,8 @@ class Variant extends Track {
           this.drawWaveLine(drawStartCoord,
                             drawEndCoord,
                             canvasYPos + waveHeight / 2,
-                            waveHeight, color);
+                            waveHeight,
+                            color);
           break;
         case 'dup':
           this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color);
@@ -133,11 +136,15 @@ class Variant extends Track {
         this.drawHighlight(drawStartCoord, drawEndCoord);
       }
 
-      // Draw variant type
       const textYPos = this.tracksYPos(heightOrder);
-      latest_name_end = this.drawText(`${variant["category"]} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        scale * ((variantStart + variantEnd) / 2 - startQueryPos),
-        textYPos + this.featureHeight, textSize, latest_name_end);
+      // Draw variant type
+      this.heightOrderRecord.latestNameEnd = this.drawText(
+        `${variant["category"]} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+        scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
+        textYPos + this.featureHeight,
+        textSize,
+        this.heightOrderRecord.latestNameEnd
+      );
 
       // Set tooltip text
       let variantText = `Id: ${variantName}\n` +
@@ -147,12 +154,15 @@ class Variant extends Track {
                         `Rank score: ${rankScore}\n`;
 
       // Add tooltip title for whole gene
-      latestTrackEnd = this.hoverText(variantText,
-        titleMargin + scale * (variantStart - startQueryPos) + 'px',
-        titleMargin + textYPos - this.featureHeight / 2 + 'px',
-        scale * (variantEnd - variantStart) + 'px',
-        this.featureHeight + textSize + 'px',
-        0, latestTrackEnd);
+      this.heightOrderRecord.latestTrackEnd = this.hoverText(
+        variantText,
+        `${titleMargin + scale * (variantStart - this.offscreenPosition.start)}px`,
+        `${titleMargin + textYPos - this.featureHeight / 2}px`,
+        `${scale * (variantEnd - variantStart)}px`,
+        `${this.featureHeight + textSize}px`,
+        0,
+        this.heightOrderRecord.latestTrackEnd
+      );
     }
   }
 }
