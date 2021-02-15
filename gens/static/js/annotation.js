@@ -47,20 +47,19 @@ class Annotation extends Track {
         if(result.sources.length > 0) {
           this.sourceList.style.visibility = 'visible';
         }
-        for (let i = 0; i < result.sources.length; i++) {
+        for ( const fileName of result.sources ) {
           // Add annotation file name to list
           let opt = document.createElement('option');
-          const file_name = result.sources[i];
-          opt.value = file_name;
-          opt.innerHTML = file_name;
+          opt.value = fileName;
+          opt.innerHTML = fileName;
 
           // Set mimisbrunnr as default file
-          if (file_name.match(defaultAnntotation)) {
+          if (fileName.match(defaultAnntotation)) {
             opt.setAttribute('selected', true);
           }
           this.sourceList.appendChild(opt);
         }})
-      .then( result => {
+      .then( () => {
         this.drawTrack(document.getElementById('region_field').value);
     });
   }
