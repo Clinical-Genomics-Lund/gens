@@ -115,7 +115,7 @@ class InteractiveCanvas extends FrequencyTrack {
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
     this.markerElem.style.height = `${this.plotHeight * 2}px`;
-    this.markerElem.style.top = (this.y + 58) + "px";
+    this.markerElem.style.top = `${this.y + 58}px`;
 
     // State values
     const input = inputField.value.split(/:|-/);
@@ -206,8 +206,9 @@ class InteractiveCanvas extends FrequencyTrack {
         this.markingRegion = false;
         this.resetRegionMarker();
         const scale = this.calcScale();
+        // numerical sort
         const [start, end] = [this.start + Math.round((this.dragStart.x - this.x) / scale),
-                              this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort();
+                              this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort((a, b) => a - b);
         this.loadChromosome(this.chromosome, start, end)
       }
       // reload window when stop draging
