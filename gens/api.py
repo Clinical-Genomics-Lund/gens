@@ -139,17 +139,6 @@ def get_annotation_data(region, source, hg_type, collapsed):
     hg_type = request.args.get("hg_type", "38")
     res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
 
-    # Show reduced number of annotations for the highest resolution
-    """
-    if not res:
-        return jsonify(
-            status="ok",
-            annotations=[],
-            start_pos=start_pos,
-            end_pos=end_pos,
-            max_height_order=0,
-        )
-    """
     # Get annotations within span [start_pos, end_pos] or annotations that
     # go over the span
     annotations = list(
@@ -187,21 +176,6 @@ def get_transcript_data(region, hg_type, collapsed):
     if region == "":
         LOG.error("Could not find transcript in database")
         return abort(404)
-
-    # Do not show transcripts at 'a'-resolution
-    """
-    if not res or res == "a":
-        return jsonify(
-            status="ok",
-            chromosome=chrom,
-            start_pos=start_pos,
-            end_pos=end_pos,
-            transcripts=[],
-            start_pos=start_pos,
-            end_pos=end_pos,
-            max_height_order=0,
-        )
-    """
 
     with current_app.app_context():
         collection = current_app.config["GENS_DB"][f"transcripts{hg_type}"]
@@ -254,10 +228,6 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
             "max_height_order": default_height_order,
         }
         # limit renders to b or greater resolution
-        """
-        if not res or res == "a":
-            return jsonify({"variants": [], **base_return}), 200
-        """
     # query variants
     variants = list(
         query_variants(
