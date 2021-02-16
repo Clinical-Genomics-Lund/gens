@@ -32,11 +32,12 @@ class Variant extends Track {
   }
 
   // Draw highlight for a given region
-  drawHighlight (startPos, endPos) {
+  drawHighlight (startPos, endPos, color='rgb(255, 200, 87, 0.5)') {
     this.drawBox(startPos, 0,
       endPos - startPos + 1,
       this.visibleHeight,
-      'rgb(235,235,33, 0.4)')
+      color
+      )
   }
 
   async drawOffScreenTrack(queryResult) {

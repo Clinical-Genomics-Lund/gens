@@ -11,6 +11,6 @@ HG38_PATH = "/home/app/access/wgs/plot_data"
 DEFAULT_ANNOTATION_TRACK = "Mimisbrunnr_databank_plausibly_pathogenic_CNVs_Lund_hg38.aed"
 # UI colors
 UI_COLORS = {
-    "variants": {"del": "#F94144", "dup": "#277DA1"},
+    "variants": {"del": "#C84630", "dup": "#4C6D94"},
     "transcripts": {"strand_pos": "#4D908E", "strand_neg": "#43AA8B"},
 }

@@ -18,6 +18,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Shift + Mouse to select a region in the interactive canvas to zoom in on
  - Annotation tracks pan with the coverage track
  - Annotation tracks are rendered by blitting sections from an offscreen canvas
+ - Added logo to README and Gens webpage
 ### Changed
  - Added description on how to use the containerized version of Gens
  - Replaced print statements with logging to stderr
@@ -30,9 +31,11 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Eliminate use of offScreenCanvas in order to support Firefox/Gecko
  - Removed select region to zoom functionality from overview canvas
  - Dropped jquery as a dependency
+ - General GUI updates
 ### Fixed
  - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
  - Adjust the "Loading..." div to avoid drawing it above UI elements
+ - Made SASS more readable
 ## [1.0.0]
 ### Added
  - Initial release of Gens

@@ -19,25 +19,27 @@
 <div id='main-container'>
     <div class="header">
         <div id='left-group'>
-            <p></p>
-            <span class='header-icon no-print' id='info'></span>
-            <iframe id='info-box'
-                src='{{ url_for('static', filename='snippets/info.html')}}?u={{ last_updated }}'>
-            </iframe>
-            <span>{{todays_date}}</span>
+            <div id="logo-container">
+                <span class='logo'></span>
+            </div>
+            <span class='version'>v{{ version }}</span>
+            <span class='date'>{{todays_date}}</span>
         </div>
         <div id='center-group'>
             <span class='bold' title='Sample ID'>{{sample_name}}</span>
             <span class='version'>(Genome build: {{hg_type}})</span>
         </div>
         <div id='right-group'>
-            <span class='version'>Gens v{{ version }}</span>
             <span class='header-icon print no-print'
                 onclick='loadPrintPage(inputField.value);' title='Print'>
             </span>
             <span class='header-icon permalink no-print'
                 onclick='copyPermalink("{{hg_type}}", inputField.value);' title='Copy permalink'>
             </span>
+            <span class='header-icon no-print info'></span>
+            <iframe id='info-box'
+                src='{{ url_for('static', filename='snippets/info.html')}}?u={{ last_updated }}'>
+            </iframe>
         </div>
     </div>
 
@@ -47,7 +49,7 @@
             <div id='interactive-container'>
                 <canvas id='interactive-content'></canvas>
                 <canvas id='interactive-static'></canvas>
-                <div id='interactive-marker' class='highlight'></div>
+                <div id='interactive-marker' class='marker'></div>
                 <div id='loading-div'>LOADING...</div>
             </div>
 
@@ -71,27 +73,27 @@
 
             <div id='button-container'>
                 <select id='source-list'></select>
-                <button onclick='ic.panTracksLeft();' class='icon no-print'>
+                <button onclick='ic.panTracksLeft();' class='button--pan no-print'>
                     <span class='icon arrow-left' title='Left'></span>
                 </button>
-                <button onclick='ic.panTracksRight();' class='icon no-print'>
-                    <span class='icon arrow-right' title='Right'></span>
-                </button>
-                <button onclick='ic.zoomIn();' class='icon no-print'>
+                <button onclick='ic.zoomIn();' class='button--zoom-in no-print'>
                     <span class='icon search-plus' title='Zoom in'></span>
                 </button>
-                <button onclick='ic.zoomOut();' class='icon no-print'>
+                <button onclick='ic.zoomOut();' class='button--zoom-out no-print'>
                     <span class='icon search-minus' title='Zoom out'></span>
+                </button>
+                <button onclick='ic.panTracksRight();' class='button--pan no-print'>
+                    <span class='icon arrow-right' title='Right'></span>
                 </button>
                 <form id='region_form'>
                     <input onFocus='this.select();' id='region_field' type='text' size=20>
-                    <input type='submit' class='no-print' title='Submit range'>
+                    <input type='submit' class='button button--submit no-print' title='Submit range'>
                 </form>
             </div>
 
             <div id='overview-container'>
                 <canvas id='overview-static'></canvas>
-                <div class='highlight' id='overview-marker'></div>
+                <div class='marker' id='overview-marker'></div>
             </div>
         </div>
     </div>

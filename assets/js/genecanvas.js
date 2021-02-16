@@ -213,14 +213,15 @@ function printPage () {
   print();
 }
 
-function copyPermalink(hg_type,region) {
-
-  url = window.location.href
-  url_parts = url.split('?');
-  permalink = url_parts[0]+"?hg_type="+hg_type+"&region="+region;
-  var $temp = $("<input>");
-  $("body").append($temp);
-  $temp.val(permalink).select();
+// Make hard link and copy link to clipboard
+function copyPermalink(hg_type, region) {
+  let [baseUrl, urlParams] = window.location.href.split('?');
+  // create element and add url to it
+  let tempElement = document.createElement("input");
+  tempElement.value = `${baseUrl}?hg_type=${hg_type}&region=${region}`;
+  // add element to DOM
+  document.body.append(tempElement);
+  tempElement.select();
   document.execCommand("copy");
-  $temp.remove();
+  tempElement.remove();  // remove temp node
 }
