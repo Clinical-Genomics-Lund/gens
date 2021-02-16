@@ -1,7 +1,1 @@
-flask-debugtoolbar
-flask-caching
-flask-assets
-jsmin
-pyscss
-gunicorn
 .
