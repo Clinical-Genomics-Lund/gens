@@ -5,15 +5,7 @@
   {{ super() }}
 {% endblock css_style %}
 {% block scripts %}
-    <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/fetch.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/track.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/variant.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/gens.min.js') }}'></script>
 {% endblock scripts %}
 
 {% block body %}
