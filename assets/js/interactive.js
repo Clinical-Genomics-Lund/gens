@@ -17,13 +17,13 @@ class KeyLogger {
       };
       const keyEvent = new CustomEvent('keyevent', {'detail': eventData});
       this.heldKeys[event.key] = true;  // recored pressed keys
-      this.keyBuffer.push(eventData)
+      this.keyBuffer.push(eventData);
       // empty buffer
       while (this.keyBuffer.length > this.bufferSize ) {this.keyBuffer.shift()}
-      document.dispatchEvent(keyEvent)  // event information
+      document.dispatchEvent(keyEvent);  // event information
     });
     document.addEventListener('keyup', event => {
-      delete this.heldKeys[event.key]
+      delete this.heldKeys[event.key];
     });
   }
 

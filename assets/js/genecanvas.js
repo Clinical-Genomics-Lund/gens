@@ -1,12 +1,12 @@
 // Draw data points
 function drawData (scene, data, color) {
-  var geometry = new THREE.BufferGeometry();
+  let geometry = new THREE.BufferGeometry();
 
-  geometry.addAttribute('position', new THREE.Float32BufferAttribute(data, 3));
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(data, 3));
   geometry.computeBoundingSphere();
 
-  var material = new THREE.PointsMaterial({ size: 2, color: color, transparent: false });
-  var points = new THREE.Points(geometry, material);
+  let material = new THREE.PointsMaterial({ size: 2, color: color, transparent: false });
+  let points = new THREE.Points(geometry, material);
 
   scene.add(points);
 }
@@ -149,7 +149,7 @@ function drawLine (scene, x, y, x2, y2, thickness, color) {
   x2 = Math.floor(x2)+0.5;
   y = Math.floor(y)+0.5;
   y2 = Math.floor(y2)+0.5;
-  var line = new THREE.Geometry();
+  let line = new THREE.Geometry();
   line.vertices.push(
     new THREE.Vector3(x, y, 0),
     new THREE.Vector3(x2, y2, 0)
