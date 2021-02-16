@@ -1,4 +1,7 @@
-# GENS
+<p align="center">
+  <img src="images/gens_logo_with_text.png">
+</p>
+
 [![CodeFactor](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens/badge)](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens)
 
 ## About
