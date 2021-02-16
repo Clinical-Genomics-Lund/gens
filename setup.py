@@ -26,6 +26,8 @@ setup(
     install_requires=[
         "Click>=7.0",
         "Flask>=1.1.2",
+        "flask-debugtoolbar>=0.11.0",
+        "flask-caching>=1.9.0",
         "itsdangerous>=1.1.0",
         "Jinja2>=2.11.1",
         "MarkupSafe>=1.1.1",

@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "npm": "^7.5.4",
+    "three": "^0.124.0"
+  },
+  "name": "gens",
+  "version": "1.1.0",
+  "description": "Interactive tool to visualize genomic copy number profiles from WGS data",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clinical-Genomics-Lund/Gens.git"
+  },
+  "author": "Markus Johansson",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/Clinical-Genomics-Lund/Gens/issues"
+  },
+  "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^4.1.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-uglify-es": "^2.0.0"
+  }
+}

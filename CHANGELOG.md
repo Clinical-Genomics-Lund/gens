@@ -15,7 +15,9 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Described Gens APIs in openAPI specification file
  - Add possibility to load overview data from a JSON, which substantially improves initial load times.
  - Ctrl + Mouse click in interacive canvas zooms out
-- Shift + Mouse to select a region in the interactive canvas to zoom in on
+ - Shift + Mouse to select a region in the interactive canvas to zoom in on
+ - Annotation tracks pan with the coverage track
+ - Annotation tracks are rendered by blitting sections from an offscreen canvas
 ### Changed
  - Added description on how to use the containerized version of Gens
  - Replaced print statements with logging to stderr
@@ -27,6 +29,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - All annotations are allways being displayed
  - Eliminate use of offScreenCanvas in order to support Firefox/Gecko
  - Removed select region to zoom functionality from overview canvas
+ - Dropped jquery as a dependency
 ### Fixed
  - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
  - Adjust the "Loading..." div to avoid drawing it above UI elements

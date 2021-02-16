@@ -1,5 +1,6 @@
 *~
 \#*
+# python
 *.pyc
 .mypy_cache
 deploy.sh
@@ -9,6 +10,13 @@ utils/MANE.GRCh38.v0.8.summary.txt
 utils/hg38_annotations/
 venv/
 
+# node
+node_modules
+build
+npm-debug.log
+.env
+.DS_Store
+
 # docker volumes
 volumes/*/data/*
 volumes/*/wgs/*
@@ -17,4 +25,7 @@ volumes/*/wgs/*
 
 # generated assets
 .webassets-cache
-generated_assets
+gens/static/js/*
+!gens/static/js/.gitkeep
+gens/static/css/*
+!gens/static/css/.gitkeep

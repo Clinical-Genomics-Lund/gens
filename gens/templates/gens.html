@@ -5,15 +5,7 @@
   {{ super() }}
 {% endblock css_style %}
 {% block scripts %}
-    <script src='{{ url_for('static', filename='js/jquery-3.1.1.min.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/three.min.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/genecanvas.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/interactive.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/track.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/transcript.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/variant.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/annotation.js') }}'></script>
-    <script src='{{ url_for('static', filename='js/overview.js') }}'></script>
+    <script src='{{ url_for('static', filename='js/gens.min.js') }}'></script>
 {% endblock scripts %}
 
 {% block body %}
@@ -60,18 +52,20 @@
             </div>
 
             <div id='variant-container' class='info-container'>
-                <canvas id='variant-canvas' class='info-canvas'></canvas>
+                <canvas id='variant-content' class='info-canvas'></canvas>
+                <canvas id='variant-draw' class='info-canvas offscreen'></canvas>
                 <div id='variant-titles' class='info-titles'></div>
             </div>
 
-            <div id='track-container' class='info-container'>
-                <canvas id='track-canvas' class='info-canvas'></canvas>
-                <div id='track-titles' class='info-titles'></div>
+            <div id='transcript-container' class='info-container'>
+                <canvas id='transcript-content' class='info-canvas'></canvas>
+                <canvas id='transcript-draw' class='info-canvas offscreen'></canvas>
+                <div id='transcript-titles' class='info-titles'></div>
             </div>
 
-
             <div id='annotation-container' class='info-container'>
-                <canvas id='annotation-canvas' class='info-canvas'></canvas>
+                <canvas id='annotation-content' class='info-canvas'></canvas>
+                <canvas id='annotation-draw' class='info-canvas offscreen'></canvas>
                 <div id='annotation-titles' class='info-titles'></div>
             </div>
 
@@ -83,7 +77,7 @@
                 <button onclick='ic.panTracksRight();' class='icon no-print'>
                     <span class='icon arrow-right' title='Right'></span>
                 </button>
-                <button onclick='ix.zoomIn();' class='icon no-print'>
+                <button onclick='ic.zoomIn();' class='icon no-print'>
                     <span class='icon search-plus' title='Zoom in'></span>
                 </button>
                 <button onclick='ic.zoomOut();' class='icon no-print'>
@@ -104,6 +98,7 @@
 </div>
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    const _apiHost = 'api/';
 
     // Print page settings
     let printing = false;
@@ -149,20 +144,36 @@
         sampleName, hgType, hgFileDir);
     console.timeEnd('get interactive content');
 
+    // Setup functions to run when the data has finished loading
+    document.addEventListener('data-loaded', () => {
+        // hide loading
+        document.querySelector('.loading-view')
+                .toggleAttribute('hidden');
+        // display grid containers
+        document.querySelector('#grid-container')
+                .style.visibility = 'visible';
+        document.querySelector('#grid-container')
+                .style.display = 'grid';
+        // display printing
+        if (printing == true) {
+          printPage();
+        }
+    });
+
     // Initiate variant, annotation and transcript canvases
-    let vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
-    let tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
-    let ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
+    const vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
+    const tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
+    const ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
     // Initiate and draw overview canvas
-    let oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
+    const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
         far, sampleName, hgType, hgFileDir);
 
     // Draw content
     Promise.all([
             ic.drawStaticContent(),
             ic.drawInteractiveContent(),
-            vc.drawTracks(inputField.value),
-            tc.drawTracks(inputField.value),
+            vc.drawTrack(inputField.value),
+            tc.drawTrack(inputField.value),
             oc.drawOverviewContent(printing),
         ]);
 
@@ -172,5 +183,6 @@
             event.preventDefault();
             ic.redraw(inputField.value);
         });
+
 </script>
 {% endblock body %}

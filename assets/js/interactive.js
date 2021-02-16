@@ -17,13 +17,13 @@ class KeyLogger {
       };
       const keyEvent = new CustomEvent('keyevent', {'detail': eventData});
       this.heldKeys[event.key] = true;  // recored pressed keys
-      this.keyBuffer.push(eventData)
+      this.keyBuffer.push(eventData);
       // empty buffer
       while (this.keyBuffer.length > this.bufferSize ) {this.keyBuffer.shift()}
-      document.dispatchEvent(keyEvent)  // event information
+      document.dispatchEvent(keyEvent);  // event information
     });
     document.addEventListener('keyup', event => {
-      delete this.heldKeys[event.key]
+      delete this.heldKeys[event.key];
     });
   }
 
@@ -38,6 +38,7 @@ class KeyLogger {
     return this.keyBuffer[this.keyBuffer.length - 1] - Date.now()
   }
 }
+
 
 class FrequencyTrack {
   constructor(sampleName, hgType, hgFileDir) {
@@ -114,13 +115,13 @@ class InteractiveCanvas extends FrequencyTrack {
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
     this.markerElem.style.height = `${this.plotHeight * 2}px`;
-    this.markerElem.style.top = (this.contentCanvas.getBoundingClientRect().y + this.y + 2) + "px";
+    this.markerElem.style.top = `${this.y + 58}px`;
 
     // State values
     const input = inputField.value.split(/:|-/);
     this.chromosome = input[0];
-    this.start = input[1];
-    this.end = input[2];
+    this.start = parseInt(input[1]);
+    this.end = parseInt(input[2]);
     this.allowDraw = true;
 
     // Listener values
@@ -205,12 +206,10 @@ class InteractiveCanvas extends FrequencyTrack {
         this.markingRegion = false;
         this.resetRegionMarker();
         const scale = this.calcScale();
-        console.log(this.start, this.dragStart, this.dragEnd, scale)
-        this.loadChromosome(this.chromosome,
-                            this.start + Math.round(
-                              (this.dragStart.x - this.x) / scale),
-                            this.start + Math.round(
-                              (this.dragEnd.x - this.x) / scale))
+        // numerical sort
+        const [start, end] = [this.start + Math.round((this.dragStart.x - this.x) / scale),
+                              this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort((a, b) => a - b);
+        this.loadChromosome(this.chromosome, start, end)
       }
       // reload window when stop draging
       if (this.drag) {
@@ -219,11 +218,11 @@ class InteractiveCanvas extends FrequencyTrack {
         let moveDist = Math.floor((this.dragStart.x - this.dragEnd.x) / this.scale);
 
         // Do not allow negative values
-        if (this.start + moveDist < 0) {
-          moveDist -= (this.start + moveDist);
+        if (parseInt(this.start) + moveDist < 0) {
+          moveDist -= (parseInt(this.start) + moveDist);
         }
-        this.start += moveDist;
-        this.end += moveDist;
+        this.start = parseInt(this.start) + moveDist;
+        this.end = parseInt(this.end) + moveDist;
 
         this.redraw(null);
       }
@@ -329,8 +328,7 @@ class InteractiveCanvas extends FrequencyTrack {
   async drawInteractiveContent () {
     this.loadingDiv.style.display = "block";
     console.time("getcoverage");
-
-    $.getJSON($SCRIPT_ROOT + '/api/get-coverage', {
+    get('get-coverage', {
       region: this.inputField.value,
       sample_id: this.sampleName,
       hg_type: this.hgType,
@@ -346,7 +344,7 @@ class InteractiveCanvas extends FrequencyTrack {
       log2_y_start: this.log2.yStart,
       log2_y_end: this.log2.yEnd,
       reduce_data: 1,
-    }, (result) => {
+    }).then( (result) => {
       console.timeEnd('getcoverage');
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
@@ -380,25 +378,32 @@ class InteractiveCanvas extends FrequencyTrack {
         'Chromosome ' + result['chrom'], 'bold 15', 'center');
 
       // Transfer image to visible canvas
-      this.contentCanvas.getContext('2d').drawImage(this.drawCanvas,
-        this.extraWidth, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight,
-        this.x, 0, this.plotWidth + 2 * this.leftRightPadding, this.canvasHeight);
+      this.contentCanvas.getContext('2d').drawImage(
+        this.drawCanvas,  // source image
+        this.extraWidth,  // sX
+        0,                // sY
+        this.plotWidth + 2 * this.leftRightPadding,  // sWidth
+        this.canvasHeight,                           // sHeight
+        this.x,                                      // dX
+        0,                                           // dY
+        this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+        this.canvasHeight);                          // dHeight
 
       // Clear scene before drawing
       this.scene.remove.apply(this.scene, this.scene.children);
-    }).done((result) => {
-
+      return result
+    }).then( (result) => {
       this.loadingDiv.style.display = "none";
 
       // Set values
       this.chromosome = result['chrom'];
-      this.start = result['start'];
-      this.end = result['end'];
+      this.start = parseInt(result.start);
+      this.end = parseInt(result.end);
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
       this.inputField.placeholder = this.inputField.value;
       this.allowDraw = true;
       this.inputField.blur();
-    }).fail((result) => {
+    }).catch( () => {
       this.allowDraw = true;
 
       // Signal bad input by adding error class
@@ -432,9 +437,9 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Draw new tracks and annotations
     Promise.all([
-      tc.drawTracks(this.inputField.value),
-      vc.drawTracks(this.inputField.value),
-      ac.drawTracks(this.inputField.value),
+      tc.drawTrack(this.inputField.value),
+      vc.drawTrack(this.inputField.value),
+      ac.drawTrack(this.inputField.value),
     ])
   }
 
@@ -445,8 +450,8 @@ class InteractiveCanvas extends FrequencyTrack {
   // Function for highlighting region
   markRegion(start, end) {
     // Update the dom element
-    this.markerElem.style.left = start + "px";
-    this.markerElem.style.width = (end - start + 1) + "px";
+    this.markerElem.style.left = start < end ? `${start}px` : `${end}px`;
+    this.markerElem.style.width = `${Math.abs(end - start) + 1}px`;
   }
 
   resetRegionMarker() {
@@ -464,15 +469,23 @@ class InteractiveCanvas extends FrequencyTrack {
     // Copy draw image to content Canvas
     const lineMargin = 2;
     this.contentCanvas.getContext('2d').drawImage(
-      this.drawCanvas,
-      this.extraWidth - distance,
-      this.y + lineMargin,
-      this.plotWidth + 2 * this.leftRightPadding,
-      this.canvasHeight,
-      this.x,
-      this.y + lineMargin,
-      this.plotWidth + 2 * this.leftRightPadding,
-      this.canvasHeight);
+      this.drawCanvas,             // source image
+      this.extraWidth - distance,  // sX
+      this.y + lineMargin,         // sY
+      this.plotWidth + 2 * this.leftRightPadding,  // sWidth
+      this.canvasHeight,           // sHeight
+      this.x,                      // dX
+      this.y + lineMargin,         // dY
+      this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+      this.canvasHeight);          // dHeight
+    // todo fix unified metric. distance is cumulative from mouse centerpoint
+    // need to take that into account.
+    const scale = this.calcScale();
+    const dist = distance / scale;
+    const region = `${this.chromosome}:${this.start - dist}-${this.end - dist}`;
+    vc.drawTrack(region);
+    tc.drawTrack(region);
+    ac.drawTrack(region);
   }
 
   // Load coverage of a chromosome
