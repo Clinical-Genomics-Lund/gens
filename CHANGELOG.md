@@ -6,6 +6,11 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+### Changed
+### Fixed
+
+## [1.1.0]
+### Added
  - Runnable Gens development environment in docker
  - Added Change log document
  - Added development environment
@@ -36,6 +41,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Replaced depricated `update()` with `update_one()` in `update_transcripts.py`.
  - Adjust the "Loading..." div to avoid drawing it above UI elements
  - Made SASS more readable
+
 ## [1.0.0]
 ### Added
  - Initial release of Gens
