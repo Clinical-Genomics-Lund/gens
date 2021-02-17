@@ -9,6 +9,10 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Fixed
 
+## [1.1.1]
+### Fixed
+ - Reincluded gunicorn in docker image
+
 ## [1.1.0]
 ### Added
  - Runnable Gens development environment in docker
