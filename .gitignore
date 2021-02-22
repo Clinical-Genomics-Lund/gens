@@ -29,3 +29,5 @@ gens/static/js/*
 !gens/static/js/.gitkeep
 gens/static/css/*
 !gens/static/css/.gitkeep
+*.min.css
+*.min.js

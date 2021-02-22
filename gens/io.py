@@ -5,7 +5,6 @@ import os
 from fractions import Fraction
 
 import pysam
-
 from flask import Response, abort, request
 
 from .cache import cache

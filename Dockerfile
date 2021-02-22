@@ -53,8 +53,8 @@ RUN apt-get update &&                              \
     rm -rf /wheels
 
 # copy compiled web assetes
-COPY --from=node-builder /usr/src/app/build/css gens/static/css
-COPY --from=node-builder /usr/src/app/build/js gens/static/js
+COPY --from=node-builder /usr/src/app/build/css/base.min.css gens/static/css
+COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/static/
 
 # Chown all the files to the app user
 COPY gens gens

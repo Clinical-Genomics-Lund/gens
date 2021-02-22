@@ -1,5 +1,6 @@
 """Data models returned when fetching information from SCOUT and GENS database interactions."""
 from enum import Enum
+
 import attr
 
 

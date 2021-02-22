@@ -8,9 +8,9 @@ from flask import current_app as app
 from flask import request
 
 from .cache import cache
+from .db import RecordType
 from .exceptions import NoRecordsException, RegionParserException
 from .io import tabix_query
-from .db import RecordType
 
 LOG = logging.getLogger(__name__)
 

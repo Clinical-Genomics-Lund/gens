@@ -6,8 +6,8 @@ from flask import current_app as app
 from pymongo import MongoClient
 
 from gens.exceptions import ConfigurationException
-from .models import VariantCategory, RecordType
 
+from .models import RecordType, VariantCategory
 
 LOG = logging.getLogger(__name__)
 

@@ -20,6 +20,9 @@ const jsFiles = [
   `${assetPath}/js/annotation.js`,
   `${assetPath}/js/overview.js`,
 ]
+const gensCss = [
+  `${assetPath}/css/gens.scss`,
+]
 
 gulp.task('build-js', function() {
   return gulp.src(jsFiles)
@@ -29,8 +32,8 @@ gulp.task('build-js', function() {
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(`${dest}/js`))
 });
-gulp.task('build-css', function() {
-  return gulp.src(`${assetPath}/css/*.scss`)
+gulp.task('build-gens-css', function() {
+  return gulp.src(gensCss)
     .pipe(rename('gens.min.css'))
     .pipe(sourcemaps.init())
     .pipe(sass({outputStyle: 'compressed'}))
@@ -38,4 +41,13 @@ gulp.task('build-css', function() {
     .pipe(gulp.dest(`${dest}/css`))
 });
 
-gulp.task('build', gulp.parallel('build-js', 'build-css'));
+gulp.task('build-base-css', function() {
+  return gulp.src(`${assetPath}/css/base.scss`)
+    .pipe(rename('base.min.css'))
+    .pipe(sourcemaps.init())
+    .pipe(sass({outputStyle: 'compressed'}))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(`${dest}/css`))
+});
+
+gulp.task('build', gulp.parallel('build-js', 'build-gens-css', 'build-base-css'));
