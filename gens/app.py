@@ -19,6 +19,7 @@ from .db import init_database
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
 from .utils import get_hg_type
+from .errors import generic_error, sample_not_found
 
 toolbar = DebugToolbarExtension()
 dictConfig(
@@ -68,6 +69,10 @@ def create_app():
     # register bluprints
     app.register_blueprint(gens_bp)
     app.register_blueprint(about_bp)
-
+    # register errors
+    app.register_error_handler(FileNotFoundError, sample_not_found)
+    app.register_error_handler(404, generic_error)
+    app.register_error_handler(416, generic_error)
+    app.register_error_handler(500, generic_error)
 
     return app

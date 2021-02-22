@@ -23,7 +23,7 @@ def _get_filepath(*args, check=True):
     if not os.path.isfile(path) and check:
         msg = f"File not found: {path}"
         LOG.error(msg)
-        raise FileNotFoundError(msg)
+        raise FileNotFoundError(path)
     return path
 
 

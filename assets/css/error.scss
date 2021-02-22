@@ -1,0 +1,51 @@
+#broken-dna {
+    z-index: 2;
+    position: absolute;
+    transform: rotate(-80deg);
+    width: 800px;
+    top: -130px;
+}
+
+.content {
+    margin: auto;
+    max-width: 60%;
+    margin-top: 50px;
+    padding: 20px 15px;
+
+    #error-code {
+        z-index: 1;
+        position: relative;
+        left: -150px;
+        top: 50px;
+        margin: 0px;
+        padding: 0px;
+        // font
+        font-size: 150px;
+        font-weight: bolder;
+        letter-spacing: 10px;
+        transform: rotate(-25deg);
+        color: #4d5663;
+    }
+
+    .headline {
+        font-size: 48px;
+        text-align: center;
+        font-style: italic;
+        margin-top: 0px;
+    }
+
+    p {
+        text-align: center;
+        padding-top: 15px;
+    }
+
+    .error-msg-container {
+        position: absolute;
+        top: 450px;
+        width: 600px;
+    }
+}
+
+.bold {
+    font-weight: bold;
+}

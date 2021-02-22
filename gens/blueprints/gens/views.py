@@ -4,7 +4,7 @@ import logging
 
 from flask import Blueprint, abort, current_app, render_template, request
 
-import gens
+from gens.__version__ import VERSION as version
 from gens.cache import cache
 from gens.graph import parse_region_str
 from gens.io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
@@ -20,6 +20,7 @@ gens_bp = Blueprint(
     static_folder="static",
     static_url_path="/gens/static",
 )
+
 
 @gens_bp.route("/", defaults={"sample_name": ""})
 @gens_bp.route("/<path:sample_name>", methods=["GET"])
@@ -41,8 +42,9 @@ def display_case(sample_name):
     try:
         _get_filepath(hg_filedir, sample_name + BAF_SUFFIX)
         _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
-    except FileNotFoundError:
-        abort(404)
+    except FileNotFoundError as err:
+        abort(416)
+        raise err
     else:
         LOG.info(f"Found BAF and COV files for {sample_name}")
 
@@ -80,5 +82,5 @@ def display_case(sample_name):
         todays_date=date.today(),
         annotation=annotation,
         selected_variant=selected_variant,
-        version=gens.version,
+        version=version,
     )

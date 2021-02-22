@@ -32,6 +32,7 @@ gulp.task('build-js', function() {
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(`${dest}/js`))
 });
+
 gulp.task('build-gens-css', function() {
   return gulp.src(gensCss)
     .pipe(rename('gens.min.css'))
@@ -50,4 +51,14 @@ gulp.task('build-base-css', function() {
     .pipe(gulp.dest(`${dest}/css`))
 });
 
-gulp.task('build', gulp.parallel('build-js', 'build-gens-css', 'build-base-css'));
+gulp.task('build-error-css', function() {
+  return gulp.src(`${assetPath}/css/error.scss`)
+    .pipe(rename('error.min.css'))
+    .pipe(sourcemaps.init())
+    .pipe(sass({outputStyle: 'compressed'}))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(`${dest}/css`))
+});
+
+gulp.task('build', gulp.parallel('build-js', 'build-gens-css',
+                                 'build-base-css', 'build-error-css'));
