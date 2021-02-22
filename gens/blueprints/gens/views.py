@@ -43,7 +43,6 @@ def display_case(sample_name):
         _get_filepath(hg_filedir, sample_name + BAF_SUFFIX)
         _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
     except FileNotFoundError as err:
-        abort(416)
         raise err
     else:
         LOG.info(f"Found BAF and COV files for {sample_name}")
