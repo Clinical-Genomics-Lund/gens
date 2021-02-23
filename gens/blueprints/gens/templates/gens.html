@@ -2,10 +2,11 @@
 {% extends "layout.html" %}
 {% block title %}Visualization{% endblock title %}
 {% block css_style %}
-  {{ super() }}
+    {{ super() }}
+    <link rel='stylesheet' href='{{ url_for('gens.static', filename='gens.min.css') }}' type='text/css'>
 {% endblock css_style %}
 {% block scripts %}
-    <script src='{{ url_for('static', filename='js/gens.min.js') }}'></script>
+    <script src='{{ url_for('gens.static', filename='gens.min.js') }}'></script>
 {% endblock scripts %}
 
 {% block body %}
@@ -38,7 +39,7 @@
             </span>
             <span class='header-icon no-print info'></span>
             <iframe id='info-box'
-                src='{{ url_for('static', filename='snippets/info.html')}}?u={{ last_updated }}'>
+                src='{{ url_for('gens.static', filename='snippets/info.html')}}'>
             </iframe>
         </div>
     </div>

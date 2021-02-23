@@ -1,25 +1,23 @@
 """API entry point and helper functions."""
-import logging
-from datetime import date
-
-from flask import abort, current_app, jsonify, request
-import connexion
-import cattr
 import gzip
 import json
-
-from gens.db import RecordType, query_records_in_region, query_variants, VariantCategory
-from gens.exceptions import RegionParserException
-from gens.graph import (
-    REQUEST,
-    get_cov,
-    overview_chrom_dimensions,
-    parse_region_str,
-)
-from .io import get_tabix_files, get_overview_json_path
-import attr
-from typing import List
+import logging
 import re
+from datetime import date
+from typing import List
+
+import attr
+from flask import abort, current_app, jsonify, request
+
+import cattr
+import connexion
+from gens.db import (RecordType, VariantCategory, query_records_in_region,
+                     query_variants)
+from gens.exceptions import RegionParserException
+from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
+                        parse_region_str)
+
+from .io import get_overview_json_path, get_tabix_files
 
 LOG = logging.getLogger(__name__)
 
@@ -263,8 +261,8 @@ def get_multiple_coverages():
     # Try to find and load an overview json data file
     overview_json_path = get_overview_json_path(data.sample_id, data_dir)
     if overview_json_path:
-        with gzip.open(overview_json_path, 'r') as json_gz:
-            json_data = json.loads(json_gz.read().decode('utf-8'))
+        with gzip.open(overview_json_path, "r") as json_gz:
+            json_data = json.loads(json_gz.read().decode("utf-8"))
 
     # Fall back to BED file is no json exists
     if not json_data:
@@ -294,7 +292,7 @@ def get_multiple_coverages():
                     chrom_info.x_ampl,
                     json_data=json_data,
                     cov_fh=cov_file,
-                    baf_fh=baf_file
+                    baf_fh=baf_file,
                 )
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
@@ -366,7 +364,9 @@ def get_coverage(
     # Parse region
     try:
         with current_app.app_context():
-            reg, log2_rec, baf_rec = get_cov(req, x_ampl, cov_fh=cov_file, baf_fh=baf_file)
+            reg, log2_rec, baf_rec = get_cov(
+                req, x_ampl, cov_fh=cov_file, baf_fh=baf_file
+            )
     except RegionParserException as err:
         LOG.error(f"{type(err).__name__} - {err}")
         return abort(416)

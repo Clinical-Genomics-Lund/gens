@@ -1,13 +1,14 @@
 version: "3.8"
 services:
-  mongo_db:
-    container_name: mongo_db
+  markus_mongodb:
+    container_name: markus_mongodb
     image: mongo
     volumes:
       - ./volumes/mongo_db/data:/data/db
     networks:
-      - scout-net
-  gens:
+      - gens-net
+  markus_gens:
+    container_name: markus_gens
     build: .
     volumes:
       - ./utils:/home/app/app/utils
@@ -18,7 +19,7 @@ services:
     environment:
       - FLASK_APP=gens/app.py
       - FLASK_ENV=development
-      - MONGODB_HOST=mongo_db
+      - MONGODB_HOST=markus_mongodb
       - MONGODB_PORT=27017
       - SCOUT_DBNAME=scout
       - GENS_DBNAME=gens
@@ -27,26 +28,14 @@ services:
     ports:
       - "5003:5000"
     networks:
-      - scout-net
+      - gens-net
     depends_on:
-      - mongo_db
+      - markus_mongodb
     command: "flask run --host 0.0.0.0"
-  scout:
-    image: clinicalgenomics/scout
-    container_name: scout
-    expose:
-      - '5000'
-    ports:
-      - '5000:5000'
-    command: scout --host mongo_db serve --host 0.0.0.0
-    networks:
-      - scout-net
-    depends_on:
-      - mongo_db
 networks:
-  scout-net:
+  gens-net:
     driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 172.22.0.0/24
+        - subnet: 172.23.0.0/24

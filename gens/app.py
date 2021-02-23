@@ -6,17 +6,20 @@ import os
 from datetime import date
 from logging.config import dictConfig
 
-import connexion
 from flask import abort, render_template, request
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_compress import Compress
+from flask_debugtoolbar import DebugToolbarExtension
+
+import connexion
 
 from .__version__ import VERSION as version
+from .blueprints import gens_bp, about_bp
 from .cache import cache
 from .db import init_database
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from .utils import dir_last_updated, get_hg_type
+from .utils import get_hg_type
+from .errors import generic_error, sample_not_found
 
 toolbar = DebugToolbarExtension()
 dictConfig(
@@ -63,75 +66,13 @@ def create_app():
     app.config["SECRET_KEY"] = "pass"
     cache.init_app(app)
     Compress(app)
-
-    # define views
-    @app.route("/")
-    def gens_welcome():
-        return render_template("home.html", version=version)
-
-    @app.route("/", defaults={"sample_name": ""})
-    @app.route("/<path:sample_name>", methods=["GET"])
-    @cache.cached(timeout=60)
-    def display_case(sample_name):
-        """
-        Renders the Gens template
-        Expects sample_id as input to be able to load the sample data
-        """
-        if not sample_name:
-            LOG.error("No sample requested")
-            abort(404)
-
-        # Set whether to get HG37 och HG38 files
-        with app.app_context():
-            hg_filedir, hg_type = get_hg_type()
-
-        # Check that BAF and Log2 file exists
-        try:
-            _get_filepath(hg_filedir, sample_name + BAF_SUFFIX)
-            _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
-        except FileNotFoundError:
-            abort(404)
-        else:
-            LOG.info(f"Found BAF and COV files for {sample_name}")
-
-        # Fetch and parse region
-        region = request.args.get("region", None)
-        print_page = request.args.get("print_page", "false")
-        if not region:
-            region = request.form.get("region", "1:100000-200000")
-
-        # Parse region
-        with app.app_context():
-            hg_type = request.args.get("hg_type", "38")
-            parsed_region = parse_region_str(region, hg_type)
-        if not parsed_region:
-            return abort(416)
-
-        _, chrom, start_pos, end_pos = parsed_region
-
-        # which variant to highlight as focused
-        selected_variant = request.args.get("variant")
-
-        # get annotation track
-        annotation = request.args.get(
-            "annotation", app.config["DEFAULT_ANNOTATION_TRACK"]
-        )
-
-        return render_template(
-            "gens.html",
-            ui_colors=app.config["UI_COLORS"],
-            chrom=chrom,
-            start=start_pos,
-            end=end_pos,
-            sample_name=sample_name,
-            hg_type=hg_type,
-            last_updated=dir_last_updated(app.static_folder),
-            hg_filedir=hg_filedir,
-            print_page=print_page,
-            todays_date=date.today(),
-            annotation=annotation,
-            selected_variant=selected_variant,
-            version=version,
-        )
+    # register bluprints
+    app.register_blueprint(gens_bp)
+    app.register_blueprint(about_bp)
+    # register errors
+    app.register_error_handler(FileNotFoundError, sample_not_found)
+    app.register_error_handler(404, generic_error)
+    app.register_error_handler(416, generic_error)
+    app.register_error_handler(500, generic_error)
 
     return app

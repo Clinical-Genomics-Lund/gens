@@ -5,7 +5,6 @@ import os
 from fractions import Fraction
 
 import pysam
-
 from flask import Response, abort, request
 
 from .cache import cache
@@ -24,7 +23,7 @@ def _get_filepath(*args, check=True):
     if not os.path.isfile(path) and check:
         msg = f"File not found: {path}"
         LOG.error(msg)
-        raise FileNotFoundError(msg)
+        raise FileNotFoundError(path)
     return path
 
 

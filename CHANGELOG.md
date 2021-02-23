@@ -6,7 +6,9 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+ - Added error pages for 404, 416, 500 and missing samples
 ### Changed
+ - Refactored page definitions into blueprint module
 ### Fixed
 
 ## [1.1.1]
