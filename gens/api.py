@@ -11,11 +11,9 @@ from flask import abort, current_app, jsonify, request
 
 import cattr
 import connexion
-from gens.db import (RecordType, VariantCategory, query_records_in_region,
-                     query_variants)
+from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants
 from gens.exceptions import RegionParserException
-from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
-                        parse_region_str)
+from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
 from .io import get_overview_json_path, get_tabix_files
 

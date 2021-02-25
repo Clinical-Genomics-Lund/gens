@@ -42,6 +42,7 @@ dictConfig(
     }
 )
 LOG = logging.getLogger(__name__)
+compress = Compress()
 
 
 def create_app():
@@ -64,15 +65,31 @@ def create_app():
     # connect to mongo client
     app.config["DEBUG"] = True
     app.config["SECRET_KEY"] = "pass"
+
+    # prepare app context
+    initialize_extensions(app)
+    # register bluprints and errors
+    register_blueprints(app)
+    register_errors(app)
+
+    return app
+
+
+def initialize_extensions(app):
+    """Initialize flask extensions."""
     cache.init_app(app)
-    Compress(app)
-    # register bluprints
-    app.register_blueprint(gens_bp)
-    app.register_blueprint(about_bp)
-    # register errors
+    compress.init_app(app)
+
+
+def register_errors(app):
+    """Register error pages for gens app."""
     app.register_error_handler(FileNotFoundError, sample_not_found)
     app.register_error_handler(404, generic_error)
     app.register_error_handler(416, generic_error)
     app.register_error_handler(500, generic_error)
 
-    return app
+
+def register_blueprints(app):
+    """Register blueprints."""
+    app.register_blueprint(gens_bp)
+    app.register_blueprint(about_bp)
