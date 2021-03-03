@@ -7,6 +7,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
  - Added error pages for 404, 416, 500 and missing samples
+ - Added `watch` cmd to `npm run` to launch a gulp server watches and updates js/css assets
 ### Changed
  - Refactored page definitions into blueprint module
 ### Fixed
