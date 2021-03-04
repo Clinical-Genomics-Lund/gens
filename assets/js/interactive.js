@@ -209,7 +209,13 @@ class InteractiveCanvas extends FrequencyTrack {
         // numerical sort
         const [start, end] = [this.start + Math.round((this.dragStart.x - this.x) / scale),
                               this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort((a, b) => a - b);
-        this.loadChromosome(this.chromosome, start, end)
+        // if shift - click, zoom in a region 10
+        // fix for slowdown when shift clicking
+        if ( ( end - start ) < 10 ) {
+          this.zoomIn();
+        }
+        //
+        this.loadChromosome(this.chromosome, start, end + 1);
       }
       // reload window when stop draging
       if (this.drag) {
@@ -349,6 +355,9 @@ class InteractiveCanvas extends FrequencyTrack {
       reduce_data: 1,
     }).then( (result) => {
       console.timeEnd('getcoverage');
+      if ( result.status == "error" ) {
+        throw result;
+      }
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
         this.contentCanvas.width, this.contentCanvas.height);
