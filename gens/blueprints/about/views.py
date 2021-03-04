@@ -6,7 +6,6 @@ from flask import Blueprint, render_template
 
 import gens
 
-
 LOG = logging.getLogger(__name__)
 
 about_bp = Blueprint("about", __name__, template_folder="templates")
