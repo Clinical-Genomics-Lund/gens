@@ -59,8 +59,7 @@ COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/st
 # Chown all the files to the app user
 COPY gens gens
 COPY utils utils
-COPY entrypoint.sh ./
-RUN chown -R app:app /home/app/app
+# make mountpoints and change ownership of app
+RUN mkdir -p /media /access /fs1 && chown -R app:app /home/app/app /media /access /fs1
 # Change the user to app
 USER app
-ENTRYPOINT ["./entrypoint.sh"]

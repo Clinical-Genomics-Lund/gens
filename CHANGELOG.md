@@ -11,6 +11,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Shift - Click now Zoom in
 ### Changed
  - Refactored page definitions into blueprint module
+ - Removed entrypoint script
 ### Fixed
  - Navigation shortcuts does not trigger in text fields
  - Fixed crash when searching for only chromosome
