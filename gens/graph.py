@@ -8,6 +8,7 @@ from flask import current_app as app
 from flask import request
 
 from .cache import cache
+from .constants import CHROMOSOMES
 from .db import RecordType
 from .exceptions import NoRecordsException, RegionParserException
 from .io import tabix_query
@@ -34,33 +35,6 @@ REQUEST = namedtuple(
         "reduce_data",
     ),
 )
-
-CHROMOSOMES = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "19",
-    "20",
-    "21",
-    "22",
-    "X",
-    "Y",
-]
 
 
 @cache.memoize(0)

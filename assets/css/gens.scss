@@ -280,9 +280,8 @@ html, body {
 }
 
 #region_field.error:disabled {
-    outline: 1px dotted red;
-    outline: 5px auto red;
-    background-color: $default-bg-color;
+    outline: 5px dotted red;
+    background-color: red;
 }
 
 #times {

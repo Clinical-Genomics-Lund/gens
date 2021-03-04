@@ -358,6 +358,47 @@ paths:
                     type: integer
                   res:
                     type: string
+  /search-annotation:
+    get:
+      summary: Search for an annotation element
+      description: Search for a region in the annotation data.
+      operationId: gens.api.search_annotation
+      parameters:
+        - name: query
+          in: query
+          description: Name of element of interest
+          required: true
+          schema:
+            type: string
+        - name: hg_type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/HgType'
+        - name: annotation_type
+          in: query
+          description: Type of annotation
+          schema:
+            type: string
+            default: transcripts
+      responses:
+        '200':
+          description: Annotation positional information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chromosome:
+                    type: string
+                  start_pos:
+                    type: number
+                  end_pos:
+                    type: number
+                  hg_type:
+                    type: string
+                  status:
+                    type: number
   /get-annotation-sources:
     get:
       summary: Get source information for annotations

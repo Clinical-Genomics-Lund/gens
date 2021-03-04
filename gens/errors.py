@@ -1,7 +1,8 @@
 """Defenition of custom error pages"""
 
-from flask import render_template
 import os
+
+from flask import render_template
 
 
 def sample_not_found(error):

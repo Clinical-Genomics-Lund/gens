@@ -8,9 +8,16 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
  - Added error pages for 404, 416, 500 and missing samples
  - Added `watch` cmd to `npm run` to launch a gulp server watches and updates js/css assets
+ - Shift - Click now Zoom in
 ### Changed
  - Refactored page definitions into blueprint module
 ### Fixed
+ - Navigation shortcuts does not trigger in text fields
+ - Fixed crash when searching for only chromosome
+ - Restored ability to search for transcripts by gene name
+ - Fixed crash when Shift - Click in interactive canvas
+ - Fixed checking of api return status in drawInteractiveContent
+ - Aligned highlight in interactive canvas
 
 ## [1.1.1]
 ### Fixed
