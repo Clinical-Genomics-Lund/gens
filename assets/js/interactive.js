@@ -115,7 +115,7 @@ class InteractiveCanvas extends FrequencyTrack {
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
     this.markerElem.style.height = `${this.plotHeight * 2}px`;
-    this.markerElem.style.top = `${this.y + 58}px`;
+    this.markerElem.style.top = `${this.y + 82}px`;
 
     // State values
     const input = inputField.value.split(/:|-/);
@@ -209,7 +209,13 @@ class InteractiveCanvas extends FrequencyTrack {
         // numerical sort
         const [start, end] = [this.start + Math.round((this.dragStart.x - this.x) / scale),
                               this.start + Math.round((this.dragEnd.x - this.x) / scale)].sort((a, b) => a - b);
-        this.loadChromosome(this.chromosome, start, end)
+        // if shift - click, zoom in a region 10
+        // fix for slowdown when shift clicking
+        if ( ( end - start ) < 10 ) {
+          this.zoomIn();
+        }
+        //
+        this.loadChromosome(this.chromosome, start, end + 1);
       }
       // reload window when stop draging
       if (this.drag) {
@@ -233,52 +239,55 @@ class InteractiveCanvas extends FrequencyTrack {
       const keystrokeDelay = 2000;
       document.addEventListener('keyevent', event => {
         const key = event.detail.key;
-        const excludeFileds = ['input', 'select', 'textarea'];
 
-        if ( key === 'Enter' ) {
-          // Enter was pressed, process previous key presses.
-          const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
-          recentKeys.pop();  // skip Enter key
-          const lastKey = recentKeys[recentKeys.length - 1];
-          const numKeys = parseInt((recentKeys
-                                    .slice(lastKey.length - 2)
-                                    .filter(val => parseInt(val.key))
-                                    .map(val => val.key)
-                                    .join('')))
-          // process keys
-          if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
-            this.loadChromosome(lastKey.key);
-          } else if ( numKeys && 0 < numKeys < 23 ) {
-            this.loadChromosome(numKeys);
-          } else {
-            return;
+        // dont act on key presses in input fields
+        const excludeFileds = ['input', 'select', 'textarea'];
+        if ( !excludeFileds.includes(event.detail.target.toLowerCase()) ) {
+          if ( key === 'Enter' ) {
+            // Enter was pressed, process previous key presses.
+            const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
+            recentKeys.pop();  // skip Enter key
+            const lastKey = recentKeys[recentKeys.length - 1];
+            const numKeys = parseInt((recentKeys
+                                      .slice(lastKey.length - 2)
+                                      .filter(val => parseInt(val.key))
+                                      .map(val => val.key)
+                                      .join('')))
+            // process keys
+            if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
+              this.loadChromosome(lastKey.key);
+            } else if ( numKeys && 0 < numKeys < 23 ) {
+              this.loadChromosome(numKeys);
+            } else {
+              return;
+            }
           }
-        }
-        switch (key) {
-          case 'ArrowLeft':
-            this.nextChromosome()
-            break;
-          case 'ArrowRight':
-            this.previousChromosome()
-            break;
-          case 'a':
-            this.panTracksLeft();
-            break;
-          case 'd':
-            this.panTracksRight();
-            break;
-          case 'ArrowUp':
-          case 'w':
-          case '+':
-            this.zoomIn();
-            break;
-          case 'ArrowDown':
-          case 's':
-          case '-':
-            this.zoomOut();
-            break;
-          default:
-            return;
+          switch (key) {
+            case 'ArrowLeft':
+              this.nextChromosome()
+              break;
+            case 'ArrowRight':
+              this.previousChromosome()
+              break;
+            case 'a':
+              this.panTracksLeft();
+              break;
+            case 'd':
+              this.panTracksRight();
+              break;
+            case 'ArrowUp':
+            case 'w':
+            case '+':
+              this.zoomIn();
+              break;
+            case 'ArrowDown':
+            case 's':
+            case '-':
+              this.zoomOut();
+              break;
+            default:
+              return;
+          }
         }
       });
     });
@@ -346,6 +355,9 @@ class InteractiveCanvas extends FrequencyTrack {
       reduce_data: 1,
     }).then( (result) => {
       console.timeEnd('getcoverage');
+      if ( result.status == "error" ) {
+        throw result;
+      }
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
         this.contentCanvas.width, this.contentCanvas.height);

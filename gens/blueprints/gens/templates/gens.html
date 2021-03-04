@@ -183,8 +183,25 @@
     // Redraw when new region is requested
     document.getElementById('region_form').addEventListener('submit',
         function (event) {
+            const chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+            '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+            '22', 'X', 'Y']
             event.preventDefault();
-            ic.redraw(inputField.value);
+            // if input contains both : and -
+            if (inputField.value.includes(':') &&
+                inputField.value.includes(':')) {
+                ic.redraw(inputField.value);
+            } else if (chromosomes.includes(inputField.value)) {
+                ic.redraw(`${inputField.value}:0-None`);
+            } else {
+                get('search-annotation', {query: inputField.value,
+                                          hg_type: hgType})
+                    .then( (result) => {
+                        if ( result.status == 200 ) {
+                            ic.redraw(`${result.chromosome}:${result.start_pos}-${result.end_pos}`)
+                        }
+                    });
+            }
         });
 
 </script>

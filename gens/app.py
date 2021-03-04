@@ -6,20 +6,19 @@ import os
 from datetime import date
 from logging.config import dictConfig
 
+import connexion
 from flask import abort, render_template, request
 from flask_compress import Compress
 from flask_debugtoolbar import DebugToolbarExtension
 
-import connexion
-
 from .__version__ import VERSION as version
-from .blueprints import gens_bp, about_bp
+from .blueprints import about_bp, gens_bp
 from .cache import cache
 from .db import init_database
+from .errors import generic_error, sample_not_found
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
 from .utils import get_hg_type
-from .errors import generic_error, sample_not_found
 
 toolbar = DebugToolbarExtension()
 dictConfig(

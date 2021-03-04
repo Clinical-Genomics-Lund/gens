@@ -7,46 +7,18 @@ from datetime import date
 from typing import List
 
 import attr
-from flask import abort, current_app, jsonify, request
-
 import cattr
 import connexion
+from flask import abort, current_app, jsonify, request
+
 from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants
 from gens.exceptions import RegionParserException
 from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
+from .constants import CHROMOSOMES, HG_TYPE
 from .io import get_overview_json_path, get_tabix_files
 
 LOG = logging.getLogger(__name__)
-
-CHROMOSOMES = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "19",
-    "20",
-    "21",
-    "22",
-    "X",
-    "Y",
-]
-
-HG_TYPE = (38, 19)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -173,9 +145,6 @@ def get_transcript_data(region, hg_type, collapsed):
         LOG.error("Could not find transcript in database")
         return abort(404)
 
-    with current_app.app_context():
-        collection = current_app.config["GENS_DB"][f"transcripts{hg_type}"]
-
     # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     transcripts = list(
         query_records_in_region(
@@ -199,6 +168,36 @@ def get_transcript_data(region, hg_type, collapsed):
         res=res,
         transcripts=list(transcripts),
     )
+
+
+def search_annotation(query: str, hg_type, annotation_type):
+    """Search for anntations of genes and return their position."""
+    # Lookup queried element
+    collection = current_app.config["GENS_DB"][annotation_type]
+    db_query = {"gene_name": re.compile("^" + re.escape(query) + "$", re.IGNORECASE)}
+
+    if hg_type and int(hg_type) in HG_TYPE:
+        db_query['hg_type'] = hg_type
+
+    elements = collection.find(db_query, sort=[("start", 1), ("chrom", 1)])
+    # if no results was found
+    if elements.count() == 0:
+        msg = f"Did not find gene name: {query}"
+        LOG.warning(msg)
+        data = {'message': msg}
+        response_code = 404
+    else:
+        start_elem = elements.next()
+        end_elem = max(elements, key=lambda elem: elem.get('end'))
+        data = {
+            'chromosome': start_elem.get('chrom'),
+            'start_pos': start_elem.get('start'),
+            'end_pos': end_elem.get('end'),
+            'hg_type': start_elem.get('hg_type'),
+        }
+        response_code = 200
+
+    return jsonify({**data, 'status': response_code})
 
 
 def get_variant_data(sample_id, variant_category, **optional_kwargs):
