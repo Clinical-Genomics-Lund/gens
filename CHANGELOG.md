@@ -11,6 +11,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
  - Refactored page definitions into blueprint module
 ### Fixed
+ - Navigation shortcuts does not trigger in text fields
 
 ## [1.1.1]
 ### Fixed

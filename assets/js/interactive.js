@@ -233,52 +233,55 @@ class InteractiveCanvas extends FrequencyTrack {
       const keystrokeDelay = 2000;
       document.addEventListener('keyevent', event => {
         const key = event.detail.key;
-        const excludeFileds = ['input', 'select', 'textarea'];
 
-        if ( key === 'Enter' ) {
-          // Enter was pressed, process previous key presses.
-          const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
-          recentKeys.pop();  // skip Enter key
-          const lastKey = recentKeys[recentKeys.length - 1];
-          const numKeys = parseInt((recentKeys
-                                    .slice(lastKey.length - 2)
-                                    .filter(val => parseInt(val.key))
-                                    .map(val => val.key)
-                                    .join('')))
-          // process keys
-          if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
-            this.loadChromosome(lastKey.key);
-          } else if ( numKeys && 0 < numKeys < 23 ) {
-            this.loadChromosome(numKeys);
-          } else {
-            return;
+        // dont act on key presses in input fields
+        const excludeFileds = ['input', 'select', 'textarea'];
+        if ( !excludeFileds.includes(event.detail.target.toLowerCase()) ) {
+          if ( key === 'Enter' ) {
+            // Enter was pressed, process previous key presses.
+            const recentKeys = this.keyLogger.recentKeys(keystrokeDelay);
+            recentKeys.pop();  // skip Enter key
+            const lastKey = recentKeys[recentKeys.length - 1];
+            const numKeys = parseInt((recentKeys
+                                      .slice(lastKey.length - 2)
+                                      .filter(val => parseInt(val.key))
+                                      .map(val => val.key)
+                                      .join('')))
+            // process keys
+            if ( lastKey.key == 'x' || lastKey.key == 'y' ) {
+              this.loadChromosome(lastKey.key);
+            } else if ( numKeys && 0 < numKeys < 23 ) {
+              this.loadChromosome(numKeys);
+            } else {
+              return;
+            }
           }
-        }
-        switch (key) {
-          case 'ArrowLeft':
-            this.nextChromosome()
-            break;
-          case 'ArrowRight':
-            this.previousChromosome()
-            break;
-          case 'a':
-            this.panTracksLeft();
-            break;
-          case 'd':
-            this.panTracksRight();
-            break;
-          case 'ArrowUp':
-          case 'w':
-          case '+':
-            this.zoomIn();
-            break;
-          case 'ArrowDown':
-          case 's':
-          case '-':
-            this.zoomOut();
-            break;
-          default:
-            return;
+          switch (key) {
+            case 'ArrowLeft':
+              this.nextChromosome()
+              break;
+            case 'ArrowRight':
+              this.previousChromosome()
+              break;
+            case 'a':
+              this.panTracksLeft();
+              break;
+            case 'd':
+              this.panTracksRight();
+              break;
+            case 'ArrowUp':
+            case 'w':
+            case '+':
+              this.zoomIn();
+              break;
+            case 'ArrowDown':
+            case 's':
+            case '-':
+              this.zoomOut();
+              break;
+            default:
+              return;
+          }
         }
       });
     });
