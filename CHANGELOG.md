@@ -17,6 +17,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Restored ability to search for transcripts by gene name
  - Fixed crash when Shift - Click in interactive canvas
  - Fixed checking of api return status in drawInteractiveContent
+ - Aligned highlight in interactive canvas
 
 ## [1.1.1]
 ### Fixed
