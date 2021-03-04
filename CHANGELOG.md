@@ -12,6 +12,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Refactored page definitions into blueprint module
 ### Fixed
  - Navigation shortcuts does not trigger in text fields
+ - Fixed crash when searching for only chromosome
+ - Restored ability to search for transcripts by gene name
 
 ## [1.1.1]
 ### Fixed
