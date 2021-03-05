@@ -3,6 +3,7 @@
 </p>
 
 [![CodeFactor](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens/badge)](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens)
+[![Coverage Status](https://coveralls.io/repos/github/Clinical-Genomics-Lund/gens/badge.svg?branch=master)](https://coveralls.io/github/Clinical-Genomics-Lund/gens?branch=master)
 
 ## About
 
