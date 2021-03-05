@@ -1,0 +1,37 @@
+name: Run tests and upload coverage
+
+on: ["push", "pull_request"]
+
+jobs:
+  build:
+    name: Coverage
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+        mongodb-version: ["3.6"]
+
+    steps:
+
+    # Check out Scout code
+    - uses: actions/checkout@v2
+
+    # Set up python
+    - name: Set up Python ${{ matrix.python-version}}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version}}
+
+    - name: Production Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        pip install pytest-cov
+        pip install coveralls
+    - name: Test with pytest & Coveralls
+      run: |
+        pip install -r requirements-dev.txt
+        pytest --cov=./
+        coveralls
+      env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
