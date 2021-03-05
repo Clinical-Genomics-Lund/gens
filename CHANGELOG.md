@@ -6,6 +6,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+ - Added github workflow for running pytest on PRs
+ - Added unit tests
 ### Changed
 ### Fixed
 
