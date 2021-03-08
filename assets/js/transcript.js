@@ -110,7 +110,7 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
     const textYPos = this.tracksYPos(element.height_order);
     this.heightOrderRecord.latestNameEnd = this.drawText(
       geneName,
-      scale * ((displayedTrStart + displayedTrEnd) / 2 - this.offscreenPosition.start),
+      ((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart,
       textYPos + this.featureHeight,
       textSize,
       this.heightOrderRecord.latestNameEnd);
