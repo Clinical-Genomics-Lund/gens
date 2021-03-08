@@ -229,15 +229,12 @@ class Track {
     this.drawCtx.strokeStyle = color;
     this.drawCtx.lineWidth = lineWidth;
     this.drawCtx.beginPath();
-    console.log(`Move pointer to: ${xStart}, ${yPos}`)
     this.drawCtx.moveTo(xStart, yPos);  // begin at bottom left
     const waveLength = 2 * (height / Math.tan(45));
     const lineLength = xStop - xStart + 1;
-    console.log(`Start pos: ${xStart}, ${yPos}; Height: ${height}; WaveLength: ${waveLength}; Line len: ${lineLength}`)
     // plot whole wave pattern
     let midline = yPos - height / 2 // middle of line
     let lastXpos = xStart;
-    console.log(`Plot ${Math.floor(lineLength / (waveLength / 2))} full wave pattens`)
     for (let i = 0; i < Math.floor(lineLength / (waveLength / 2)); i++){
       lastXpos += waveLength / 2;
       height *= -1  // reverse sign
@@ -249,7 +246,6 @@ class Track {
       height *= -1  // reverse sign
       let partialWaveHeight = partialWaveLength * Math.tan(45);
       this.drawCtx.lineTo(xStop, yPos - Math.sign(height) * partialWaveHeight);
-      console.log(`Plot partial wave: ${partialWaveHeight}; Height: ${height}`)
     }
     this.drawCtx.stroke();
     this.drawCtx.restore();
