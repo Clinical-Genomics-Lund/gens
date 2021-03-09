@@ -138,12 +138,6 @@ class UpdateTranscripts:
         # Bulk update transcripts with features
         for transcript_id, tr_features in features.items():
             results[transcript_id]['features'] = tr_features
-            """
-            self.temp_collection.update_one(
-                {"transcript_id": transcript_id},
-                {"$set": {"features": features[transcript_id]}},
-            )
-            """
         # Bulk insert collections
         self.temp_collection.insert_many(list(results.values()))
 
