@@ -155,15 +155,15 @@ class Variant extends Track {
                         `Rank score: ${rankScore}\n`;
 
       // Add tooltip title for whole gene
-      this.heightOrderRecord.latestTrackEnd = this.hoverText(
-        variantText,
-        `${titleMargin + scale * (variantStart - this.offscreenPosition.start)}px`,
-        `${titleMargin + textYPos - this.featureHeight / 2}px`,
-        `${scale * (variantEnd - variantStart)}px`,
-        `${this.featureHeight + textSize}px`,
-        0,
-        this.heightOrderRecord.latestTrackEnd
-      );
+      // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+      //   variantText,
+      //   `${titleMargin + scale * (variantStart - this.offscreenPosition.start)}px`,
+      //   `${titleMargin + textYPos - this.featureHeight / 2}px`,
+      //   `${scale * (variantEnd - variantStart)}px`,
+      //   `${this.featureHeight + textSize}px`,
+      //   0,
+      //   this.heightOrderRecord.latestTrackEnd
+      // );
     }
   }
 }

@@ -168,14 +168,14 @@ chr${chrom}:${start}-${end}
 Score = ${score}`;
 
       // Add tooltip title for whole gene
-      this.heightOrderRecord.latestTrackEnd = this.hoverText(
-        geneText,
-        `${scale * (start - this.trackData.start_pos)}px`,
-        `${textYPos - this.featureHeight / 2}px`,
-        `${scale * (end - start)}px`,
-        `${this.featureHeight + textSize}px`,
-        0,
-        this.heightOrderRecord.latestHeight);
+      // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+      //   geneText,
+      //   `${scale * (start - this.trackData.start_pos)}px`,
+      //   `${textYPos - this.featureHeight / 2}px`,
+      //   `${scale * (end - start)}px`,
+      //   `${this.featureHeight + textSize}px`,
+      //   0,
+      //   this.heightOrderRecord.latestHeight);
     }
   }
 }

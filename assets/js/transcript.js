@@ -50,19 +50,19 @@ class Transcript extends Track {
       latestFeaturePos = feature.end;
       // Draw the geometry that represents the feature
       if ( feature.feature == 'exon') {
-        const exonText = `${geneText}
-${"-".repeat(30)}
-Exon number: ${feature.exon_number}
-chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
         // Add tooltip title for whole gene
-        this.heightOrderRecord.latestTrackEnd = this.hoverText(
-          exonText,
-          `${titleMargin + scale * (feature.start - queryResult.queryStart)}px`,
-          `${titleMargin + textYPos - (this.featureHeight / 2)}px`,
-          `${scale * (feature.end - feature.start)}px`,
-          `${this.featureHeight}px`,
-          1,
-          this.heightOrderRecord.latestTrackEnd);
+        // const exonText = `${geneText}
+// ${"-".repeat(30)}
+// Exon number: ${feature.exon_number}
+// chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
+        // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+        //   exonText,
+        //   `${titleMargin + scale * (feature.start - queryResult.queryStart)}px`,
+        //   `${titleMargin + textYPos - (this.featureHeight / 2)}px`,
+        //   `${scale * (feature.end - feature.start)}px`,
+        //   `${this.featureHeight}px`,
+        //   1,
+        //   this.heightOrderRecord.latestTrackEnd);
         this.drawBox(
           scale * (feature.start - this.offscreenPosition.start),
           canvasYPos, scale * (feature.end - feature.start),
@@ -125,14 +125,15 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
       `id = ${transcriptID}`;
     }
     // Add tooltip title for whole gene
-    this.heightOrderRecord.latestTrackEnd = this.hoverText(
-      geneText,
-      `${titleMargin + scale * (trStart - queryResult.start_pos)}px`,
-      `${titleMargin + textYPos - this.featureHeight / 2}px`,
-      `${scale * (trEnd - trStart)}px`,
-      `${this.featureHeight + textSize}px`,
-      0,
-      this.heightOrderRecord.latestTrackEnd);
+    // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+    //   geneText,
+    //   `${titleMargin + displayedTrStart}px`,
+    //   `${titleMargin + textYPos - this.featureHeight / 2}px`,
+    //   `${displayedTrEnd - displayedTrStart + 1}px`,
+    //   `${this.featureHeight + textSize}px`,
+    //   0,
+    //   this.heightOrderRecord.latestTrackEnd
+    // );
     return geneText;
   }
 
