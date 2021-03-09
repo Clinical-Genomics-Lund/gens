@@ -14,5 +14,5 @@ DEFAULT_ANNOTATION_TRACK = (
 # UI colors
 UI_COLORS = {
     "variants": {"del": "#C84630", "dup": "#4C6D94"},
-    "transcripts": {"strand_pos": "#4D908E", "strand_neg": "#43AA8B"},
+    "transcripts": {"strand_pos": "#aa4362", "strand_neg": "#43AA8B"},
 }
