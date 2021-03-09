@@ -7,7 +7,12 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+ - Changed positive strand color of transcripts to a more constrasting color
+ - Temporarily disabled on hover popups in annotation tracks
+ - Transcripts are represented as arrows in lower resolutions
 ### Fixed
+ - Gene names are now centered below transcript
+ - Fixed assignement of height order when updating transcript data
 
 ## [1.1.2]
 ### Added
