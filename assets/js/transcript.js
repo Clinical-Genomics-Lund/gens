@@ -200,6 +200,7 @@ class Transcript extends Track {
 
     // Go through queryResults and draw appropriate symbols
     const drawGeneName = this.getResolution < 3;
+    const drawExons = this.getResolution < 4;
     for ( let transc of filteredTranscripts ) {
       if (!this.expanded && transc.height_order != 1)
         continue
@@ -212,7 +213,7 @@ class Transcript extends Track {
         transc, queryResult, color,
         plotFormat,
         drawGeneName,  // if gene names should be drawn
-        !drawGeneName, // if transcripts should be represented as arrows
+        !drawExons, // if transcripts should be represented as arrows
       );
     }
   }

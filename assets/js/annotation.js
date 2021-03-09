@@ -142,7 +142,7 @@ class Annotation extends Track {
 
       const textYPos = this.tracksYPos(heightOrder);
       // limit drawing of titles to certain resolution
-      if ( this.getResolution < 5) {
+      if ( this.getResolution < 6) {
         // Draw annotation name
         this.heightOrderRecord.latestNameEnd = this.drawText(
           annotationName,
