@@ -285,11 +285,11 @@ class Track {
   // Draw an arrow in desired direction
   // Forward arrow: direction = 1
   // Reverse arrow: direction = -1
-  async drawArrow (xpos, ypos, direction, height, color) {
+  async drawArrow (xpos, ypos, direction, height, lineWidth=2, color) {
     let width = direction * this.arrowWidth;
     this.drawCtx.save();
     this.drawCtx.strokeStyle = color;
-    this.drawCtx.lineWidth = this.arrowThickness;
+    this.drawCtx.lineWidth = lineWidth;
     this.drawCtx.beginPath();
     this.drawCtx.moveTo(xpos - width / 2, ypos - height / 2);
     this.drawCtx.lineTo(xpos + width / 2, ypos);

@@ -20,6 +20,8 @@ class Transcript extends Track {
 
     this.hgType = hgType;
     this.maxResolution = 4;
+    // Define with of the elements
+    this.geneLineWidth = 2;
   }
 
   // Draw direction arrow
@@ -67,17 +69,13 @@ class Transcript extends Track {
           scale * (feature.start - this.offscreenPosition.start),
           canvasYPos, scale * (feature.end - feature.start),
           this.featureHeight, color);
-      } else if ( feature.feature == 'exon' ) {
-          this.drawBox(
-            scale * (feature.start - this.offscreenPosition.start),
-            canvasYPos, scale * (feature.end - feature.start),
-            this.featureHeight / 2, color);
       }
     }
   }
 
   // draw transcript figures
-  async _drawTranscript(element, queryResult, color, plotFormat) {
+  async _drawTranscript(element, queryResult, color,
+                        plotFormat, drawName=true, drawDirection=false) {
     const geneName = element.gene_name;
     const transcriptID = element.transcript_id;
     const chrom = element.chrom;
@@ -99,21 +97,45 @@ class Transcript extends Track {
     }
     // Draw a line to mark gene's length
     // cap lines at offscreen canvas start/end
-    const displayedTrStart = (trStart > this.offscreenPosition.start
-                              ? scale * (trStart - this.offscreenPosition.start)
-                              : 0)
-    const displayedTrEnd = (this.offscreenPosition.end > trEnd
-                            ? scale * (trEnd - this.offscreenPosition.start)
-                            : this.offscreenPosition.end)
-    this.drawLine(displayedTrStart, displayedTrEnd, canvasYPos, color);
+    const displayedTrStart = Math.round(
+      (trStart > this.offscreenPosition.start
+       ? scale * (trStart - this.offscreenPosition.start)
+       : 0)
+    );
+    const displayedTrEnd = Math.round(
+      (this.offscreenPosition.end > trEnd
+       ? scale * (trEnd - this.offscreenPosition.start)
+       : this.offscreenPosition.end)
+    );
+    this.drawLine(
+      displayedTrStart,
+      displayedTrEnd,
+      canvasYPos,
+      color,
+      this.geneLineWidth,  // set width of the element
+    );
     // Draw gene name
     const textYPos = this.tracksYPos(element.height_order);
-    this.heightOrderRecord.latestNameEnd = this.drawText(
-      geneName,
-      ((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart,
-      textYPos + this.featureHeight,
-      textSize,
-      this.heightOrderRecord.latestNameEnd);
+    if ( drawName ) {
+      this.heightOrderRecord.latestNameEnd = this.drawText(
+        `${geneName} ${element.strand == "+" ? "→" : "←"}`,
+        Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
+        textYPos + this.featureHeight,
+        textSize,
+        this.heightOrderRecord.latestNameEnd,
+      );
+    }
+    // draw arrows in gene
+    if ( drawDirection ) {
+      this.drawArrow(
+        element.strand == '+' ? displayedTrEnd : displayedTrStart,  // xPos
+        canvasYPos,                      // yPos
+        element.strand == '+' ? 1 : -1,  // direction
+        this.featureHeight / 2,          // height
+        this.geneLineWidth,              // lineWidth
+        color,                           // color
+      );
+    }
 
     // Set tooltip text
     let geneText = '';
@@ -181,6 +203,7 @@ class Transcript extends Track {
     }
 
     // Go through queryResults and draw appropriate symbols
+    const drawGeneName = this.getResolution < 3;
     for ( let transc of filteredTranscripts ) {
       if (!this.expanded && transc.height_order != 1)
         continue
@@ -189,19 +212,15 @@ class Transcript extends Track {
       const color = transc.strand == '+'
             ? this.colorSchema.strand_pos
             : this.colorSchema.strand_neg;
-      const geneText = await this._drawTranscript(transc, queryResult, color,
-                                                  plotFormat)
+      const geneText = await this._drawTranscript(
+        transc, queryResult, color,
+        plotFormat, drawGeneName, !drawGeneName,
+      );
       // draw featues
       let latestFeaturePos = transc.start;
       for (let feature of transc.features) {
         // only write features in high resolutions
-        if ( this.getResolution < 4 ) {
-          // draw arrow
-          this._drawGeneDirection(latestFeaturePos, feature.start,
-                                  queryResult.start_pos, transc.strand,
-                                  canvasYPos, color);
-        }
-        if ( this.getResolution < 2 ) {
+        if ( this.getResolution < 3 ) {
           // draw feature
           this._drawFeature(
             feature, transc, queryResult,
