@@ -20,22 +20,8 @@ class Transcript extends Track {
 
     this.hgType = hgType;
     this.maxResolution = 4;
-  }
-
-  // Draw direction arrow
-  _drawGeneDirection(latestFeaturePos, featureStart, queryStart,
-                     strand, canvasYPos, color) {
-    // Draw arrows
-    const diff = featureStart - latestFeaturePos;
-    const scale = this.offscreenPosition.scale;
-    if (scale * diff >= this.arrowWidth && strand) {
-      this.drawArrows(
-        scale * (latestFeaturePos - queryStart),
-        scale * (featureStart - queryStart),
-        canvasYPos,
-        strand == '+' ? 1 : -1,
-        color)
-    }
+    // Define with of the elements
+    this.geneLineWidth = 2;
   }
 
   // draw feature
@@ -50,34 +36,30 @@ class Transcript extends Track {
       latestFeaturePos = feature.end;
       // Draw the geometry that represents the feature
       if ( feature.feature == 'exon') {
-        const exonText = `${geneText}
-${"-".repeat(30)}
-Exon number: ${feature.exon_number}
-chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
         // Add tooltip title for whole gene
-        this.heightOrderRecord.latestTrackEnd = this.hoverText(
-          exonText,
-          `${titleMargin + scale * (feature.start - queryResult.queryStart)}px`,
-          `${titleMargin + textYPos - (this.featureHeight / 2)}px`,
-          `${scale * (feature.end - feature.start)}px`,
-          `${this.featureHeight}px`,
-          1,
-          this.heightOrderRecord.latestTrackEnd);
+        // const exonText = `${geneText}
+// ${"-".repeat(30)}
+// Exon number: ${feature.exon_number}
+// chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
+        // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+        //   exonText,
+        //   `${titleMargin + scale * (feature.start - queryResult.queryStart)}px`,
+        //   `${titleMargin + textYPos - (this.featureHeight / 2)}px`,
+        //   `${scale * (feature.end - feature.start)}px`,
+        //   `${this.featureHeight}px`,
+        //   1,
+        //   this.heightOrderRecord.latestTrackEnd);
         this.drawBox(
           scale * (feature.start - this.offscreenPosition.start),
           canvasYPos, scale * (feature.end - feature.start),
           this.featureHeight, color);
-      } else if ( feature.feature == 'exon' ) {
-          this.drawBox(
-            scale * (feature.start - this.offscreenPosition.start),
-            canvasYPos, scale * (feature.end - feature.start),
-            this.featureHeight / 2, color);
       }
     }
   }
 
   // draw transcript figures
-  async _drawTranscript(element, queryResult, color, plotFormat) {
+  async _drawTranscript(element, queryResult, color, plotFormat,
+                        drawName=true, drawAsArrow=false) {
     const geneName = element.gene_name;
     const transcriptID = element.transcript_id;
     const chrom = element.chrom;
@@ -88,6 +70,8 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
     // sizes
     const textSize = plotFormat.textSize;
     const titleMargin = plotFormat.titleMargin;
+    // lighten colors for MANE transcripts
+    let elementColor = element.mane ? pSBC(0.25, color) : color;
 
     // Keep track of latest track
     if ( this.heightOrderRecord.latestHeight != element.height_order ) {
@@ -99,21 +83,35 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
     }
     // Draw a line to mark gene's length
     // cap lines at offscreen canvas start/end
-    const displayedTrStart = (trStart > this.offscreenPosition.start
-                              ? scale * (trStart - this.offscreenPosition.start)
-                              : 0)
-    const displayedTrEnd = (this.offscreenPosition.end > trEnd
-                            ? scale * (trEnd - this.offscreenPosition.start)
-                            : this.offscreenPosition.end)
-    this.drawLine(displayedTrStart, displayedTrEnd, canvasYPos, color);
+    const displayedTrStart = Math.round(
+      (trStart > this.offscreenPosition.start
+       ? scale * (trStart - this.offscreenPosition.start)
+       : 0)
+    );
+    const displayedTrEnd = Math.round(
+      (this.offscreenPosition.end > trEnd
+       ? scale * (trEnd - this.offscreenPosition.start)
+       : this.offscreenPosition.end)
+    );
+    this.drawLine(
+      displayedTrStart,
+      displayedTrEnd,
+      canvasYPos,
+      elementColor,
+      this.geneLineWidth,  // set width of the element
+    );
     // Draw gene name
     const textYPos = this.tracksYPos(element.height_order);
-    this.heightOrderRecord.latestNameEnd = this.drawText(
-      geneName,
-      scale * ((displayedTrStart + displayedTrEnd) / 2 - this.offscreenPosition.start),
-      textYPos + this.featureHeight,
-      textSize,
-      this.heightOrderRecord.latestNameEnd);
+    if ( drawName ) {
+      const mane = element.mane ? ' [MANE] ' : ''
+      this.heightOrderRecord.latestNameEnd = this.drawText(
+        `${geneName}${mane}${element.strand == "+" ? "→" : "←"}`,
+        Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
+        textYPos + this.featureHeight,
+        textSize,
+        this.heightOrderRecord.latestNameEnd,
+      );
+    }
 
     // Set tooltip text
     let geneText = '';
@@ -124,16 +122,37 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
       geneText = `${geneName}\nchr${chrom}:${trStart}-${trEnd}\n` +
       `id = ${transcriptID}`;
     }
+
+    // draw arrows in gene
+    if ( drawAsArrow ) {
+      this.drawArrow(
+        element.strand == '+' ? displayedTrEnd : displayedTrStart,  // xPos
+        canvasYPos,                      // yPos
+        element.strand == '+' ? 1 : -1,  // direction
+        this.featureHeight / 2,          // height
+        this.geneLineWidth,              // lineWidth
+        elementColor,                    // color
+      );
+    } else {
+      // draw features
+      for (let feature of element.features) {
+        this._drawFeature(
+          feature, element, queryResult,
+          canvasYPos, geneText, elementColor, plotFormat
+        );
+      }
+    }
+
     // Add tooltip title for whole gene
-    this.heightOrderRecord.latestTrackEnd = this.hoverText(
-      geneText,
-      `${titleMargin + scale * (trStart - queryResult.start_pos)}px`,
-      `${titleMargin + textYPos - this.featureHeight / 2}px`,
-      `${scale * (trEnd - trStart)}px`,
-      `${this.featureHeight + textSize}px`,
-      0,
-      this.heightOrderRecord.latestTrackEnd);
-    return geneText;
+    // this.heightOrderRecord.latestTrackEnd = this.hoverText(
+    //   geneText,
+    //   `${titleMargin + displayedTrStart}px`,
+    //   `${titleMargin + textYPos - this.featureHeight / 2}px`,
+    //   `${displayedTrEnd - displayedTrStart + 1}px`,
+    //   `${this.featureHeight + textSize}px`,
+    //   0,
+    //   this.heightOrderRecord.latestTrackEnd
+    // );
   }
 
   //  Draws transcripts in given range
@@ -180,6 +199,8 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
     }
 
     // Go through queryResults and draw appropriate symbols
+    const drawGeneName = this.getResolution < 3;
+    const drawExons = this.getResolution < 4;
     for ( let transc of filteredTranscripts ) {
       if (!this.expanded && transc.height_order != 1)
         continue
@@ -188,26 +209,12 @@ chr ${queryResult.chromosome}:${feature.start}-${feature.end}`;
       const color = transc.strand == '+'
             ? this.colorSchema.strand_pos
             : this.colorSchema.strand_neg;
-      const geneText = await this._drawTranscript(transc, queryResult, color,
-                                                  plotFormat)
-      // draw featues
-      let latestFeaturePos = transc.start;
-      for (let feature of transc.features) {
-        // only write features in high resolutions
-        if ( this.getResolution < 4 ) {
-          // draw arrow
-          this._drawGeneDirection(latestFeaturePos, feature.start,
-                                  queryResult.start_pos, transc.strand,
-                                  canvasYPos, color);
-        }
-        if ( this.getResolution < 2 ) {
-          // draw feature
-          this._drawFeature(
-            feature, transc, queryResult,
-            canvasYPos, geneText, color, plotFormat
-          );
-        }
-      }
+      await this._drawTranscript(
+        transc, queryResult, color,
+        plotFormat,
+        drawGeneName,  // if gene names should be drawn
+        !drawExons, // if transcripts should be represented as arrows
+      );
     }
   }
 }
