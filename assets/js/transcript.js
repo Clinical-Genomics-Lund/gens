@@ -71,7 +71,7 @@ class Transcript extends Track {
     const textSize = plotFormat.textSize;
     const titleMargin = plotFormat.titleMargin;
     // lighten colors for MANE transcripts
-    let elementColor = element.mane ? pSBC(0.3, color) : color;
+    let elementColor = element.mane ? pSBC(0.25, color) : color;
 
     // Keep track of latest track
     if ( this.heightOrderRecord.latestHeight != element.height_order ) {
