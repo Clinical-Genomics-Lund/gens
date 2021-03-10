@@ -3,11 +3,12 @@
 Write transcripts to DB
 """
 
+from collections import defaultdict
+import sys
 import argparse
 import csv
 import os
-from functools import cmp_to_key
-from itertools import groupby
+from itertools import chain
 
 from pymongo import ASCENDING, MongoClient
 
@@ -25,6 +26,47 @@ CLIENT = MongoClient(
     port=port,
 )
 GENS_DB = CLIENT[os.environ["GENS_DBNAME"]]
+
+
+def _parse_attribs(attribs):
+    """Parse attribute strings."""
+    attribs = attribs.strip()
+    return dict(
+        [
+            map(lambda x: x.replace('"', ""), a.strip().split(" ", 1))
+            for a in attribs.split(";")
+            if a
+        ]
+    )
+
+
+def _assign_height_order(transcripts):
+    """Assign height order for an list or transcripts.
+
+    MANE transcript allways have height order == 1
+    Rest are assinged height order depending on their start position
+    """
+    # get mane transcript and assign it height order of 1
+    mane_transcript = tuple(tr for tr in transcripts if tr["mane"])
+    mane_transcript = mane_transcript[0] if len(mane_transcript) != 0 else None
+    if mane_transcript is not None:
+        mane_transcript["height_order"] = 1
+        rest_start_height_order = 2
+    else:
+        rest_start_height_order = 1
+
+    # assign height order to the rest of the transcripts
+    rest = (tr for tr in transcripts if not tr["mane"])
+    for order, tr in enumerate(
+        sorted(rest, key=lambda x: int(x["start"])), start=rest_start_height_order
+    ):
+        tr["height_order"] = order
+
+
+def _sort_transcript_features(transcripts):
+    """Sort transcript features on start coordinate."""
+    for tr in transcripts:
+        tr["features"] = sorted(tr["features"], key=lambda x: x["start"])
 
 
 class UpdateTranscripts:
@@ -56,7 +98,7 @@ class UpdateTranscripts:
         self.collection.create_index([("height_order", ASCENDING)], unique=False)
         self.collection.create_index("hg_type", unique=False)
 
-        LOG.info('Indexing MANE transcripts')
+        LOG.info("Indexing MANE transcripts")
         # Set MANE transcripts
         with open(self.mane_file) as mane_file:
             cs_reader = csv.reader(mane_file, delimiter="\t")
@@ -68,78 +110,94 @@ class UpdateTranscripts:
                 self.mane[ensemble_nuc] = {"hgnc_id": hgnc_id, "refseq_id": refseq_id}
 
         # Set the rest
-        LOG.info('Sorting transcript file')
+        LOG.info("Parsing transcript file")
+        num_lines = sum(1 for line in open(self.input_file))
         with open(self.input_file) as track_file:
-            tracks = read_gtf(track_file)
+            # setup reader
+            COLNAMES = [
+                "seqname",
+                "source",
+                "feature",
+                "start",
+                "end",
+                "score",
+                "strand",
+                "frame",
+                "attribute",
+            ]
+            raw_file = csv.DictReader(track_file, COLNAMES, delimiter="\t")
 
-        # Variables for setting height order of track
-        previous_gene_name = ""
-        height_order = 1
+            # Variables for setting height order of track
+            transc_index = {}
+            results = defaultdict(list)
+            with click.progressbar(
+                raw_file, length=num_lines, label="Processing features"
+            ) as bar:
+                for row in bar:
+                    if row["seqname"].startswith("#") or row["seqname"] is None:
+                        continue
+                    attribs = _parse_attribs(row["attribute"])
+                    # skip non protein coding genes
+                    if not attribs.get("gene_biotype") == "protein_coding":
+                        continue
 
-        results = {}
-        features = {}
+                    transcript_id = attribs.get("transcript_id")
+                    if row["feature"] == "transcript":
+                        if transcript_id in self.mane:
+                            mane = True
+                            hgnc_id = self.mane[transcript_id]["hgnc_id"]
+                            refseq_id = self.mane[transcript_id]["refseq_id"]
+                        else:
+                            mane = False
+                            hgnc_id = None
+                            refseq_id = None
 
-        LOG.info('Parsing transcripts')
-        # Insert tracks in DB
-        gr_tracks = groupby(tracks.iterrows(), key=lambda tr: tr[1]['gene_name'])
-        for gene_name, gene_tracks in gr_tracks:
-            tracks = list(gene_tracks)
-            tracks.sort(key=cmp_to_key(self.track_sorter))
-            for track in tracks:
-                track = track[1]
-                transcript_id = track['transcript_id']
-                biotype = track['transcript_biotype']
-                if not biotype == "protein_coding":
-                    continue
-
-                if track['feature'] == "transcript":
-                    if not track['gene_name'] == previous_gene_name:
-                        height_order = 1
-                    else:
-                        height_order += 1
-
-                    if transcript_id in self.mane:
-                        mane = True
-                        hgnc_id = self.mane[transcript_id]["hgnc_id"]
-                        refseq_id = self.mane[transcript_id]["refseq_id"]
-                    else:
-                        mane = False
-                        hgnc_id = None
-                        refseq_id = None
-
-                    mane = True if transcript_id in self.mane else False
-                    results[transcript_id] = {
-                        "chrom": track['seqname'],
-                        "hg_type": int(self.hg_type),
-                        "gene_name": gene_name,
-                        "start": track['start'],
-                        "end": track['end'],
-                        "strand": track['strand'],
-                        "height_order": height_order,
-                        "transcript_id": transcript_id,
-                        "transcript_biotype": biotype,
-                        "mane": mane,
-                        "hgnc_id": hgnc_id,
-                        "refseq_id": refseq_id,
-                        "features": [],
-                    }
-                    previous_gene_name = gene_name
-                else:
-                    # Gather features for a bulk update
-                    features.setdefault(transcript_id, []).append(
-                        {
-                            "feature": track['feature'],
-                            "exon_number": track['exon_number'],
-                            "start": track['start'],
-                            "end": track['end'],
+                        res = {
+                            "chrom": row["seqname"],
+                            "hg_type": int(self.hg_type),
+                            "gene_name": attribs["gene_name"],
+                            "start": int(row["start"]),
+                            "end": int(row["end"]),
+                            "strand": row["strand"],
+                            "height_order": None,  # will be set later
+                            "transcript_id": transcript_id,
+                            "transcript_biotype": attribs["transcript_biotype"],
+                            "mane": mane,
+                            "hgnc_id": hgnc_id,
+                            "refseq_id": refseq_id,
+                            "features": [],
                         }
-                    )
-
-        # Bulk update transcripts with features
-        for transcript_id, tr_features in features.items():
-            results[transcript_id]['features'] = tr_features
+                        transc_index[transcript_id] = res
+                        results[attribs["gene_name"]].append(res)
+                    elif row["feature"] in [
+                        "exon",
+                        "three_prime_utr",
+                        "five_prime_utr",
+                    ]:
+                        # Add features in transcript
+                        if transcript_id in transc_index:
+                            specific_params = {}
+                            if row["feature"] == "exon":
+                                specific_params["exon_number"] = int(
+                                    attribs["exon_number"]
+                                )
+                            transc_index[transcript_id]["features"].append(
+                                {
+                                    **{
+                                        "feature": row["feature"],
+                                        "start": int(row["start"]),
+                                        "end": int(row["end"]),
+                                    },
+                                    **specific_params,
+                                }
+                            )
+        # assign height order to stored transcripts
+        LOG.info("Assign height order values and sort features")
+        for transcripts in results.values():
+            _assign_height_order(transcripts)
+            _sort_transcript_features(transcripts)
         # Bulk insert collections
-        self.temp_collection.insert_many(list(results.values()))
+        self.temp_collection.insert_many(chain(*results.values()))
 
     def track_sorter(self, tr1, tr2):
         """
@@ -153,15 +211,15 @@ class UpdateTranscripts:
         tr1 = tr1[1]
         tr2 = tr2[1]
         if (
-            (tr1['feature'] == "transcript" and tr2['feature'] != "transcript")
-            or tr1['transcript_id'] in self.mane
-            or (tr1['gene_name'] == tr2['gene_name'] and tr1['start'] < tr2['start'])
+            (tr1["feature"] == "transcript" and tr2["feature"] != "transcript")
+            or tr1["transcript_id"] in self.mane
+            or (tr1["gene_name"] == tr2["gene_name"] and tr1["start"] < tr2["start"])
         ):
             return -1
         if (
-            (tr1['feature'] != "transcript" and tr2['feature'] == "transcript")
-            or tr2['transcript_id'] in self.mane
-            or (tr1['gene_name'] == tr2['gene_name'] and tr1['start'] > tr2['start'])
+            (tr1["feature"] != "transcript" and tr2["feature"] == "transcript")
+            or tr2["transcript_id"] in self.mane
+            or (tr1["gene_name"] == tr2["gene_name"] and tr1["start"] > tr2["start"])
         ):
             return 1
         return 0
@@ -218,9 +276,12 @@ def main():
         LOG.error(str(e))
         LOG.error("Error, could not update. Rollback")
         update.clean_up()
+        click.secho(
+            "Could not perform update due to an error. Rolling back ✘", fg="red"
+        )
         return
     update.save_to_collection()
-    LOG.info("Finished updating transcripts")
+    click.secho("Finished updating transcripts ✔", fg="green")
 
 
 if __name__ == "__main__":
