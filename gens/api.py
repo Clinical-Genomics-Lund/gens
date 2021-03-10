@@ -202,7 +202,6 @@ def search_annotation(query: str, hg_type, annotation_type):
 
 def get_variant_data(sample_id, variant_category, **optional_kwargs):
     """Search Scout database for variants associated with a case and return info in JSON format."""
-    abort(404)
     default_height_order = 0
     base_return = {"status": "ok"}
     # get optional variables
