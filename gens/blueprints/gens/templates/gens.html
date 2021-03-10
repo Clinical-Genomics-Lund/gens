@@ -132,7 +132,8 @@
     const inputField = document.getElementById('region_field');
 
     // Set first input field value for ic
-    inputField.value = '{{chrom}}' + ':' + {{start}} + '-' + {{end}};
+    let start = {{ start }} == 0 ? 1 : {{ start }};
+    inputField.value = '{{chrom}}' + ':' + start + '-' + {{end}};
     inputField.placeholder = inputField.value;
 
     // Hide non-rendered content
