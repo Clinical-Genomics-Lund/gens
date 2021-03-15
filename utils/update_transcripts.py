@@ -141,7 +141,7 @@ class UpdateTranscripts:
                 raw_file, length=num_lines, label="Processing features"
             ) as bar:
                 for row in bar:
-                    if row["seqname"].startswith("#") or row["seqname"] is None or not row["seqname"] == '8':
+                    if row["seqname"].startswith("#") or row["seqname"] is None:
                         continue
                     attribs = _parse_attribs(row["attribute"])
                     # skip non protein coding genes
