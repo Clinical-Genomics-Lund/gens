@@ -36,6 +36,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Fixed crash when Shift - Click in interactive canvas
  - Fixed checking of api return status in drawInteractiveContent
  - Aligned highlight in interactive canvas
+ - Bumped Three to version 0.125.0
 
 ## [1.1.1]
 ### Fixed
