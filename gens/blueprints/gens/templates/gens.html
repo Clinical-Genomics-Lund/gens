@@ -1,6 +1,14 @@
 <!-- GENS overview template -->
 {% import 'info.html' as info %}
 
+{% macro annotation_track(track_name) %}
+    <div id='{{ track_name }}-container' class='info-container'>
+        <canvas id='{{ track_name }}-content' class='info-canvas'></canvas>
+        <canvas id='{{ track_name }}-draw' class='info-canvas offscreen'></canvas>
+        <div id='{{ track_name }}-titles' class='info-titles'></div>
+    </div>
+{% endmacro %}
+
 {% extends "layout.html" %}
 {% block title %}Visualization{% endblock title %}
 {% block css_style %}
@@ -58,23 +66,9 @@
                 <div id='loading-div'>LOADING...</div>
             </div>
 
-            <div id='variant-container' class='info-container'>
-                <canvas id='variant-content' class='info-canvas'></canvas>
-                <canvas id='variant-draw' class='info-canvas offscreen'></canvas>
-                <div id='variant-titles' class='info-titles'></div>
-            </div>
-
-            <div id='transcript-container' class='info-container'>
-                <canvas id='transcript-content' class='info-canvas'></canvas>
-                <canvas id='transcript-draw' class='info-canvas offscreen'></canvas>
-                <div id='transcript-titles' class='info-titles'></div>
-            </div>
-
-            <div id='annotation-container' class='info-container'>
-                <canvas id='annotation-content' class='info-canvas'></canvas>
-                <canvas id='annotation-draw' class='info-canvas offscreen'></canvas>
-                <div id='annotation-titles' class='info-titles'></div>
-            </div>
+            {{ annotation_track("variant") }}
+            {{ annotation_track("transcript") }}
+            {{ annotation_track("annotation") }}
 
             <div id='button-container'>
                 <select id='source-list'></select>

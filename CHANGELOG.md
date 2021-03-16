@@ -14,6 +14,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Transcripts are represented as arrows in lower resolutions
  - Highlight MANE transcript in name and with a brighter color
  - Annotaion tracks are disabled if api returns an error at some point
+ - Annotation track DOMs are constructed with template macros
  - Don't show "Loading..." when panning the interactive view with the  mouse
 ### Fixed
  - Gene names are now centered below transcript
