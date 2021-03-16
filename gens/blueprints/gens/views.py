@@ -51,7 +51,7 @@ def display_case(sample_name):
     region = request.args.get("region", None)
     print_page = request.args.get("print_page", "false")
     if not region:
-        region = request.form.get("region", "1:100000-200000")
+        region = request.form.get("region", "1:1-None")
 
     # Parse region
     with current_app.app_context():

@@ -16,6 +16,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Annotaion tracks are disabled if api returns an error at some point
  - Annotation track DOMs are constructed with template macros
  - Don't show "Loading..." when panning the interactive view with the  mouse
+ - Changed default chromosome region to display to entire chromosome 1
 ### Fixed
  - Gene names are now centered below transcript
  - Fixed assignement of height order when updating transcript data
