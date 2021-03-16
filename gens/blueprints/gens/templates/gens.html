@@ -11,15 +11,19 @@
     <script src='{{ url_for('gens.static', filename='gens.min.js') }}'></script>
 {% endblock scripts %}
 
-{% block body %}
-<div class="loading-view">
-    <div class="loading-container">
-        <p id="loading" class="message">Loading sample</p>
-        <p id="printing" class="message" hidden>Preparing to print</p>
-        <div class="spinner"></div>
+{% macro loading() %}
+    <div class="loading-view">
+        <div class="loading-container">
+            <p id="loading" class="message">Loading sample</p>
+            <p id="printing" class="message" hidden>Preparing to print</p>
+            <div class="spinner"></div>
+        </div>
     </div>
-</div>
+{% endmacro %}
+
+{% block body %}
 <div id='main-container'>
+    {{ loading() }}
     <div class="header">
         <div id='left-group'>
             <div id="logo-container">
