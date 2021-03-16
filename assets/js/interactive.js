@@ -107,10 +107,10 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Setup loading div dimensions
     this.loadingDiv = document.getElementById("loading-div")
-    this.loadingDiv.style.width = (this.plotWidth-2.5)+"px";
-    this.loadingDiv.style.left = (3+this.x)+"px";
-    this.loadingDiv.style.top = (56+1+this.y)+"px"; //56 is size of header bar.
-    this.loadingDiv.style.height = (2*this.plotHeight-2.5)+"px";
+    this.loadingDiv.style.width = `${this.plotWidth - 2.5}px`;
+    this.loadingDiv.style.left = `${this.x + 4}px`;
+    this.loadingDiv.style.top = `${this.y + 83 + 1}px`;
+    this.loadingDiv.style.height = `${this.plotHeight * 2 - 2.5}px`;
 
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
@@ -230,7 +230,7 @@ class InteractiveCanvas extends FrequencyTrack {
         this.start = parseInt(this.start) + moveDist;
         this.end = parseInt(this.end) + moveDist;
 
-        this.redraw(null);
+        this.redraw(null,false);
       }
     });
 
@@ -334,8 +334,14 @@ class InteractiveCanvas extends FrequencyTrack {
   }
 
   // Draw values for interactive canvas
-  async drawInteractiveContent () {
-    this.loadingDiv.style.display = "block";
+  async drawInteractiveContent (clear = true) {
+
+    if (clear) {
+      this.loadingDiv.style.display = "block";
+    } else {
+      document.getElementsByTagName("body")[0].style.cursor = "wait";
+    }
+
     console.time("getcoverage");
     get('get-coverage', {
       region: this.inputField.value,
@@ -405,7 +411,12 @@ class InteractiveCanvas extends FrequencyTrack {
       this.scene.remove.apply(this.scene, this.scene.children);
       return result
     }).then( (result) => {
-      this.loadingDiv.style.display = "none";
+
+      if (clear) {
+        this.loadingDiv.style.display = "none";
+      } else {
+        document.getElementsByTagName("body")[0].style.cursor = "auto";
+      }
 
       // Set values
       this.chromosome = result['chrom'];
@@ -432,7 +443,7 @@ class InteractiveCanvas extends FrequencyTrack {
   }
 
   // Redraw interactive canvas
-  redraw (inputValue) {
+  redraw (inputValue, clear = true) {
     if (!this.allowDraw) {
       return;
     }
@@ -445,7 +456,7 @@ class InteractiveCanvas extends FrequencyTrack {
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end;
     }
 
-    this.drawInteractiveContent();
+    this.drawInteractiveContent(clear);
 
     // Draw new tracks and annotations
     Promise.all([
