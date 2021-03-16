@@ -1,4 +1,6 @@
 <!-- GENS overview template -->
+{% import 'info.html' as info %}
+
 {% extends "layout.html" %}
 {% block title %}Visualization{% endblock title %}
 {% block css_style %}
@@ -38,9 +40,7 @@
                 onclick='copyPermalink("{{hg_type}}", inputField.value);' title='Copy permalink'>
             </span>
             <span class='header-icon no-print info'></span>
-            <iframe id='info-box'
-                src='{{ url_for('gens.static', filename='snippets/info.html')}}'>
-            </iframe>
+            {{ info.help_popup() }}
         </div>
     </div>
 

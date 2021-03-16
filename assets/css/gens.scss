@@ -11,6 +11,7 @@ $marker-color: rgba(#81A1C1, 0.5);
 // buttons
 $btn-zoom-color: #8FBCBB;
 $btn-navigate-color: #6DB2C5;
+
 $btn-submit-color: #6DB2C5;
 // font
 $default-font: Arial, Helvetica, sans-serif;
@@ -42,22 +43,35 @@ html, body {
     background-color: $default-bg-color;
 }
 
-#info-box {
+.help-popup {
+    // dimensions and color
     opacity: 0;
     transition: opacity 0.5s linear;
-    position: absolute;
-    top: 32px;
-    right: 25px;
     color: $default-font-color;
     background: $default-bg-color;
     border: 1px solid $default-font-color;
-    z-index: 2;
-    display: inline-block;
     width: 300px;
-    height: 320px;
+    padding: 0px 10px 10px 10px;
+    // positioning
+    display: inline-block;
+    position: absolute;
+    top: 32px;
+    right: 25px;
+    z-index: 2;
+    // text properties
+    font-size: small;
+    text-align: left;
+
+    h3, ul, p {
+        margin-bottom: 4px;
+    }
+
+    ul, p {
+        margin-top: 4px;
+    }
 }
 
-.info:hover + #info-box {
+.info:hover + .help-popup {
     opacity: 1;
     transition: opacity 0.5s linear;
 }

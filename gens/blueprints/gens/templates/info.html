@@ -1,0 +1,37 @@
+{% macro help_popup() %}
+    <div class="help-popup">
+        <h3>Basic navigation</h3>
+        <ul>
+            <li>Use left and right button to navigate the chromosome</li>
+            <li>Use zoom buttons to zoom in and out the chromosome</li>
+            </li>
+        </ul>
+        <h3>Mouse navigation</h3>
+        <ul>
+            <li>Navigate to a chromosome by <b>click</b> it the overview figure</li>
+            <li><b>click</b> and <b>dragging</b> with the mouse to move the region</li>
+            <li>Zoom in coverage figure by <b>Shift</b>+<b>click</b></li>
+            <li>Zoom in on a region by holding <b>Shift</b> and <b>dragging</b> with the mouse</li>
+            <li>Zoom out in coverage figure by <b>Ctrl</b>+<b>click</b></li>
+            </li>
+        </ul>
+        <h3>Keybord shortcuts</h3>
+        <ul>
+            <li>Use left and right arrow keys to change chromosome</li>
+            <li>Goto a chromosome by press <b>chromosome number</b> + <b>Enter</b></li>
+        </ul>
+        <h3>Search</h3>
+        <p>To search type your query into the search box. Available queries are:</p>
+        <ul>
+            <li>
+                <b>chromosome</b>:<b>start</b>-<b>stop</b>
+            </li>
+            <li>
+                <b>chromosome</b>
+            </li>
+            <li>
+                <b>gene name</b>
+            </li>
+        </ul>
+    </div>
+{% endmacro %}
