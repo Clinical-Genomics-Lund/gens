@@ -50,12 +50,12 @@ def query_variants(case_name: str, variant_category: VariantCategory, **kwargs):
     """
     # lookup case_id from the displayed name
     db = app.config["SCOUT_DB"]
-    case_id = db.case.find_one({"display_name": case_name})["_id"]
-    if case_id is None:
+    response = db.case.find_one({"display_name": case_name})
+    if response is None:
         raise ValueError(f"No case with name: {case_name}")
     # build query
     query = {
-        "case_id": case_id,
+        "case_id": response["_id"],
         "category": variant_category.value,
     }
     # add chromosome

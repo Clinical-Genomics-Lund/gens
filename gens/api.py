@@ -224,13 +224,16 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
         }
         # limit renders to b or greater resolution
     # query variants
-    variants = list(
-        query_variants(
-            sample_id,
-            cattr.structure(variant_category, VariantCategory),
-            **region_params,
+    try:
+        variants = list(
+            query_variants(
+                sample_id,
+                cattr.structure(variant_category, VariantCategory),
+                **region_params,
+            )
         )
-    )
+    except ValueError as err:
+        abort(404, str(err))
     # return all detected variants
     return (
         jsonify(

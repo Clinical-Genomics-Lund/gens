@@ -53,6 +53,8 @@ class Track {
     this.arrowThickness = 1;
     this.expanded = false;
     this.colorSchema = colorSchema;
+    // errors preventing fetching of data
+    this.preventDrawingTrack = false;
 
     // Dimensions of track canvas
     this.width = Math.round(width); // Width of displayed canvas
@@ -342,6 +344,7 @@ class Track {
   // if new region in offscreen canvas --> blit image
   // if new region outside offscreen canvas --> redraw offscreen using cache
   async drawTrack(regionString, forceRedraw=false) {
+    if (this.preventDrawingTrack) return;  // disable drawing track
     // store genomic position of the region to draw
     let [chromosome, start, end] = this.parseRegionDesignation(regionString);
     this.onscreenPosition.start = start;
@@ -364,10 +367,16 @@ class Track {
           collapsed: false  // allways get all height orders
         }, this.additionalQueryParams)  // parameters specific to track type
       )
+      if ( this.trackData.status === 'error' ) {
+        this.trackContainer.setAttribute('data-state', 'nodata');
+        this.preventDrawingTrack = true;
+        return;
+      }
       // the track data is used to determine the new start/ end positions
       end = end > this.trackData.end_pos ? this.trackData.end_pos : end
       updatedData = true;
     }
+
     // redraw offscreen canvas if,
     // 1. not drawn before;
     // 2. if onscreen canvas close of offscreen canvas edge
