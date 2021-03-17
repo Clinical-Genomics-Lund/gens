@@ -1,10 +1,12 @@
 // GENS module
 
-import TranscriptTrack from './transcript.js'
-import AnnotationTrack from './annotation.js'
-import VariantTrack from './variant.js'
+import { TranscriptTrack } from './transcript.js'
+import { AnnotationTrack } from './annotation.js'
+import { VariantTrack } from './variant.js'
+import { InteractiveCanvas } from './interactive.js'
+import { OverviewCanvas } from './overview.js'
 
-function initCanvases ({ hgType, hgFileDir, uiColors }) {
+function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // WEBGL values
   const near = 0.1
   const far = 100
