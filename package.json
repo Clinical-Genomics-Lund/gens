@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "npm": "^7.5.4",
-    "three": "^0.124.0"
+    "three": "^0.125.0"
   },
   "name": "gens",
   "version": "1.1.2",

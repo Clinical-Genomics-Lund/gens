@@ -145,18 +145,18 @@ function drawText (canvas, x, y, text, textSize, align) {
 
 // Draws a line between point (x, y) and (x2, y2)
 function drawLine (scene, x, y, x2, y2, thickness, color) {
-  x = Math.floor(x)+0.5;
-  x2 = Math.floor(x2)+0.5;
-  y = Math.floor(y)+0.5;
-  y2 = Math.floor(y2)+0.5;
-  let line = new THREE.Geometry();
-  line.vertices.push(
+  x = Math.floor(x) + 0.5;
+  x2 = Math.floor(x2) + 0.5;
+  y = Math.floor(y) + 0.5;
+  y2 = Math.floor(y2) + 0.5;
+  const points = [];
+  points.push(
     new THREE.Vector3(x, y, 0),
     new THREE.Vector3(x2, y2, 0)
   );
-
+  const geometry = new THREE.BufferGeometry().setFromPoints( points );
   var material = new THREE.LineBasicMaterial({ color: color, linewidth: thickness });
-  line = new THREE.Line(line, material);
+  line = new THREE.Line(geometry, material);
   scene.add(line);
 }
 
@@ -165,12 +165,11 @@ function drawBox (scene, x, y, width, height, lineWidth, color, open) {
   x = Math.floor(x)+0.5;
   y = Math.floor(y)+0.5;
   width = Math.floor(width);
-  var coordAxes = new THREE.Geometry();
-
+  const coordAxes = [];
   // Draw box without left part, to allow stacking boxes
   // horizontally without getting double lines between them.
   if(open === true) {
-    coordAxes.vertices.push(
+    coordAxes.push(
       new THREE.Vector3(x, y, 0),
       new THREE.Vector3(x + width, y, 0),
       new THREE.Vector3(x + width, y + height, 0),
@@ -178,7 +177,7 @@ function drawBox (scene, x, y, width, height, lineWidth, color, open) {
     );
   // Draw normal 4-sided box
   } else {
-    coordAxes.vertices.push(
+    coordAxes.push(
       new THREE.Vector3(x, y, 0),
       new THREE.Vector3(x, y + height, 0),
       new THREE.Vector3(x + width, y + height, 0),
@@ -188,8 +187,9 @@ function drawBox (scene, x, y, width, height, lineWidth, color, open) {
 
   }
   var material = new THREE.LineBasicMaterial({ color: color, linewidth: lineWidth });
-  coordAxes = new THREE.Line(coordAxes, material);
-  scene.add(coordAxes);
+  const geometry = new THREE.BufferGeometry().setFromPoints( coordAxes );
+  const box = new THREE.Line(geometry, material);
+  scene.add(box);
 }
 
 // Makes large numbers more readable with commas
