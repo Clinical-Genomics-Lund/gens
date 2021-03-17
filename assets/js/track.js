@@ -111,6 +111,12 @@ class Track {
     // Setup variant canvas
     this.trackContainer.style.marginLeft = xPos + 'px';
     this.trackContainer.style.width = this.width + 'px';
+    // set xlabel
+    this.trackContainer
+      .parentElement
+      .querySelector('.track-xlabel')
+      .style
+      .left = `${xPos - 60}px`;
 
     // Setup initial track Canvas
     this.drawCtx = this.drawCanvas.getContext('2d');
