@@ -1,14 +1,16 @@
 {
   "dependencies": {
     "npm": "^7.5.4",
-    "three": "^0.125.0"
+    "three": "^0.124.0"
   },
   "name": "gens",
   "version": "1.1.2",
   "description": "Interactive tool to visualize genomic copy number profiles from WGS data",
-  "main": "index.js",
+  "main": "gens.js",
   "scripts": {
     "build": "gulp build",
+    "build-test": "webpack --progress --config webpack.config.js",
+    "lint": "eslint assets",
     "watch": "gulp watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,11 +25,20 @@
   },
   "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
   "devDependencies": {
+    "chai": "^4.3.4",
+    "eslint": "^7.22.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^3.0.0",
-    "gulp-uglify-es": "^2.0.0"
+    "gulp-uglify-es": "^2.0.0",
+    "mocha": "^8.3.2",
+    "webpack": "^5.26.2",
+    "webpack-cli": "^4.5.0"
   }
 }
