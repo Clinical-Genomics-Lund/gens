@@ -10,7 +10,7 @@ class Transcript extends Track {
     this.drawCanvas = document.getElementById('transcript-draw');
     this.contentCanvas = document.getElementById('transcript-content');
     this.trackTitle = document.getElementById('transcript-titles');
-    this.trackContainer = document.getElementById('transcript-container');
+    this.trackContainer = document.getElementById('transcript-track-container');
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1);
