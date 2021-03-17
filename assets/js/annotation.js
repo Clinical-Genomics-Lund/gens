@@ -11,7 +11,7 @@ class Annotation extends Track {
     this.drawCanvas = document.getElementById('annotation-draw');
     this.contentCanvas = document.getElementById('annotation-content');
     this.trackTitle = document.getElementById('annotation-titles');
-    this.trackContainer = document.getElementById('annotation-container');
+    this.trackContainer = document.getElementById('annotation-track-container');
     this.featureHeight = 18;
     this.arrowThickness = 2;
 

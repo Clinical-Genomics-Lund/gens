@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
  - Added github workflow for running pytest on PRs
  - Added unit tests
+ - Added labels to the annotation tracks
 ### Changed
  - Changed positive strand color of transcripts to a more constrasting color
  - Temporarily disabled on hover popups in annotation tracks

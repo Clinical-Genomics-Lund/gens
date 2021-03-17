@@ -66,11 +66,12 @@ class Track {
     // Canvases
     // the drawCanvas is used to draw objects offscreen
     // the region to be displayed is blitted to the onscreen contentCanvas
-    this.trackTitle = null;     // Set in parent class
     this.trackContainer = null; // Set in parent class
     this.drawCanvas = null;    // Set in parent class
     // Canvases for static content
     this.contentCanvas = null;
+    this.trackTitle = null;     // Set in parent class
+    // data cache
     this.trackData = null;
 
     // Store coordinates of offscreen canvas
@@ -164,22 +165,27 @@ class Track {
       this.contentCanvas.height = 0;
       this.trackTitle.style.height = '0px';
       this.trackContainer.style.height = '0px';
-      this.trackContainer.setAttribute('data-state', 'nodata');
-    } else if (this.expanded) {
-      // Set variables for an expanded view
-      const maxYPos = this.tracksYPos(maxHeightOrder + 1);
-      this.contentCanvas.height = maxYPos;
-      this.drawCanvas.height = maxYPos;
-      this.trackTitle.style.height = `${maxYPos}px`;
-      this.trackContainer.style.height = `${this.visibleHeight}px`;
-      this.trackContainer.setAttribute('data-state', 'expanded');
+      // hide parent element
+      this.trackContainer.parentElement.setAttribute('data-state', 'nodata');
     } else {
-      // Set variables for a collapsed view
-      this.contentCanvas.height = this.minHeight;
-      this.drawCanvas.height = this.minHeight;
-      this.trackTitle.style.height = `${this.minHeight}px`;
-      this.trackContainer.style.height = `${this.minHeight}px`;
-      this.trackContainer.setAttribute('data-state', 'collapsed');
+      this.trackContainer.parentElement.setAttribute('data-state', 'data');
+      // controll track content
+      if (this.expanded) {
+        // Set variables for an expanded view
+        const maxYPos = this.tracksYPos(maxHeightOrder + 1);
+        this.contentCanvas.height = maxYPos;
+        this.drawCanvas.height = maxYPos;
+        this.trackTitle.style.height = `${maxYPos}px`;
+        this.trackContainer.style.height = `${this.visibleHeight}px`;
+        this.trackContainer.setAttribute('data-state', 'expanded');
+      } else {
+        // Set variables for a collapsed view
+        this.contentCanvas.height = this.minHeight;
+        this.drawCanvas.height = this.minHeight;
+        this.trackTitle.style.height = `${this.minHeight}px`;
+        this.trackContainer.style.height = `${this.minHeight}px`;
+        this.trackContainer.setAttribute('data-state', 'collapsed');
+      }
     }
   }
 
@@ -368,7 +374,7 @@ class Track {
         }, this.additionalQueryParams)  // parameters specific to track type
       )
       if ( this.trackData.status === 'error' ) {
-        this.trackContainer.setAttribute('data-state', 'nodata');
+        this.trackContainer.parentElement.setAttribute('data-state', 'nodata');
         this.preventDrawingTrack = true;
         return;
       }

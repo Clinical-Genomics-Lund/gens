@@ -13,7 +13,7 @@ class Variant extends Track {
     this.drawCanvas = document.getElementById('variant-draw');
     this.contentCanvas = document.getElementById('variant-content');
     this.trackTitle = document.getElementById('variant-titles');
-    this.trackContainer = document.getElementById('variant-container');
+    this.trackContainer = document.getElementById('variant-track-container');
     this.featureHeight = 18;
     this.arrowThickness = 2;
 
