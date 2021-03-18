@@ -45,15 +45,14 @@ html, body {
 
 .help-popup {
     // dimensions and color
-    opacity: 0;
-    transition: opacity 0.5s linear;
+    display: none;
+    transition: opacity 2s linear 0.5s;
     color: $default-font-color;
     background: $default-bg-color;
     border: 1px solid $default-font-color;
     width: 300px;
     padding: 0px 10px 10px 10px;
     // positioning
-    display: inline-block;
     position: absolute;
     top: 32px;
     right: 25px;
@@ -72,8 +71,7 @@ html, body {
 }
 
 .info:hover + .help-popup {
-    opacity: 1;
-    transition: opacity 0.5s linear;
+    display: block;
 }
 
 .header {
