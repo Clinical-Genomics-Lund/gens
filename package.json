@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "npm": "^7.5.4",
-    "three": "^0.124.0"
+    "three": "^0.125.0"
   },
   "name": "gens",
   "version": "1.1.2",
@@ -12,7 +12,7 @@
     "build-test": "webpack --progress --config webpack.config.js",
     "lint": "eslint assets",
     "watch": "gulp watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage assets/js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,9 @@
   },
   "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
   "devDependencies": {
-    "chai": "^4.3.4",
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
     "eslint": "^7.22.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
@@ -37,7 +39,8 @@
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify-es": "^2.0.0",
-    "mocha": "^8.3.2",
+    "jest": "^26.6.3",
+    "regenerator-runtime": "^0.13.7",
     "webpack": "^5.26.2",
     "webpack-cli": "^4.5.0"
   }
