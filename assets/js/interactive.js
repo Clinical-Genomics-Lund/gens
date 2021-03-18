@@ -460,7 +460,7 @@ class InteractiveCanvas extends FrequencyTrack {
 
     // Draw new tracks and annotations
     Promise.all([
-      tc.drawTrack(this.inputField.value),
+      tc.drawTrack(this.inputField.value, false, true),
       vc.drawTrack(this.inputField.value),
       ac.drawTrack(this.inputField.value),
     ])
@@ -507,7 +507,7 @@ class InteractiveCanvas extends FrequencyTrack {
     const dist = distance / scale;
     const region = `${this.chromosome}:${this.start - dist}-${this.end - dist}`;
     vc.drawTrack(region);
-    tc.drawTrack(region);
+    tc.drawTrack(region, false, true);
     ac.drawTrack(region);
   }
 

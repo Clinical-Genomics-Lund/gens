@@ -23,6 +23,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Gene names are now centered below transcript
  - Fixed assignement of height order when updating transcript data
  - get-variant-data returns 404 if case cant be found
+ - Hide trancscript tracks when requesting new data from api
 
 ## [1.1.2]
 ### Added

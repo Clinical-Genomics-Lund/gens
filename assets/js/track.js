@@ -355,7 +355,7 @@ class Track {
   // if new chromosome selected --> cache all annotations for chrom
   // if new region in offscreen canvas --> blit image
   // if new region outside offscreen canvas --> redraw offscreen using cache
-  async drawTrack(regionString, forceRedraw=false) {
+  async drawTrack(regionString, forceRedraw=false, hideWhileLoading=false) {
     if (this.preventDrawingTrack) return;  // disable drawing track
     // store genomic position of the region to draw
     let [chromosome, start, end] = this.parseRegionDesignation(regionString);
@@ -370,6 +370,11 @@ class Track {
     if ( !this.trackData ||
          this.trackData.chromosome !== chromosome ||
          forceRedraw) {
+      // hide track while loading
+      if ( hideWhileLoading ) {
+        this.trackContainer.parentElement.setAttribute('data-state', 'nodata');
+      }
+      // request new data
       this.trackData = await get(
         this.apiEntrypoint,
         Object.assign({  // build query parameters
