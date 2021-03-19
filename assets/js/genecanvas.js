@@ -225,10 +225,9 @@ export function printPage () {
 
 // Make hard link and copy link to clipboard
 export function copyPermalink (hgType, region) {
-  const [baseUrl, urlParams] = window.location.href.split('?')
   // create element and add url to it
   const tempElement = document.createElement('input')
-  tempElement.value = `${baseUrl}?hg_type=${hgType}&region=${region}`
+  tempElement.value = `${window.location.host}?hg_type=${hgType}&region=${region}`
   // add element to DOM
   document.body.append(tempElement)
   tempElement.select()
