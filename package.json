@@ -9,7 +9,6 @@
   "main": "gens.js",
   "scripts": {
     "build": "gulp build",
-    "build-test": "webpack --progress --config webpack.config.js",
     "lint": "eslint assets",
     "watch": "gulp watch",
     "test": "jest --coverage assets/js"
@@ -38,7 +37,6 @@
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^3.0.0",
-    "gulp-uglify-es": "^2.0.0",
     "jest": "^26.6.3",
     "regenerator-runtime": "^0.13.7",
     "webpack": "^5.26.2",
