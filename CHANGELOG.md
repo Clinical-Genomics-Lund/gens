@@ -9,6 +9,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Added github workflow for running pytest on PRs
  - Added unit tests
  - Added labels to the annotation tracks
+ - Added js unit tests with jest and linting with eslint
 ### Changed
  - Changed positive strand color of transcripts to a more constrasting color
  - Temporarily disabled on hover popups in annotation tracks
@@ -19,6 +20,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Don't show "Loading..." when panning the interactive view with the  mouse
  - Changed default chromosome region to display to entire chromosome 1
  - Restored ability to view entire chromosome when zoomed in by clicking on it in the chromosome overview.
+ - Build js package with webpack instead of gulp
 ### Fixed
  - Gene names are now centered below transcript
  - Fixed assignement of height order when updating transcript data
