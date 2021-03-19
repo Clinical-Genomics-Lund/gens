@@ -7,6 +7,7 @@ import { InteractiveCanvas } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
 
 export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
+  // initialize and return the different canvases
   // WEBGL values
   const near = 0.1
   const far = 100

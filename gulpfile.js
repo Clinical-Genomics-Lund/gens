@@ -1,39 +1,37 @@
 // requirements
-const gulp = require('gulp'),
-      sass = require('gulp-sass'),
-      uglify = require('gulp-uglify-es').default,
-      concat = require('gulp-concat'),
-      rename = require('gulp-rename'),
-      sourcemaps = require('gulp-sourcemaps');
+const gulp = require('gulp');
+const sass = require('gulp-sass');
+const rename = require('gulp-rename');
+const webpack = require('webpack');
+const sourcemaps = require('gulp-sourcemaps');
+let webpackConfig = require('./webpack.config.js');
 
 // define paths
 const dest = 'build'
 const assetPath = 'assets'
-const jsFiles = [
-  'node_modules/three/build/three.min.js',
-  `${assetPath}/js/fetch.js`,
-  `${assetPath}/js/genecanvas.js`,
-  `${assetPath}/js/interactive.js`,
-  `${assetPath}/js/track.js`,
-  `${assetPath}/js/transcript.js`,
-  `${assetPath}/js/variant.js`,
-  `${assetPath}/js/annotation.js`,
-  `${assetPath}/js/overview.js`,
-]
 const gensCss = [
   `${assetPath}/css/gens.scss`,
 ]
 
+// run webpack
+function runWebpack(config) {
+  return new Promise((resolve, reject) => {
+    webpack(config, (err, stats) => {
+      if (err) {
+        return reject(err)
+      }
+      if (stats.hasErrors()) {
+        return reject(new Error(stats.compilation.errors.join('\n')))
+      }
+      resolve()
+    })
+  })
+}
+
 // PRODUCTION tasks
-//
 gulp.task('build-js', function() {
-  return gulp.src(jsFiles)
-    .pipe(sourcemaps.init())
-    .pipe(concat('gens.min.js'))
-    .pipe(uglify())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest(`${dest}/js`))
-});
+  return runWebpack(webpackConfig)
+})
 
 gulp.task('build-gens-css', function() {
   return gulp.src(gensCss)
@@ -70,9 +68,8 @@ gulp.task('build', gulp.parallel('build-js', 'build-gens-css',
 const devGlobalAssets = 'gens/static'
 const devGensAssets = 'gens/blueprints/gens/static'
 gulp.task('build-js-dev', () => {
-  return gulp.src(jsFiles)
-    .pipe(concat('gens.min.js'))
-    .pipe(gulp.dest(devGensAssets))
+  webpackConfig['mode'] = 'development'
+  return runWebpack(webpackConfig)
 });
 
 gulp.task('build-gens-css-dev', () => {

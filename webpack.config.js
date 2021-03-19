@@ -10,5 +10,6 @@ const config = {
   resolve: {
     extensions: ['.js','.jsx']
   },
+  mode: 'production',
 };
 module.exports = config;
