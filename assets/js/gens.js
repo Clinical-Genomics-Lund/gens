@@ -6,7 +6,7 @@ import { VariantTrack } from './variant.js'
 import { InteractiveCanvas } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
 
-function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
+export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // WEBGL values
   const near = 0.1
   const far = 100
@@ -22,10 +22,10 @@ function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVarian
   // Initiate and draw overview canvas
   const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, sampleName, hgType, hgFileDir)
   return {
-    interactive: ic,
-    variant: vc,
-    transcript: tc,
-    annotation: ac,
-    overview: oc
+    ic: ic,
+    vc: vc,
+    tc: tc,
+    ac: ac,
+    oc: oc
   }
 }
