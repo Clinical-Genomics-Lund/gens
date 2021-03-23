@@ -40,17 +40,7 @@ class OverviewCanvas extends FrequencyTrack {
     // Initialize marker div element
     this.markerElem = document.getElementById('overview-marker');
     this.markerElem.style.height = (this.plotHeight*2)+"px";
-    this.markerElem.style.marginTop = 1.5 - (this.plotHeight+this.topBottomPadding)*2 +"px";
-
-    // WebGL scene variables
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(this.width / -2, this.width / 2,
-      this.height / -2, this.height / 2, near, far);
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.drawCanvas, context: this.context, antialiasing: true });
-
-    // Change to fourth quadrant of scene
-    this.camera.position.set(this.width / 2 - lineMargin,
-      this.height / 2 - lineMargin, 1);
+    this.markerElem.style.marginTop = 0 - (this.plotHeight+this.topBottomPadding)*2 +"px";
 
     // Set dimensions of overview canvases
     this.staticCanvas.width = this.width;
@@ -151,6 +141,7 @@ class OverviewCanvas extends FrequencyTrack {
           const chrom = chromSubset[i];
           const width = dims[chrom]['width'];
           const chromCovData = covData['results'][chrom];
+
           // Draw chromosome title
           drawText(staticCanvas,
             chromCovData['x_pos'] - this.leftRightPadding + width / 2,
@@ -165,34 +156,32 @@ class OverviewCanvas extends FrequencyTrack {
               chromCovData['y_pos'] + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
           }
           // Draw BAF
-          createGraph(this.scene, staticCanvas,
+          createGraph(staticCanvas,
             chromCovData['x_pos'] - this.leftRightPadding,
             chromCovData['y_pos'], width, this.plotHeight, this.topBottomPadding,
             this.baf.yStart, this.baf.yEnd, this.baf.step,
             chromCovData['x_pos'] < this.leftmostPoint, this.borderColor, i != 0);
-          drawGraphLines(this.scene, chromCovData['x_pos'], result['y_pos'],
+          drawGraphLines(staticCanvas, chromCovData['x_pos'], result['y_pos'],
             this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
             width, this.plotHeight);
 
           // Draw Log 2 ratio
-          createGraph(this.scene, staticCanvas,
+          createGraph(staticCanvas,
             chromCovData['x_pos'] - this.leftRightPadding,
             chromCovData['y_pos'] + this.plotHeight, width,
             this.plotHeight, this.topBottomPadding, this.log2.yStart,
             this.log2.yEnd, this.log2.step,
             chromCovData['x_pos'] < this.leftmostPoint, this.borderColor, i != 0);
-          drawGraphLines(this.scene, chromCovData['x_pos'],
+          drawGraphLines(staticCanvas, chromCovData['x_pos'],
             chromCovData['y_pos'] + this.plotHeight, this.log2.yStart,
             this.log2.yEnd, this.log2.step, this.topBottomPadding,
             width, this.plotHeight);
-
           // Plot scatter data
-          drawData(this.scene, chromCovData['baf'], this.baf.color);
-          drawData(this.scene, chromCovData['data'], this.log2.color)
+          drawData(staticCanvas, chromCovData['baf'], this.baf.color);
+          drawData(staticCanvas, chromCovData['data'], this.log2.color)
         }
       }).then( () => {
-        // Render scene and transfer to visible canvas
-        this.renderer.render(this.scene, this.camera);
+        // Transfer to visible canvas
         this.staticCanvas.getContext('2d').drawImage(this.drawCanvas, 0, 0);
         // communicate that data is loaded
         document.dispatchEvent(new Event('data-loaded'));

@@ -55,7 +55,7 @@ class FrequencyTrack {
     this.titleColor = 'black'; // Color of titles/legends
     // Setup canvas
     this.drawCanvas = document.createElement('canvas');
-    this.context = this.drawCanvas.getContext('webgl2');
+    this.context = this.drawCanvas.getContext('2d');
   }
 }
 
@@ -108,14 +108,14 @@ class InteractiveCanvas extends FrequencyTrack {
     // Setup loading div dimensions
     this.loadingDiv = document.getElementById("loading-div")
     this.loadingDiv.style.width = `${this.plotWidth - 2.5}px`;
-    this.loadingDiv.style.left = `${this.x + 4}px`;
-    this.loadingDiv.style.top = `${this.y + 83 + 1}px`;
+    this.loadingDiv.style.left = `${this.x + 2}px`;
+    this.loadingDiv.style.top = `${this.y + 81 + 1}px`;
     this.loadingDiv.style.height = `${this.plotHeight * 2 - 2.5}px`;
 
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker');
     this.markerElem.style.height = `${this.plotHeight * 2}px`;
-    this.markerElem.style.top = `${this.y + 82}px`;
+    this.markerElem.style.top = `${this.y + 81}px`;
 
     // State values
     const input = inputField.value.split(/:|-/);
@@ -130,20 +130,6 @@ class InteractiveCanvas extends FrequencyTrack {
     this.drag = false;
     this.dragStart;
     this.dragEnd;
-
-    // WebGL scene variables
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(this.drawWidth / -2, this.drawWidth / 2,
-      this.canvasHeight / -2, this.canvasHeight / 2, near, far);
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.drawCanvas,
-      context: this.context,
-      antialiasing: true
-    });
-
-    // Change to fourth quadrant of scene
-    this.camera.position.set(this.drawWidth / 2 - lineMargin,
-      this.canvasHeight / 2 - lineMargin, 1);
 
     this.scale = this.calcScale();
 
@@ -314,23 +300,18 @@ class InteractiveCanvas extends FrequencyTrack {
       this.y + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor);
 
     // Draw BAF
-    createGraph(this.scene, this.staticCanvas, this.x, this.y, this.plotWidth,
+    createGraph(this.staticCanvas, this.x, this.y, this.plotWidth,
       this.plotHeight, this.topBottomPadding, this.baf.yStart, this.baf.yEnd,
       this.baf.step, true, this.borderColor);
 
     // Draw Log 2 ratio
-    createGraph(this.scene, this.staticCanvas, this.x, this.y + this.plotHeight,
+    createGraph(this.staticCanvas, this.x, this.y + this.plotHeight,
       this.plotWidth, this.plotHeight, this.topBottomPadding, this.log2.yStart,
       this.log2.yEnd, this.log2.step, true, this.borderColor);
-
-    // Render scene
-    this.renderer.render(this.scene, this.camera);
 
     // Transfer image to visible canvas
     staticContext.drawImage(this.drawCanvas, 0, 0);
 
-    // Clear scene for next render
-    this.scene.remove.apply(this.scene, this.scene.children);
   }
 
   // Draw values for interactive canvas
@@ -360,6 +341,8 @@ class InteractiveCanvas extends FrequencyTrack {
       log2_y_end: this.log2.yEnd,
       reduce_data: 1,
     }).then( (result) => {
+      this.drawCanvas.getContext("2d").clearRect(0, 0,
+        this.drawCanvas.width, this.drawCanvas.height);
       console.timeEnd('getcoverage');
       if ( result.status == "error" ) {
         throw result;
@@ -367,24 +350,22 @@ class InteractiveCanvas extends FrequencyTrack {
       // Clear canvas
       this.contentCanvas.getContext('2d').clearRect(0, 0,
         this.contentCanvas.width, this.contentCanvas.height);
-
+	console.log(this.extraWidth);
       // Draw ticks for x-axis
-      drawVerticalTicks(this.scene, this.contentCanvas, this.extraWidth, this.x,
-        this.y, result['start'], result['end'], this.plotWidth, this.topBottomPadding,
-        this.titleColor);
+      drawVerticalTicks(this.drawCanvas, this.extraWidth, this.y, result['start'],
+        result['end'], this.plotWidth, this.topBottomPadding,   this.titleColor);
 
       // Draw horizontal lines for BAF and Log 2 ratio
-      drawGraphLines(this.scene, 0, result['y_pos'],
+      drawGraphLines(this.drawCanvas, 0, result['y_pos'],
         this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
         this.drawWidth, this.plotHeight);
-      drawGraphLines(this.scene, 0, result['y_pos'] + this.plotHeight,
+      drawGraphLines(this.drawCanvas, 0, result['y_pos'] + this.plotHeight,
         this.log2.yStart, this.log2.yEnd, this.log2.step, this.topBottomPadding,
         this.drawWidth, this.plotHeight);
 
       // Plot scatter data
-      drawData(this.scene, result['baf'], this.baf.color);
-      drawData(this.scene, result['data'], this.log2.color);
-      this.renderer.render(this.scene, this.camera);
+      drawData(this.drawCanvas, result['baf'], this.baf.color);
+      drawData(this.drawCanvas, result['data'], this.log2.color);
 
       // Mark the location in the overview plot
       oc.markRegion(result['chrom'], result['start'], result['end']);
@@ -404,11 +385,9 @@ class InteractiveCanvas extends FrequencyTrack {
         this.canvasHeight,                           // sHeight
         this.x,                                      // dX
         0,                                           // dY
-        this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+        this.plotWidth,                              // dWidth
         this.canvasHeight);                          // dHeight
 
-      // Clear scene before drawing
-      this.scene.remove.apply(this.scene, this.scene.children);
       return result
     }).then( (result) => {
 
@@ -499,7 +478,7 @@ class InteractiveCanvas extends FrequencyTrack {
       this.canvasHeight,           // sHeight
       this.x,                      // dX
       this.y + lineMargin,         // dY
-      this.plotWidth + 2 * this.leftRightPadding,  // dWidth
+      this.plotWidth,              // dWidth
       this.canvasHeight);          // dHeight
     // todo fix unified metric. distance is cumulative from mouse centerpoint
     // need to take that into account.

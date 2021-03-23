@@ -10,7 +10,6 @@ const gulp = require('gulp'),
 const dest = 'build'
 const assetPath = 'assets'
 const jsFiles = [
-  'node_modules/three/build/three.min.js',
   `${assetPath}/js/fetch.js`,
   `${assetPath}/js/genecanvas.js`,
   `${assetPath}/js/interactive.js`,

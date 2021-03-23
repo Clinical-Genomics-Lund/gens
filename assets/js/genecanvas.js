@@ -1,20 +1,18 @@
 // Draw data points
-function drawData (scene, data, color) {
-  let geometry = new THREE.BufferGeometry();
-
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(data, 3));
-  geometry.computeBoundingSphere();
-
-  let material = new THREE.PointsMaterial({ size: 2, color: color, transparent: false });
-  let points = new THREE.Points(geometry, material);
-
-  scene.add(points);
+function drawData (canvas, data, color) {
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000';
+    for(let i=0; i<data.length; i+=2) {
+	if(data[i+1] > 0 ) { // FIXME: Why are some values < 0?
+	  ctx.fillRect(data[i], data[i+1], 2, 2)
+	}
+    }
 }
 
 // Draws vertical tick marks for selected values between
 // xStart and xEnd with step length.
 // The amplitude scales the values to drawing size
-function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
+function drawVerticalTicks (canvas, renderX, y, xStart, xEnd,
   width, yMargin, titleColor) {
   const lineThickness = 1;
   const lineWidth = 5;
@@ -39,42 +37,42 @@ function drawVerticalTicks (scene, canvas, renderX, canvasX, y, xStart, xEnd,
     let value = numberWithCommas(step.toFixed(0));
 
     // Draw text and ticks only for the leftmost box
-    drawRotatedText(canvas, value, 10, canvasX + xStep + 4,
+    drawRotatedText(canvas, value, 10, renderX + xStep + 8,
       y - value.length - 3 * yMargin, -Math.PI / 4, titleColor);
 
     // Draw tick line
-    drawLine(scene, renderX + xStep, y - lineWidth, renderX + xStep, y,
-      lineThickness, 0x707070);
+    drawLine(canvas, renderX + xStep, y - lineWidth, renderX + xStep, y,
+            lineThickness, "#777");
   }
 }
 
 // Draws horizontal lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawGraphLines (scene, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
+function drawGraphLines (canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 1;
 
   for (let step = yStart; step >= yEnd; step -= stepLength) {
     // Draw horizontal line
     let yPos = y + yMargin + (yStart - step) * ampl;
-    drawLine(scene, x, yPos,
+    drawLine(canvas, x, yPos,
       x + width - 2 * lineThickness,
-      yPos, lineThickness, 0xe5e5e5);
+      yPos, lineThickness, "#ddd");
   }
 }
 
 // Creates a graph for one chromosome data type
-function createGraph (scene, canvas, x, y, width, height, yMargin, yStart,
+function createGraph (canvas, x, y, width, height, yMargin, yStart,
   yEnd, step, addTicks, color, open) {
   // Draw tick marks
   if (addTicks) {
-    drawTicks(scene, canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width,
+    drawTicks(canvas, x, y + yMargin, yStart, yEnd, step, yMargin, width,
       height, color);
   }
 
   // Draw surrounding coordinate box
-  drawBox(scene, x, y, width, height, 2, color, open);
+  drawBox(canvas, x, y, width, height, 1, color, open);
 }
 
 // Handle zoom in button click
@@ -104,7 +102,7 @@ function zoomOut (ic) {
 // Draws tick marks for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height, color) {
+function drawTicks (canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height, color) {
   let ampl = (height - 2 * yMargin) / (yStart - yEnd); // Amplitude for scaling y-axis to fill whole height
   let lineThickness = 2;
   let lineWidth = 4;
@@ -114,7 +112,7 @@ function drawTicks (scene, canvas, x, y, yStart, yEnd, stepLength, yMargin, widt
       step.toFixed(1), 10, 'right');
 
     // Draw tick line
-    drawLine(scene, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, color);
+    drawLine(canvas, x - lineWidth, y + (yStart - step) * ampl, x, y + (yStart - step) * ampl, lineThickness, color);
   }
 }
 
@@ -144,52 +142,43 @@ function drawText (canvas, x, y, text, textSize, align) {
 }
 
 // Draws a line between point (x, y) and (x2, y2)
-function drawLine (scene, x, y, x2, y2, thickness, color) {
+function drawLine (canvas, x, y, x2, y2, thickness, color) {
+  let ctx = canvas.getContext('2d');
+  ctx.strokeStyle = color;
+  ctx.lineWidth = thickness;
   x = Math.floor(x) + 0.5;
   x2 = Math.floor(x2) + 0.5;
   y = Math.floor(y) + 0.5;
   y2 = Math.floor(y2) + 0.5;
-  const points = [];
-  points.push(
-    new THREE.Vector3(x, y, 0),
-    new THREE.Vector3(x2, y2, 0)
-  );
-  const geometry = new THREE.BufferGeometry().setFromPoints( points );
-  var material = new THREE.LineBasicMaterial({ color: color, linewidth: thickness });
-  line = new THREE.Line(geometry, material);
-  scene.add(line);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
 }
 
 // Draws a box from top left corner with a top and bottom margin
-function drawBox (scene, x, y, width, height, lineWidth, color, open) {
+function drawBox (canvas, x, y, width, height, lineWidth, color, open) {
+  let ctx = canvas.getContext("2d")
   x = Math.floor(x)+0.5;
   y = Math.floor(y)+0.5;
   width = Math.floor(width);
-  const coordAxes = [];
+    
   // Draw box without left part, to allow stacking boxes
   // horizontally without getting double lines between them.
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  
   if(open === true) {
-    coordAxes.push(
-      new THREE.Vector3(x, y, 0),
-      new THREE.Vector3(x + width, y, 0),
-      new THREE.Vector3(x + width, y + height, 0),
-      new THREE.Vector3(x, y + height, 0)
-    );
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x+width,y);
+    ctx.lineTo(x+width,y+height);
+    ctx.lineTo(x,y+height);
+    ctx.stroke();
   // Draw normal 4-sided box
   } else {
-    coordAxes.push(
-      new THREE.Vector3(x, y, 0),
-      new THREE.Vector3(x, y + height, 0),
-      new THREE.Vector3(x + width, y + height, 0),
-      new THREE.Vector3(x + width, y, 0),
-      new THREE.Vector3(x, y, 0)
-    );
-
+    ctx.strokeRect(x, y, width, height);
   }
-  var material = new THREE.LineBasicMaterial({ color: color, linewidth: lineWidth });
-  const geometry = new THREE.BufferGeometry().setFromPoints( coordAxes );
-  const box = new THREE.Line(geometry, material);
-  scene.add(box);
 }
 
 // Makes large numbers more readable with commas
