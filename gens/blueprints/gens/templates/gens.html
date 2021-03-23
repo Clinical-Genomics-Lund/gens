@@ -113,19 +113,6 @@
         loading.querySelector("#printing").toggleAttribute("hidden")
     }
 
-    // FLASK values
-    const sampleName = '{{ sample_name }}';
-    const hgType = {{ hg_type }};
-    const hgFileDir = '{{ hg_filedir }}';
-    const annotationFile = '{{ annotation }}';
-    const selectedVariant = "{{ selected_variant }}";
-    const UiColors = {{ ui_colors | tojson | safe }};
-
-    // WEBGL values
-    const near = 0.1;
-    const far = 100;
-    const lineMargin = 2; // Margin for line thickness
-
     // Listener values
     const inputField = document.getElementById('region_field');
 
@@ -138,13 +125,6 @@
     window.onload = (event) => {
         document.getElementById('visualization-container').style.visibility = 'hidden';
     };
-
-
-    // Initiate interactive canvas
-    console.time('get interactive content');
-    let ic = new InteractiveCanvas(inputField, lineMargin, near, far,
-        sampleName, hgType, hgFileDir);
-    console.timeEnd('get interactive content');
 
     // Setup functions to run when the data has finished loading
     document.addEventListener('data-loaded', () => {
@@ -163,12 +143,15 @@
     });
 
     // Initiate variant, annotation and transcript canvases
-    const vc = new Variant(ic.x, ic.plotWidth, near, far, hgType, UiColors['variants'], selectedVariant);
-    const tc = new Transcript(ic.x, ic.plotWidth, near, far, hgType, UiColors['transcripts']);
-    const ac = new Annotation(ic.x, ic.plotWidth, near, far, hgType, annotationFile);
-    // Initiate and draw overview canvas
-    const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near,
-        far, sampleName, hgType, hgFileDir);
+    // and pass flask values to tracks
+    const {ic, oc, ac, tc, vc} = gens.initCanvases({
+        sampleName: '{{ sample_name }}',
+        hgType: {{ hg_type }},
+        hgFileDir: '{{ hg_filedir }}',
+        uiColors: {{ ui_colors | tojson | safe }},
+        selectedVariant: '{{ selected_variant }}',
+        annotationFile: '{{ annotation }}',
+    })
 
     // Draw content
     Promise.all([
