@@ -21,6 +21,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Changed default chromosome region to display to entire chromosome 1
  - Restored ability to view entire chromosome when zoomed in by clicking on it in the chromosome overview.
  - Build js package with webpack instead of gulp
+ - Remove dependency on three.js
 ### Fixed
  - Gene names are now centered below transcript
  - Fixed assignement of height order when updating transcript data
