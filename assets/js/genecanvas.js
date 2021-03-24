@@ -72,7 +72,7 @@ export function createGraph (canvas, x, y, width, height, yMargin, yStart,
   }
 
   // Draw surrounding coordinate box
-  drawBox(canvas, x, y, width, height, 1, color, open)
+  drawRect(canvas, x, y, width, height, 1, color, open)
 }
 
 // Handle zoom in button click
@@ -156,7 +156,7 @@ export function drawLine (canvas, x, y, x2, y2, thickness, color) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-function drawBox (canvas, x, y, width, height, lineWidth, color, open) {
+function drawRect (canvas, x, y, width, height, lineWidth, color, open) {
   const ctx = canvas.getContext('2d')
   x = Math.floor(x) + 0.5
   y = Math.floor(y) + 0.5
