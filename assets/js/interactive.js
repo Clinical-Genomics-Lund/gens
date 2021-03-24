@@ -3,6 +3,8 @@
 import { drawRotatedText, drawData, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './genecanvas.js'
 import { get } from './fetch.js'
 
+// Dispatch dispatch an event to draw a given region
+// Redraw events can be limited to certain tracks or include all tracks
 class KeyLogger {
   // Records keypress combinations
   constructor (bufferSize = 10) {
@@ -316,7 +318,7 @@ export class InteractiveCanvas extends FrequencyTrack {
   }
 
   // Draw values for interactive canvas
-  async drawInteractiveContent (clear = true) {
+  async drawInteractiveContent ({region, clear = true} = {}) {
     if (clear) {
       this.loadingDiv.style.display = 'block'
     } else {
@@ -325,7 +327,7 @@ export class InteractiveCanvas extends FrequencyTrack {
 
     console.time('getcoverage')
     get('get-coverage', {
-      region: this.inputField.value,
+      region: region,
       sample_id: this.sampleName,
       hg_type: this.hgType,
       hg_filedir: this.hgFileDir,
@@ -434,14 +436,7 @@ export class InteractiveCanvas extends FrequencyTrack {
       this.inputField.value = this.chromosome + ':' + this.start + '-' + this.end
     }
 
-    this.drawInteractiveContent(clear)
-
-    // Draw new tracks and annotations
-    Promise.all([
-      tc.drawTrack(this.inputField.value, false, true),
-      vc.drawTrack(this.inputField.value),
-      ac.drawTrack(this.inputField.value)
-    ])
+    dispatchDrawEvent({region: this.inputField.value})
   }
 
   calcScale () {
@@ -484,9 +479,9 @@ export class InteractiveCanvas extends FrequencyTrack {
     const scale = this.calcScale()
     const dist = distance / scale
     const region = `${this.chromosome}:${this.start - dist}-${this.end - dist}`
-    vc.drawTrack(region)
-    tc.drawTrack(region, false, true)
-    ac.drawTrack(region)
+    vc.drawTrack({region: region})
+    tc.drawTrack({region: region, hideWhileLoading: true})
+    ac.drawTrack({region: region})
   }
 
   // Load coverage of a chromosome

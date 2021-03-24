@@ -152,15 +152,8 @@
         selectedVariant: '{{ selected_variant }}',
         annotationFile: '{{ annotation }}',
     })
-
-    // Draw content
-    Promise.all([
-            ic.drawStaticContent(),
-            ic.drawInteractiveContent(),
-            vc.drawTrack(inputField.value),
-            tc.drawTrack(inputField.value),
-            oc.drawOverviewContent(printing),
-        ]);
+    gens.setupDrawEventManager(document.getElementById('visualization-container'))
+    gens.drawTrack({chrom: '12', start: 10, end: 200000000})
 
     // Redraw when new region is requested
     document.getElementById('region_form').addEventListener('submit',

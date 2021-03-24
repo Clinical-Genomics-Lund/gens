@@ -3,8 +3,10 @@
 import { TranscriptTrack } from './transcript.js'
 import { AnnotationTrack } from './annotation.js'
 import { VariantTrack } from './variant.js'
-import { InteractiveCanvas } from './interactive.js'
+import { InteractiveCanvas, dispatchDrawEvent } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
+import { setupDrawEventManager, drawTrack } from './navigation.js'
+
 
 export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // initialize and return the different canvases
@@ -30,3 +32,5 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
     oc: oc
   }
 }
+
+export {setupDrawEventManager, drawTrack}

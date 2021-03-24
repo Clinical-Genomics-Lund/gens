@@ -133,6 +133,7 @@ export class Track {
     this.trackTitle.style.width = this.width + 'px'
     this.trackTitle.style.height = this.minHeight + 'px'
 
+    this.trackContainer.parentElement.addEventListener('draw', (event) => {console.log('got event', event)})
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',
       async (event) => {
@@ -359,10 +360,10 @@ export class Track {
   // if new chromosome selected --> cache all annotations for chrom
   // if new region in offscreen canvas --> blit image
   // if new region outside offscreen canvas --> redraw offscreen using cache
-  async drawTrack (regionString, forceRedraw = false, hideWhileLoading = false) {
+  async drawTrack ({region, forceRedraw = false, hideWhileLoading = false}) {
     if (this.preventDrawingTrack) return // disable drawing track
     // store genomic position of the region to draw
-    let [chromosome, start, end] = this.parseRegionDesignation(regionString)
+    let [chromosome, start, end] = this.parseRegionDesignation(region)
     this.onscreenPosition.start = start
     this.onscreenPosition.end = end
     const width = end - start + 1
@@ -459,13 +460,13 @@ export class Track {
   panTrackRight (ntDistance) {
     const start = this.onscreenPosition.start - ntDistance
     const end = this.onscreenPosition.end - ntDistance
-    this.drawTrack(`${this.trackData.chromosome}:${start}-${end}`)
+    this.drawTrack({region: `${this.trackData.chromosome}:${start}-${end}`})
   }
 
   panTrackLeft (ntDistance) {
     const start = this.onscreenPosition.start + ntDistance
     const end = this.onscreenPosition.end + ntDistance
-    this.drawTrack(`${this.trackData.chromosome}:${start}-${end}`)
+    this.drawTrack({region: `${this.trackData.chromosome}:${start}-${end}`})
   }
 
   //  Classify the resolution wich can be used chose when to display variants

@@ -31,9 +31,7 @@ export class AnnotationTrack extends Track {
     this.sourceList.addEventListener('change', () => {
       this.expanded = false
       this.additionalQueryParams = { source: this.sourceList.value }
-      this.drawTrack(document.getElementById('region_field').value,
-        true // force fetch data and redraw objects
-      )
+      this.drawTrack({region: document.getElementById('region_field').value, forceRedraw: true})
     })
     this.annotSourceList(defaultAnnotation)
 
@@ -66,7 +64,7 @@ export class AnnotationTrack extends Track {
         }
       })
       .then(() => {
-        this.drawTrack(document.getElementById('region_field').value)
+        this.drawTrack({region: document.getElementById('region_field').value})
       })
   }
 
