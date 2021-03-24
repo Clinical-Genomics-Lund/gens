@@ -6,11 +6,12 @@
   "name": "gens",
   "version": "1.1.2",
   "description": "Interactive tool to visualize genomic copy number profiles from WGS data",
-  "main": "index.js",
+  "main": "gens.js",
   "scripts": {
     "build": "gulp build",
+    "lint": "eslint assets",
     "watch": "gulp watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage assets/js"
   },
   "repository": {
     "type": "git",
@@ -23,11 +24,26 @@
   },
   "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
   "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "css-loader": "^5.1.3",
+    "eslint": "^7.22.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^3.0.0",
-    "gulp-uglify-es": "^2.0.0"
+    "jest": "^26.6.3",
+    "regenerator-runtime": "^0.13.7",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.26.2",
+    "webpack-cli": "^4.5.0"
   }
 }
