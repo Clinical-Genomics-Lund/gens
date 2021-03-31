@@ -1,5 +1,5 @@
 // Test functions for drawing the genecanvas
-import { copyPermalink } from './genecanvas.js'
+import { copyPermalink } from './gens.js'
 
 test('Test copyPermalink', () => {
   // setup mocks
