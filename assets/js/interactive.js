@@ -198,18 +198,18 @@ export class InteractiveCanvas extends FrequencyTrack {
     staticContext.clearRect(0, 0, this.staticCanvas.width, this.y + linePadding)
 
     // Draw rotated y-axis legends
-    drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, this.x - this.legendMargin,
+    drawRotatedText(staticContext, 'B Allele Freq', 18, this.x - this.legendMargin,
       this.y + this.plotHeight / 2, -Math.PI / 2, this.titleColor)
-    drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, this.x - this.legendMargin,
+    drawRotatedText(staticContext, 'Log2 Ratio', 18, this.x - this.legendMargin,
       this.y + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor)
 
     // Draw BAF
-    createGraph(this.staticCanvas, this.x, this.y, this.plotWidth,
+    createGraph(staticContext, this.x, this.y, this.plotWidth,
       this.plotHeight, this.topBottomPadding, this.baf.yStart, this.baf.yEnd,
       this.baf.step, true, this.borderColor)
 
     // Draw Log 2 ratio
-    createGraph(this.staticCanvas, this.x, this.y + this.plotHeight,
+    createGraph(staticContext, this.x, this.y + this.plotHeight,
       this.plotWidth, this.plotHeight, this.topBottomPadding, this.log2.yStart,
       this.log2.yEnd, this.log2.step, true, this.borderColor)
 
@@ -256,12 +256,13 @@ export class InteractiveCanvas extends FrequencyTrack {
       this.offscreenPosition.scale = this.drawWidth / (this.offscreenPosition.end - this.offscreenPosition.start)
       this.chromosome = chrom
       // clear draw and content canvas
-      this.drawCanvas.getContext('2d').clearRect(
+      const ctx = this.drawCanvas.getContext('2d')
+      ctx.clearRect(
         0, 0, this.drawCanvas.width, this.drawCanvas.height
       )
 
       drawVerticalTicks({
-        canvas: this.drawCanvas,
+        ctx,
         renderX: 0,
         y: this.y,
         xStart: start,
@@ -275,7 +276,7 @@ export class InteractiveCanvas extends FrequencyTrack {
 
       // Draw horizontal lines for BAF and Log 2 ratio
       drawGraphLines({
-        canvas: this.drawCanvas,
+        ctx,
         x: 0,
         y: result.y_pos,
         yStart: this.baf.yStart,
@@ -286,7 +287,7 @@ export class InteractiveCanvas extends FrequencyTrack {
         height: this.plotHeight
       })
       drawGraphLines({
-        canvas: this.drawCanvas,
+        ctx,
         x: 0,
         y: result.y_pos + this.plotHeight,
         yStart: this.log2.yStart,
@@ -299,17 +300,17 @@ export class InteractiveCanvas extends FrequencyTrack {
 
       // Plot scatter data
       drawData({
-        canvas: this.drawCanvas, data: result.baf, color: this.baf.color
+        ctx, data: result.baf, color: this.baf.color
       })
       drawData({
-        canvas: this.drawCanvas, data: result.data, color: this.log2.color
+        ctx, data: result.data, color: this.log2.color
       })
 
       // Draw chromosome title on the content canvas as a blitting
       // work around
       const textYPos = result.y_pos - this.titleMargin
       const textBbox = drawText(
-        this.drawCanvas,
+        ctx,
         document.body.clientWidth / 2,
         textYPos,
         'Chromosome ' + result.chrom,

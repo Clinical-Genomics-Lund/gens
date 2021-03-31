@@ -3,6 +3,7 @@
 import { Track, isElementOverlapping } from './track.js'
 import { get } from './fetch.js'
 import { parseRegionDesignation } from './navigation.js'
+import { drawRect } from './genecanvas.js'
 
 export class AnnotationTrack extends Track {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
@@ -140,13 +141,16 @@ export class AnnotationTrack extends Track {
       // Draw box for annotation
       const canvasYPos = this.tracksYPos(heightOrder)
       // if (this.expanded && heightOrder === 1 ) { continue}
-      this.drawBox(
-        scale * (start - this.offscreenPosition.start),
-        canvasYPos,
-        scale * (end - start),
-        this.featureHeight / 2,
-        color
-      )
+      drawRect({
+        ctx: this.drawCtx,
+        x: scale * (start - this.offscreenPosition.start),
+        y: canvasYPos,
+        width: scale * (end - start),
+        height: this.featureHeight / 2,
+        lineWidth: 1,
+        fillColor: color,
+        open: false
+      })
 
       const textYPos = this.tracksYPos(heightOrder)
       // limit drawing of titles to certain resolution

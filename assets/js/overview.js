@@ -127,8 +127,9 @@ export class OverviewCanvas extends FrequencyTrack {
 
   async drawOverviewPlotSegment ({ canvas, chrom, width, chromCovData }) {
     // Draw chromosome title
+    const ctx = canvas.getContext('2d')
     drawText(
-      canvas,
+      ctx,
       chromCovData.x_pos - this.leftRightPadding + width / 2,
       chromCovData.y_pos - this.titleMargin,
       chromCovData.chrom, 10, 'center'
@@ -136,19 +137,19 @@ export class OverviewCanvas extends FrequencyTrack {
 
     // Draw rotated y-axis legends
     if (chromCovData.x_pos < this.leftmostPoint) {
-      drawRotatedText(canvas, 'B Allele Freq', 18, chromCovData.x_pos - this.legendMargin,
+      drawRotatedText(ctx, 'B Allele Freq', 18, chromCovData.x_pos - this.legendMargin,
         chromCovData.y_pos + this.plotHeight / 2, -Math.PI / 2, this.titleColor)
-      drawRotatedText(canvas, 'Log2 Ratio', 18, chromCovData.x_pos - this.legendMargin,
+      drawRotatedText(ctx, 'Log2 Ratio', 18, chromCovData.x_pos - this.legendMargin,
         chromCovData.y_pos + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor)
     }
     // Draw BAF
-    createGraph(canvas,
+    createGraph(ctx,
       chromCovData.x_pos - this.leftRightPadding,
       chromCovData.y_pos, width, this.plotHeight, this.topBottomPadding,
       this.baf.yStart, this.baf.yEnd, this.baf.step,
       chromCovData.x_pos < this.leftmostPoint, this.borderColor, chrom !== CHROMOSOMES[0])
     drawGraphLines({
-      canvas: canvas,
+      ctx,
       x: chromCovData.x_pos,
       y: chromCovData.y_pos,
       yStart: this.baf.yStart,
@@ -160,14 +161,15 @@ export class OverviewCanvas extends FrequencyTrack {
     })
 
     // Draw Log 2 ratio
-    createGraph(canvas,
+    createGraph(
+      ctx,
       chromCovData.x_pos - this.leftRightPadding,
       chromCovData.y_pos + this.plotHeight, width,
       this.plotHeight, this.topBottomPadding, this.log2.yStart,
       this.log2.yEnd, this.log2.step,
       chromCovData.x_pos < this.leftmostPoint, this.borderColor, chrom !== CHROMOSOMES[0])
     drawGraphLines({
-      canvas: canvas,
+      ctx,
       x: chromCovData.x_pos,
       y: chromCovData.y_pos + this.plotHeight,
       yStart: this.log2.yStart,
@@ -179,12 +181,12 @@ export class OverviewCanvas extends FrequencyTrack {
     })
     // Plot scatter data
     drawData({
-      canvas: canvas,
+      ctx,
       data: chromCovData.baf,
       color: this.baf.color
     })
     drawData({
-      canvas: canvas,
+      ctx,
       data: chromCovData.data,
       color: this.log2.color
     })

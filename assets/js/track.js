@@ -67,26 +67,6 @@ export class Track {
     this.maxResolution = 4
   }
 
-  // parse chromosomal region designation string
-  // return chromosome, start and end position
-  // eg 1:12-220 --> 1, 12 220
-  parseRegionDesignation (regionString) {
-    const chromosomes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
-      '22', 'X', 'Y']
-    if (regionString.includes(':')) {
-      const [chromosome, position] = regionString.split(':')
-      // verify chromosome
-      if (!chromosomes.includes(chromosome)) {
-        throw new Error(`${chromosome} is not a valid chromosome`)
-      }
-      let [start, end] = position.split('-')
-      start = parseInt(start)
-      end = parseInt(end)
-      return [chromosome, start, end]
-    }
-  }
-
   tracksYPos (heightOrder) {
     return this.yPos + (heightOrder - 1) * (this.featureHeight + this.featureMargin)
   };
@@ -229,22 +209,6 @@ export class Track {
     return parseInt(left + width)
   }
 
-  // Draw a line from xStart to xStop at yPos
-  drawLine (xStart, xStop, yPos, color, lineWidth = 2) {
-    console.log(`Plot line from: ${xStart}, to: ${xStop}; width: ${lineWidth}; color: ${color}`)
-    if (![xStart, xStop, yPos].every(n => typeof (n) === 'number')) {
-      throw new Error(`Invalid coordinates start: ${xStart}, stop: ${xStop}, yPos: ${yPos}; Cant draw line`)
-    }
-    this.drawCtx.save()
-    this.drawCtx.strokeStyle = color
-    this.drawCtx.lineWidth = lineWidth
-    this.drawCtx.beginPath()
-    this.drawCtx.moveTo(xStart, yPos)
-    this.drawCtx.lineTo(xStop, yPos)
-    this.drawCtx.stroke()
-    this.drawCtx.restore()
-  }
-
   // Draw a wave line from xStart to xStop at yPos where yPos is top left of the line.
   // Pattern is drawn by incrementing pointer by a half wave length and plot either
   // upward (/) or downward (\) line.
@@ -277,16 +241,6 @@ export class Track {
       this.drawCtx.lineTo(xStop, yPos - Math.sign(height) * partialWaveHeight)
     }
     this.drawCtx.stroke()
-    this.drawCtx.restore()
-  }
-
-  // Draws a box
-  async drawBox (xpos, ypos, width, height, color) {
-    this.drawCtx.save()
-    this.drawCtx.fillStyle = color
-    this.drawCtx.beginPath()
-    this.drawCtx.rect(xpos, ypos - height / 2, width, height)
-    this.drawCtx.fill()
     this.drawCtx.restore()
   }
 

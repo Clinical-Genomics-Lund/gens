@@ -1,6 +1,7 @@
 // Variant track definition
 
 import { Track, isElementOverlapping } from './track.js'
+import { drawRect, drawLine } from './genecanvas.js'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
@@ -37,11 +38,16 @@ export class VariantTrack extends Track {
 
   // Draw highlight for a given region
   drawHighlight (startPos, endPos, color = 'rgb(255, 200, 87, 0.5)') {
-    this.drawBox(startPos, 0,
-      endPos - startPos + 1,
-      this.visibleHeight,
-      color
-    )
+    drawRect({
+      ctx: this.drawCtx,
+      x: startPos,
+      y: 0,
+      width: endPos - startPos + 1,
+      height: this.visibleHeight,
+      lineWidth: 0,
+      fillColor: color,
+      open: false
+    })
   }
 
   async drawOffScreenTrack (queryResult) {
@@ -127,11 +133,14 @@ export class VariantTrack extends Track {
             color)
           break
         case 'dup':
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color)
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color)
+          drawLine({x: drawStartCoord, y: canvasYPos + 4,
+                    x2: drawEndCoord, y2: canvasYPos + 4, color})
+          drawLine({x: drawStartCoord, y: canvasYPos + 4,
+                    x2: drawEndCoord, y2: canvasYPos, color})
           break
         default: // other types of elements
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color)
+          drawLine({x: drawStartCoord, y: canvasYPos,
+                    x2: drawEndCoord, y2: canvasYPos, color})
           console.log(`Unhandled variant type ${variantCategory}; drawing default shape`)
       }
       // Move and display highlighted region

@@ -1,6 +1,7 @@
 // Transcript definition
 
 import { Track, isElementOverlapping } from './track.js'
+import { drawRect, drawLine } from './genecanvas.js'
 
 // function for shading and blending colors on the fly
 function LightenColor (color, percent) {
@@ -63,10 +64,16 @@ export class TranscriptTrack extends Track {
         //   `${this.featureHeight}px`,
         //   1,
         //   this.heightOrderRecord.latestTrackEnd);
-        this.drawBox(
-          scale * (feature.start - this.offscreenPosition.start),
-          canvasYPos, scale * (feature.end - feature.start),
-          this.featureHeight, color)
+        drawRect({
+          canvas: this.drawCtx,
+          x: scale * (feature.start - this.offscreenPosition.start),
+          y: canvasYPos,
+          width: scale * (feature.end - feature.start),
+          height: this.featureHeight,
+          lineWidth: 1,
+          color: color,
+          open: false
+        })
       }
     }
   }
@@ -107,13 +114,15 @@ export class TranscriptTrack extends Track {
         ? scale * (trEnd - this.offscreenPosition.start)
         : this.offscreenPosition.end)
     )
-    this.drawLine(
-      displayedTrStart,
-      displayedTrEnd,
-      canvasYPos,
-      elementColor,
-      this.geneLineWidth // set width of the element
-    )
+    drawLine({
+      ctx: this.drawCtx,
+      x: displayedTrStart,
+      x2: displayedTrEnd,
+      y: canvasYPos,
+      y2: canvasYPos,
+      color: elementColor,
+      lineWith: this.geneLineWidth // set width of the element
+    })
     // Draw gene name
     const textYPos = this.tracksYPos(element.height_order)
     if (drawName) {
