@@ -62,13 +62,8 @@ def convert_data(
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
         # Convert to screen coordinates
-        log2_records.extend(
-            [
-                int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
-                int(graph.log2_ypos - graph.log2_ampl * ypos),
-                0,
-            ]
-        )
+        xpos = int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
+        log2_records.extend([xpos, int(graph.log2_ypos - graph.log2_ampl * ypos)])
 
     # Gather the BAF records
     baf_records = []
@@ -79,13 +74,8 @@ def convert_data(
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
         # Convert to screen coordinates
-        baf_records.extend(
-            [
-                int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
-                int(graph.baf_ypos - graph.baf_ampl * ypos),
-                0,
-            ]
-        )
+        xpos = int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
+        baf_records.extend([xpos, int(graph.baf_ypos - graph.baf_ampl * ypos)])
 
     return log2_records, baf_records
 
@@ -264,34 +254,34 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         raise RegionParserException("No parsed region")
 
     # Set values that are needed to convert coordinates to screen coordinates
-    reg, new_start_pos, new_end_pos, new_x_ampl, extra_plot_width = set_region_values(
+    region, new_start_pos, new_end_pos, new_x_ampl, extra_plot_width = set_region_values(
         parsed_region, x_ampl
     )
 
     if json_data:
         data_type = "json"
-        baf_list = json_data[reg.chrom]["baf"]
-        log2_list = json_data[reg.chrom]["cov"]
+        baf_list = json_data[region.chrom]["baf"]
+        log2_list = json_data[region.chrom]["cov"]
     else:
         data_type = "bed"
 
         # Bound start and end balues to 0-chrom_size
-        end = min(new_end_pos, get_chrom_data(reg.chrom, req.hg_type)["size"])
+        end = min(new_end_pos, get_chrom_data(region.chrom, req.hg_type)["size"])
         start = max(new_start_pos, 0)
 
         # Load BAF and Log2 data from tabix files
         log2_list = tabix_query(
             cov_fh,
-            reg.res,
-            reg.chrom,
+            region.res,
+            region.chrom,
             start,
             end,
             req.reduce_data,
         )
         baf_list = tabix_query(
             baf_fh,
-            reg.res,
-            reg.chrom,
+            region.res,
+            region.chrom,
             start,
             end,
             req.reduce_data,
@@ -310,7 +300,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     )
     if not new_start_pos and not log2_records and not baf_records:
         raise NoRecordsException("No records")
-    return reg, log2_records, baf_records
+    return region, new_start_pos, new_end_pos, log2_records, baf_records
 
 
 @cache.memoize(60)

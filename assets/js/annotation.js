@@ -2,6 +2,7 @@
 
 import { Track, isElementOverlapping } from './track.js'
 import { get } from './fetch.js'
+import { parseRegionDesignation } from './navigation.js'
 
 export class AnnotationTrack extends Track {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
@@ -31,7 +32,8 @@ export class AnnotationTrack extends Track {
     this.sourceList.addEventListener('change', () => {
       this.expanded = false
       this.additionalQueryParams = { source: this.sourceList.value }
-      this.drawTrack({region: document.getElementById('region_field').value, forceRedraw: true})
+      const region = parseRegionDesignation(document.getElementById('region-field').value)
+      this.drawTrack({ forceRedraw: true, ...region })
     })
     this.annotSourceList(defaultAnnotation)
 
@@ -64,7 +66,8 @@ export class AnnotationTrack extends Track {
         }
       })
       .then(() => {
-        this.drawTrack({region: document.getElementById('region_field').value})
+        const region = parseRegionDesignation(document.getElementById('region-field').value)
+        this.drawTrack({...region})
       })
   }
 

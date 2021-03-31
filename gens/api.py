@@ -287,7 +287,7 @@ def get_multiple_coverages():
         chromosome = chrom_info.region.split(":")[0]
         try:
             with current_app.app_context():
-                reg, log2_rec, baf_rec = get_cov(
+                reg, *_,log2_rec, baf_rec = get_cov(
                     req,
                     chrom_info.x_ampl,
                     json_data=json_data,
@@ -364,7 +364,7 @@ def get_coverage(
     # Parse region
     try:
         with current_app.app_context():
-            reg, log2_rec, baf_rec = get_cov(
+            reg, n_start, n_end, log2_rec, baf_rec = get_cov(
                 req, x_ampl, cov_fh=cov_file, baf_fh=baf_file
             )
     except RegionParserException as err:
@@ -381,7 +381,9 @@ def get_coverage(
         chrom=reg.chrom,
         x_pos=round(req.x_pos),
         y_pos=round(req.y_pos),
-        start=reg.start_pos,
-        end=reg.end_pos,
+        query_start=reg.start_pos,
+        query_end=reg.end_pos,
+        padded_start=n_start,
+        padded_end=n_end,
         status="ok",
     )

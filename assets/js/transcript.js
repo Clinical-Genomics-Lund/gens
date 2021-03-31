@@ -1,6 +1,16 @@
 // Transcript definition
 
-import { Track, pSBC, isElementOverlapping } from './track.js'
+import { Track, isElementOverlapping } from './track.js'
+
+// function for shading and blending colors on the fly
+function LightenColor(color, percent) {
+  const num = parseInt(color.replace("#",""), 16)
+  const amt = Math.round(2.55 * percent)
+  const red = (num >> 16) + amt
+  const blue = (num >> 8 & 0x00FF) + amt
+  const green = (num & 0x0000FF) + amt
+  return "#" + (0x1000000 + (red < 255?red < 1?0:red:255) * 0x10000 + (blue < 255?blue < 1?0:blue:255) * 0x100 + (green < 255?green < 1?0:green:255)).toString(16).slice(1);
+};
 
 export class TranscriptTrack extends Track {
   constructor (x, width, near, far, hgType, colorSchema) {
@@ -75,7 +85,7 @@ export class TranscriptTrack extends Track {
     const textSize = plotFormat.textSize
     const titleMargin = plotFormat.titleMargin
     // lighten colors for MANE transcripts
-    const elementColor = element.mane ? pSBC(0.25, color) : color
+    const elementColor = element.mane ? LightenColor(color, 15) : color
 
     // Keep track of latest track
     if (this.heightOrderRecord.latestHeight !== element.height_order) {

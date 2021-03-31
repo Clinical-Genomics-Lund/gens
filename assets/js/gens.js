@@ -5,8 +5,11 @@ import { AnnotationTrack } from './annotation.js'
 import { VariantTrack } from './variant.js'
 import { InteractiveCanvas, dispatchDrawEvent } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
-import { setupDrawEventManager, drawTrack } from './navigation.js'
-
+import { CHROMOSOMES } from './constants.js'
+import {
+  setupDrawEventManager, drawTrack, previousChromosome, nextChromosome,
+  panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene,
+} from './navigation.js'
 
 export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // initialize and return the different canvases
@@ -15,7 +18,7 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
   const far = 100
   const lineMargin = 2 // Margin for line thickness
   // Listener values
-  const inputField = document.getElementById('region_field')
+  const inputField = document.getElementById('region-field')
   // Initiate interactive canvas
   const ic = new InteractiveCanvas(inputField, lineMargin, near, far, sampleName, hgType, hgFileDir)
   // Initiate variant, annotation and transcript canvases
@@ -33,4 +36,7 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
   }
 }
 
-export {setupDrawEventManager, drawTrack}
+export {
+  setupDrawEventManager, drawTrack, previousChromosome,
+  nextChromosome, panTracks, zoomIn, zoomOut, queryRegionOrGene
+}
