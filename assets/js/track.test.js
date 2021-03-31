@@ -1,5 +1,5 @@
 // Test tracks
-import { isElementOverlapping, Track } from './track.js'
+import { isElementOverlapping, calculateOffscreenWindiowPos } from './track.js'
 import "regenerator-runtime/runtime";
 
 // Test overlapping elements
@@ -26,38 +26,14 @@ describe('Test isElementOverlapping', () => {
   })
 })
 
-// Test Track class
-describe('Test Track.parseRegionDesignation', () => {
-  test('Parse <chromosome>:<start>-<end>', () => {
-    let region = new Track().parseRegionDesignation('12:11-100')
-    expect(region).toEqual(['12', 11,100])
-
-    region = new Track().parseRegionDesignation('X:11-100')
-    expect(region).toEqual(['X', 11,100])
+// test that offscreen window position
+describe('Test calculateOffscreenWindiowPos', () => {
+  test('test no padding', () => {
+    const region = calculateOffscreenWindiowPos({start: 100, end: 200, multiplier: 1})
+    expect(region).toEqual({start: 100, end: 200})
   })
-
-  test('Parse <chromosome>:<start>-None', () => {
-    const region = new Track().parseRegionDesignation('12:11-None')
-    expect(region).toEqual(['12', 11, NaN])
-  })
-
-  test('Parse <chromosome>:<start>', () => {
-    const region = new Track().parseRegionDesignation('12:11')
-    expect(region).toEqual(['12', 11, NaN])
-  })
-
-  test('Parse <chromosome>:', () => {
-    const region = new Track().parseRegionDesignation('12:')
-    expect(region).toEqual(['12', NaN, NaN])
-  })
-
-  test('Input only the chromosome returns null', () => {
-    const region = new Track().parseRegionDesignation('12')
-    expect(region).toBeFalsy()
-  })
-
-  test('Invalid chromosome throws an error', () => {
-    expect(() => new Track().parseRegionDesignation('30:')).toThrow()
-    expect(() => new Track().parseRegionDesignation('Z:')).toThrow()
+  test('test padding to region', () => {
+    const region = calculateOffscreenWindiowPos({start: 100, end: 200, multiplier: 2})
+    expect(region).toEqual({start: 50, end: 250})
   })
 })
