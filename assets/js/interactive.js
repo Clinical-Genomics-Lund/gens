@@ -2,11 +2,10 @@
 
 import { drawRotatedText, drawData, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './genecanvas.js'
 import { drawTrack, zoomIn, zoomOut, keyLogger, limitRegionToChromosome, readInputField } from './navigation.js'
-import { calculateOffscreenWindiowPos } from './track.js'
 import { get } from './fetch.js'
 
 export class FrequencyTrack {
-  constructor ({sampleName, hgType, hgFileDir}) {
+  constructor ({ sampleName, hgType, hgFileDir }) {
     // setup IO
     this.sampleName = sampleName // File name to load data from
     this.hgType = hgType // Whether to load HG37 or HG38, default is HG38
@@ -20,10 +19,9 @@ export class FrequencyTrack {
   }
 }
 
-
 export class InteractiveCanvas extends FrequencyTrack {
   constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
-    super({sampleName, hgType, hgFileDir})
+    super({ sampleName, hgType, hgFileDir })
     // The canvas input field to display and fetch chromosome range from
     this.inputField = inputField
     // Plot variables
@@ -39,8 +37,8 @@ export class InteractiveCanvas extends FrequencyTrack {
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight) // Height for whole canvas
 
     // setup objects for tracking the positions of draw and content canvases
-    this.offscreenPosition = {start: null, end: null, scale: null}
-    this.onscreenPosition = {start: null, end: null}
+    this.offscreenPosition = { start: null, end: null, scale: null }
+    this.onscreenPosition = { start: null, end: null }
 
     // BAF values
     this.baf = {
@@ -68,7 +66,7 @@ export class InteractiveCanvas extends FrequencyTrack {
     this.staticCanvas = document.getElementById('interactive-static')
     this.staticCanvas.width = this.contentCanvas.width = document.body.clientWidth
     this.staticCanvas.height = this.contentCanvas.height = this.canvasHeight
-    //this.drawCanvas = this.contentCanvas
+    // this.drawCanvas = this.contentCanvas
 
     // Setup loading div dimensions
     this.loadingDiv = document.getElementById('loading-div')
@@ -97,7 +95,7 @@ export class InteractiveCanvas extends FrequencyTrack {
     // redraw events
     this.contentCanvas.parentElement.addEventListener('draw', event => {
       console.log('interactive got draw event')
-      this.drawInteractiveContent({} = event.detail.region)
+      this.drawInteractiveContent({...event.detail.region})
     })
     // navigation events
     this.contentCanvas.addEventListener('mousedown', (event) => {
@@ -141,7 +139,7 @@ export class InteractiveCanvas extends FrequencyTrack {
         }
 
         if (this.markingRegion) {
-          this.markRegion({start: this.dragStart.x, end: this.dragEnd.x})
+          this.markRegion({ start: this.dragStart.x, end: this.dragEnd.x })
         } else {
           // pan content canvas
           this.panContent(this.dragEnd.x - this.dragStart.x)
@@ -158,20 +156,24 @@ export class InteractiveCanvas extends FrequencyTrack {
         this.markingRegion = false
         this.resetRegionMarker()
         const scale = this.calcScale()
-        let rawStart = this.onscreenPosition.start + Math.round((this.dragStart.x - this.x) / scale)
-        let rawEnd = rawStart + Math.round((this.dragEnd.x - this.dragStart.x) / scale)
+        const rawStart = this.onscreenPosition.start + Math.round((this.dragStart.x - this.x) / scale)
+        const rawEnd = rawStart + Math.round((this.dragEnd.x - this.dragStart.x) / scale)
         // sort positions so lowest number is allways start
         const [start, end] = [rawStart, rawEnd].sort((a, b) => a - b)
         // if shift - click, zoom in a region 10
         if ((end - start) < 10) {
           zoomIn()
         } else {
-          drawTrack({chrom: this.chromosome, start: start, end: end,
-                     force: true})
+          drawTrack({
+            chrom: this.chromosome,
+            start: start,
+            end: end,
+            force: true
+          })
         }
       } else if (this.drag) {
         // reload window when stop draging
-        drawTrack({} = {...readInputField(), force: true})
+        drawTrack({ ...readInputField(), force: true })
       }
       // reset dragging behaviour
       this.markingRegion = false
@@ -191,7 +193,7 @@ export class InteractiveCanvas extends FrequencyTrack {
     // Make content area visible
     // content window
     staticContext.clearRect(this.x + linePadding, this.y + linePadding,
-                            this.plotWidth, this.staticCanvas.height)
+      this.plotWidth, this.staticCanvas.height)
     // area for ticks above content area
     staticContext.clearRect(0, 0, this.staticCanvas.width, this.y + linePadding)
 
@@ -241,7 +243,7 @@ export class InteractiveCanvas extends FrequencyTrack {
       log2_y_start: this.log2.yStart,
       log2_y_end: this.log2.yEnd,
       reduce_data: 1
-    }).then( result => {
+    }).then(result => {
       console.timeEnd('getcoverage')
       if (result.status === 'error') {
         throw new Error(result)
@@ -249,7 +251,7 @@ export class InteractiveCanvas extends FrequencyTrack {
       // store new start and end values
       this.offscreenPosition = {
         start: parseInt(result.padded_start),
-        end: parseInt(result.padded_end),
+        end: parseInt(result.padded_end)
       }
       this.offscreenPosition.scale = this.drawWidth / (this.offscreenPosition.end - this.offscreenPosition.start)
       this.chromosome = chrom
@@ -274,15 +276,25 @@ export class InteractiveCanvas extends FrequencyTrack {
       // Draw horizontal lines for BAF and Log 2 ratio
       drawGraphLines({
         canvas: this.drawCanvas,
-        x: 0, y: result.y_pos, yStart: this.baf.yStart, yEnd: this.baf.yEnd,
-        stepLength: this.baf.step, yMargin: this.topBottomPadding,
-        width: this.drawWidth, height: this.plotHeight
+        x: 0,
+        y: result.y_pos,
+        yStart: this.baf.yStart,
+        yEnd: this.baf.yEnd,
+        stepLength: this.baf.step,
+        yMargin: this.topBottomPadding,
+        width: this.drawWidth,
+        height: this.plotHeight
       })
       drawGraphLines({
-        canvas: this.drawCanvas, x: 0, y: result.y_pos + this.plotHeight,
-        yStart: this.log2.yStart, yEnd: this.log2.yEnd,
-        stepLength: this.log2.step, yMargin: this.topBottomPadding,
-        width: this.drawWidth, height: this.plotHeight
+        canvas: this.drawCanvas,
+        x: 0,
+        y: result.y_pos + this.plotHeight,
+        yStart: this.log2.yStart,
+        yEnd: this.log2.yEnd,
+        stepLength: this.log2.step,
+        yMargin: this.topBottomPadding,
+        width: this.drawWidth,
+        height: this.plotHeight
       })
 
       // Plot scatter data
@@ -305,7 +317,7 @@ export class InteractiveCanvas extends FrequencyTrack {
         'center'
       )
       // Transfer image to visible canvas
-      this.blitInteractiveCanvas({start, end})
+      this.blitInteractiveCanvas({ start, end })
       this.blitChromName(textBbox)
 
       return result
@@ -316,11 +328,11 @@ export class InteractiveCanvas extends FrequencyTrack {
         document.getElementsByTagName('body')[0].style.cursor = 'auto'
       }
       this.allowDraw = true
-    }).catch( error => {
+    }).catch(error => {
       this.allowDraw = true
 
       this.inputField.dispatchEvent(
-        new CustomEvent('error', {detail: {error: error}})
+        new CustomEvent('error', { detail: { error: error } })
       )
     })
   }
@@ -330,7 +342,7 @@ export class InteractiveCanvas extends FrequencyTrack {
   }
 
   // Function for highlighting region
-  markRegion ({start, end}) {
+  markRegion ({ start, end }) {
     // Update the dom element
     this.markerElem.style.left = start < end ? `${start}px` : `${end}px`
     const width = (end - start) + 1 > this.plotWidth ? this.plotWidth : (end - start) + 1
@@ -342,7 +354,7 @@ export class InteractiveCanvas extends FrequencyTrack {
     this.markerElem.style.width = '0px'
   }
 
-  blitChromName(textPosition) {
+  blitChromName (textPosition) {
     const ctx = this.contentCanvas.getContext('2d')
     //    clear area on contentCanvas
     ctx.clearRect(
@@ -353,24 +365,24 @@ export class InteractiveCanvas extends FrequencyTrack {
     )
     // transfer from draw canvas
     ctx.drawImage(
-      this.drawCanvas,  // source
-      textPosition.x,  // sX
-      textPosition.y,  // sY
-      textPosition.width,  // sWidth
-      textPosition.height,  // sHeight
-      textPosition.x,  // dX
-      textPosition.y,  // dY
-      textPosition.width,  // dWidth
-      textPosition.height,  // dHeight
+      this.drawCanvas, // source
+      textPosition.x, // sX
+      textPosition.y, // sY
+      textPosition.width, // sWidth
+      textPosition.height, // sHeight
+      textPosition.x, // dX
+      textPosition.y, // dY
+      textPosition.width, // dWidth
+      textPosition.height // dHeight
     )
   }
 
-  blitInteractiveCanvas({start, end, updateCoord = true}) {
+  blitInteractiveCanvas ({ start, end, updateCoord = true }) {
     // blit areas from the drawCanvas to content canvas.
     // start, end are onscreen position
     const width = end - start
     // store onscreen coords
-    if ( updateCoord ) this.onscreenPosition = { start: start, end: end }
+    if (updateCoord) this.onscreenPosition = { start: start, end: end }
 
     const offscreenOffset = Math.round(
       (start - this.offscreenPosition.start) * this.offscreenPosition.scale)
@@ -411,10 +423,10 @@ export class InteractiveCanvas extends FrequencyTrack {
     })
 
     // Copy draw image to content Canvas
-    this.blitInteractiveCanvas({start: region.start, end: region.end, updateCoord: false})
+    this.blitInteractiveCanvas({ start: region.start, end: region.end, updateCoord: false })
     drawTrack({
       ...region,
-      exclude: [`${this.contentCanvas.parentElement.id}`],
+      exclude: [`${this.contentCanvas.parentElement.id}`]
     })
   }
 }

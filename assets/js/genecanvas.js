@@ -1,14 +1,14 @@
 // Draw data points
-export function drawData ({canvas, data, color}) {
+export function drawData ({ canvas, data, color }) {
   const ctx = canvas.getContext('2d')
   ctx.fillStyle = '#000'
   for (let i = 0; i < data.length; i += 2) {
     if (data[i + 1] > 0) { // FIXME: Why are some values < 0?
       ctx.fillRect(
-        data[i],     // x
+        data[i], // x
         data[i + 1], // y
-        2,           // width
-        2,           // height
+        2, // width
+        2 // height
       )
     }
   }
@@ -17,9 +17,11 @@ export function drawData ({canvas, data, color}) {
 // Draws vertical tick marks for selected values between
 // xStart and xEnd with step length.
 // The amplitude scales the values to drawing size
-export function drawVerticalTicks ({canvas, renderX, y, xStart, xEnd,
-                                    xoStart, xoEnd,
-                                    width, yMargin, titleColor}) {
+export function drawVerticalTicks ({
+  canvas, renderX, y, xStart, xEnd,
+  xoStart, xoEnd,
+  width, yMargin, titleColor
+}) {
   const lineThickness = 1
   const lineWidth = 5
   const regionSize = xEnd - xStart
@@ -61,7 +63,7 @@ export function drawVerticalTicks ({canvas, renderX, y, xStart, xEnd,
 // Draws horizontal lines for selected values between
 // yStart and yEnd with step length.
 // The amplitude scales the values to drawing size
-export function drawGraphLines ({canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height}) {
+export function drawGraphLines ({ canvas, x, y, yStart, yEnd, stepLength, yMargin, width, height }) {
   const ampl = (height - 2 * yMargin) / (yStart - yEnd) // Amplitude for scaling y-axis to fill whole height
   const lineThickness = 1
 
@@ -155,7 +157,7 @@ export function drawText (canvas, x, y, text, textSize, align) {
     x: x - textBbox.width / 2,
     y: y - textBbox.actualBoundingBoxAscent,
     width: textBbox.width,
-    height: textBbox.actualBoundingBoxAscent + textBbox.actualBoundingBoxDescent,
+    height: textBbox.actualBoundingBoxAscent + textBbox.actualBoundingBoxDescent
   }
 }
 

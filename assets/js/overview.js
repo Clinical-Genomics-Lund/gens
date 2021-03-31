@@ -9,7 +9,7 @@ import { drawTrack } from './navigation.js'
 export class OverviewCanvas extends FrequencyTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
-    super({sampleName, hgType, hgFileDir})
+    super({ sampleName, hgType, hgFileDir })
 
     // Plot variables
     this.fullPlotWidth = fullPlotWidth // Width for all chromosomes to fit in
@@ -53,7 +53,7 @@ export class OverviewCanvas extends FrequencyTrack {
     // Set dimensions of overview canvases
     this.staticCanvas.width = this.width
     this.staticCanvas.height = this.height
-    this.getOverviewChromDim ().then( () => {
+    this.getOverviewChromDim().then(() => {
       // Select a chromosome in overview track
       this.staticCanvas.addEventListener('mousedown', event => {
         event.stopPropagation()
@@ -64,11 +64,11 @@ export class OverviewCanvas extends FrequencyTrack {
         const start = 1
         const end = this.dims[chrom].size - 1
         // Mark region
-        this.markRegion({chrom, start, end})
-        drawTrack({chrom, start, end}) // redraw canvas
+        this.markRegion({ chrom, start, end })
+        drawTrack({ chrom, start, end }) // redraw canvas
       })
       this.staticCanvas.parentElement.addEventListener('mark-region', event => {
-        this.markRegion({} = event.detail.region)
+        this.markRegion({ ...event.detail.region })
       })
     })
   }
@@ -104,7 +104,7 @@ export class OverviewCanvas extends FrequencyTrack {
     })
   }
 
-  markRegion ({chrom, start, end}) {
+  markRegion ({ chrom, start, end }) {
     if (this.dims !== undefined) {
       const scale = this.dims[chrom].width / this.dims[chrom].size
       const overviewMarker = document.getElementById('overview-marker')
@@ -125,7 +125,7 @@ export class OverviewCanvas extends FrequencyTrack {
     }
   }
 
-  async drawOverviewPlotSegment ({canvas, chrom, width, chromCovData}) {
+  async drawOverviewPlotSegment ({ canvas, chrom, width, chromCovData }) {
     // Draw chromosome title
     drawText(
       canvas,
@@ -206,11 +206,12 @@ export class OverviewCanvas extends FrequencyTrack {
       overview: 'True',
       reduce_data: 1
     })
-    const staticCanvas = document.getElementById('overview-static')
     for (const [chrom, res] of Object.entries(covData.results)) {
       this.drawOverviewPlotSegment({
-        canvas: this.staticCanvas, chrom: chrom,
-        width: this.dims[chrom].width, chromCovData: res
+        canvas: this.staticCanvas,
+        chrom: chrom,
+        width: this.dims[chrom].width,
+        chromCovData: res
       })
     }
   }

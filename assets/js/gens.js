@@ -8,7 +8,7 @@ import { OverviewCanvas } from './overview.js'
 import { CHROMOSOMES } from './constants.js'
 import {
   setupDrawEventManager, drawTrack, previousChromosome, nextChromosome,
-  panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene,
+  panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene
 } from './navigation.js'
 
 export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {

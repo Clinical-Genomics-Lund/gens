@@ -22,25 +22,25 @@ function cacheChromSizes (hgType = '38') {
   }
 }
 
-function redrawEvent (region, exclude=[], force) {
+function redrawEvent (region, exclude = [], force) {
   return new CustomEvent(
     'draw', { detail: { region: region, exclude: exclude, force: force } }
   )
 }
 
-function drawEventManager({target, throttleTime}) {
+function drawEventManager ({ target, throttleTime }) {
   const tracks = target.querySelectorAll('.track-container')
   let lastEventTime = 0
   return (event) => {
     const now = Date.now()
     console.log(`Test event times ${lastEventTime} ? ${now}, diff: ${now - lastEventTime}`)
-    if ( throttleTime < Date.now() - lastEventTime ||
+    if (throttleTime < Date.now() - lastEventTime ||
          event.detail.force
-       ) {
+    ) {
       console.log('===> fire event')
       lastEventTime = Date.now()
       for (const track of tracks) {
-        if ( !event.detail.exclude.includes(track.id) ) {
+        if (!event.detail.exclude.includes(track.id)) {
           console.log('redirected event to ', target)
           track.dispatchEvent(redrawEvent(event.detail.region))
         }
@@ -49,26 +49,26 @@ function drawEventManager({target, throttleTime}) {
   }
 }
 
-export function setupDrawEventManager ({target, throttleTime = 20}) {
-  const manager = drawEventManager({target, throttleTime})
+export function setupDrawEventManager ({ target, throttleTime = 20 }) {
+  const manager = drawEventManager({ target, throttleTime })
   target.addEventListener('draw', (event) => {
     manager(event)
   })
 }
 
-function updateInputField({chrom, start, end}) {
+function updateInputField ({ chrom, start, end }) {
   const field = document.getElementById('region-field')
   field.value = `${chrom}:${start}-${end}`
   field.placeholder = field.value
   field.blur()
 }
 
-export function readInputField() {
+export function readInputField () {
   const field = document.getElementById('region-field')
   return parseRegionDesignation(field.value)
 }
 
-export async function limitRegionToChromosome ({chrom, start, end, hgType = '38'}) {
+export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38' }) {
   // assert that start/stop are within start and end of chromosome
   const sizes = await chromSizes(hgType)
   start = start === null ? 1 : start
@@ -76,31 +76,33 @@ export async function limitRegionToChromosome ({chrom, start, end, hgType = '38'
   //  ensure the window size stay the same
   const windowSize = end - start
   let updStart, updEnd
-  if ( start < 1 ) {
+  if (start < 1) {
     updStart = 1
     updEnd = windowSize
-  } else if ( end > sizes[chrom] ) {
+  } else if (end > sizes[chrom]) {
     updStart = sizes[chrom] - windowSize
     updEnd = sizes[chrom]
   } else {
     updStart = start
     updEnd = end
   }
-  return {chrom: chrom, start: Math.round(updStart), end: Math.round(updEnd)}
+  return { chrom: chrom, start: Math.round(updStart), end: Math.round(updEnd) }
 }
 
-export async function drawTrack ({ chrom, start, end, hgType = '38',
-                                   exclude = [], force = false }) {
+export async function drawTrack ({
+  chrom, start, end, hgType = '38',
+  exclude = [], force = false
+}) {
   // update input field
-  const region = await limitRegionToChromosome({chrom, start, end})
-  updateInputField({} = region)
+  const region = await limitRegionToChromosome({ chrom, start, end })
+  updateInputField({ ...region })
   const trackContainer = document.getElementById('visualization-container')
   trackContainer.dispatchEvent(
     redrawEvent(region, exclude, force)
   )
   // make overview update its region marking
   document.getElementById('overview-container').dispatchEvent(
-    new CustomEvent('mark-region', {detail: {region: region}})
+    new CustomEvent('mark-region', { detail: { region: region } })
   )
 }
 

@@ -67,7 +67,7 @@ export class AnnotationTrack extends Track {
       })
       .then(() => {
         const region = parseRegionDesignation(document.getElementById('region-field').value)
-        this.drawTrack({...region})
+        this.drawTrack({ ...region })
       })
   }
 

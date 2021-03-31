@@ -16,8 +16,8 @@ export function isElementOverlapping (first, second) {
   return false
 }
 
-  // Calculate offscreen position
-export function calculateOffscreenWindiowPos ({start, end, multiplier}) {
+// Calculate offscreen position
+export function calculateOffscreenWindiowPos ({ start, end, multiplier }) {
   const width = end - start
   const padding = ((width * multiplier) - width) / 2
   // const paddedStart = (start - padding) > 0 ? (start - padding) : 1;
@@ -25,7 +25,6 @@ export function calculateOffscreenWindiowPos ({start, end, multiplier}) {
     start: Math.round(start - padding), end: Math.round(end + padding)
   }
 }
-
 
 export class Track {
   constructor (width, near, far, visibleHeight, minHeight, colorSchema) {
@@ -117,7 +116,7 @@ export class Track {
 
     this.trackContainer.parentElement.addEventListener('draw', (event) => {
       console.log('track recived draw', event.detail.region)
-      this.drawTrack({} = event.detail.region)
+      this.drawTrack({ ...event.detail.region })
     })
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',
