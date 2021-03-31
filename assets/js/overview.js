@@ -1,12 +1,12 @@
 // Overview canvas definition
 
-import { FrequencyTrack } from './interactive.js'
+import { BaseFrequencyTrack } from './track.js'
 import { create, get } from './fetch.js'
-import { createGraph, drawData, drawGraphLines, drawText, drawRotatedText } from './genecanvas.js'
-import { CHROMOSOMES } from './constants.js'
+import { createGraph, drawPoints, drawGraphLines, drawText, drawRotatedText } from './draw.js'
+import { CHROMOSOMES } from './track.js'
 import { drawTrack } from './navigation.js'
 
-export class OverviewCanvas extends FrequencyTrack {
+export class OverviewCanvas extends BaseFrequencyTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
     super({ sampleName, hgType, hgFileDir })
@@ -180,12 +180,12 @@ export class OverviewCanvas extends FrequencyTrack {
       height: this.plotHeight
     })
     // Plot scatter data
-    drawData({
+    drawPoints({
       ctx,
       data: chromCovData.baf,
       color: this.baf.color
     })
-    drawData({
+    drawPoints({
       ctx,
       data: chromCovData.data,
       color: this.log2.color

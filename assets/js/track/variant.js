@@ -1,12 +1,12 @@
 // Variant track definition
 
-import { Track, isElementOverlapping } from './track.js'
-import { drawRect, drawLine, drawWaveLine, drawText } from './genecanvas.js'
+import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
 
-export class VariantTrack extends Track {
+export class VariantTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll

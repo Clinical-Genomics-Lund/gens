@@ -1,25 +1,11 @@
 // Functions for rendering the interactive canvas
 
-import { drawRotatedText, drawData, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './genecanvas.js'
+import { drawRotatedText, drawPoints, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './draw.js'
 import { drawTrack, zoomIn, zoomOut, keyLogger, limitRegionToChromosome, readInputField } from './navigation.js'
 import { get } from './fetch.js'
+import { BaseFrequencyTrack } from './track.js'
 
-export class FrequencyTrack {
-  constructor ({ sampleName, hgType, hgFileDir }) {
-    // setup IO
-    this.sampleName = sampleName // File name to load data from
-    this.hgType = hgType // Whether to load HG37 or HG38, default is HG38
-    this.hgFileDir = hgFileDir // File directory
-    // Border
-    this.borderColor = '#666' // Color of border
-    this.titleColor = 'black' // Color of titles/legends
-    // Setup canvas
-    this.drawCanvas = document.createElement('canvas')
-    this.context = this.drawCanvas.getContext('2d')
-  }
-}
-
-export class InteractiveCanvas extends FrequencyTrack {
+export class InteractiveCanvas extends BaseFrequencyTrack {
   constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
     super({ sampleName, hgType, hgFileDir })
     // The canvas input field to display and fetch chromosome range from
@@ -299,10 +285,10 @@ export class InteractiveCanvas extends FrequencyTrack {
       })
 
       // Plot scatter data
-      drawData({
+      drawPoints({
         ctx, data: result.baf, color: this.baf.color
       })
-      drawData({
+      drawPoints({
         ctx, data: result.data, color: this.log2.color
       })
 

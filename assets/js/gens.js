@@ -1,12 +1,9 @@
 // GENS module
 
-import { TranscriptTrack } from './transcript.js'
-import { AnnotationTrack } from './annotation.js'
-import { VariantTrack } from './variant.js'
-import { InteractiveCanvas, dispatchDrawEvent } from './interactive.js'
+import { InteractiveCanvas } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
-import { CHROMOSOMES } from './constants.js'
-import {
+import { CHROMOSOMES, VariantTrack, AnnotationTrack, TranscriptTrack } from './track.js'
+export {
   setupDrawEventManager, drawTrack, previousChromosome, nextChromosome,
   panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene
 } from './navigation.js'
@@ -36,7 +33,16 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
   }
 }
 
-export {
-  setupDrawEventManager, drawTrack, previousChromosome,
-  nextChromosome, panTracks, zoomIn, zoomOut, queryRegionOrGene
+// Make hard link and copy link to clipboard
+export function copyPermalink (hgType, region) {
+  // create element and add url to it
+  const tempElement = document.createElement('input')
+  tempElement.value = `${window.location.host}?hg_type=${hgType}&region=${region}`
+  // add element to DOM
+  document.body.append(tempElement)
+  tempElement.select()
+  document.execCommand('copy')
+  tempElement.remove() // remove temp node
 }
+
+export { CHROMOSOMES  } from './track.js'

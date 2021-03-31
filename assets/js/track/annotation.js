@@ -1,11 +1,11 @@
 // Annotation track definition
 
-import { Track, isElementOverlapping } from './track.js'
-import { get } from './fetch.js'
-import { parseRegionDesignation } from './navigation.js'
-import { drawRect, drawText } from './genecanvas.js'
+import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { get } from '../fetch.js'
+import { parseRegionDesignation } from '../navigation.js'
+import { drawRect, drawText } from '../draw.js'
 
-export class AnnotationTrack extends Track {
+export class AnnotationTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
     // Dimensions of track canvas
     const visibleHeight = 300 // Visible height for expanded canvas, overflows for scroll

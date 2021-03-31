@@ -1,5 +1,5 @@
 import { get } from './fetch.js'
-import { CHROMOSOMES } from './constants.js'
+import { CHROMOSOMES } from './track.js'
 
 function cacheChromSizes (hgType = '38') {
   const cache = {}
