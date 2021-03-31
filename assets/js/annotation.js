@@ -3,7 +3,7 @@
 import { Track, isElementOverlapping } from './track.js'
 import { get } from './fetch.js'
 import { parseRegionDesignation } from './navigation.js'
-import { drawRect } from './genecanvas.js'
+import { drawRect, drawText } from './genecanvas.js'
 
 export class AnnotationTrack extends Track {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
@@ -156,22 +156,13 @@ export class AnnotationTrack extends Track {
       // limit drawing of titles to certain resolution
       if (this.getResolution < 6) {
         // Draw annotation name
-        this.heightOrderRecord.latestNameEnd = this.drawText(
-          annotationName,
-          scale * ((start + end) / 2 - this.offscreenPosition.start),
-          textYPos + this.featureHeight,
-          textSize,
-          this.heightOrderRecord.latestNameEnd)
-
-        // Draw arrows
-        if (strand) {
-          const direction = strand === '+' ? 1 : -1
-          this.drawArrows(scale * (start - this.trackData.start_pos),
-            scale * (end - this.trackData.start_pos),
-            canvasYPos,
-            direction,
-            this.arrowColor)
-        }
+        drawText({
+          ctx: this.drawCtx,
+          text: annotationName,
+          x: scale * ((start + end) / 2 - this.offscreenPosition.start),
+          y: textYPos + this.featureHeight,
+          fontProp: textSize,
+        })
       }
 
       // Set tooltip text

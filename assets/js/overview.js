@@ -128,12 +128,12 @@ export class OverviewCanvas extends FrequencyTrack {
   async drawOverviewPlotSegment ({ canvas, chrom, width, chromCovData }) {
     // Draw chromosome title
     const ctx = canvas.getContext('2d')
-    drawText(
+    drawText({
       ctx,
-      chromCovData.x_pos - this.leftRightPadding + width / 2,
-      chromCovData.y_pos - this.titleMargin,
-      chromCovData.chrom, 10, 'center'
-    )
+      x: chromCovData.x_pos - this.leftRightPadding + width / 2,
+      y: chromCovData.y_pos - this.titleMargin,
+      text: chromCovData.chrom, fontProp: 10, align: 'center'
+    })
 
     // Draw rotated y-axis legends
     if (chromCovData.x_pos < this.leftmostPoint) {

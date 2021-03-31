@@ -309,14 +309,14 @@ export class InteractiveCanvas extends FrequencyTrack {
       // Draw chromosome title on the content canvas as a blitting
       // work around
       const textYPos = result.y_pos - this.titleMargin
-      const textBbox = drawText(
+      const textBbox = drawText({
         ctx,
-        document.body.clientWidth / 2,
-        textYPos,
-        'Chromosome ' + result.chrom,
-        'bold 15',
-        'center'
-      )
+        x: document.body.clientWidth / 2,
+        y: textYPos,
+        text: 'Chromosome ' + result.chrom,
+        fontProp: 'bold 15',
+        align: 'center'
+      })
       // Transfer image to visible canvas
       this.blitInteractiveCanvas({ start, end })
       this.blitChromName(textBbox)

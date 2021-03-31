@@ -164,30 +164,6 @@ export class Track {
     }
   }
 
-  // Draws text underneath a track box
-  async drawText (text, xPos, yPos, textHeight, latestNameEnd) {
-    this.drawCtx.save()
-    this.drawCtx.font = 'bold ' + textHeight + 'px Arial'
-    this.drawCtx.fillStyle = 'black'
-
-    // Center text
-    const textWidth = this.drawCtx.measureText(text).width
-    xPos = xPos - textWidth / 2
-
-    // Cap text to outer edges
-    xPos = xPos < 0 ? 0 : xPos
-    if (xPos >= this.drawCanvas.width - textWidth) {
-      xPos = this.drawCanvas.width - textWidth
-    }
-    if (xPos < latestNameEnd) {
-      return latestNameEnd
-    }
-
-    this.drawCtx.fillText(text, xPos, yPos)
-    this.drawCtx.restore()
-    return xPos + textWidth
-  }
-
   // Inserts a hover text for a track
   hoverText (text, left, top, width, height, zIndex, latestPos) {
     // Make div wider for more mouse over space
@@ -207,79 +183,6 @@ export class Track {
     title.style.zIndex = zIndex
     this.trackTitle.appendChild(title)
     return parseInt(left + width)
-  }
-
-  // Draw a wave line from xStart to xStop at yPos where yPos is top left of the line.
-  // Pattern is drawn by incrementing pointer by a half wave length and plot either
-  // upward (/) or downward (\) line.
-  // if the end is trunctated a partial wave is plotted.
-  drawWaveLine (xStart, xStop, yPos, height, color, lineWidth = 2) {
-    console.log(`Plot wave from: ${xStart}, to: ${xStop}, hegith: ${height}; width: ${lineWidth}; color: ${color}`)
-    if (![xStart, xStop, yPos, height].every(n => typeof (n) === 'number')) {
-      throw new Error(`Invalid coordinates start: ${xStart}, stop: ${xStop}, yPos: ${yPos}; Cant draw line`)
-    }
-    this.drawCtx.save()
-    this.drawCtx.strokeStyle = color
-    this.drawCtx.lineWidth = lineWidth
-    this.drawCtx.beginPath()
-    this.drawCtx.moveTo(xStart, yPos) // begin at bottom left
-    const waveLength = 2 * (height / Math.tan(45))
-    const lineLength = xStop - xStart + 1
-    // plot whole wave pattern
-    const midline = yPos - height / 2 // middle of line
-    let lastXpos = xStart
-    for (let i = 0; i < Math.floor(lineLength / (waveLength / 2)); i++) {
-      lastXpos += waveLength / 2
-      height *= -1 // reverse sign
-      this.drawCtx.lineTo(lastXpos, midline + height / 2) // move up
-    }
-    // plot partial wave patterns
-    const partialWaveLength = lineLength % (waveLength / 2)
-    if (partialWaveLength !== 0) {
-      height *= -1 // reverse sign
-      const partialWaveHeight = partialWaveLength * Math.tan(45)
-      this.drawCtx.lineTo(xStop, yPos - Math.sign(height) * partialWaveHeight)
-    }
-    this.drawCtx.stroke()
-    this.drawCtx.restore()
-  }
-
-  // Draw arrows for a segment
-  async drawArrows (start, stop, yPos, direction, color) {
-    // Calculate width of a segment to draw the arrow in
-    const width = stop - start
-    if (width < this.arrowWidth) {
-      // Arrow does not fit, do nothing
-
-    } else if (width <= this.arrowDistance) {
-      // Draw one arrow in the middle
-      this.drawArrow(start + (stop - start) / 2, yPos, direction,
-        this.featureHeight / 2, color)
-    } else {
-      // Draw many arrows
-      for (let pos = start + this.arrowWidth;
-        pos < stop - this.arrowWidth; pos += this.arrowDistance) {
-        // Draw several arrows
-        this.drawArrow(pos, yPos, direction, this.featureHeight / 2, color)
-      }
-    }
-  }
-
-  // Draw an arrow in desired direction
-  // Forward arrow: direction = 1
-  // Reverse arrow: direction = -1
-  async drawArrow (xpos, ypos, direction, height, lineWidth = 2, color) {
-    const width = direction * this.arrowWidth
-    this.drawCtx.save()
-    this.drawCtx.strokeStyle = color
-    this.drawCtx.lineWidth = lineWidth
-    this.drawCtx.beginPath()
-    this.drawCtx.moveTo(xpos - width / 2, ypos - height / 2)
-    this.drawCtx.lineTo(xpos + width / 2, ypos)
-    this.drawCtx.moveTo(xpos + width / 2, ypos)
-    this.drawCtx.lineTo(xpos - width / 2, ypos + height / 2)
-    this.drawCtx.stroke()
-    this.drawCtx.restore()
   }
 
   // Draw annotation track

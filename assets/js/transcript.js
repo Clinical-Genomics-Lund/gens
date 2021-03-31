@@ -1,7 +1,7 @@
 // Transcript definition
 
 import { Track, isElementOverlapping } from './track.js'
-import { drawRect, drawLine } from './genecanvas.js'
+import { drawRect, drawLine, drawArrow, drawText } from './genecanvas.js'
 
 // function for shading and blending colors on the fly
 function LightenColor (color, percent) {
@@ -65,13 +65,13 @@ export class TranscriptTrack extends Track {
         //   1,
         //   this.heightOrderRecord.latestTrackEnd);
         drawRect({
-          canvas: this.drawCtx,
+          ctx: this.drawCtx,
           x: scale * (feature.start - this.offscreenPosition.start),
-          y: canvasYPos,
+          y: canvasYPos - this.featureHeight / 2,
           width: scale * (feature.end - feature.start),
           height: this.featureHeight,
           lineWidth: 1,
-          color: color,
+          fillColor: color,
           open: false
         })
       }
@@ -127,13 +127,13 @@ export class TranscriptTrack extends Track {
     const textYPos = this.tracksYPos(element.height_order)
     if (drawName) {
       const mane = element.mane ? ' [MANE] ' : ''
-      this.heightOrderRecord.latestNameEnd = this.drawText(
-        `${geneName}${mane}${element.strand === '+' ? '→' : '←'}`,
-        Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
-        textYPos + this.featureHeight,
-        textSize,
-        this.heightOrderRecord.latestNameEnd
-      )
+      drawText({
+        ctx: this.drawCtx,
+        text: `${geneName}${mane}${element.strand === '+' ? '→' : '←'}`,
+        x: Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
+        y: textYPos + this.featureHeight,
+        fontProp: textSize,
+      })
     }
 
     // Set tooltip text
@@ -148,14 +148,15 @@ export class TranscriptTrack extends Track {
 
     // draw arrows in gene
     if (drawAsArrow) {
-      this.drawArrow(
-        element.strand === '+' ? displayedTrEnd : displayedTrStart, // xPos
-        canvasYPos, // yPos
-        element.strand === '+' ? 1 : -1, // direction
-        this.featureHeight / 2, // height
-        this.geneLineWidth, // lineWidth
-        elementColor // color
-      )
+      drawArrow({
+        ctx: this.drawCtx,
+        x: element.strand === '+' ? displayedTrEnd : displayedTrStart, // xPos
+        y: canvasYPos, // yPos
+        dir: element.strand === '+' ? 1 : -1, // direction
+        height: this.featureHeight / 2, // height
+        lineWidth: this.geneLineWidth, // lineWidth
+        color: elementColor // color
+      })
     } else {
       // draw features
       for (const feature of element.features) {

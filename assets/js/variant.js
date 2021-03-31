@@ -1,7 +1,7 @@
 // Variant track definition
 
 import { Track, isElementOverlapping } from './track.js'
-import { drawRect, drawLine } from './genecanvas.js'
+import { drawRect, drawLine, drawWaveLine, drawText } from './genecanvas.js'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
@@ -20,7 +20,6 @@ export class VariantTrack extends Track {
     this.trackTitle = document.getElementById('variant-titles')
     this.trackContainer = document.getElementById('variant-track-container')
     this.featureHeight = 18
-    this.arrowThickness = 2
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1)
@@ -126,11 +125,14 @@ export class VariantTrack extends Track {
       const waveHeight = 7
       switch (variantCategory) {
         case 'del':
-          this.drawWaveLine(drawStartCoord,
-            drawEndCoord,
-            (canvasYPos + waveHeight) / 2,
-            waveHeight,
-            color)
+          drawWaveLine({
+            ctx: this.drawCtx,
+            x: drawStartCoord,
+            y: (canvasYPos + waveHeight) / 2,
+            x2: drawEndCoord,
+            height: waveHeight,
+            color
+          })
           break
         case 'dup':
           drawLine({x: drawStartCoord, y: canvasYPos + 4,
@@ -150,13 +152,13 @@ export class VariantTrack extends Track {
 
       const textYPos = this.tracksYPos(heightOrder)
       // Draw variant type
-      this.heightOrderRecord.latestNameEnd = this.drawText(
-        `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
-        textYPos + this.featureHeight,
-        textSize,
-        this.heightOrderRecord.latestNameEnd
-      )
+      drawText({
+        ctx: this.drawCtx,
+        text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+        x: scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
+        y: textYPos + this.featureHeight,
+        fontProp: textSize,
+      })
 
       // Set tooltip text
       const variantText = `Id: ${variantName}\n` +
