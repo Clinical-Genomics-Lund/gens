@@ -1,26 +1,6 @@
 import { get } from './fetch.js'
 import { CHROMOSOMES } from './track.js'
-
-function cacheChromSizes (hgType = '38') {
-  const cache = {}
-  return async hgType => {
-    if (!cache[hgType]) {
-      const result = await get('get-overview-chrom-dim',
-        {
-          hg_type: hgType,
-          x_pos: 1,
-          y_pos: 1,
-          plot_width: 1
-        })
-      const sizes = {}
-      for (const chrom in result.chrom_dims) {
-        sizes[chrom] = result.chrom_dims[chrom].size
-      }
-      cache[hgType] = sizes
-    }
-    return cache[hgType]
-  }
-}
+import { chromSizes } from './helper.js'
 
 function redrawEvent (region, exclude = [], force) {
   return new CustomEvent(
@@ -56,6 +36,11 @@ export function setupDrawEventManager ({ target, throttleTime = 20 }) {
   })
 }
 
+export function readInputField () {
+  const field = document.getElementById('region-field')
+  return parseRegionDesignation(field.value)
+}
+
 function updateInputField ({ chrom, start, end }) {
   const field = document.getElementById('region-field')
   field.value = `${chrom}:${start}-${end}`
@@ -63,9 +48,23 @@ function updateInputField ({ chrom, start, end }) {
   field.blur()
 }
 
-export function readInputField () {
-  const field = document.getElementById('region-field')
-  return parseRegionDesignation(field.value)
+// parse chromosomal region designation string
+// return chromosome, start and end position
+// eg 1:12-220 --> 1, 12 220
+// 1: --> 1, null, null
+// 1 --> 1, null, null
+export function parseRegionDesignation (regionString) {
+  if (regionString.includes(':')) {
+    const [chromosome, position] = regionString.split(':')
+    // verify chromosome
+    if (!CHROMOSOMES.includes(chromosome)) {
+      throw new Error(`${chromosome} is not a valid chromosome`)
+    }
+    let [start, end] = position.split('-')
+    start = parseInt(start)
+    end = parseInt(end)
+    return { chrom: chromosome, start: start, end: end }
+  }
 }
 
 export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38' }) {
@@ -128,47 +127,23 @@ export function queryRegionOrGene (query, hgType = 38) {
   }
 }
 
-// parse chromosomal region designation string
-// return chromosome, start and end position
-// eg 1:12-220 --> 1, 12 220
-// 1: --> 1, null, null
-// 1 --> 1, null, null
-export function parseRegionDesignation (regionString) {
-  if (regionString.includes(':')) {
-    const [chromosome, position] = regionString.split(':')
-    // verify chromosome
-    if (!CHROMOSOMES.includes(chromosome)) {
-      throw new Error(`${chromosome} is not a valid chromosome`)
-    }
-    let [start, end] = position.split('-')
-    start = parseInt(start)
-    end = parseInt(end)
-    return { chrom: chromosome, start: start, end: end }
-  }
-}
-
-export function readInput () {
-  const inputField = document.getElementById('region-field')
-  return parseRegionDesignation(inputField.value)
-}
-
 // goto the next chromosome
 export function nextChromosome () {
-  const position = readInput()
+  const position = readInputField()
   const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) - 1]
   drawTrack({ chrom: chrom, start: 1, end: null })
 }
 
 // goto the previous chromosome
 export function previousChromosome () {
-  const position = readInput()
+  const position = readInputField()
   const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) + 1]
   drawTrack({ chrom: chrom, start: 1, end: null })
 }
 
 // Pan whole canvas and tracks to the left
 export function panTracks (direction = 'left') {
-  const pos = readInput()
+  const pos = readInputField()
   let distance = Math.floor(0.1 * (pos.end - pos.start))
   // Don't allow negative values
   distance = (pos.start < distance) ? distance + (pos.start - distance) : distance
@@ -185,7 +160,7 @@ export function panTracks (direction = 'left') {
 
 // Handle zoom in button click
 export function zoomIn () {
-  const pos = readInput()
+  const pos = readInputField()
   const factor = Math.floor((pos.end - pos.start) * 0.2)
   pos.start += factor
   pos.end -= factor
@@ -194,7 +169,7 @@ export function zoomIn () {
 
 // Handle zoom out button click
 export function zoomOut () {
-  const pos = readInput()
+  const pos = readInputField()
   const factor = Math.floor((pos.end - pos.start) / 3)
   pos.start = (pos.start - factor) < 1 ? 1 : pos.start - factor
   pos.end += factor
@@ -243,7 +218,6 @@ class KeyLogger {
   }
 }
 
-const chromSizes = cacheChromSizes()
 export const keyLogger = new KeyLogger()
 
 // Setup handling of keydown events

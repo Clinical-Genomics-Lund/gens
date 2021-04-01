@@ -1,7 +1,8 @@
 // Functions for rendering the interactive canvas
 
 import { drawRotatedText, drawPoints, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './draw.js'
-import { drawTrack, zoomIn, zoomOut, keyLogger, limitRegionToChromosome, readInputField } from './navigation.js'
+import { drawTrack, zoomIn, zoomOut, keyLogger, limitRegionToChromosome } from './navigation.js'
+import { readInputField } from './helper.js'
 import { get } from './fetch.js'
 import { BaseFrequencyTrack } from './track.js'
 
