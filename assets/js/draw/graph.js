@@ -74,7 +74,7 @@ export function createGraph (ctx, x, y, width, height, yMargin, yStart,
   }
 
   // Draw surrounding coordinate box
-  drawRect({ctx, x, y, width, height, lineWithd: 1, color, open})
+  drawRect({ctx, x, y, width, height, lineWidth: 1, color, open})
 }
 
 // Draws tick marks for selected values between
