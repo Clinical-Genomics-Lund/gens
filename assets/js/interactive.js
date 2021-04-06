@@ -343,23 +343,24 @@ export class InteractiveCanvas extends BaseScatterTrack {
 
   blitChromName (textPosition) {
     const ctx = this.contentCanvas.getContext('2d')
+    const padding = 20
     //    clear area on contentCanvas
     ctx.clearRect(
-      textPosition.x,
+      textPosition.x - padding / 2,
       textPosition.y,
-      textPosition.width,
+      textPosition.width + padding,
       textPosition.height
     )
     // transfer from draw canvas
     ctx.drawImage(
       this.drawCanvas, // source
-      textPosition.x, // sX
+      textPosition.x - padding / 2, // sX
       textPosition.y, // sY
-      textPosition.width, // sWidth
+      textPosition.width + padding, // sWidth
       textPosition.height, // sHeight
-      textPosition.x, // dX
+      textPosition.x - padding / 2, // dX
       textPosition.y, // dY
-      textPosition.width, // dWidth
+      textPosition.width + padding, // dWidth
       textPosition.height // dHeight
     )
   }
