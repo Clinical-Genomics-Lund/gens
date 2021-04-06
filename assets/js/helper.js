@@ -23,4 +23,3 @@ function cacheChromSizes (hgType = '38') {
 }
 
 export const chromSizes = cacheChromSizes()
-

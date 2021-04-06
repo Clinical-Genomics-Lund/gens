@@ -135,14 +135,29 @@ export class VariantTrack extends BaseAnnotationTrack {
           })
           break
         case 'dup':
-          drawLine({x: drawStartCoord, y: canvasYPos + 4,
-                    x2: drawEndCoord, y2: canvasYPos + 4, color})
-          drawLine({x: drawStartCoord, y: canvasYPos + 4,
-                    x2: drawEndCoord, y2: canvasYPos, color})
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos + 4,
+            x2: drawEndCoord,
+            y2: canvasYPos + 4,
+            color
+          })
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos + 4,
+            x2: drawEndCoord,
+            y2: canvasYPos,
+            color
+          })
           break
         default: // other types of elements
-          drawLine({x: drawStartCoord, y: canvasYPos,
-                    x2: drawEndCoord, y2: canvasYPos, color})
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos,
+            x2: drawEndCoord,
+            y2: canvasYPos,
+            color
+          })
           console.log(`Unhandled variant type ${variantCategory}; drawing default shape`)
       }
       // Move and display highlighted region
@@ -157,7 +172,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
         x: scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
         y: textYPos + this.featureHeight,
-        fontProp: textSize,
+        fontProp: textSize
       })
 
       // Set tooltip text

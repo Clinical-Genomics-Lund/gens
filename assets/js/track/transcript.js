@@ -122,7 +122,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         text: `${geneName}${mane}${element.strand === '+' ? '→' : '←'}`,
         x: Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
         y: textYPos + this.featureHeight,
-        fontProp: textSize,
+        fontProp: textSize
       })
     }
 

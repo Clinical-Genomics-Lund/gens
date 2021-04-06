@@ -1,9 +1,9 @@
 // Overview canvas definition
 
-import { BaseScatterTrack } from './track.js'
+import { BaseScatterTrack, CHROMOSOMES } from './track.js'
 import { create, get } from './fetch.js'
 import { createGraph, drawPoints, drawGraphLines, drawText, drawRotatedText } from './draw.js'
-import { CHROMOSOMES } from './track.js'
+
 import { drawTrack } from './navigation.js'
 
 export class OverviewCanvas extends BaseScatterTrack {
@@ -132,7 +132,9 @@ export class OverviewCanvas extends BaseScatterTrack {
       ctx,
       x: chromCovData.x_pos - this.leftRightPadding + width / 2,
       y: chromCovData.y_pos - this.titleMargin,
-      text: chromCovData.chrom, fontProp: 10, align: 'center'
+      text: chromCovData.chrom,
+      fontProp: 10,
+      align: 'center'
     })
 
     // Draw rotated y-axis legends

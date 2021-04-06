@@ -28,7 +28,7 @@ export function drawRotatedText (ctx, text, textSize, posx, posy, rot, color = '
 }
 
 // Draw aligned text at (x, y)
-export function drawText ({ctx, x, y, text, fontProp, align = 'center'}) {
+export function drawText ({ ctx, x, y, text, fontProp, align = 'center' }) {
   ctx.save()
   ctx.font = ''.concat(fontProp, 'px Arial')
   ctx.textAlign = align
@@ -46,7 +46,7 @@ export function drawText ({ctx, x, y, text, fontProp, align = 'center'}) {
 }
 
 // Draws a line between point (x, y) and (x2, y2)
-export function drawLine ({ctx, x, y, x2, y2, lineWidth = 1, color = 'black'}) {
+export function drawLine ({ ctx, x, y, x2, y2, lineWidth = 1, color = 'black' }) {
   // transpose coordinates .5 px to become sharper
   x = Math.floor(x) + 0.5
   x2 = Math.floor(x2) + 0.5
@@ -63,8 +63,10 @@ export function drawLine ({ctx, x, y, x2, y2, lineWidth = 1, color = 'black'}) {
 }
 
 // Draws a box from top left corner with a top and bottom margin
-export function drawRect ({ctx, x, y, width, height, lineWidth, color=null,
-                           fillColor = null, open = false}) {
+export function drawRect ({
+  ctx, x, y, width, height, lineWidth, color = null,
+  fillColor = null, open = false
+}) {
   x = Math.floor(x) + 0.5
   y = Math.floor(y) + 0.5
   width = Math.floor(width)
@@ -82,7 +84,7 @@ export function drawRect ({ctx, x, y, width, height, lineWidth, color=null,
     ctx.lineTo(x, y + height)
     ctx.stroke()
   // Draw normal 4-sided box
-  } else if ( fillColor ) {
+  } else if (fillColor) {
     ctx.fillStyle = fillColor
     ctx.fillRect(x, y, width, height)
   } else {
@@ -93,7 +95,7 @@ export function drawRect ({ctx, x, y, width, height, lineWidth, color=null,
 // Draw an arrow in desired direction
 // Forward arrow: direction = 1
 // Reverse arrow: direction = -1
-export async function drawArrow ({ctx, x, y, dir, height, lineWidth = 2, color = 'black'}) {
+export async function drawArrow ({ ctx, x, y, dir, height, lineWidth = 2, color = 'black' }) {
   const width = dir * lineWidth
   ctx.save()
   ctx.strokeStyle = color
@@ -111,7 +113,7 @@ export async function drawArrow ({ctx, x, y, dir, height, lineWidth = 2, color =
 // Pattern is drawn by incrementing pointer by a half wave length and plot either
 // upward (/) or downward (\) line.
 // if the end is trunctated a partial wave is plotted.
-export function drawWaveLine ({ctx, x, y, x2, height, color = 'black', lineWidth = 2}) {
+export function drawWaveLine ({ ctx, x, y, x2, height, color = 'black', lineWidth = 2 }) {
   ctx.save()
   ctx.strokeStyle = color
   ctx.lineWidth = lineWidth

@@ -81,7 +81,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     // redraw events
     this.contentCanvas.parentElement.addEventListener('draw', event => {
       console.log('interactive got draw event')
-      this.drawInteractiveContent({...event.detail.region, ...event.detail})
+      this.drawInteractiveContent({ ...event.detail.region, ...event.detail })
     })
     // navigation events
     this.contentCanvas.addEventListener('mousedown', (event) => {

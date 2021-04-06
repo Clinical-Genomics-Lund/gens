@@ -58,9 +58,14 @@ export function drawGraphLines ({ ctx, x, y, yStart, yEnd, stepLength, yMargin, 
   for (let step = yStart; step >= yEnd; step -= stepLength) {
     // Draw horizontal line
     const yPos = y + yMargin + (yStart - step) * ampl
-    drawLine({ctx, x, y: yPos,
-              x2: x + width - 2 * lineThickness,
-              y2: yPos, color: '#e5e5e5'})
+    drawLine({
+      ctx,
+      x,
+      y: yPos,
+      x2: x + width - 2 * lineThickness,
+      y2: yPos,
+      color: '#e5e5e5'
+    })
   }
 }
 
@@ -74,7 +79,7 @@ export function createGraph (ctx, x, y, width, height, yMargin, yStart,
   }
 
   // Draw surrounding coordinate box
-  drawRect({ctx, x, y, width, height, lineWidth: 1, color, open})
+  drawRect({ ctx, x, y, width, height, lineWidth: 1, color, open })
 }
 
 // Draws tick marks for selected values between
@@ -86,13 +91,25 @@ function drawTicks (ctx, x, y, yStart, yEnd, stepLength, yMargin, width, height,
   const lineWidth = 4
 
   for (let step = yStart; step >= yEnd; step -= stepLength) {
-    drawText({ctx, x: x - lineWidth, y: y + (yStart - step) * ampl + 2.2,
-              text: step.toFixed(1), textSize: 10, align: 'right'})
+    drawText({
+      ctx,
+      x: x - lineWidth,
+      y: y + (yStart - step) * ampl + 2.2,
+      text: step.toFixed(1),
+      textSize: 10,
+      align: 'right'
+    })
 
     // Draw tick line
     drawLine({
-      ctx, x: x - lineWidth, y: y + (yStart - step) * ampl,
-      x2: x, y2: y + (yStart - step) * ampl, lineWidth: lineThickness, color})
+      ctx,
+      x: x - lineWidth,
+      y: y + (yStart - step) * ampl,
+      x2: x,
+      y2: y + (yStart - step) * ampl,
+      lineWidth: lineThickness,
+      color
+    })
   }
 }
 

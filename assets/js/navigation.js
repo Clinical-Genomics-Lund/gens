@@ -2,7 +2,7 @@ import { get } from './fetch.js'
 import { CHROMOSOMES } from './track.js'
 import { chromSizes } from './helper.js'
 
-function redrawEvent ({region, exclude = [], ...kwargs}) {
+function redrawEvent ({ region, exclude = [], ...kwargs }) {
   return new CustomEvent(
     'draw', { detail: { region: region, exclude: exclude, ...kwargs } }
   )
@@ -20,7 +20,7 @@ function drawEventManager ({ target, throttleTime }) {
       lastEventTime = Date.now()
       for (const track of tracks) {
         if (!event.detail.exclude.includes(track.id)) {
-          track.dispatchEvent(redrawEvent({...event.detail}))
+          track.dispatchEvent(redrawEvent({ ...event.detail }))
         }
       }
     }
@@ -74,13 +74,13 @@ export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38
   //  ensure the window size stay the same
   const windowSize = end - start + 1 >= chromSize ? chromSize : end - start
   let updStart, updEnd
-  if ( windowSize >= chromSize ) {
+  if (windowSize >= chromSize) {
     updStart = 1
     updEnd = chromSize
-  } else if ( start < 1 ) {
+  } else if (start < 1) {
     updStart = 1
     updEnd = windowSize
-  } else if ( end > chromSize ) {
+  } else if (end > chromSize) {
     updStart = chromSize - windowSize
     updEnd = chromSize
   } else {
@@ -99,7 +99,7 @@ export async function drawTrack ({
   updateInputField({ ...region })
   const trackContainer = document.getElementById('visualization-container')
   trackContainer.dispatchEvent(
-    redrawEvent({region, exclude, force, ...kwargs})
+    redrawEvent({ region, exclude, force, ...kwargs })
   )
   // make overview update its region marking
   document.getElementById('overview-container').dispatchEvent(

@@ -161,7 +161,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
           text: annotationName,
           x: scale * ((start + end) / 2 - this.offscreenPosition.start),
           y: textYPos + this.featureHeight,
-          fontProp: textSize,
+          fontProp: textSize
         })
       }
 
