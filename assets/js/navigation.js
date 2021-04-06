@@ -70,17 +70,21 @@ export function parseRegionDesignation (regionString) {
 export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38' }) {
   // assert that start/stop are within start and end of chromosome
   const sizes = await chromSizes(hgType)
+  const chromSize = sizes[chrom]
   start = start === null ? 1 : start
-  end = end === null ? sizes[chrom] : end
+  end = end === null ? chromSize : end
   //  ensure the window size stay the same
-  const windowSize = end - start
+  const windowSize = end - start + 1 >= chromSize ? chromSize : end - start
   let updStart, updEnd
-  if (start < 1) {
+  if ( windowSize >= chromSize ) {
+    updStart = 1
+    updEnd = chromSize
+  } else if ( start < 1 ) {
     updStart = 1
     updEnd = windowSize
-  } else if (end > sizes[chrom]) {
-    updStart = sizes[chrom] - windowSize
-    updEnd = sizes[chrom]
+  } else if ( end > chromSize ) {
+    updStart = chromSize - windowSize
+    updEnd = chromSize
   } else {
     updStart = start
     updEnd = end
