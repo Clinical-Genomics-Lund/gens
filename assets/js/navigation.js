@@ -130,14 +130,14 @@ export function queryRegionOrGene (query, hgType = 38) {
 // goto the next chromosome
 export function nextChromosome () {
   const position = readInputField()
-  const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) - 1]
+  const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) + 1]
   drawTrack({ chrom: chrom, start: 1, end: null })
 }
 
 // goto the previous chromosome
 export function previousChromosome () {
   const position = readInputField()
-  const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) + 1]
+  const chrom = CHROMOSOMES[CHROMOSOMES.indexOf(position.chrom) - 1]
   drawTrack({ chrom: chrom, start: 1, end: null })
 }
 
@@ -249,10 +249,10 @@ document.addEventListener('keyevent', event => {
     }
     switch (key) {
       case 'ArrowLeft':
-        nextChromosome()
+        previousChromosome()
         break
       case 'ArrowRight':
-        previousChromosome()
+        nextChromosome()
         break
       case 'a':
         panTracks('left')

@@ -17,7 +17,7 @@ export function isElementOverlapping (first, second) {
 }
 
 // Calculate offscreen position
-export function calculateOffscreenWindiowPos ({ start, end, multiplier }) {
+export function calculateOffscreenWindowPos ({ start, end, multiplier }) {
   const width = end - start
   const padding = ((width * multiplier) - width) / 2
   // const paddedStart = (start - padding) > 0 ? (start - padding) : 1;
@@ -262,7 +262,7 @@ export class BaseAnnotationTrack {
          this.offscreenPosition.scale !== this.contentCanvas.width / (end - start) ||
          updatedData
     ) {
-      const offscreenPos = calculateOffscreenWindiowPos({
+      const offscreenPos = calculateOffscreenWindowPos({
         start: start, end: end, multiplier: this.drawCanvasMultiplier
       })
       // draw offscreen position for the first time
