@@ -36,7 +36,7 @@ export function lightenColor (color, percent) {
   return '#' + (0x1000000 + (red < 255 ? red < 1 ? 0 : red : 255) * 0x10000 + (blue < 255 ? blue < 1 ? 0 : blue : 255) * 0x100 + (green < 255 ? green < 1 ? 0 : green : 255)).toString(16).slice(1)
 };
 
-export class BaseFrequencyTrack {
+export class BaseScatterTrack {
   constructor ({ sampleName, hgType, hgFileDir }) {
     // setup IO
     this.sampleName = sampleName // File name to load data from

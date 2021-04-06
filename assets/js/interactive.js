@@ -3,9 +3,9 @@
 import { drawRotatedText, drawPoints, drawText, createGraph, drawVerticalTicks, drawGraphLines } from './draw.js'
 import { drawTrack, zoomIn, zoomOut, keyLogger, limitRegionToChromosome, readInputField } from './navigation.js'
 import { get } from './fetch.js'
-import { BaseFrequencyTrack } from './track.js'
+import { BaseScatterTrack } from './track.js'
 
-export class InteractiveCanvas extends BaseFrequencyTrack {
+export class InteractiveCanvas extends BaseScatterTrack {
   constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
     super({ sampleName, hgType, hgFileDir })
     // The canvas input field to display and fetch chromosome range from

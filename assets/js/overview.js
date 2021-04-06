@@ -1,12 +1,12 @@
 // Overview canvas definition
 
-import { BaseFrequencyTrack } from './track.js'
+import { BaseScatterTrack } from './track.js'
 import { create, get } from './fetch.js'
 import { createGraph, drawPoints, drawGraphLines, drawText, drawRotatedText } from './draw.js'
 import { CHROMOSOMES } from './track.js'
 import { drawTrack } from './navigation.js'
 
-export class OverviewCanvas extends BaseFrequencyTrack {
+export class OverviewCanvas extends BaseScatterTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
     super({ sampleName, hgType, hgFileDir })
