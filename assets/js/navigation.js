@@ -2,9 +2,9 @@ import { get } from './fetch.js'
 import { CHROMOSOMES } from './track.js'
 import { chromSizes } from './helper.js'
 
-function redrawEvent (region, exclude = [], force) {
+function redrawEvent ({region, exclude = [], ...kwargs}) {
   return new CustomEvent(
-    'draw', { detail: { region: region, exclude: exclude, force: force } }
+    'draw', { detail: { region: region, exclude: exclude, ...kwargs } }
   )
 }
 
@@ -17,12 +17,10 @@ function drawEventManager ({ target, throttleTime }) {
     if (throttleTime < Date.now() - lastEventTime ||
          event.detail.force
     ) {
-      console.log('===> fire event')
       lastEventTime = Date.now()
       for (const track of tracks) {
         if (!event.detail.exclude.includes(track.id)) {
-          console.log('redirected event to ', target)
-          track.dispatchEvent(redrawEvent(event.detail.region))
+          track.dispatchEvent(redrawEvent({...event.detail}))
         }
       }
     }
@@ -94,14 +92,14 @@ export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38
 
 export async function drawTrack ({
   chrom, start, end, hgType = '38',
-  exclude = [], force = false
+  exclude = [], force = false, ...kwargs
 }) {
   // update input field
   const region = await limitRegionToChromosome({ chrom, start, end })
   updateInputField({ ...region })
   const trackContainer = document.getElementById('visualization-container')
   trackContainer.dispatchEvent(
-    redrawEvent(region, exclude, force)
+    redrawEvent({region, exclude, force, ...kwargs})
   )
   // make overview update its region marking
   document.getElementById('overview-container').dispatchEvent(

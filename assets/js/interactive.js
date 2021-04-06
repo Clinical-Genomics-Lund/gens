@@ -81,7 +81,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     // redraw events
     this.contentCanvas.parentElement.addEventListener('draw', event => {
       console.log('interactive got draw event')
-      this.drawInteractiveContent({...event.detail.region})
+      this.drawInteractiveContent({...event.detail.region, ...event.detail})
     })
     // navigation events
     this.contentCanvas.addEventListener('mousedown', (event) => {
@@ -159,7 +159,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
         }
       } else if (this.drag) {
         // reload window when stop draging
-        drawTrack({ ...readInputField(), force: true })
+        drawTrack({ ...readInputField(), force: true, displayLoading: false })
       }
       // reset dragging behaviour
       this.markingRegion = false
@@ -204,9 +204,9 @@ export class InteractiveCanvas extends BaseScatterTrack {
   }
 
   // Draw values for interactive canvas
-  async drawInteractiveContent ({ chrom, start, end, clear = true }) {
+  async drawInteractiveContent ({ chrom, start, end, displayLoading = true }) {
     console.log('drawing interactive canvas', chrom, start, end)
-    if (clear) {
+    if (displayLoading) {
       this.loadingDiv.style.display = 'block'
     } else {
       document.getElementsByTagName('body')[0].style.cursor = 'wait'
@@ -309,7 +309,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
 
       return result
     }).then((result) => {
-      if (clear) {
+      if (displayLoading) {
         this.loadingDiv.style.display = 'none'
       } else {
         document.getElementsByTagName('body')[0].style.cursor = 'auto'
@@ -414,7 +414,8 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.blitInteractiveCanvas({ start: region.start, end: region.end, updateCoord: false })
     drawTrack({
       ...region,
-      exclude: [`${this.contentCanvas.parentElement.id}`]
+      exclude: [`${this.contentCanvas.parentElement.id}`],
+      displayLoading: false
     })
   }
 }
