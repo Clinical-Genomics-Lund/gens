@@ -49,7 +49,7 @@
         </div>
         <div id='right-group'>
             <span class='header-icon print no-print'
-                onclick='loadPrintPage(inputField.value);' title='Print'>
+                onclick='gens.loadPrintPage(inputField.value);' title='Print'>
             </span>
             <span class='header-icon permalink no-print'
                 onclick='gens.copyPermalink("{{hg_type}}", inputField.value);' title='Copy permalink'>
@@ -104,6 +104,7 @@
     // Print page settings
     let printing = false;
     if ('{{print_page}}' == 'true') {
+        console.log('printing fools')
         printing = true;
         let mainContainer = document.querySelector('#main-container');
         mainContainer.style.width = '1122px';
@@ -147,7 +148,7 @@
                 .style.display = 'grid';
         // display printing
         if (printing == true) {
-          printPage();
+          gens.printPage();
         }
     });
 

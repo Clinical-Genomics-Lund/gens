@@ -45,4 +45,20 @@ export function copyPermalink (hgType, region) {
   tempElement.remove() // remove temp node
 }
 
+// Reloads page to printable size
+export function loadPrintPage(region) {
+  let location = window.location.href.replace(/region=.*&/, `region=${region}&`);
+  location = location.includes('?') ? `${location}&print_page=true` : `${location}?print_page=true`
+  window.location.replace(location);
+}
+
+// Show print prompt and reloads page after print
+export function printPage () {
+  document.querySelector('.no-print').toggleAttribute('hidden')
+  window.addEventListener('afterprint', () => {
+    window.location.replace(window.location.href.replace('&print_page=true', ''))
+  }, { once: true })
+  print()
+}
+
 export { CHROMOSOMES  } from './track.js'
