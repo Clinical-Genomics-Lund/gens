@@ -26,7 +26,7 @@ RUN apt-get update &&                                                     \
 
 FROM node:14.15.5-alpine3.10 as node-builder
 WORKDIR /usr/src/app
-COPY package.json package-lock.json gulpfile.js ./
+COPY package.json package-lock.json webpack.config.js gulpfile.js ./
 COPY assets assets
 RUN npm install && npm run build
 
