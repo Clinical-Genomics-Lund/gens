@@ -178,12 +178,11 @@ html, body {
 
 #visualization-container {
     height: min-content;
-    display: grid;
+    display: none;
     grid-row: 1;
     grid-column: 1;
 
 }
-
 
 #button-container {
     text-align: center;
@@ -201,6 +200,12 @@ html, body {
 
     form {
         margin-left: 15px;
+        display: inline;
+    }
+
+    form.error:disabled {
+        outline: 5px dotted red;
+        background-color: red;
     }
 
     .button {
@@ -276,15 +281,6 @@ html, body {
     height: 100%;
     height: 21px;
     width: 200px;
-}
-
-#region_form {
-    display: inline;
-}
-
-#region_field.error:disabled {
-    outline: 5px dotted red;
-    background-color: red;
 }
 
 #times {
@@ -424,13 +420,16 @@ html, body {
 }
 
 .loading-view {
-    $black: #000;
-    z-index: 2;
+    // pos
+    position: absolute;
+    z-index: 99;
     width: 100%;
     height: 100%;
-    grid-row: 1;
-    grid-column: 1;
+    margin: 0;
+    // style
+    $black: #000;
     background-color: $default-bg-color;
+
     .loading-container {
         position: relative;
         top: 30%;

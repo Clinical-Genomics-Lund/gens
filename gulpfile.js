@@ -96,4 +96,5 @@ gulp.task('build-error-css-dev', () => {
 gulp.task('watch', () => {
   gulp.watch(`${assetPath}/css/*.scss`, gulp.parallel('build-gens-css-dev', 'build-base-css-dev', 'build-error-css-dev'));
   gulp.watch(`${assetPath}/js/*.js`, gulp.parallel('build-js-dev'))
+  gulp.watch(`${assetPath}/js/*/*.js`, gulp.parallel('build-js-dev'))
 })

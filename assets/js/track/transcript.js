@@ -1,8 +1,9 @@
 // Transcript definition
 
-import { Track, pSBC, isElementOverlapping } from './track.js'
+import { BaseAnnotationTrack, isElementOverlapping, lightenColor } from './base.js'
+import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
 
-export class TranscriptTrack extends Track {
+export class TranscriptTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
@@ -53,10 +54,16 @@ export class TranscriptTrack extends Track {
         //   `${this.featureHeight}px`,
         //   1,
         //   this.heightOrderRecord.latestTrackEnd);
-        this.drawBox(
-          scale * (feature.start - this.offscreenPosition.start),
-          canvasYPos, scale * (feature.end - feature.start),
-          this.featureHeight, color)
+        drawRect({
+          ctx: this.drawCtx,
+          x: scale * (feature.start - this.offscreenPosition.start),
+          y: canvasYPos - this.featureHeight / 2,
+          width: scale * (feature.end - feature.start),
+          height: this.featureHeight,
+          lineWidth: 1,
+          fillColor: color,
+          open: false
+        })
       }
     }
   }
@@ -75,7 +82,7 @@ export class TranscriptTrack extends Track {
     const textSize = plotFormat.textSize
     const titleMargin = plotFormat.titleMargin
     // lighten colors for MANE transcripts
-    const elementColor = element.mane ? pSBC(0.25, color) : color
+    const elementColor = element.mane ? lightenColor(color, 15) : color
 
     // Keep track of latest track
     if (this.heightOrderRecord.latestHeight !== element.height_order) {
@@ -97,24 +104,26 @@ export class TranscriptTrack extends Track {
         ? scale * (trEnd - this.offscreenPosition.start)
         : this.offscreenPosition.end)
     )
-    this.drawLine(
-      displayedTrStart,
-      displayedTrEnd,
-      canvasYPos,
-      elementColor,
-      this.geneLineWidth // set width of the element
-    )
+    drawLine({
+      ctx: this.drawCtx,
+      x: displayedTrStart,
+      x2: displayedTrEnd,
+      y: canvasYPos,
+      y2: canvasYPos,
+      color: elementColor,
+      lineWith: this.geneLineWidth // set width of the element
+    })
     // Draw gene name
     const textYPos = this.tracksYPos(element.height_order)
     if (drawName) {
       const mane = element.mane ? ' [MANE] ' : ''
-      this.heightOrderRecord.latestNameEnd = this.drawText(
-        `${geneName}${mane}${element.strand === '+' ? '→' : '←'}`,
-        Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
-        textYPos + this.featureHeight,
-        textSize,
-        this.heightOrderRecord.latestNameEnd
-      )
+      drawText({
+        ctx: this.drawCtx,
+        text: `${geneName}${mane}${element.strand === '+' ? '→' : '←'}`,
+        x: Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
+        y: textYPos + this.featureHeight,
+        fontProp: textSize
+      })
     }
 
     // Set tooltip text
@@ -129,14 +138,15 @@ export class TranscriptTrack extends Track {
 
     // draw arrows in gene
     if (drawAsArrow) {
-      this.drawArrow(
-        element.strand === '+' ? displayedTrEnd : displayedTrStart, // xPos
-        canvasYPos, // yPos
-        element.strand === '+' ? 1 : -1, // direction
-        this.featureHeight / 2, // height
-        this.geneLineWidth, // lineWidth
-        elementColor // color
-      )
+      drawArrow({
+        ctx: this.drawCtx,
+        x: element.strand === '+' ? displayedTrEnd : displayedTrStart, // xPos
+        y: canvasYPos, // yPos
+        dir: element.strand === '+' ? 1 : -1, // direction
+        height: this.featureHeight / 2, // height
+        lineWidth: this.geneLineWidth, // lineWidth
+        color: elementColor // color
+      })
     } else {
       // draw features
       for (const feature of element.features) {

@@ -1,11 +1,12 @@
 // Variant track definition
 
-import { Track, isElementOverlapping } from './track.js'
+import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
 
-export class VariantTrack extends Track {
+export class VariantTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
@@ -19,7 +20,6 @@ export class VariantTrack extends Track {
     this.trackTitle = document.getElementById('variant-titles')
     this.trackContainer = document.getElementById('variant-track-container')
     this.featureHeight = 18
-    this.arrowThickness = 2
 
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1)
@@ -37,11 +37,16 @@ export class VariantTrack extends Track {
 
   // Draw highlight for a given region
   drawHighlight (startPos, endPos, color = 'rgb(255, 200, 87, 0.5)') {
-    this.drawBox(startPos, 0,
-      endPos - startPos + 1,
-      this.visibleHeight,
-      color
-    )
+    drawRect({
+      ctx: this.drawCtx,
+      x: startPos,
+      y: 0,
+      width: endPos - startPos + 1,
+      height: this.visibleHeight,
+      lineWidth: 0,
+      fillColor: color,
+      open: false
+    })
   }
 
   async drawOffScreenTrack (queryResult) {
@@ -120,18 +125,39 @@ export class VariantTrack extends Track {
       const waveHeight = 7
       switch (variantCategory) {
         case 'del':
-          this.drawWaveLine(drawStartCoord,
-            drawEndCoord,
-            (canvasYPos + waveHeight) / 2,
-            waveHeight,
-            color)
+          drawWaveLine({
+            ctx: this.drawCtx,
+            x: drawStartCoord,
+            y: (canvasYPos + waveHeight) / 2,
+            x2: drawEndCoord,
+            height: waveHeight,
+            color
+          })
           break
         case 'dup':
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos + 4, color)
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color)
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos + 4,
+            x2: drawEndCoord,
+            y2: canvasYPos + 4,
+            color
+          })
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos + 4,
+            x2: drawEndCoord,
+            y2: canvasYPos,
+            color
+          })
           break
         default: // other types of elements
-          this.drawLine(drawStartCoord, drawEndCoord, canvasYPos, color)
+          drawLine({
+            x: drawStartCoord,
+            y: canvasYPos,
+            x2: drawEndCoord,
+            y2: canvasYPos,
+            color
+          })
           console.log(`Unhandled variant type ${variantCategory}; drawing default shape`)
       }
       // Move and display highlighted region
@@ -141,13 +167,13 @@ export class VariantTrack extends Track {
 
       const textYPos = this.tracksYPos(heightOrder)
       // Draw variant type
-      this.heightOrderRecord.latestNameEnd = this.drawText(
-        `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
-        textYPos + this.featureHeight,
-        textSize,
-        this.heightOrderRecord.latestNameEnd
-      )
+      drawText({
+        ctx: this.drawCtx,
+        text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+        x: scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
+        y: textYPos + this.featureHeight,
+        fontProp: textSize
+      })
 
       // Set tooltip text
       const variantText = `Id: ${variantName}\n` +

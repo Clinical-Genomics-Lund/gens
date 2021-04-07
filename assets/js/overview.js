@@ -1,13 +1,15 @@
 // Overview canvas definition
 
-import { FrequencyTrack } from './interactive.js'
+import { BaseScatterTrack, CHROMOSOMES } from './track.js'
 import { create, get } from './fetch.js'
-import { createGraph, drawData, drawGraphLines, drawText, drawRotatedText } from './genecanvas.js'
+import { createGraph, drawPoints, drawGraphLines, drawText, drawRotatedText } from './draw.js'
 
-export class OverviewCanvas extends FrequencyTrack {
+import { drawTrack } from './navigation.js'
+
+export class OverviewCanvas extends BaseScatterTrack {
   constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
     hgType, hgFileDir) {
-    super(sampleName, hgType, hgFileDir)
+    super({ sampleName, hgType, hgFileDir })
 
     // Plot variables
     this.fullPlotWidth = fullPlotWidth // Width for all chromosomes to fit in
@@ -51,32 +53,29 @@ export class OverviewCanvas extends FrequencyTrack {
     // Set dimensions of overview canvases
     this.staticCanvas.width = this.width
     this.staticCanvas.height = this.height
-    get('get-overview-chrom-dim', {
-      x_pos: this.x,
-      y_pos: this.y,
-      plot_width: this.fullPlotWidth,
-      hg_type: this.hgType
-    })
-      .then(result => { this.dims = result.chrom_dims })
-
-    // Select a chromosome in overview track
-    this.staticCanvas.addEventListener('mousedown', (event) => {
-      event.stopPropagation()
-      const selectedChrom = this.pixelPosToGenomicLoc(event.x)
-      // Dont update if chrom previously selected
-      // Move interactive view to selected region
-      ic.chromosome = selectedChrom.chrom
-      ic.start = 0
-      ic.end = this.dims[ic.chromosome].size - 1
-      // Mark region
-      this.markRegion(selectedChrom.chrom, ic.start, ic.end)
-      ic.redraw() // redraw canvas
+    this.getOverviewChromDim().then(() => {
+      // Select a chromosome in overview track
+      this.staticCanvas.addEventListener('mousedown', event => {
+        event.stopPropagation()
+        const selectedChrom = this.pixelPosToGenomicLoc(event.x)
+        // Dont update if chrom previously selected
+        // Move interactive view to selected region
+        const chrom = selectedChrom.chrom
+        const start = 1
+        const end = this.dims[chrom].size - 1
+        // Mark region
+        this.markRegion({ chrom, start, end })
+        drawTrack({ chrom, start, end }) // redraw canvas
+      })
+      this.staticCanvas.parentElement.addEventListener('mark-region', event => {
+        this.markRegion({ ...event.detail.region })
+      })
     })
   }
 
   pixelPosToGenomicLoc (pixelpos) {
     const match = {}
-    for (const i of this.chromosomes) {
+    for (const i of CHROMOSOMES) {
       const chr = this.dims[i]
       if (pixelpos > chr.x_pos && pixelpos < chr.x_pos + chr.width) {
         match.chrom = i
@@ -86,8 +85,27 @@ export class OverviewCanvas extends FrequencyTrack {
     return match
   }
 
-  markRegion (chrom, start, end) {
-    if (this.dims !== null) {
+  async getOverviewChromDim () {
+    await get('get-overview-chrom-dim', {
+      x_pos: this.x,
+      y_pos: this.y,
+      plot_width: this.fullPlotWidth,
+      hg_type: this.hgType
+    }).then(result => {
+      this.dims = result.chrom_dims
+      this.chromPos = CHROMOSOMES.map(chrom => {
+        return {
+          region: `${chrom}:0-None`,
+          x_pos: this.dims[chrom].x_pos + this.leftRightPadding,
+          y_pos: this.dims[chrom].y_pos,
+          x_ampl: this.dims[chrom].width - 2 * this.leftRightPadding
+        }
+      })
+    })
+  }
+
+  markRegion ({ chrom, start, end }) {
+    if (this.dims !== undefined) {
       const scale = this.dims[chrom].width / this.dims[chrom].size
       const overviewMarker = document.getElementById('overview-marker')
 
@@ -107,94 +125,98 @@ export class OverviewCanvas extends FrequencyTrack {
     }
   }
 
-  async drawOverviewContent (printing) {
-    get('get-overview-chrom-dim', {
-      x_pos: this.x,
-      y_pos: this.y,
-      plot_width: this.fullPlotWidth,
-      hg_type: this.hgType
-    }).then(result => {
-      const dims = result.chrom_dims
-      // make index of chromosome screen positions
-      const chromPos = this.chromosomes.map(chrom => {
-        return {
-          region: `${chrom}:0-None`,
-          x_pos: dims[chrom].x_pos + this.leftRightPadding,
-          y_pos: dims[chrom].y_pos,
-          x_ampl: dims[chrom].width - 2 * this.leftRightPadding
-        }
-      })
-      // make a single request with all chromosome positions
-      console.time('getcov-overview')
-      create('get-multiple-coverages', {
-        sample_id: this.sampleName,
-        hg_type: this.hgType,
-        plot_height: this.plotHeight,
-        chromosome_pos: chromPos,
-        top_bottom_padding: this.topBottomPadding,
-        baf_y_start: this.baf.yStart,
-        baf_y_end: this.baf.yEnd,
-        log2_y_start: this.log2.yStart,
-        log2_y_end: this.log2.yEnd,
-        overview: 'True',
-        reduce_data: 1
-      }).then(covData => {
-        console.timeEnd('getcov-overview')
-        const staticCanvas = document.getElementById('overview-static')
-        const chromSubset = Object.keys(covData.results) // get chromosome in subset
-        // iter over chromosome subset
-        for (let i = 0; i < chromSubset.length; i++) {
-          const chrom = chromSubset[i]
-          const width = dims[chrom].width
-          const chromCovData = covData.results[chrom]
-          // Draw chromosome title
-          drawText(staticCanvas,
-            chromCovData.x_pos - this.leftRightPadding + width / 2,
-            chromCovData.y_pos - this.titleMargin,
-            chromCovData.chrom, 10, 'center')
-
-          // Draw rotated y-axis legends
-          if (chromCovData.x_pos < this.leftmostPoint) {
-            drawRotatedText(this.staticCanvas, 'B Allele Freq', 18, chromCovData.x_pos - this.legendMargin,
-              chromCovData.y_pos + this.plotHeight / 2, -Math.PI / 2, this.titleColor)
-            drawRotatedText(this.staticCanvas, 'Log2 Ratio', 18, chromCovData.x_pos - this.legendMargin,
-              chromCovData.y_pos + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor)
-          }
-          // Draw BAF
-          createGraph(staticCanvas,
-            chromCovData.x_pos - this.leftRightPadding,
-            chromCovData.y_pos, width, this.plotHeight, this.topBottomPadding,
-            this.baf.yStart, this.baf.yEnd, this.baf.step,
-            chromCovData.x_pos < this.leftmostPoint, this.borderColor, i !== 0)
-          drawGraphLines(staticCanvas, chromCovData.x_pos, result.y_pos,
-            this.baf.yStart, this.baf.yEnd, this.baf.step, this.topBottomPadding,
-            width, this.plotHeight)
-
-          // Draw Log 2 ratio
-          createGraph(staticCanvas,
-            chromCovData.x_pos - this.leftRightPadding,
-            chromCovData.y_pos + this.plotHeight, width,
-            this.plotHeight, this.topBottomPadding, this.log2.yStart,
-            this.log2.yEnd, this.log2.step,
-            chromCovData.x_pos < this.leftmostPoint, this.borderColor, i !== 0)
-          drawGraphLines(staticCanvas, chromCovData.x_pos,
-            chromCovData.y_pos + this.plotHeight, this.log2.yStart,
-            this.log2.yEnd, this.log2.step, this.topBottomPadding,
-            width, this.plotHeight)
-
-          // Plot scatter data
-          drawData(staticCanvas, chromCovData.baf, this.baf.color)
-          drawData(staticCanvas, chromCovData.data, this.log2.color)
-        }
-      }).then(() => {
-        // Transfer to visible canvas
-        // this.staticCanvas.getContext('2d').drawImage(this.drawCanvas, 0, 0)
-        // communicate that data is loaded
-        document.dispatchEvent(new Event('data-loaded'))
-      }).catch(result => {
-        console.log(result.responseText)
-        // window.location.href = "/404"
-      })
+  async drawOverviewPlotSegment ({ canvas, chrom, width, chromCovData }) {
+    // Draw chromosome title
+    const ctx = canvas.getContext('2d')
+    drawText({
+      ctx,
+      x: chromCovData.x_pos - this.leftRightPadding + width / 2,
+      y: chromCovData.y_pos - this.titleMargin,
+      text: chromCovData.chrom,
+      fontProp: 10,
+      align: 'center'
     })
+
+    // Draw rotated y-axis legends
+    if (chromCovData.x_pos < this.leftmostPoint) {
+      drawRotatedText(ctx, 'B Allele Freq', 18, chromCovData.x_pos - this.legendMargin,
+        chromCovData.y_pos + this.plotHeight / 2, -Math.PI / 2, this.titleColor)
+      drawRotatedText(ctx, 'Log2 Ratio', 18, chromCovData.x_pos - this.legendMargin,
+        chromCovData.y_pos + 1.5 * this.plotHeight, -Math.PI / 2, this.titleColor)
+    }
+    // Draw BAF
+    createGraph(ctx,
+      chromCovData.x_pos - this.leftRightPadding,
+      chromCovData.y_pos, width, this.plotHeight, this.topBottomPadding,
+      this.baf.yStart, this.baf.yEnd, this.baf.step,
+      chromCovData.x_pos < this.leftmostPoint, this.borderColor, chrom !== CHROMOSOMES[0])
+    drawGraphLines({
+      ctx,
+      x: chromCovData.x_pos,
+      y: chromCovData.y_pos,
+      yStart: this.baf.yStart,
+      yEnd: this.baf.yEnd,
+      stepLength: this.baf.step,
+      yMargin: this.topBottomPadding,
+      width: width,
+      height: this.plotHeight
+    })
+
+    // Draw Log 2 ratio
+    createGraph(
+      ctx,
+      chromCovData.x_pos - this.leftRightPadding,
+      chromCovData.y_pos + this.plotHeight, width,
+      this.plotHeight, this.topBottomPadding, this.log2.yStart,
+      this.log2.yEnd, this.log2.step,
+      chromCovData.x_pos < this.leftmostPoint, this.borderColor, chrom !== CHROMOSOMES[0])
+    drawGraphLines({
+      ctx,
+      x: chromCovData.x_pos,
+      y: chromCovData.y_pos + this.plotHeight,
+      yStart: this.log2.yStart,
+      yEnd: this.log2.yEnd,
+      stepLength: this.log2.step,
+      yMargin: this.topBottomPadding,
+      width: width,
+      height: this.plotHeight
+    })
+    // Plot scatter data
+    drawPoints({
+      ctx,
+      data: chromCovData.baf,
+      color: this.baf.color
+    })
+    drawPoints({
+      ctx,
+      data: chromCovData.data,
+      color: this.log2.color
+    })
+  }
+
+  async drawOverviewContent (printing) {
+    await this.getOverviewChromDim()
+    // query gens for coverage values
+    const covData = await create('get-multiple-coverages', {
+      sample_id: this.sampleName,
+      hg_type: this.hgType,
+      plot_height: this.plotHeight,
+      chromosome_pos: this.chromPos,
+      top_bottom_padding: this.topBottomPadding,
+      baf_y_start: this.baf.yStart,
+      baf_y_end: this.baf.yEnd,
+      log2_y_start: this.log2.yStart,
+      log2_y_end: this.log2.yEnd,
+      overview: 'True',
+      reduce_data: 1
+    })
+    for (const [chrom, res] of Object.entries(covData.results)) {
+      this.drawOverviewPlotSegment({
+        canvas: this.staticCanvas,
+        chrom: chrom,
+        width: this.dims[chrom].width,
+        chromCovData: res
+      })
+    }
   }
 }

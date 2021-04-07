@@ -1,9 +1,11 @@
 // Annotation track definition
 
-import { Track, isElementOverlapping } from './track.js'
-import { get } from './fetch.js'
+import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { get } from '../fetch.js'
+import { parseRegionDesignation } from '../navigation.js'
+import { drawRect, drawText } from '../draw.js'
 
-export class AnnotationTrack extends Track {
+export class AnnotationTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
     // Dimensions of track canvas
     const visibleHeight = 300 // Visible height for expanded canvas, overflows for scroll
@@ -31,9 +33,8 @@ export class AnnotationTrack extends Track {
     this.sourceList.addEventListener('change', () => {
       this.expanded = false
       this.additionalQueryParams = { source: this.sourceList.value }
-      this.drawTrack(document.getElementById('region_field').value,
-        true // force fetch data and redraw objects
-      )
+      const region = parseRegionDesignation(document.getElementById('region-field').value)
+      this.drawTrack({ forceRedraw: true, ...region })
     })
     this.annotSourceList(defaultAnnotation)
 
@@ -66,7 +67,8 @@ export class AnnotationTrack extends Track {
         }
       })
       .then(() => {
-        this.drawTrack(document.getElementById('region_field').value)
+        const region = parseRegionDesignation(document.getElementById('region-field').value)
+        this.drawTrack({ ...region })
       })
   }
 
@@ -139,34 +141,28 @@ export class AnnotationTrack extends Track {
       // Draw box for annotation
       const canvasYPos = this.tracksYPos(heightOrder)
       // if (this.expanded && heightOrder === 1 ) { continue}
-      this.drawBox(
-        scale * (start - this.offscreenPosition.start),
-        canvasYPos,
-        scale * (end - start),
-        this.featureHeight / 2,
-        color
-      )
+      drawRect({
+        ctx: this.drawCtx,
+        x: scale * (start - this.offscreenPosition.start),
+        y: canvasYPos,
+        width: scale * (end - start),
+        height: this.featureHeight / 2,
+        lineWidth: 1,
+        fillColor: color,
+        open: false
+      })
 
       const textYPos = this.tracksYPos(heightOrder)
       // limit drawing of titles to certain resolution
       if (this.getResolution < 6) {
         // Draw annotation name
-        this.heightOrderRecord.latestNameEnd = this.drawText(
-          annotationName,
-          scale * ((start + end) / 2 - this.offscreenPosition.start),
-          textYPos + this.featureHeight,
-          textSize,
-          this.heightOrderRecord.latestNameEnd)
-
-        // Draw arrows
-        if (strand) {
-          const direction = strand === '+' ? 1 : -1
-          this.drawArrows(scale * (start - this.trackData.start_pos),
-            scale * (end - this.trackData.start_pos),
-            canvasYPos,
-            direction,
-            this.arrowColor)
-        }
+        drawText({
+          ctx: this.drawCtx,
+          text: annotationName,
+          x: scale * ((start + end) / 2 - this.offscreenPosition.start),
+          y: textYPos + this.featureHeight,
+          fontProp: textSize
+        })
       }
 
       // Set tooltip text
