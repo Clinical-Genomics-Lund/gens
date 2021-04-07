@@ -4,6 +4,7 @@ const sass = require('gulp-sass');
 const rename = require('gulp-rename');
 const webpack = require('webpack');
 const sourcemaps = require('gulp-sourcemaps');
+const resolve = require('path').resolve
 let webpackConfig = require('./webpack.config.js');
 
 // define paths
@@ -69,6 +70,7 @@ const devGlobalAssets = 'gens/static'
 const devGensAssets = 'gens/blueprints/gens/static'
 gulp.task('build-js-dev', () => {
   webpackConfig['mode'] = 'development'
+  webpackConfig['ouptut']['path'] = resolve('./gens/blueprints/gens/static/')
   return runWebpack(webpackConfig)
 });
 
