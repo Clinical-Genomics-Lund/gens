@@ -37,7 +37,8 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
 export function copyPermalink (hgType, region) {
   // create element and add url to it
   const tempElement = document.createElement('input')
-  tempElement.value = `${window.location.host}?hg_type=${hgType}&region=${region}`
+  const loc = window.location
+  tempElement.value = `${loc.host}${loc.pathname}?hg_type=${hgType}&region=${region}`
   // add element to DOM
   document.body.append(tempElement)
   tempElement.select()
