@@ -136,6 +136,7 @@ export class VariantTrack extends BaseAnnotationTrack {
           break
         case 'dup':
           drawLine({
+            ctx: this.drawCtx,
             x: drawStartCoord,
             y: canvasYPos + 4,
             x2: drawEndCoord,
@@ -143,6 +144,7 @@ export class VariantTrack extends BaseAnnotationTrack {
             color
           })
           drawLine({
+            ctx: this.drawCtx,
             x: drawStartCoord,
             y: canvasYPos + 4,
             x2: drawEndCoord,
@@ -152,6 +154,7 @@ export class VariantTrack extends BaseAnnotationTrack {
           break
         default: // other types of elements
           drawLine({
+            ctx: this.drawCtx,
             x: drawStartCoord,
             y: canvasYPos,
             x2: drawEndCoord,

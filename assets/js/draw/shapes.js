@@ -16,7 +16,7 @@ export function drawPoints ({ ctx, data, color = 'black' }) {
 }
 
 // Draw 90 degree rotated text
-export function drawRotatedText (ctx, text, textSize, posx, posy, rot, color = 'black') {
+export function drawRotatedText (ctx, text, textSize = '', posx, posy, rot, color = 'black') {
   ctx.save()
   ctx.fillStyle = color
   ctx.font = ''.concat(textSize, 'px Arial')
@@ -28,7 +28,7 @@ export function drawRotatedText (ctx, text, textSize, posx, posy, rot, color = '
 }
 
 // Draw aligned text at (x, y)
-export function drawText ({ ctx, x, y, text, fontProp, align = 'center' }) {
+export function drawText ({ ctx, x, y, text, fontProp = '', align = 'center' }) {
   ctx.save()
   ctx.font = ''.concat(fontProp, 'px Arial')
   ctx.textAlign = align
@@ -71,7 +71,7 @@ export function drawRect ({
   y = Math.floor(y) + 0.5
   width = Math.floor(width)
 
-  ctx.strokeStyle = color
+  if (color !== null) ctx.strokeStyle = color
   ctx.lineWidth = lineWidth
 
   // Draw box without left part, to allow stacking boxes
@@ -84,7 +84,7 @@ export function drawRect ({
     ctx.lineTo(x, y + height)
     ctx.stroke()
   // Draw normal 4-sided box
-  } else if (fillColor) {
+  } else if (fillColor !== null) {
     ctx.fillStyle = fillColor
     ctx.fillRect(x, y, width, height)
   } else {
