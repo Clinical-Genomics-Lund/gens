@@ -6,6 +6,11 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+### Changed
+### Fixed
+
+## [1.2.0]
+### Added
  - Added github workflow for running pytest on PRs
  - Added unit tests
  - Added labels to the annotation tracks
