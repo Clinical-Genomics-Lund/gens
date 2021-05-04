@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@popperjs/core": "^2.9.2",
     "npm": "^7.5.4"
   },
   "name": "gens",
