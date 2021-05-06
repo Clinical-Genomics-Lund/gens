@@ -1,6 +1,23 @@
 // Generic functions related to drawing annotation tracks
 
 import { get } from '../fetch.js'
+import {
+  popperGenerator,
+  defaultModifiers,
+} from '@popperjs/core/lib/popper-lite';
+import flip from '@popperjs/core/lib/modifiers/flip';
+import preventOverflow from '@popperjs/core/lib/modifiers/preventOverflow';
+
+export const createPopper = popperGenerator({
+  defaultModifiers: [...defaultModifiers, flip, preventOverflow],
+});
+
+
+// check if point is within an element
+export function isWithinElementBbox({element, point}) {
+  return (element.x1 <= point.x && point.x <= element.x2) && (element.y1 <= point.y && point.y <= element.y2)
+}
+
 
 // Check if two geometries are overlapping
 // each input is an object with start/ end coordinates

@@ -114,9 +114,6 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.contentCanvas.addEventListener('mousemove', (event) => {
       event.preventDefault()
       event.stopPropagation()
-      if (tc.isOverlapping (event.x, event.y)) {
-        alert('over element')
-      }
       // If region should be marked
       if (keyLogger.heldKeys.Shift && this.allowDraw) {
         this.markingRegion = true

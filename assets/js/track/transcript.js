@@ -1,7 +1,8 @@
 // Transcript definition
 
-import { BaseAnnotationTrack, isElementOverlapping, lightenColor } from './base.js'
+import { BaseAnnotationTrack, isWithinElementBbox, isElementOverlapping, lightenColor, createPopper } from './base.js'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
+
 
 // make tooltip text
 function makeElementText(element) {
@@ -14,10 +15,36 @@ function makeElementText(element) {
   return text
 }
 
+// Make a virtual DOM element from a genetic element object
+function generateGetBoundingClientRect(x1, x2, y1, y2) {
+  return () => ({
+    width: Math.round(x2 - x1),
+    height: Math.round(y2 - y1),
+    top: y1,
+    right: x1,
+    bottom: y2,
+    left: x2,
+  })
+}
 
-function isWithinElement({element, point}) {
-  // check if point is within an element
-  return (element.x1 <= point.x && point.x <= element.x2) && (element.y1 <= point.y && point.y <= element.y2)
+
+// create popover html element with message
+function createPopover(message, id) {
+  // create popover base class
+  const popover = document.createElement('div')
+  popover.setAttribute('role', 'popover')
+  if (id !== undefined) {
+    popover.id = id
+  }
+  popover.classList.add('tooltip')
+  popover.setAttribute('role', 'popover')
+  popover.appendChild(document.createTextNode(message))
+  // add arrow div
+  const arrow = document.createElement('div')
+  arrow.classList.add('arrow')
+  arrow.setAttribute('data-popper-arrow', '')
+  popover.appendChild(arrow)
+  return popover
 }
 
 
@@ -46,7 +73,26 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // Define with of the elements
     this.geneLineWidth = 2
     this.geneticElements = []
+    // setup listeners for hover function
+    this.trackContainer.addEventListener('mousemove', 
+      (event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        for (const element of this.geneticElements) {
+          // check if element is being displayed or not
+          if ( isElementOverlapping(element, this.onscreenPosition) ) {
+            // check if mouse pointer is within displayed element
+            const visableElem = {x1: element.visibleX1, x2: element.visibleX2, y1: element.y1, y2: element.y2}
+            if (isWithinElementBbox({element: visableElem, point: {x: event.offsetX, y: event.offsetY}})) {
+              console.log('updating elelemt')
+              element.tooltip.tooltip.setAttribute('data-show', '')
+              element.tooltip.instance.update()
+          }
+        }
+      }
+    })
   }
+  
 
   // draw feature
   _drawFeature (feature, queryResult, heightOrder, canvasYPos, geneText,
@@ -62,6 +108,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     const height = Math.round(this.featureHeight)
     
     const feature_obj = {
+      name: feature.name,
       id: feature.exon_number,
       start: feature.start,
       end: feature.end,
@@ -69,6 +116,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       x2: Math.round(x + width),
       y1: Math.round(y),
       y2: Math.round(y + height),
+      isDisplayed: false,
     }
     // Draw the geometry that represents the feature
     if (feature.feature === 'exon') {
@@ -110,7 +158,6 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // store element metadata
     let transcript_obj = {
       id: element.transcript_id,
-      name: element.gene_name,
       chrom: element.chrom,
       start: element.start,
       end: element.end,
@@ -142,8 +189,8 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // store start and end coordinates
     transcript_obj.x1 = displayedTrStart
     transcript_obj.x2 = displayedTrEnd
-    transcript_obj.y1 = canvasYPos
-    transcript_obj.y2 = canvasYPos
+    transcript_obj.y1 = canvasYPos - (this.geneLineWidth / 2)
+    transcript_obj.y2 = canvasYPos + (this.geneLineWidth / 2)
     // draw transcript backbone
     drawLine({
       ctx: this.drawCtx,
@@ -190,6 +237,8 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         )
         transcript_obj.features.push(feature_obj)
       }
+      transcript_obj.y1 = Math.min(...transcript_obj.features.map(feat => feat.y1))
+      transcript_obj.y2 = Math.max(...transcript_obj.features.map(feat => feat.y2))
     }
 
     // Add tooltip title for whole gene
@@ -202,6 +251,24 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     //   0,
     //   this.heightOrderRecord.latestTrackEnd
     // );
+    // adapt coordinates to global screen coordinates from coorinates local to canvas
+    // create tooltip for transcript
+    transcript_obj.visibleX1 = Math.round((Math.max(0, transcript_obj.start - this.onscreenPosition.start) * transcript_obj.scale))
+    transcript_obj.visibleX2 = Math.round((Math.min(this.onscreenPosition.end, transcript_obj.end - this.onscreenPosition.start) * transcript_obj.scale))
+    const canvasBbox = this.contentCanvas.getBoundingClientRect()
+    transcript_obj.visibleY1 = Math.round(transcript_obj.y1 + canvasBbox.y)
+    transcript_obj.visibleY2 = Math.round(transcript_obj.y2 + canvasBbox.y)
+    const virtualElement = {
+      getBoundingClientRect: generateGetBoundingClientRect(
+        transcript_obj.visibleX1, transcript_obj.visibleX2, transcript_obj.visibleY1, transcript_obj.visibleY2,
+    )}
+    const tooltip = createPopover(`${element.gene_name} a great gene for profit $$$`, `${element.id}-popover`)
+    this.trackContainer.appendChild(tooltip)
+    transcript_obj.tooltip = {
+      instance: createPopper(virtualElement, tooltip),
+      virtualElement: virtualElement,
+      tooltip: tooltip,
+    }
     return transcript_obj
   }
 
@@ -214,6 +281,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       scale: (this.drawCanvas.width /
               (queryResult.end_pos - queryResult.start_pos))
     }
+    this.geneticElements = []
 
     // Set needed height of visible canvas and transcript tooltips
     this.setContainerHeight(queryResult.max_height_order)
