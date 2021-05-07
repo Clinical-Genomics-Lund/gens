@@ -3,12 +3,10 @@
 import { get } from '../fetch.js'
 import { hideTooltip } from './tooltip.js'
 
-
 // check if point is within an element
-export function isWithinElementBbox({element, point}) {
-  return (element.x1 <= point.x && point.x <= element.x2) && (element.y1 <= point.y && point.y <= element.y2)
+export function isWithinElementBbox ({ element, point }) {
+  return (element.x1 < point.x && point.x < element.x2) && (element.y1 < point.y && point.y < element.y2)
 }
-
 
 // Check if two geometries are overlapping
 // each input is an object with start/ end coordinates
@@ -98,7 +96,7 @@ export class BaseAnnotationTrack {
 
     // Max resolution
     this.maxResolution = 4
-    this.geneticElements = [] // for tooltips 
+    this.geneticElements = [] // for tooltips
   }
 
   tracksYPos (heightOrder) {

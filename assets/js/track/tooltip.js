@@ -1,17 +1,29 @@
 // functions for handling tooltips
 
-export function showTooltip(tooltip) {
+export function showTooltip ({ tooltip, featureId }) {
   tooltip.tooltip.setAttribute('data-show', '')
-  tooltip.isDisplayed = true 
+  if (featureId !== undefined) {
+    tooltip.tooltip.querySelector(`#feature-${featureId}`).setAttribute('data-show', '')
+  }
+  tooltip.isDisplayed = true
 }
 
-export function hideTooltip(tooltip) {
+export function hideFeatureInTooltip ({tooltip, feature}) {
+  const selectedFeature = tooltip.tooltip.querySelector(`#feature-${feature.id}`)
+  selectedFeature.removeAttribute('data-show')
+  feature.isDisplayed = false
+}
+
+export function hideTooltip (tooltip) {
   tooltip.tooltip.removeAttribute('data-show')
-  tooltip.isDisplayed = false 
+  for (const feature of tooltip.tooltip.querySelectorAll('.feature')) {
+    feature.removeAttribute('data-show')
+  }
+  tooltip.isDisplayed = false
 }
 
 // create popover html element with message
-export function createTooltipElement(message, id) {
+export function createTooltipElement (message, id) {
   // create popover base class
   const popover = document.createElement('div')
   popover.setAttribute('role', 'popover')
