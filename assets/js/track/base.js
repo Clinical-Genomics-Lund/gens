@@ -1,16 +1,7 @@
 // Generic functions related to drawing annotation tracks
 
 import { get } from '../fetch.js'
-import {
-  popperGenerator,
-  defaultModifiers,
-} from '@popperjs/core/lib/popper-lite';
-import flip from '@popperjs/core/lib/modifiers/flip';
-import preventOverflow from '@popperjs/core/lib/modifiers/preventOverflow';
-
-export const createPopper = popperGenerator({
-  defaultModifiers: [...defaultModifiers, flip, preventOverflow],
-});
+import { hideTooltip } from './tooltip.js'
 
 
 // check if point is within an element
@@ -107,6 +98,7 @@ export class BaseAnnotationTrack {
 
     // Max resolution
     this.maxResolution = 4
+    this.geneticElements = [] // for tooltips 
   }
 
   tracksYPos (heightOrder) {
@@ -144,6 +136,10 @@ export class BaseAnnotationTrack {
     this.trackContainer.addEventListener('contextmenu',
       async (event) => {
         event.preventDefault()
+        // hide all tooltips
+        for (const element of this.geneticElements) {
+          hideTooltip(element.tooltip)
+        }
         // Toggle between expanded/collapsed view
         this.expanded = !this.expanded
         // set datastate for css
