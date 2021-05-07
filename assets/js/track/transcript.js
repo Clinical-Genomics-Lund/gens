@@ -1,18 +1,36 @@
 // Transcript definition
 
-import { BaseAnnotationTrack, isWithinElementBbox, isElementOverlapping, lightenColor, createPopper } from './base.js'
+import { BaseAnnotationTrack, isWithinElementBbox, isElementOverlapping, lightenColor } from './base.js'
+import { showTooltip, hideTooltip, createTooltipElement } from './tooltip.js'
+import { createPopper } from '@popperjs/core'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
 
 
 // make tooltip text
-function makeElementText(element) {
-  let text = `${element.name}`
-  if ( element.mane ) {
-    text += '[MANE]'
+function buildTooltipContent(elem, exon) {
+  const container = document.createElement('div')
+  container.classList.add('tooltip-content')
+  // add title
+  const title = document.createElement('h4')
+  title.innerText = elem.mane ? `${elem.gene_name} [${elem.mane}]` : elem.gene_name
+  container.appendChild(title)
+  // add body information
+  const body = document.createElement('ul')
+  let information = [
+    {title: elem.chrom, value: `${elem.start}-${elem.end}`},
+    {title: 'id', value: elem.transcript_id},
+  ]
+  if ( elem.refseq_id ) {information.push({title: 'refSeq', value: elem.refseq_id})}
+  if ( elem.hgnc_id ) {information.push({title: 'hgnc', value: elem.hgnc_id})}
+  for (const info of information) {
+    let li = document.createElement('li')
+    let bold = document.createElement('strong')
+    bold.innerText = info.title
+    li.innerText = bold.innerHTML += ` : ${info.value}`
+    body.appendChild(li)
   }
-  text += `\n${element.chrom}:${element.start}-${element.end}`
-  text += `id = ${element.id}\nrefseq_id = ${element.refseqId}\nhgnc = ${element.hgncId}`
-  return text
+  container.appendChild(body)
+  return container
 }
 
 // Make a virtual DOM element from a genetic element object
@@ -25,26 +43,6 @@ function generateGetBoundingClientRect(x1, x2, y1, y2) {
     bottom: y2,
     left: x2,
   })
-}
-
-
-// create popover html element with message
-function createPopover(message, id) {
-  // create popover base class
-  const popover = document.createElement('div')
-  popover.setAttribute('role', 'popover')
-  if (id !== undefined) {
-    popover.id = id
-  }
-  popover.classList.add('tooltip')
-  popover.setAttribute('role', 'popover')
-  popover.appendChild(document.createTextNode(message))
-  // add arrow div
-  const arrow = document.createElement('div')
-  arrow.classList.add('arrow')
-  arrow.setAttribute('data-popper-arrow', '')
-  popover.appendChild(arrow)
-  return popover
 }
 
 
@@ -74,19 +72,35 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     this.geneLineWidth = 2
     this.geneticElements = []
     // setup listeners for hover function
+    this.trackContainer.addEventListener('mouseleave', 
+      (event) => {
+        for (const element of this.geneticElements) {
+          hideTooltip(element.tooltip)
+      }
+    })
     this.trackContainer.addEventListener('mousemove', 
       (event) => {
         event.preventDefault()
         event.stopPropagation()
         for (const element of this.geneticElements) {
-          // check if element is being displayed or not
-          if ( isElementOverlapping(element, this.onscreenPosition) ) {
-            // check if mouse pointer is within displayed element
-            const visableElem = {x1: element.visibleX1, x2: element.visibleX2, y1: element.y1, y2: element.y2}
-            if (isWithinElementBbox({element: visableElem, point: {x: event.offsetX, y: event.offsetY}})) {
-              console.log('updating elelemt')
-              element.tooltip.tooltip.setAttribute('data-show', '')
+          const visableElem = {
+            x1: element.visibleX1, x2: element.visibleX2,
+            y1: element.y1, y2: element.y2
+          }
+          const point = {x: event.offsetX, y: event.offsetY}
+          if (element.tooltip.isDisplayed) {
+            if (!isWithinElementBbox({element: visableElem, point })) {
+              hideTooltip(element.tooltip)
               element.tooltip.instance.update()
+            }
+          } else {
+            // check if element is being displayed or not
+            if ( isElementOverlapping(element, this.onscreenPosition) ) {
+              // check if mouse pointer is within displayed element
+              if (isWithinElementBbox({element: visableElem, point })) {
+                showTooltip(element.tooltip)
+                element.tooltip.instance.update()
+            }
           }
         }
       }
@@ -262,12 +276,18 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       getBoundingClientRect: generateGetBoundingClientRect(
         transcript_obj.visibleX1, transcript_obj.visibleX2, transcript_obj.visibleY1, transcript_obj.visibleY2,
     )}
-    const tooltip = createPopover(`${element.gene_name} a great gene for profit $$$`, `${element.id}-popover`)
+    const tooltip = createTooltipElement(
+      buildTooltipContent(element).innerHTML,
+      `${element.id}-popover`
+    )
     this.trackContainer.appendChild(tooltip)
     transcript_obj.tooltip = {
-      instance: createPopper(virtualElement, tooltip),
+      instance: createPopper(virtualElement, tooltip, {modifiers: [
+        {name: 'offset', options: {offset: [0, virtualElement.getBoundingClientRect().height / 2]}},
+      ]}),
       virtualElement: virtualElement,
       tooltip: tooltip,
+      isDisplayed: false,
     }
     return transcript_obj
   }
