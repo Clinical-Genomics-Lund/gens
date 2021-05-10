@@ -1,9 +1,8 @@
 // functions for handling tooltips
 import { getVisibleXCoordinates, getVisibleYCoordinates, isWithinElementBbox } from './utils.js'
 
-
 // make virtual DOM element that represents a annoatation element
-export function makeVirtualDOMElement(x1, x2, y1, y2) {
+export function makeVirtualDOMElement (x1, x2, y1, y2) {
   return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2) }
 }
 
@@ -17,7 +16,7 @@ function generateGetBoundingClientRect (x1, x2, y1, y2) {
     top: y1,
     left: x2,
     right: x1,
-    bottom: y2,
+    bottom: y2
   })
 }
 
@@ -32,9 +31,9 @@ function generateGetBoundingClientRectTest (x1, x2, y1, y2) {
   })
 }
 
-export function updateVisableElementCoordinates ({element, canvas, screenPosition, scale}) {
-  const {x1, x2} = getVisibleXCoordinates({canvas: screenPosition, feature: element, scale: scale})
-  const {y1, y2} = getVisibleYCoordinates({canvas, element})
+export function updateVisableElementCoordinates ({ element, canvas, screenPosition, scale }) {
+  const { x1, x2 } = getVisibleXCoordinates({ canvas: screenPosition, feature: element, scale: scale })
+  const { y1, y2 } = getVisibleYCoordinates({ canvas, element })
   // update coordinates
   element.visibleX1 = x1
   element.visibleX2 = x2
@@ -52,7 +51,7 @@ function showTooltip ({ tooltip, feature }) {
   tooltip.isDisplayed = true
 }
 
-function hideFeatureInTooltip ({tooltip, feature}) {
+function hideFeatureInTooltip ({ tooltip, feature }) {
   const selectedFeature = tooltip.tooltip.querySelector(`#feature-${feature.id}`)
   selectedFeature.removeAttribute('data-show')
   feature.isDisplayed = false
@@ -80,7 +79,6 @@ export function createTooltipElement (message, id) {
   popover.innerHTML = message
   return popover
 }
-
 
 // function for handeling apperance and content of tooltips
 // element == a the main rendered element, a gene for instance
@@ -127,48 +125,45 @@ function tooltipHandler (event, track) {
   }
 }
 
-
 // update tooltip position
-function updateTooltipPos(track) {
+function updateTooltipPos (track) {
   for (const element of track.geneticElements) {
     // update coordinates for the main element
     updateVisableElementCoordinates({
-      element, 
+      element,
       canvas: track.contentCanvas,
       screenPosition: track.onscreenPosition,
-      scale: track.offscreenPosition.scale,
+      scale: track.offscreenPosition.scale
     })
     // update coordinates for features on element
     for (const feature of element.features) {
       updateVisableElementCoordinates({
-        element: feature, 
+        element: feature,
         canvas: track.contentCanvas,
         screenPosition: track.onscreenPosition,
-        scale: track.offscreenPosition.scale,
+        scale: track.offscreenPosition.scale
       })
     }
     // update the virtual DOM element that defines the tooltip hitbox
     const xPos = Math.round(track.contentCanvas.getBoundingClientRect().x)
     element.tooltip.virtualElement = makeVirtualDOMElement(
       element.visibleX1 + xPos, element.visibleX2 + xPos, element.visibleY1, element.visibleY2
-    ) 
+    )
     // update tooltip instance
     element.tooltip.instance.update()
   }
 }
 
-
 // initialize event listeners for hover function
-export function initTrackTooltips(track) { 
+export function initTrackTooltips (track) {
   // when mouse is leaving track
-  track.trackContainer.addEventListener('mouseleave', 
-    () => { 
-      for (const element of track.geneticElements) 
-      { hideTooltip(element.tooltip) } 
-    }) 
+  track.trackContainer.addEventListener('mouseleave',
+    () => {
+      for (const element of track.geneticElements) { hideTooltip(element.tooltip) }
+    })
   // when mouse is leaving track
   track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })
   // extend instance function to recalculate positions of virtual dom elements
   const oldBlit = track.blitCanvas
-  track.blitCanvas = (start, end) => { updateTooltipPos(track); oldBlit.call(track, start, end)}
+  track.blitCanvas = (start, end) => { updateTooltipPos(track); oldBlit.call(track, start, end) }
 }

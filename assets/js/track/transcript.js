@@ -52,8 +52,6 @@ function buildTooltipContent (elem) {
   return container
 }
 
-
-
 export class TranscriptTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema) {
     // Dimensions of track canvas
@@ -109,7 +107,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         y2: Math.round(y + height),
         isDisplayed: false,
         visibleX1: visibleCoords.x1,
-        visibleX2: visibleCoords.x2,
+        visibleX2: visibleCoords.x2
       }
       drawRect({
         ctx: this.drawCtx,
@@ -223,7 +221,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       element: transcript_obj,
       canvas: this.contentCanvas,
       screenPosition: this.onscreenPosition,
-      scale: this.offscreenPosition.scale,
+      scale: this.offscreenPosition.scale
     })
     // make a virtual representation of the genetic element
     const virtualElement = makeVirtualDOMElement(
