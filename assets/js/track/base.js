@@ -3,25 +3,6 @@
 import { get } from '../fetch.js'
 import { hideTooltip } from './tooltip.js'
 
-// check if point is within an element
-export function isWithinElementBbox ({ element, point }) {
-  return (element.x1 < point.x && point.x < element.x2) && (element.y1 < point.y && point.y < element.y2)
-}
-
-// Check if two geometries are overlapping
-// each input is an object with start/ end coordinates
-// f          >----------------<
-// s   >---------<
-export function isElementOverlapping (first, second) {
-  if ((first.start > second.start && first.start < second.end) || //
-       (first.end > second.start && first.end < second.end) ||
-       (second.start > first.start && second.start < first.end) ||
-       (second.end > first.start && second.end < first.end)) {
-    return true
-  }
-  return false
-}
-
 // Calculate offscreen position
 export function calculateOffscreenWindowPos ({ start, end, multiplier }) {
   const width = end - start
@@ -146,7 +127,6 @@ export class BaseAnnotationTrack {
         } else {
           this.trackContainer.setAttribute('data-state', 'collapsed')
         }
-        //  this.drawTrack(inputField.value);
         await this.drawOffScreenTrack({
           chromosome: this.trackData.chromosome,
           start_pos: this.offscreenPosition.start,
@@ -198,27 +178,6 @@ export class BaseAnnotationTrack {
         this.trackContainer.setAttribute('data-state', 'collapsed')
       }
     }
-  }
-
-  // Inserts a hover text for a track
-  hoverText (text, left, top, width, height, zIndex, latestPos) {
-    // Make div wider for more mouse over space
-    const minWidth = 1
-    if (parseInt(width) < minWidth && (parseInt(left) - minWidth / 2) > latestPos) {
-      left = parseInt(left) - minWidth / 2 + 'px'
-      width = minWidth + 'px'
-    }
-
-    const title = document.createElement('div')
-    title.title = text
-    title.style.left = left
-    title.style.top = top
-    title.style.width = width
-    title.style.height = height
-    title.style.position = 'absolute'
-    title.style.zIndex = zIndex
-    this.trackTitle.appendChild(title)
-    return parseInt(left + width)
   }
 
   // Draw annotation track

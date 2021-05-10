@@ -1,9 +1,10 @@
 // Transcript definition
 
-import { BaseAnnotationTrack, isElementOverlapping, lightenColor } from './base.js'
-import { initTrackTooltips, createTooltipElement } from './tooltip.js'
+import { BaseAnnotationTrack, lightenColor } from './base.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
+import { getVisibleXCoordinates, isElementOverlapping } from './utils.js'
 
 function createList (information) {
   const list = document.createElement('ul')
@@ -52,27 +53,6 @@ function buildTooltipContent (elem) {
 }
 
 
-// Make a virtual DOM element from a genetic element object
-function generateGetBoundingClientRect (x1, x2, y1, y2) {
-  return () => ({
-    width: Math.round(x2 - x1),
-    height: Math.round(y2 - y1),
-    top: y1,
-    right: x1,
-    bottom: y2,
-    left: x2
-  })
-}
-
-function getVisibleCoordinates({canvas, feature, scale, minWidth=4}) {
-  let x1 = Math.round((Math.max(0, feature.start - canvas.start)) * scale)
-  let x2 = Math.round((Math.min(canvas.end, feature.end - canvas.start)) * scale)
-  if (x2 - x1 < minWidth) {
-    x1 = Math.round(x1 - (minWidth - (x2 - x1) / 2))
-    x2 = Math.round(x2 + (minWidth - (x2 - x1) / 2))
-  }
-  return {x1, x2}
-}
 
 export class TranscriptTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema) {
@@ -116,8 +96,8 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // Draw the geometry that represents the feature
     if (feature.feature === 'exon') {
       // generate feature object
-      const visibleCoords = getVisibleCoordinates({
-        canvas: this.onscreenPosition, feature: feature, scale
+      const visibleCoords = getVisibleXCoordinates({
+        canvas: this.onscreenPosition, feature: feature, scale: scale
       })
       const feature_obj = {
         id: feature.exon_number,
@@ -239,17 +219,17 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     }
 
     // adapt coordinates to global screen coordinates from coorinates local to canvas
-    // create tooltip for transcript
-    transcript_obj.visibleX1 = Math.round((Math.max(0, transcript_obj.start - this.onscreenPosition.start) * transcript_obj.scale))
-    transcript_obj.visibleX2 = Math.round((Math.min(this.onscreenPosition.end, transcript_obj.end - this.onscreenPosition.start) * transcript_obj.scale))
-    const canvasBbox = this.contentCanvas.getBoundingClientRect()
-    transcript_obj.visibleY1 = Math.round(transcript_obj.y1 + canvasBbox.y)
-    transcript_obj.visibleY2 = Math.round(transcript_obj.y2 + canvasBbox.y)
-    const virtualElement = {
-      getBoundingClientRect: generateGetBoundingClientRect(
-        transcript_obj.visibleX1, transcript_obj.visibleX2, transcript_obj.visibleY1, transcript_obj.visibleY2
-      )
-    }
+    updateVisableElementCoordinates({
+      element: transcript_obj,
+      canvas: this.contentCanvas,
+      screenPosition: this.onscreenPosition,
+      scale: this.offscreenPosition.scale,
+    })
+    // make a virtual representation of the genetic element
+    const virtualElement = makeVirtualDOMElement(
+      transcript_obj.visibleX1, transcript_obj.visibleX2,
+      transcript_obj.visibleY1, transcript_obj.visibleY2
+    )
     const tooltip = createTooltipElement(
       buildTooltipContent(element).innerHTML,
       `${element.transcript_id}-popover`

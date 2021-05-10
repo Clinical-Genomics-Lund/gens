@@ -1,6 +1,7 @@
 // Variant track definition
 
-import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { BaseAnnotationTrack } from './base.js'
+import { isElementOverlapping } from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
 
 // Draw variants

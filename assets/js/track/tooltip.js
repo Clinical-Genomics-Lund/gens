@@ -1,5 +1,46 @@
 // functions for handling tooltips
-import { isWithinElementBbox } from './base.js'
+import { getVisibleXCoordinates, getVisibleYCoordinates, isWithinElementBbox } from './utils.js'
+
+
+// make virtual DOM element that represents a annoatation element
+export function makeVirtualDOMElement(x1, x2, y1, y2) {
+  return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2) }
+}
+
+// Make a virtual DOM element from a genetic element object
+function generateGetBoundingClientRect (x1, x2, y1, y2) {
+  return () => ({
+    width: Math.round(x2 - x1),
+    height: Math.round(y2 - y1),
+    // width: 0,
+    // height: 0,
+    top: y1,
+    left: x2,
+    right: x1,
+    bottom: y2,
+  })
+}
+
+function generateGetBoundingClientRectTest (x1, x2, y1, y2) {
+  return () => ({
+    width: 0,
+    height: 0,
+    top: y1,
+    bottom: y1,
+    right: x1,
+    left: x1
+  })
+}
+
+export function updateVisableElementCoordinates ({element, canvas, screenPosition, scale}) {
+  const {x1, x2} = getVisibleXCoordinates({canvas: screenPosition, feature: element, scale: scale})
+  const {y1, y2} = getVisibleYCoordinates({canvas, element})
+  // update coordinates
+  element.visibleX1 = x1
+  element.visibleX2 = x2
+  element.visibleY1 = y1
+  element.visibleY2 = y2
+}
 
 function showTooltip ({ tooltip, feature }) {
   tooltip.tooltip.setAttribute('data-show', '')
@@ -82,6 +123,37 @@ function tooltipHandler (event, track) {
     } else {
       hideTooltip(element.tooltip)
     }
+    element.tooltip.instance.update()
+  }
+}
+
+
+// update tooltip position
+function updateTooltipPos(track) {
+  for (const element of track.geneticElements) {
+    // update coordinates for the main element
+    updateVisableElementCoordinates({
+      element, 
+      canvas: track.contentCanvas,
+      screenPosition: track.onscreenPosition,
+      scale: track.offscreenPosition.scale,
+    })
+    // update coordinates for features on element
+    for (const feature of element.features) {
+      updateVisableElementCoordinates({
+        element: feature, 
+        canvas: track.contentCanvas,
+        screenPosition: track.onscreenPosition,
+        scale: track.offscreenPosition.scale,
+      })
+    }
+    // update the virtual DOM element that defines the tooltip hitbox
+    const xPos = Math.round(track.contentCanvas.getBoundingClientRect().x)
+    element.tooltip.virtualElement = makeVirtualDOMElement(
+      element.visibleX1 + xPos, element.visibleX2 + xPos, element.visibleY1, element.visibleY2
+    ) 
+    // update tooltip instance
+    element.tooltip.instance.update()
   }
 }
 
@@ -95,5 +167,8 @@ export function initTrackTooltips(track) {
       { hideTooltip(element.tooltip) } 
     }) 
   // when mouse is leaving track
-  track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) }) 
+  track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })
+  // extend instance function to recalculate positions of virtual dom elements
+  const oldBlit = track.blitCanvas
+  track.blitCanvas = (start, end) => { updateTooltipPos(track); oldBlit.call(track, start, end)}
 }

@@ -1,6 +1,7 @@
 // Annotation track definition
 
-import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { BaseAnnotationTrack } from './base.js'
+import { isElementOverlapping } from './utils.js'
 import { get } from '../fetch.js'
 import { parseRegionDesignation } from '../navigation.js'
 import { drawRect, drawText } from '../draw.js'
