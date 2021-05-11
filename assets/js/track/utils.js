@@ -1,12 +1,11 @@
 // Utility functions
 
-export function getVisibleYCoordinates ({ canvas, element, minWidth = 4 }) {
-  const bbox = canvas.getBoundingClientRect()
-  let y1 = Math.round(element.y1 + bbox.y)
-  let y2 = Math.round(element.y2 + bbox.y)
-  if (y2 - y1 < minWidth) {
-    y1 = Math.round(y1 - (minWidth - (y2 - y1) / 2))
-    y2 = Math.round(y2 + (minWidth - (y2 - y1) / 2))
+export function getVisibleYCoordinates ({ element, minHeight = 4 }) {
+  let y1 = Math.round(element.y1)
+  let y2 = Math.round(element.y2)
+  if (y2 - y1 < minHeight) {
+    y1 = Math.round(y1 - (minHeight - (y2 - y1) / 2))
+    y2 = Math.round(y2 + (minHeight - (y2 - y1) / 2))
   }
   return { y1, y2 }
 }

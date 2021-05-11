@@ -2,38 +2,37 @@
 import { getVisibleXCoordinates, getVisibleYCoordinates, isWithinElementBbox } from './utils.js'
 
 // make virtual DOM element that represents a annoatation element
-export function makeVirtualDOMElement (x1, x2, y1, y2) {
-  return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2) }
+export function makeVirtualDOMElement ({x1, x2, y1, y2, canvas}) {
+  return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2, canvas) }
 }
 
 // Make a virtual DOM element from a genetic element object
-function generateGetBoundingClientRect (x1, x2, y1, y2) {
+function generateGetBoundingClientRect (x1, x2, y1, y2, canvas) {
+  const track = canvas
   return () => ({
     width: Math.round(x2 - x1),
     height: Math.round(y2 - y1),
-    // width: 0,
-    // height: 0,
-    top: y1,
-    left: x2,
-    right: x1,
-    bottom: y2
+    top: y1 + Math.round(track.getBoundingClientRect().y),
+    left: x1 + Math.round(track.getBoundingClientRect().x),
+    right: x2 + Math.round(track.getBoundingClientRect().x),
+    bottom: y2 + Math.round(track.getBoundingClientRect().y),
   })
 }
 
 function generateGetBoundingClientRectTest (x1, x2, y1, y2) {
   return () => ({
-    width: 0,
-    height: 0,
-    top: y1,
-    bottom: y1,
-    right: x1,
-    left: x1
+    top: 0,
+    left: 337,
+    bottom: 20,
+    right: 687,
+    width: 175,
+    height: 200,
   })
 }
 
-export function updateVisableElementCoordinates ({ element, canvas, screenPosition, scale }) {
+export function updateVisableElementCoordinates ({ element, screenPosition, scale }) {
   const { x1, x2 } = getVisibleXCoordinates({ canvas: screenPosition, feature: element, scale: scale })
-  const { y1, y2 } = getVisibleYCoordinates({ canvas, element })
+  const { y1, y2 } = getVisibleYCoordinates({ element })
   // update coordinates
   element.visibleX1 = x1
   element.visibleX2 = x2
@@ -57,7 +56,7 @@ function hideFeatureInTooltip ({ tooltip, feature }) {
   feature.isDisplayed = false
 }
 
-function hideTooltip (tooltip) {
+export function hideTooltip (tooltip) {
   tooltip.tooltip.removeAttribute('data-show')
   for (const feature of tooltip.tooltip.querySelectorAll('.feature')) {
     feature.removeAttribute('data-show')
@@ -65,8 +64,20 @@ function hideTooltip (tooltip) {
   tooltip.isDisplayed = false
 }
 
+export function createHtmlList (information) {
+  const list = document.createElement('ul')
+  for (const info of information) {
+    const li = document.createElement('li')
+    const bold = document.createElement('strong')
+    bold.innerText = info.title
+    li.innerText = bold.innerHTML += `: ${info.value}`
+    list.appendChild(li)
+  }
+  return list
+}
+
 // create popover html element with message
-export function createTooltipElement (message, id) {
+export function createTooltipElement ({id, title, information=[]}) {
   // create popover base class
   const popover = document.createElement('div')
   popover.setAttribute('role', 'popover')
@@ -75,10 +86,21 @@ export function createTooltipElement (message, id) {
   }
   popover.classList.add('tooltip')
   popover.setAttribute('role', 'popover')
-  // add message to div
-  popover.innerHTML = message
+  // create information in container element
+  const container = document.createElement('div')
+  container.classList.add('tooltip-content')
+  // create title
+  const titleElem = document.createElement('h4')
+  titleElem.innerText = title
+  container.appendChild(titleElem)
+  // create information list
+  const body = createHtmlList(information)
+  container.appendChild(body)
+  popover.appendChild(container)
+  // return tooltip element
   return popover
 }
+
 
 // function for handeling apperance and content of tooltips
 // element == a the main rendered element, a gene for instance
@@ -145,10 +167,13 @@ function updateTooltipPos (track) {
       })
     }
     // update the virtual DOM element that defines the tooltip hitbox
-    const xPos = Math.round(track.contentCanvas.getBoundingClientRect().x)
-    element.tooltip.virtualElement = makeVirtualDOMElement(
-      element.visibleX1 + xPos, element.visibleX2 + xPos, element.visibleY1, element.visibleY2
-    )
+    const xPos = track.contentCanvas.getBoundingClientRect().x
+    element.tooltip.virtualElement = makeVirtualDOMElement({
+      x1: Math.round(element.visibleX1 + xPos), 
+      x2: Math.round(element.visibleX2 + xPos), 
+      y1: element.visibleY1, 
+      y2: element.visibleY2
+    })
     // update tooltip instance
     element.tooltip.instance.update()
   }

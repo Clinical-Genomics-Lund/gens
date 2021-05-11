@@ -1,40 +1,15 @@
 // Transcript definition
 
 import { BaseAnnotationTrack, lightenColor } from './base.js'
-import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { initTrackTooltips, createTooltipElement, createHtmlList, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
 import { getVisibleXCoordinates, isElementOverlapping } from './utils.js'
 
-function createList (information) {
-  const list = document.createElement('ul')
-  for (const info of information) {
-    const li = document.createElement('li')
-    const bold = document.createElement('strong')
-    bold.innerText = info.title
-    li.innerText = bold.innerHTML += `: ${info.value}`
-    list.appendChild(li)
-  }
-  return list
-}
 
-// make tooltip text
-function buildTooltipContent (elem) {
-  const container = document.createElement('div')
-  container.classList.add('tooltip-content')
-  // add title
-  const title = document.createElement('h4')
-  title.innerText = elem.mane ? `${elem.gene_name} [${elem.mane}]` : elem.gene_name
-  container.appendChild(title)
-  // add body information
-  const information = [
-    { title: elem.chrom, value: `${elem.start}-${elem.end}` },
-    { title: 'id', value: elem.transcript_id }
-  ]
-  if (elem.refseq_id) { information.push({ title: 'refSeq', value: elem.refseq_id }) }
-  if (elem.hgnc_id) { information.push({ title: 'hgnc', value: elem.hgnc_id }) }
-  const body = createList(information)
-  // build feature information
+// add feature information to tooltipElement
+function addFeatures(elem, tooltipElement) {
+  const body = tooltipElement.querySelector('ul')
   for (const feature of elem.features) {
     // divide and conquer
     const featureContainer = document.createElement('div')
@@ -45,12 +20,11 @@ function buildTooltipContent (elem) {
       { title: 'exon', value: feature.exon_number },
       { title: 'position', value: `${feature.start}-${feature.end}` }
     ]
-    featureContainer.appendChild(createList(information))
+    featureContainer.appendChild(createHtmlList(information))
     body.appendChild(featureContainer)
   }
-  container.appendChild(body)
-  return container
 }
+
 
 export class TranscriptTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema) {
@@ -132,8 +106,9 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     const textSize = plotFormat.textSize
     const titleMargin = plotFormat.titleMargin
     // store element metadata
-    const transcript_obj = {
+    const transcriptObj = {
       id: element.transcript_id,
+      name: element.gene_name,
       chrom: element.chrom,
       start: element.start,
       end: element.end,
@@ -153,20 +128,20 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // Draw a line to mark gene's length
     // cap lines at offscreen canvas start/end
     const displayedTrStart = Math.round(
-      (transcript_obj.start > this.offscreenPosition.start
-        ? scale * (transcript_obj.start - this.offscreenPosition.start)
+      (transcriptObj.start > this.offscreenPosition.start
+        ? scale * (transcriptObj.start - this.offscreenPosition.start)
         : 0)
     )
     const displayedTrEnd = Math.round(
-      (this.offscreenPosition.end > transcript_obj.end
-        ? scale * (transcript_obj.end - this.offscreenPosition.start)
+      (this.offscreenPosition.end > transcriptObj.end
+        ? scale * (transcriptObj.end - this.offscreenPosition.start)
         : this.offscreenPosition.end)
     )
     // store start and end coordinates
-    transcript_obj.x1 = displayedTrStart
-    transcript_obj.x2 = displayedTrEnd
-    transcript_obj.y1 = canvasYPos - (this.geneLineWidth / 2)
-    transcript_obj.y2 = canvasYPos + (this.geneLineWidth / 2)
+    transcriptObj.x1 = displayedTrStart
+    transcriptObj.x2 = displayedTrEnd
+    transcriptObj.y1 = canvasYPos - (this.geneLineWidth / 2)
+    transcriptObj.y2 = canvasYPos + (this.geneLineWidth / 2)
     // draw transcript backbone
     drawLine({
       ctx: this.drawCtx,
@@ -174,7 +149,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       x2: displayedTrEnd,
       y: canvasYPos,
       y2: canvasYPos,
-      color: transcript_obj.color,
+      color: transcriptObj.color,
       lineWith: this.geneLineWidth // set width of the element
     })
     // Draw gene name
@@ -183,7 +158,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       const mane = element.mane ? ' [MANE] ' : ''
       drawText({
         ctx: this.drawCtx,
-        text: `${transcript_obj.name}${mane}${element.strand === '+' ? '→' : '←'}`,
+        text: `${transcriptObj.name}${mane}${element.strand === '+' ? '→' : '←'}`,
         x: Math.round(((displayedTrEnd - displayedTrStart) / 2) + displayedTrStart),
         y: textYPos + this.featureHeight,
         fontProp: textSize
@@ -199,51 +174,62 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         dir: element.strand === '+' ? 1 : -1, // direction
         height: this.featureHeight / 2, // height
         lineWidth: this.geneLineWidth, // lineWidth
-        color: transcript_obj.color // color
+        color: transcriptObj.color // color
       })
     } else {
       // draw features
       for (const feature of element.features) {
         const feature_obj = this._drawFeature(
           feature, queryResult, element.height_order,
-          canvasYPos, transcript_obj.color, plotFormat
+          canvasYPos, transcriptObj.color, plotFormat
         )
         if (feature_obj !== undefined) {
-          transcript_obj.features.push(feature_obj)
+          transcriptObj.features.push(feature_obj)
         }
       }
-      transcript_obj.y1 = Math.min(...transcript_obj.features.map(feat => feat.y1))
-      transcript_obj.y2 = Math.max(...transcript_obj.features.map(feat => feat.y2))
+      transcriptObj.y1 = Math.min(...transcriptObj.features.map(feat => feat.y1))
+      transcriptObj.y2 = Math.max(...transcriptObj.features.map(feat => feat.y2))
     }
 
     // adapt coordinates to global screen coordinates from coorinates local to canvas
     updateVisableElementCoordinates({
-      element: transcript_obj,
-      canvas: this.contentCanvas,
+      element: transcriptObj,
       screenPosition: this.onscreenPosition,
       scale: this.offscreenPosition.scale
     })
     // make a virtual representation of the genetic element
-    const virtualElement = makeVirtualDOMElement(
-      transcript_obj.visibleX1, transcript_obj.visibleX2,
-      transcript_obj.visibleY1, transcript_obj.visibleY2
-    )
-    const tooltip = createTooltipElement(
-      buildTooltipContent(element).innerHTML,
-      `${element.transcript_id}-popover`
-    )
+    const virtualElement = makeVirtualDOMElement({
+      x1: transcriptObj.visibleX1, x2: transcriptObj.visibleX2,
+      y1: transcriptObj.visibleY1, y2: transcriptObj.visibleY2,
+      canvas: this.contentCanvas,
+    })
+    // create a tooltip html element and append to DOM
+    let elementInfo = [
+      { title: element.chrom, value: `${element.start}-${element.end}` },
+      { title: 'id', value: element.transcript_id }
+    ]
+    if (element.refseq_id) { elementInfo.push({ title: 'refSeq', value: element.refseq_id }) }
+    if (element.hgnc_id) { elementInfo.push({ title: 'hgnc', value: element.hgnc_id }) }
+    const tooltip = createTooltipElement({
+      id: `${element.transcript_id}-popover`,
+      title: transcriptObj.name,
+      information: elementInfo,
+    })
+    // add features to element
+    addFeatures(element, tooltip)
+    // create tooltip
     this.trackContainer.appendChild(tooltip)
-    transcript_obj.tooltip = {
+    transcriptObj.tooltip = {
       instance: createPopper(virtualElement, tooltip, {
         modifiers: [
-          { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height / 2] } }
+          { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
         ]
       }),
       virtualElement: virtualElement,
       tooltip: tooltip,
       isDisplayed: false
     }
-    return transcript_obj
+    return transcriptObj
   }
 
   //  Draws transcripts in given range
@@ -301,13 +287,13 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         ? this.colorSchema.strand_pos
         : this.colorSchema.strand_neg
       // test create some genetic elements and store them
-      const transcript_obj = await this._drawTranscript(
+      const transcriptObj = await this._drawTranscript(
         transc, queryResult, color,
         plotFormat,
         drawGeneName, // if gene names should be drawn
         !drawExons // if transcripts should be represented as arrows
       )
-      this.geneticElements.push(transcript_obj)
+      this.geneticElements.push(transcriptObj)
     }
   }
 }
