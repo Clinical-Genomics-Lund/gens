@@ -108,8 +108,8 @@ export function createTooltipElement ({id, title, information=[]}) {
 function tooltipHandler (event, track) {
   event.preventDefault()
   event.stopPropagation()
+  const point = { x: event.offsetX, y: event.offsetY }
   for (const element of track.geneticElements) {
-    const point = { x: event.offsetX, y: event.offsetY }
     const isInElement = isWithinElementBbox({
       element: {
         x1: element.visibleX1,
@@ -119,6 +119,7 @@ function tooltipHandler (event, track) {
       },
       point
     })
+    console.log('point', point, 'isInElement', isInElement, 'element', element)
     if (isInElement) {
       // check if pointer is in a feature of element
       let selectedFeature

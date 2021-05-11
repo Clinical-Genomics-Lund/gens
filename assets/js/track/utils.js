@@ -36,5 +36,9 @@ export function isElementOverlapping (first, second) {
 
 // check if point is within an element
 export function isWithinElementBbox ({ element, point }) {
+  const xCheck = (element.x1 < point.x && point.x < element.x2)
+  const yCheck = (element.y1 < point.y && point.y < element.y2)
+  console.log(`X: ${element.x1} < ${point.x} && ${point.x} < ${element.x2}; ${xCheck}`)
+  console.log(`Y: ${element.y1} < ${point.y} && ${point.y} < ${element.y2}; ${yCheck}`)
   return (element.x1 < point.x && point.x < element.x2) && (element.y1 < point.y && point.y < element.y2)
 }
