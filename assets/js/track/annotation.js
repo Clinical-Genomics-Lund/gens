@@ -5,6 +5,21 @@ import { isElementOverlapping } from './utils.js'
 import { get } from '../fetch.js'
 import { parseRegionDesignation } from '../navigation.js'
 import { drawRect, drawText } from '../draw.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { createPopper } from '@popperjs/core'
+
+
+// Convert to 32bit integer
+function stringToHash(string) {
+  let hash = 0;
+  if (string.length == 0) return hash;
+  for (let i = 0; i < string.length; i++) {
+      const char = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+  }
+  return hash;
+}
 
 export class AnnotationTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, defaultAnnotation) {
@@ -45,6 +60,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
 
     this.maxResolution = 6 // define other max resolution
     this.numRenderedElements = 0
+    initTrackTooltips(this)
   }
 
   // Fills the list with source files
@@ -117,12 +133,9 @@ export class AnnotationTrack extends BaseAnnotationTrack {
     // Go through results and draw appropriate symbols
     for (const track of filteredAnnotations) {
       const annotationName = track.name
-      const chrom = track.chrom
       const heightOrder = track.height_order
-      const score = track.score
       const start = track.start
       const end = track.end
-      const strand = track.strand
       const color = track.color
 
       // Only draw visible tracks
@@ -138,20 +151,68 @@ export class AnnotationTrack extends BaseAnnotationTrack {
           latestTrackEnd: 0
         }
       }
-
-      // Draw box for annotation
+      // make an annotation object that tracks screen coordinates of object
+      const x1 = scale * (start - this.offscreenPosition.start)
       const canvasYPos = this.tracksYPos(heightOrder)
-      // if (this.expanded && heightOrder === 1 ) { continue}
+      const annotationObj = {
+        id: stringToHash(track.name),
+        name: track.name,
+        start: track.start,
+        end: track.end,
+        x1: x1,
+        x2: x1 + scale * (end - start + 1),
+        y1: canvasYPos,
+        y2: canvasYPos + (this.featureHeight / 2),
+        features: [],
+        isDisplayed: false,
+      }
+      // Draw box for annotation
       drawRect({
         ctx: this.drawCtx,
-        x: scale * (start - this.offscreenPosition.start),
-        y: canvasYPos,
-        width: scale * (end - start),
+        x: annotationObj.x1,
+        y: annotationObj.y1,
+        width: annotationObj.x2 - annotationObj.x1,
         height: this.featureHeight / 2,
         lineWidth: 1,
         fillColor: color,
         open: false
       })
+      // get onscreen positions for offscreen xy coordinates
+      updateVisableElementCoordinates({
+        element: annotationObj,
+        screenPosition: this.onscreenPosition,
+        scale: this.offscreenPosition.scale
+      })
+      // create a tooltip html element and append to DOM
+      const tooltip = createTooltipElement({
+        id: `${annotationObj.id}-popover`,
+        title: annotationObj.name,
+        information: [
+          { title: track.chrom, value: `${track.start}-${track.end}` },
+          { title: 'Score', value: `${track.score}` },
+        ],
+      })
+      this.trackContainer.appendChild(tooltip)
+      // make a  virtual element as tooltip hitbox
+      const virtualElement = makeVirtualDOMElement({
+        x1: annotationObj.visibleX1,
+        x2: annotationObj.visibleX2,
+        y1: annotationObj.visibleY1,
+        y2: annotationObj.visibleY2,
+        canvas: this.contentCanvas,
+      })
+      // add tooltip to annotationObj
+      annotationObj.tooltip = {
+        instance: createPopper(virtualElement, tooltip, {
+          modifiers: [
+            { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
+          ]
+        }),
+        virtualElement: virtualElement,
+        tooltip: tooltip,
+        isDisplayed: false
+      }
+      this.geneticElements.push(annotationObj)
 
       const textYPos = this.tracksYPos(heightOrder)
       // limit drawing of titles to certain resolution
@@ -165,21 +226,6 @@ export class AnnotationTrack extends BaseAnnotationTrack {
           fontProp: textSize
         })
       }
-
-      // Set tooltip text
-      const geneText = `${annotationName}
-chr${chrom}:${start}-${end}
-Score = ${score}`
-
-      // Add tooltip title for whole gene
-      // this.heightOrderRecord.latestTrackEnd = this.hoverText(
-      //   geneText,
-      //   `${scale * (start - this.trackData.start_pos)}px`,
-      //   `${textYPos - this.featureHeight / 2}px`,
-      //   `${scale * (end - start)}px`,
-      //   `${this.featureHeight + textSize}px`,
-      //   0,
-      //   this.heightOrderRecord.latestHeight);
     }
   }
 }
