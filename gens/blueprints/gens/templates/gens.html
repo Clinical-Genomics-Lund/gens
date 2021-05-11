@@ -168,7 +168,7 @@
     })
     Promise.all([ic.drawStaticContent(), oc.drawOverviewContent()]).then( () => {
         // setup event managers and draw the tracks
-        gens.drawTrack({chrom: '{{ chrom }}', start: start, end: {{ end}} })
+        gens.drawTrack({chrom: '{{ chrom }}', start: start, end: {{ end }} })
         document.dispatchEvent(new Event('data-loaded'))
     })
 
