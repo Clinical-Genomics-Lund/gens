@@ -227,24 +227,6 @@ export class VariantTrack extends BaseAnnotationTrack {
         y: textYPos + this.featureHeight,
         fontProp: textSize
       })
-
-      // Set tooltip text
-      // const variantText = `Id: ${variantName}\n` +
-        //                 `Position: ${chrom}:${variantStart}-${variantEnd}\n` +
-          //               `Type: ${variantType} ${variantCategory}\n` +
-            //             `Quality: ${quality}\n` +
-              //           `Rank score: ${rankScore}\n`
-
-      // Add tooltip title for whole gene
-      // this.heightOrderRecord.latestTrackEnd = this.hoverText(
-      //   variantText,
-      //   `${titleMargin + scale * (variantStart - this.offscreenPosition.start)}px`,
-      //   `${titleMargin + textYPos - this.featureHeight / 2}px`,
-      //   `${scale * (variantEnd - variantStart)}px`,
-      //   `${this.featureHeight + textSize}px`,
-      //   0,
-      //   this.heightOrderRecord.latestTrackEnd
-      // );
     }
   }
 }
