@@ -128,11 +128,8 @@ export class BaseAnnotationTrack {
           this.trackContainer.setAttribute('data-state', 'collapsed')
         }
         await this.drawOffScreenTrack({
-          chromosome: this.trackData.chromosome,
           start_pos: this.offscreenPosition.start,
           end_pos: this.offscreenPosition.end,
-          queryStart: this.onscreenPosition.start,
-          queryEnd: this.onscreenPosition.end, // default to chromosome end
           max_height_order: this.expanded ? this.trackData.max_height_order : 1,
           data: this.trackData
         })
@@ -212,6 +209,7 @@ export class BaseAnnotationTrack {
           collapsed: false // allways get all height orders
         }, this.additionalQueryParams) // parameters specific to track type
       )
+      // disable track if data loading encountered an error
       if (this.trackData.status === 'error') {
         this.trackContainer.parentElement.setAttribute('data-state', 'nodata')
         this.preventDrawingTrack = true
@@ -237,11 +235,8 @@ export class BaseAnnotationTrack {
       })
       // draw offscreen position for the first time
       await this.drawOffScreenTrack({
-        chromosome: this.trackData.chromosome,
         start_pos: offscreenPos.start,
         end_pos: offscreenPos.end,
-        queryStart: start,
-        queryEnd: end || offscreenPos.end, // default to chromosome end
         max_height_order: this.trackData.max_height_order,
         data: this.trackData
       })

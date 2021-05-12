@@ -50,11 +50,11 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     this.maxResolution = 4
     // Define with of the elements
     this.geneLineWidth = 2
-    initTrackTooltips(this)
+    // initTrackTooltips(this)
   }
 
   // draw feature
-  _drawFeature (feature, queryResult, heightOrder, canvasYPos,
+  _drawFeature (feature, heightOrder, canvasYPos,
     color, plotFormat) {
     // Go trough feature list and draw geometries
     const titleMargin = plotFormat.titleMargin
@@ -98,7 +98,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
   }
 
   // draw transcript figures
-  async _drawTranscript (element, queryResult, color, plotFormat,
+  async _drawTranscript (element, color, plotFormat,
     drawName = true, drawAsArrow = false) {
     const canvasYPos = this.tracksYPos(element.height_order)
     const scale = this.offscreenPosition.scale
@@ -180,7 +180,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       // draw features
       for (const feature of element.features) {
         const feature_obj = this._drawFeature(
-          feature, queryResult, element.height_order,
+          feature, element.height_order,
           canvasYPos, transcriptObj.color, plotFormat
         )
         if (feature_obj !== undefined) {
@@ -233,18 +233,18 @@ export class TranscriptTrack extends BaseAnnotationTrack {
   }
 
   //  Draws transcripts in given range
-  async drawOffScreenTrack (queryResult) {
+  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
     //    store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: queryResult.start_pos,
-      end: queryResult.end_pos,
+      start: start_pos,
+      end: end_pos,
       scale: (this.drawCanvas.width /
-              (queryResult.end_pos - queryResult.start_pos))
+              (end_pos - start_pos))
     }
     this.geneticElements = []
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(queryResult.max_height_order)
+    this.setContainerHeight(max_height_order)
 
     // Keeps track of previous values
     this.heightOrderRecord = {
@@ -256,9 +256,9 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // limit drawing of transcript to pre-defined resolutions
     let filteredTranscripts = []
     if (this.getResolution < this.maxResolution + 1) {
-      filteredTranscripts = queryResult.data.transcripts.filter(
+      filteredTranscripts = data.transcripts.filter(
         transc => isElementOverlapping(
-          transc, { start: queryResult.start_pos, end: queryResult.end_pos }
+          transc, { start: start_pos, end: end_pos }
         )
       )
     }
@@ -288,7 +288,8 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         : this.colorSchema.strand_neg
       // test create some genetic elements and store them
       const transcriptObj = await this._drawTranscript(
-        transc, queryResult, color,
+        transc, 
+        color,
         plotFormat,
         drawGeneName, // if gene names should be drawn
         !drawExons // if transcripts should be represented as arrows

@@ -53,21 +53,20 @@ export class VariantTrack extends BaseAnnotationTrack {
     })
   }
 
-  async drawOffScreenTrack (queryResult) {
+  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
     //  Draws variants in given range
-    const titleMargin = 2
     const textSize = 10
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: queryResult.start_pos,
-      end: queryResult.end_pos,
+      start: start_pos,
+      end: end_pos,
       scale: this.drawCanvas.width /
-        (queryResult.end_pos - queryResult.start_pos)
+        (end_pos - start_pos)
     }
     const scale = this.offscreenPosition.scale
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(queryResult.max_height_order)
+    this.setContainerHeight(max_height_order)
 
     // Keeps track of previous values
     this.heightOrderRecord = {
@@ -79,12 +78,11 @@ export class VariantTrack extends BaseAnnotationTrack {
     // limit drawing of annotations to pre-defined resolutions
     let filteredVariants = []
     if (this.getResolution < this.maxResolution + 1) {
-      filteredVariants = queryResult
-        .data
+      filteredVariants = data
         .variants
         .filter(variant => isElementOverlapping(
           { start: variant.position, end: variant.end },
-          { start: queryResult.start_pos, end: queryResult.end_pos }))
+          { start: start_pos, end: end_pos }))
     }
     // dont show tracks with no data in them
     if (filteredVariants.length > 0 &&
@@ -111,7 +109,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       // create variant object
       const featureHeight = variantCategory == 'del' ? 7 : 8
       const variantObj = {
-        id: variant.varian_id,
+        id: variant.variant_id,
         name: variant.display_name,
         start: variant.position,
         end: variant.end,

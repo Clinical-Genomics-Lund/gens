@@ -180,6 +180,15 @@ function updateTooltipPos (track) {
   }
 }
 
+// teardown tooltips generated for a track
+function teardownTooltips(track) {
+  while ( track.geneticElements.length ) {
+    const element = track.geneticElements.shift()
+    element.tooltip.instance.destroy() // kill popper
+    track.trackContainer.querySelector(`#${element.tooltip.tooltip.id}`).remove()
+  }
+}
+
 // initialize event listeners for hover function
 export function initTrackTooltips (track) {
   // when mouse is leaving track
@@ -189,7 +198,16 @@ export function initTrackTooltips (track) {
     })
   // when mouse is leaving track
   track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })
+  // extend drawOffScreenTrack to teardown old tooltips prior to drawing new
+  const oldDrawOffscreenTrack = track.drawOffScreenTrack
+  track.drawOffScreenTrack = ({start_pos, end_pos, max_height_order, data}) => {
+    teardownTooltips(track)
+    oldDrawOffscreenTrack.call(track, {start_pos, end_pos, max_height_order, data})
+  }
   // extend instance function to recalculate positions of virtual dom elements
   const oldBlit = track.blitCanvas
-  track.blitCanvas = (start, end) => { updateTooltipPos(track); oldBlit.call(track, start, end) }
+  track.blitCanvas = (start, end) => { 
+    updateTooltipPos(track)
+    oldBlit.call(track, start, end)
+  }
 }

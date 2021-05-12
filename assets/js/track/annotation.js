@@ -90,15 +90,15 @@ export class AnnotationTrack extends BaseAnnotationTrack {
   }
 
   // Draws annotations in given range
-  async drawOffScreenTrack (queryResult) {
+  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
     const textSize = 10
 
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: queryResult.start_pos,
-      end: queryResult.end_pos,
+      start: start_pos,
+      end: end_pos,
       scale: (this.drawCanvas.width /
-              (queryResult.end_pos - queryResult.start_pos))
+              (end_pos - start_pos))
     }
     const scale = this.offscreenPosition.scale
 
@@ -111,13 +111,12 @@ export class AnnotationTrack extends BaseAnnotationTrack {
     // limit drawing of transcript to pre-defined resolutions
     let filteredAnnotations = []
     if (this.getResolution < this.maxResolution + 1) {
-      filteredAnnotations = queryResult
-        .data
+      filteredAnnotations = data
         .annotations
         .filter(annot => isElementOverlapping(annot,
           {
-            start: queryResult.start_pos,
-            end: queryResult.end_pos
+            start: start_pos,
+            end: end_pos
           }))
     }
     // dont show tracks with no data in them
