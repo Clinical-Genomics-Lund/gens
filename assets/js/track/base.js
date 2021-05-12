@@ -128,9 +128,9 @@ export class BaseAnnotationTrack {
           this.trackContainer.setAttribute('data-state', 'collapsed')
         }
         await this.drawOffScreenTrack({
-          start_pos: this.offscreenPosition.start,
-          end_pos: this.offscreenPosition.end,
-          max_height_order: this.expanded ? this.trackData.max_height_order : 1,
+          startPos: this.offscreenPosition.start,
+          endPos: this.offscreenPosition.end,
+          maxHeightOrder: this.expanded ? this.trackData.max_height_order : 1,
           data: this.trackData
         })
         this.blitCanvas(this.onscreenPosition.start, this.onscreenPosition.end)
@@ -235,9 +235,9 @@ export class BaseAnnotationTrack {
       })
       // draw offscreen position for the first time
       await this.drawOffScreenTrack({
-        start_pos: offscreenPos.start,
-        end_pos: offscreenPos.end,
-        max_height_order: this.trackData.max_height_order,
+        startPos: offscreenPos.start,
+        endPos: offscreenPos.end,
+        maxHeightOrder: this.trackData.max_height_order,
         data: this.trackData
       })
     }

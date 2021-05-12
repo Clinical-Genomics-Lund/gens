@@ -8,17 +8,16 @@ import { drawRect, drawText } from '../draw.js'
 import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 
-
 // Convert to 32bit integer
-function stringToHash(string) {
-  let hash = 0;
-  if (string.length == 0) return hash;
+function stringToHash (string) {
+  let hash = 0
+  if (string.length === 0) return hash
   for (let i = 0; i < string.length; i++) {
-      const char = string.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+    const char = string.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
   }
-  return hash;
+  return hash
 }
 
 export class AnnotationTrack extends BaseAnnotationTrack {
@@ -90,15 +89,15 @@ export class AnnotationTrack extends BaseAnnotationTrack {
   }
 
   // Draws annotations in given range
-  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
+  async drawOffScreenTrack ({ startPos, endPos, maxHeightOrder, data }) {
     const textSize = 10
 
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: start_pos,
-      end: end_pos,
+      start: startPos,
+      end: endPos,
       scale: (this.drawCanvas.width /
-              (end_pos - start_pos))
+              (endPos - startPos))
     }
     const scale = this.offscreenPosition.scale
 
@@ -115,14 +114,14 @@ export class AnnotationTrack extends BaseAnnotationTrack {
         .annotations
         .filter(annot => isElementOverlapping(annot,
           {
-            start: start_pos,
-            end: end_pos
+            start: startPos,
+            end: endPos
           }))
     }
     // dont show tracks with no data in them
     if (filteredAnnotations.length > 0) {
       //  Set needed height of visible canvas and transcript tooltips
-      this.setContainerHeight(this.trackData.max_height_order)
+      this.setContainerHeight(this.trackData.maxHeightOrder)
     } else {
       //  Set needed height of visible canvas and transcript tooltips
       this.setContainerHeight(0)
@@ -163,7 +162,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
         y1: canvasYPos,
         y2: canvasYPos + (this.featureHeight / 2),
         features: [],
-        isDisplayed: false,
+        isDisplayed: false
       }
       // Draw box for annotation
       drawRect({
@@ -188,8 +187,8 @@ export class AnnotationTrack extends BaseAnnotationTrack {
         title: annotationObj.name,
         information: [
           { title: track.chrom, value: `${track.start}-${track.end}` },
-          { title: 'Score', value: `${track.score}` },
-        ],
+          { title: 'Score', value: `${track.score}` }
+        ]
       })
       this.trackContainer.appendChild(tooltip)
       // make a  virtual element as tooltip hitbox
@@ -198,7 +197,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
         x2: annotationObj.visibleX2,
         y1: annotationObj.visibleY1,
         y2: annotationObj.visibleY2,
-        canvas: this.contentCanvas,
+        canvas: this.contentCanvas
       })
       // add tooltip to annotationObj
       annotationObj.tooltip = {

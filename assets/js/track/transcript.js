@@ -6,9 +6,8 @@ import { createPopper } from '@popperjs/core'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
 import { getVisibleXCoordinates, isElementOverlapping } from './utils.js'
 
-
 // add feature information to tooltipElement
-function addFeatures(elem, tooltipElement) {
+function addFeatures (elem, tooltipElement) {
   const body = tooltipElement.querySelector('ul')
   for (const feature of elem.features) {
     // divide and conquer
@@ -24,7 +23,6 @@ function addFeatures(elem, tooltipElement) {
     body.appendChild(featureContainer)
   }
 }
-
 
 export class TranscriptTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, hgType, colorSchema) {
@@ -50,15 +48,13 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     this.maxResolution = 4
     // Define with of the elements
     this.geneLineWidth = 2
-    // initTrackTooltips(this)
+    initTrackTooltips(this)
   }
 
   // draw feature
   _drawFeature (feature, heightOrder, canvasYPos,
     color, plotFormat) {
     // Go trough feature list and draw geometries
-    const titleMargin = plotFormat.titleMargin
-    const textYPos = this.tracksYPos(heightOrder)
     const scale = this.offscreenPosition.scale
     // store feature rendering information
     const x = scale * (feature.start - this.offscreenPosition.start)
@@ -71,7 +67,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       const visibleCoords = getVisibleXCoordinates({
         canvas: this.onscreenPosition, feature: feature, scale: scale
       })
-      const feature_obj = {
+      const featureObj = {
         id: feature.exon_number,
         start: feature.start,
         end: feature.end,
@@ -85,15 +81,15 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       }
       drawRect({
         ctx: this.drawCtx,
-        x: feature_obj.x1,
-        y: feature_obj.y1,
+        x: featureObj.x1,
+        y: featureObj.y1,
         width: width,
         height: height,
         lineWidth: 1,
         fillColor: color,
         open: false
       })
-      return feature_obj
+      return featureObj
     }
   }
 
@@ -104,7 +100,6 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     const scale = this.offscreenPosition.scale
     // sizes
     const textSize = plotFormat.textSize
-    const titleMargin = plotFormat.titleMargin
     // store element metadata
     const transcriptObj = {
       id: element.transcript_id,
@@ -179,12 +174,12 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     } else {
       // draw features
       for (const feature of element.features) {
-        const feature_obj = this._drawFeature(
+        const featureObj = this._drawFeature(
           feature, element.height_order,
           canvasYPos, transcriptObj.color, plotFormat
         )
-        if (feature_obj !== undefined) {
-          transcriptObj.features.push(feature_obj)
+        if (featureObj !== undefined) {
+          transcriptObj.features.push(featureObj)
         }
       }
       transcriptObj.y1 = Math.min(...transcriptObj.features.map(feat => feat.y1))
@@ -199,12 +194,14 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     })
     // make a virtual representation of the genetic element
     const virtualElement = makeVirtualDOMElement({
-      x1: transcriptObj.visibleX1, x2: transcriptObj.visibleX2,
-      y1: transcriptObj.visibleY1, y2: transcriptObj.visibleY2,
-      canvas: this.contentCanvas,
+      x1: transcriptObj.visibleX1,
+      x2: transcriptObj.visibleX2,
+      y1: transcriptObj.visibleY1,
+      y2: transcriptObj.visibleY2,
+      canvas: this.contentCanvas
     })
     // create a tooltip html element and append to DOM
-    let elementInfo = [
+    const elementInfo = [
       { title: element.chrom, value: `${element.start}-${element.end}` },
       { title: 'id', value: element.transcript_id }
     ]
@@ -213,7 +210,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     const tooltip = createTooltipElement({
       id: `${element.transcript_id}-popover`,
       title: transcriptObj.name,
-      information: elementInfo,
+      information: elementInfo
     })
     // add features to element
     addFeatures(element, tooltip)
@@ -233,18 +230,18 @@ export class TranscriptTrack extends BaseAnnotationTrack {
   }
 
   //  Draws transcripts in given range
-  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
+  async drawOffScreenTrack ({ startPos, endPos, maxHeightOrder, data }) {
     //    store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: start_pos,
-      end: end_pos,
+      start: startPos,
+      end: endPos,
       scale: (this.drawCanvas.width /
-              (end_pos - start_pos))
+              (endPos - startPos))
     }
     this.geneticElements = []
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(max_height_order)
+    this.setContainerHeight(maxHeightOrder)
 
     // Keeps track of previous values
     this.heightOrderRecord = {
@@ -258,13 +255,13 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     if (this.getResolution < this.maxResolution + 1) {
       filteredTranscripts = data.transcripts.filter(
         transc => isElementOverlapping(
-          transc, { start: start_pos, end: end_pos }
+          transc, { start: startPos, end: endPos }
         )
       )
     }
     // dont show tracks with no data in them
     if (filteredTranscripts.length > 0) {
-      this.setContainerHeight(this.trackData.max_height_order)
+      this.setContainerHeight(this.trackData.maxHeightOrder)
     } else {
       this.setContainerHeight(0)
     }
@@ -282,13 +279,12 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     for (const transc of filteredTranscripts) {
       if (!this.expanded && transc.height_order !== 1) { continue }
       // draw base transcript
-      const canvasYPos = this.tracksYPos(transc.height_order)
       const color = transc.strand === '+'
         ? this.colorSchema.strand_pos
         : this.colorSchema.strand_neg
       // test create some genetic elements and store them
       const transcriptObj = await this._drawTranscript(
-        transc, 
+        transc,
         color,
         plotFormat,
         drawGeneName, // if gene names should be drawn

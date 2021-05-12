@@ -53,20 +53,20 @@ export class VariantTrack extends BaseAnnotationTrack {
     })
   }
 
-  async drawOffScreenTrack ({start_pos, end_pos, max_height_order, data}) {
+  async drawOffScreenTrack ({ startPos, endPos, maxHeightOrder, data }) {
     //  Draws variants in given range
     const textSize = 10
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: start_pos,
-      end: end_pos,
+      start: startPos,
+      end: endPos,
       scale: this.drawCanvas.width /
-        (end_pos - start_pos)
+        (endPos - startPos)
     }
     const scale = this.offscreenPosition.scale
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(max_height_order)
+    this.setContainerHeight(maxHeightOrder)
 
     // Keeps track of previous values
     this.heightOrderRecord = {
@@ -82,13 +82,13 @@ export class VariantTrack extends BaseAnnotationTrack {
         .variants
         .filter(variant => isElementOverlapping(
           { start: variant.position, end: variant.end },
-          { start: start_pos, end: end_pos }))
+          { start: startPos, end: endPos }))
     }
     // dont show tracks with no data in them
     if (filteredVariants.length > 0 &&
          this.getResolution < this.maxResolution + 1
     ) {
-      this.setContainerHeight(this.trackData.max_height_order)
+      this.setContainerHeight(this.trackData.maxHeightOrder)
     } else {
       this.setContainerHeight(0)
     }
@@ -107,7 +107,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       if (!this.expanded && heightOrder !== 1) { continue }
 
       // create variant object
-      const featureHeight = variantCategory == 'del' ? 7 : 8
+      const featureHeight = variantCategory === 'del' ? 7 : 8
       const variantObj = {
         id: variant.variant_id,
         name: variant.display_name,
@@ -118,7 +118,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         y1: canvasYPos,
         y2: Math.round((canvasYPos + featureHeight)),
         features: [],
-        isDisplayed: false,
+        isDisplayed: false
       }
       // get onscreen positions for offscreen xy coordinates
       updateVisableElementCoordinates({
@@ -127,7 +127,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         scale: this.offscreenPosition.scale
       })
       // create a tooltip html element and append to DOM
-      //VARIANT_TR_TABLE[variantCategory]
+      // VARIANT_TR_TABLE[variantCategory]
       const tooltip = createTooltipElement({
         id: `${variantObj.id}-popover`,
         title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
@@ -137,8 +137,8 @@ export class VariantTrack extends BaseAnnotationTrack {
           { title: 'Ref', value: `${variant.reference}` },
           { title: 'Alt', value: `${variant.alternative}` },
           { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
-          { title: 'Quality', value: `${variant.quality}` },
-        ],
+          { title: 'Quality', value: `${variant.quality}` }
+        ]
       })
       this.trackContainer.appendChild(tooltip)
       // make a  virtual element as tooltip hitbox
@@ -147,7 +147,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         x2: variantObj.visibleX2,
         y1: variantObj.visibleY1,
         y2: variantObj.visibleY2,
-        canvas: this.contentCanvas,
+        canvas: this.contentCanvas
       })
       // add tooltip to variantObj
       variantObj.tooltip = {

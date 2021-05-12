@@ -2,7 +2,7 @@
 import { getVisibleXCoordinates, getVisibleYCoordinates, isWithinElementBbox } from './utils.js'
 
 // make virtual DOM element that represents a annoatation element
-export function makeVirtualDOMElement ({x1, x2, y1, y2, canvas}) {
+export function makeVirtualDOMElement ({ x1, x2, y1, y2, canvas }) {
   return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2, canvas) }
 }
 
@@ -15,18 +15,7 @@ function generateGetBoundingClientRect (x1, x2, y1, y2, canvas) {
     top: y1 + Math.round(track.getBoundingClientRect().y),
     left: x1 + Math.round(track.getBoundingClientRect().x),
     right: x2 + Math.round(track.getBoundingClientRect().x),
-    bottom: y2 + Math.round(track.getBoundingClientRect().y),
-  })
-}
-
-function generateGetBoundingClientRectTest (x1, x2, y1, y2) {
-  return () => ({
-    top: 0,
-    left: 337,
-    bottom: 20,
-    right: 687,
-    width: 175,
-    height: 200,
+    bottom: y2 + Math.round(track.getBoundingClientRect().y)
   })
 }
 
@@ -77,7 +66,7 @@ export function createHtmlList (information) {
 }
 
 // create popover html element with message
-export function createTooltipElement ({id, title, information=[]}) {
+export function createTooltipElement ({ id, title, information = [] }) {
   // create popover base class
   const popover = document.createElement('div')
   popover.setAttribute('role', 'popover')
@@ -101,7 +90,6 @@ export function createTooltipElement ({id, title, information=[]}) {
   return popover
 }
 
-
 // function for handeling apperance and content of tooltips
 // element == a the main rendered element, a gene for instance
 // features == genetic sub components of the parent elements, for instance a exome
@@ -119,7 +107,6 @@ function tooltipHandler (event, track) {
       },
       point
     })
-    console.log('point', point, 'isInElement', isInElement, 'element', element)
     if (isInElement) {
       // check if pointer is in a feature of element
       let selectedFeature
@@ -170,9 +157,9 @@ function updateTooltipPos (track) {
     // update the virtual DOM element that defines the tooltip hitbox
     const xPos = track.contentCanvas.getBoundingClientRect().x
     element.tooltip.virtualElement = makeVirtualDOMElement({
-      x1: Math.round(element.visibleX1 + xPos), 
-      x2: Math.round(element.visibleX2 + xPos), 
-      y1: element.visibleY1, 
+      x1: Math.round(element.visibleX1 + xPos),
+      x2: Math.round(element.visibleX2 + xPos),
+      y1: element.visibleY1,
       y2: element.visibleY2
     })
     // update tooltip instance
@@ -181,8 +168,8 @@ function updateTooltipPos (track) {
 }
 
 // teardown tooltips generated for a track
-function teardownTooltips(track) {
-  while ( track.geneticElements.length ) {
+function teardownTooltips (track) {
+  while (track.geneticElements.length) {
     const element = track.geneticElements.shift()
     element.tooltip.instance.destroy() // kill popper
     track.trackContainer.querySelector(`#${element.tooltip.tooltip.id}`).remove()
@@ -200,13 +187,13 @@ export function initTrackTooltips (track) {
   track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })
   // extend drawOffScreenTrack to teardown old tooltips prior to drawing new
   const oldDrawOffscreenTrack = track.drawOffScreenTrack
-  track.drawOffScreenTrack = ({start_pos, end_pos, max_height_order, data}) => {
+  track.drawOffScreenTrack = ({ startPos, endPos, maxHeightOrder, data }) => {
     teardownTooltips(track)
-    oldDrawOffscreenTrack.call(track, {start_pos, end_pos, max_height_order, data})
+    oldDrawOffscreenTrack.call(track, { startPos, endPos, maxHeightOrder, data })
   }
   // extend instance function to recalculate positions of virtual dom elements
   const oldBlit = track.blitCanvas
-  track.blitCanvas = (start, end) => { 
+  track.blitCanvas = (start, end) => {
     updateTooltipPos(track)
     oldBlit.call(track, start, end)
   }

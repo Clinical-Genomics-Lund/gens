@@ -332,7 +332,6 @@ export class InteractiveCanvas extends BaseScatterTrack {
   markRegion ({ start, end }) {
     // Update the dom element
     this.markerElem.style.left = start < end ? `${start}px` : `${end}px`
-    const width = (end - start) + 1 > this.plotWidth ? this.plotWidth : (end - start) + 1
     this.markerElem.style.width = `${Math.abs(end - start) + 1}px`
   }
 
@@ -376,7 +375,6 @@ export class InteractiveCanvas extends BaseScatterTrack {
       (start - this.offscreenPosition.start) * this.offscreenPosition.scale)
     const offscSegmentWidth = Math.round(width * this.offscreenPosition.scale)
     const onscSegmentWidth = width * this.calcScale()
-    const lineMargin = 2
     // clear current canvas
     const ctx = this.contentCanvas.getContext('2d')
     ctx.clearRect(
