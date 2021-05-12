@@ -129,7 +129,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       // create a tooltip html element and append to DOM
       // VARIANT_TR_TABLE[variantCategory]
       const tooltip = createTooltipElement({
-        id: `${variantObj.id}-popover`,
+        id: `popover-${variantObj.id}`,
         title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
         information: [
           { title: 'Type', value: variant.category },

@@ -183,7 +183,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
       })
       // create a tooltip html element and append to DOM
       const tooltip = createTooltipElement({
-        id: `${annotationObj.id}-popover`,
+        id: `popover-${annotationObj.id}`,
         title: annotationObj.name,
         information: [
           { title: track.chrom, value: `${track.start}-${track.end}` },

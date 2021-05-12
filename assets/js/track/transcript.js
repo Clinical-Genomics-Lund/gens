@@ -208,7 +208,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     if (element.refseq_id) { elementInfo.push({ title: 'refSeq', value: element.refseq_id }) }
     if (element.hgnc_id) { elementInfo.push({ title: 'hgnc', value: element.hgnc_id }) }
     const tooltip = createTooltipElement({
-      id: `${element.transcript_id}-popover`,
+      id: `popover-${element.transcript_id}`,
       title: transcriptObj.name,
       information: elementInfo
     })

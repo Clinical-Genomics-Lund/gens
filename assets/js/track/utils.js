@@ -3,9 +3,10 @@
 export function getVisibleYCoordinates ({ element, minHeight = 4 }) {
   let y1 = Math.round(element.y1)
   let y2 = Math.round(element.y2)
-  if (y2 - y1 < minHeight) {
-    y1 = Math.round(y1 - (minHeight - (y2 - y1) / 2))
-    y2 = Math.round(y2 + (minHeight - (y2 - y1) / 2))
+  const height = y2 - y1
+  if (height < minHeight) {
+    y1 = Math.round(y1 - ((minHeight - height) / 2))
+    y2 = Math.round(y2 + ((minHeight - height) / 2))
   }
   return { y1, y2 }
 }
@@ -36,9 +37,5 @@ export function isElementOverlapping (first, second) {
 
 // check if point is within an element
 export function isWithinElementBbox ({ element, point }) {
-  const xCheck = (element.x1 < point.x && point.x < element.x2)
-  const yCheck = (element.y1 < point.y && point.y < element.y2)
-  console.log(`X: ${element.x1} < ${point.x} && ${point.x} < ${element.x2}; ${xCheck}`)
-  console.log(`Y: ${element.y1} < ${point.y} && ${point.y} < ${element.y2}; ${yCheck}`)
   return (element.x1 < point.x && point.x < element.x2) && (element.y1 < point.y && point.y < element.y2)
 }
