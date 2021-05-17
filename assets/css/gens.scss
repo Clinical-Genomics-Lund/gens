@@ -27,6 +27,45 @@ html, body {
     grid-template-rows: auto;
 }
 
+.tooltip {
+  background: #333;
+  color: white;
+  font-weight: bold;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 4px;
+  z-index: 1;
+  display: none;
+
+  .feature {
+    display: none;
+  }
+
+  .feature[data-show] {
+    display: block;
+  }
+}
+
+.tooltip[data-show] {
+  display: block
+}
+
+.tooltip[data-popper-placement^='top'] > .arrow {
+  bottom: -4px;
+}
+
+.tooltip[data-popper-placement^='bottom'] > .arrow {
+  top: -4px;
+}
+
+.tooltip[data-popper-placement^='left'] > .arrow {
+  right: -4px;
+}
+
+.tooltip[data-popper-placement^='right'] > .arrow {
+  left: -4px;
+}
+
 #loading-div {
     display:none;
     position:absolute;

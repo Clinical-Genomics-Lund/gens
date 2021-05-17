@@ -1,7 +1,10 @@
 // Variant track definition
 
-import { BaseAnnotationTrack, isElementOverlapping } from './base.js'
+import { BaseAnnotationTrack } from './base.js'
+import { isElementOverlapping } from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { createPopper } from '@popperjs/core'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
@@ -33,6 +36,7 @@ export class VariantTrack extends BaseAnnotationTrack {
 
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId
+    initTrackTooltips(this)
   }
 
   // Draw highlight for a given region
@@ -49,21 +53,20 @@ export class VariantTrack extends BaseAnnotationTrack {
     })
   }
 
-  async drawOffScreenTrack (queryResult) {
+  async drawOffScreenTrack ({ startPos, endPos, maxHeightOrder, data }) {
     //  Draws variants in given range
-    const titleMargin = 2
     const textSize = 10
     // store positions used when rendering the canvas
     this.offscreenPosition = {
-      start: queryResult.start_pos,
-      end: queryResult.end_pos,
+      start: startPos,
+      end: endPos,
       scale: this.drawCanvas.width /
-        (queryResult.end_pos - queryResult.start_pos)
+        (endPos - startPos)
     }
     const scale = this.offscreenPosition.scale
 
     // Set needed height of visible canvas and transcript tooltips
-    this.setContainerHeight(queryResult.max_height_order)
+    this.setContainerHeight(maxHeightOrder)
 
     // Keeps track of previous values
     this.heightOrderRecord = {
@@ -75,12 +78,11 @@ export class VariantTrack extends BaseAnnotationTrack {
     // limit drawing of annotations to pre-defined resolutions
     let filteredVariants = []
     if (this.getResolution < this.maxResolution + 1) {
-      filteredVariants = queryResult
-        .data
+      filteredVariants = data
         .variants
         .filter(variant => isElementOverlapping(
           { start: variant.position, end: variant.end },
-          { start: queryResult.start_pos, end: queryResult.end_pos }))
+          { start: startPos, end: endPos }))
     }
     // dont show tracks with no data in them
     if (filteredVariants.length > 0 &&
@@ -93,22 +95,75 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.clearTracks()
 
     // Draw track
+    const drawTooltips = this.getResolution < 4
     for (const variant of filteredVariants) {
-      const variantName = variant.display_name // varaint name
-      const chrom = variant.chromosome
       const variantCategory = variant.sub_category // del, dup, sv, str
       const variantType = variant.variant_type
       const variantLength = variant.length
-      const quality = variant.quality
-      const rankScore = variant.rank_score
-      const variantStart = variant.position
-      const variantEnd = variant.end
       const color = this.colorSchema[variantCategory] || this.colorSchema.default || 'black'
       const heightOrder = 1
       const canvasYPos = this.tracksYPos(heightOrder)
 
       // Only draw visible tracks
       if (!this.expanded && heightOrder !== 1) { continue }
+
+      // create variant object
+      const featureHeight = variantCategory === 'del' ? 7 : 8
+      const variantObj = {
+        id: variant.variant_id,
+        name: variant.display_name,
+        start: variant.position,
+        end: variant.end,
+        x1: Math.round(scale * (variant.position - this.offscreenPosition.start)),
+        x2: Math.round(scale * (variant.end - this.offscreenPosition.start)),
+        y1: canvasYPos,
+        y2: Math.round((canvasYPos + featureHeight)),
+        features: [],
+        isDisplayed: false,
+        tooltip: false,
+      }
+      // get onscreen positions for offscreen xy coordinates
+      updateVisableElementCoordinates({
+        element: variantObj,
+        screenPosition: this.onscreenPosition,
+        scale: this.offscreenPosition.scale
+      })
+      // create a tooltip html element and append to DOM
+      if ( drawTooltips ) {
+        const tooltip = createTooltipElement({
+          id: `popover-${variantObj.id}`,
+          title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
+          information: [
+            { title: 'Type', value: variant.category },
+            { title: variant.chromosome, value: `${variant.position}` },
+            { title: 'Ref', value: `${variant.reference}` },
+            { title: 'Alt', value: `${variant.alternative}` },
+            { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
+            { title: 'Quality', value: `${variant.quality}` }
+          ]
+        })
+        this.trackContainer.appendChild(tooltip)
+        // make a  virtual element as tooltip hitbox
+        const virtualElement = makeVirtualDOMElement({
+          x1: variantObj.visibleX1,
+          x2: variantObj.visibleX2,
+          y1: variantObj.visibleY1,
+          y2: variantObj.visibleY2,
+          canvas: this.contentCanvas
+        })
+        // add tooltip to variantObj
+        variantObj.tooltip = {
+          instance: createPopper(virtualElement, tooltip, {
+            modifiers: [
+              { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
+            ]
+          }),
+          virtualElement: virtualElement,
+          tooltip: tooltip,
+          isDisplayed: false
+        }
+      }
+      this.geneticElements.push(variantObj)
 
       // Keep track of latest track
       if (this.heightOrderRecord.latestHeight !== heightOrder) {
@@ -118,54 +173,50 @@ export class VariantTrack extends BaseAnnotationTrack {
           latestTrackEnd: 0
         }
       }
-      // if set begining draw
-      const drawStartCoord = scale * (variantStart - this.offscreenPosition.start)
-      const drawEndCoord = scale * (variantEnd - this.offscreenPosition.start)
       // Draw motif line
-      const waveHeight = 7
       switch (variantCategory) {
         case 'del':
           drawWaveLine({
             ctx: this.drawCtx,
-            x: drawStartCoord,
-            y: (canvasYPos + waveHeight) / 2,
-            x2: drawEndCoord,
-            height: waveHeight,
+            x: variantObj.x1,
+            y: variantObj.y2,
+            x2: variantObj.x2,
+            height: featureHeight,
             color
           })
           break
         case 'dup':
           drawLine({
             ctx: this.drawCtx,
-            x: drawStartCoord,
-            y: canvasYPos + 4,
-            x2: drawEndCoord,
-            y2: canvasYPos + 4,
+            x: variantObj.x1,
+            y: variantObj.y1,
+            x2: variantObj.x2,
+            y2: variantObj.y1,
             color
           })
           drawLine({
             ctx: this.drawCtx,
-            x: drawStartCoord,
-            y: canvasYPos + 4,
-            x2: drawEndCoord,
-            y2: canvasYPos,
+            x: variantObj.x1,
+            y: variantObj.y2,
+            x2: variantObj.x2,
+            y2: variantObj.y2,
             color
           })
           break
         default: // other types of elements
           drawLine({
             ctx: this.drawCtx,
-            x: drawStartCoord,
-            y: canvasYPos,
-            x2: drawEndCoord,
-            y2: canvasYPos,
+            x: variantObj.x1,
+            y: variantObj.y1,
+            x2: variantObj.x2,
+            y2: variantObj.y1,
             color
           })
           console.log(`Unhandled variant type ${variantCategory}; drawing default shape`)
       }
       // Move and display highlighted region
       if (variant._id === this.highlightedVariantId) {
-        this.drawHighlight(drawStartCoord, drawEndCoord)
+        this.drawHighlight(variantObj.x1, variantObj.x2)
       }
 
       const textYPos = this.tracksYPos(heightOrder)
@@ -173,28 +224,10 @@ export class VariantTrack extends BaseAnnotationTrack {
       drawText({
         ctx: this.drawCtx,
         text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        x: scale * ((variantStart + variantEnd) / 2 - this.offscreenPosition.start),
+        x: scale * ((variantObj.start + variantObj.end) / 2 - this.offscreenPosition.start),
         y: textYPos + this.featureHeight,
         fontProp: textSize
       })
-
-      // Set tooltip text
-      const variantText = `Id: ${variantName}\n` +
-                        `Position: ${chrom}:${variantStart}-${variantEnd}\n` +
-                        `Type: ${variantType} ${variantCategory}\n` +
-                        `Quality: ${quality}\n` +
-                        `Rank score: ${rankScore}\n`
-
-      // Add tooltip title for whole gene
-      // this.heightOrderRecord.latestTrackEnd = this.hoverText(
-      //   variantText,
-      //   `${titleMargin + scale * (variantStart - this.offscreenPosition.start)}px`,
-      //   `${titleMargin + textYPos - this.featureHeight / 2}px`,
-      //   `${scale * (variantEnd - variantStart)}px`,
-      //   `${this.featureHeight + textSize}px`,
-      //   0,
-      //   this.heightOrderRecord.latestTrackEnd
-      // );
     }
   }
 }

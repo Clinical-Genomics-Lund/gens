@@ -1,20 +1,7 @@
 // Generic functions related to drawing annotation tracks
 
 import { get } from '../fetch.js'
-
-// Check if two geometries are overlapping
-// each input is an object with start/ end coordinates
-// f          >----------------<
-// s   >---------<
-export function isElementOverlapping (first, second) {
-  if ((first.start > second.start && first.start < second.end) || //
-       (first.end > second.start && first.end < second.end) ||
-       (second.start > first.start && second.start < first.end) ||
-       (second.end > first.start && second.end < first.end)) {
-    return true
-  }
-  return false
-}
+import { hideTooltip } from './tooltip.js'
 
 // Calculate offscreen position
 export function calculateOffscreenWindowPos ({ start, end, multiplier }) {
@@ -90,6 +77,7 @@ export class BaseAnnotationTrack {
 
     // Max resolution
     this.maxResolution = 4
+    this.geneticElements = [] // for tooltips
   }
 
   tracksYPos (heightOrder) {
@@ -127,6 +115,10 @@ export class BaseAnnotationTrack {
     this.trackContainer.addEventListener('contextmenu',
       async (event) => {
         event.preventDefault()
+        // hide all tooltips
+        for (const element of this.geneticElements) {
+          if (element.tooltip) hideTooltip(element.tooltip)
+        }
         // Toggle between expanded/collapsed view
         this.expanded = !this.expanded
         // set datastate for css
@@ -135,14 +127,10 @@ export class BaseAnnotationTrack {
         } else {
           this.trackContainer.setAttribute('data-state', 'collapsed')
         }
-        //  this.drawTrack(inputField.value);
         await this.drawOffScreenTrack({
-          chromosome: this.trackData.chromosome,
-          start_pos: this.offscreenPosition.start,
-          end_pos: this.offscreenPosition.end,
-          queryStart: this.onscreenPosition.start,
-          queryEnd: this.onscreenPosition.end, // default to chromosome end
-          max_height_order: this.expanded ? this.trackData.max_height_order : 1,
+          startPos: this.offscreenPosition.start,
+          endPos: this.offscreenPosition.end,
+          maxHeightOrder: this.expanded ? this.trackData.max_height_order : 1,
           data: this.trackData
         })
         this.blitCanvas(this.onscreenPosition.start, this.onscreenPosition.end)
@@ -189,27 +177,6 @@ export class BaseAnnotationTrack {
     }
   }
 
-  // Inserts a hover text for a track
-  hoverText (text, left, top, width, height, zIndex, latestPos) {
-    // Make div wider for more mouse over space
-    const minWidth = 1
-    if (parseInt(width) < minWidth && (parseInt(left) - minWidth / 2) > latestPos) {
-      left = parseInt(left) - minWidth / 2 + 'px'
-      width = minWidth + 'px'
-    }
-
-    const title = document.createElement('div')
-    title.title = text
-    title.style.left = left
-    title.style.top = top
-    title.style.width = width
-    title.style.height = height
-    title.style.position = 'absolute'
-    title.style.zIndex = zIndex
-    this.trackTitle.appendChild(title)
-    return parseInt(left + width)
-  }
-
   // Draw annotation track
   // the first time annotation data is cached for given chromosome
   // and a larger region is rendered on an offscreen canvas
@@ -242,6 +209,7 @@ export class BaseAnnotationTrack {
           collapsed: false // allways get all height orders
         }, this.additionalQueryParams) // parameters specific to track type
       )
+      // disable track if data loading encountered an error
       if (this.trackData.status === 'error') {
         this.trackContainer.parentElement.setAttribute('data-state', 'nodata')
         this.preventDrawingTrack = true
@@ -267,12 +235,9 @@ export class BaseAnnotationTrack {
       })
       // draw offscreen position for the first time
       await this.drawOffScreenTrack({
-        chromosome: this.trackData.chromosome,
-        start_pos: offscreenPos.start,
-        end_pos: offscreenPos.end,
-        queryStart: start,
-        queryEnd: end || offscreenPos.end, // default to chromosome end
-        max_height_order: this.trackData.max_height_order,
+        startPos: offscreenPos.start,
+        endPos: offscreenPos.end,
+        maxHeightOrder: this.trackData.max_height_order,
         data: this.trackData
       })
     }
