@@ -177,6 +177,7 @@ function teardownTooltips (track) {
   }
 }
 
+
 // initialize event listeners for hover function
 export function initTrackTooltips (track) {
   // when mouse is leaving track
@@ -188,9 +189,9 @@ export function initTrackTooltips (track) {
   track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })
   // extend drawOffScreenTrack to teardown old tooltips prior to drawing new
   const oldDrawOffscreenTrack = track.drawOffScreenTrack
-  track.drawOffScreenTrack = ({ startPos, endPos, maxHeightOrder, data }) => {
+  track.drawOffScreenTrack = async ({ startPos, endPos, maxHeightOrder, data }) => {
     teardownTooltips(track)
-    oldDrawOffscreenTrack.call(track, { startPos, endPos, maxHeightOrder, data })
+    await oldDrawOffscreenTrack.call(track, { startPos, endPos, maxHeightOrder, data })
   }
   // extend instance function to recalculate positions of virtual dom elements
   const oldBlit = track.blitCanvas
