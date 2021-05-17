@@ -95,7 +95,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
 
   // draw transcript figures
   async _drawTranscript (element, color, plotFormat,
-    drawName = true, drawAsArrow = false) {
+    drawName = true, drawAsArrow = false, addTooltip = true) {
     const canvasYPos = this.tracksYPos(element.height_order)
     const scale = this.offscreenPosition.scale
     // sizes
@@ -207,24 +207,28 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     ]
     if (element.refseq_id) { elementInfo.push({ title: 'refSeq', value: element.refseq_id }) }
     if (element.hgnc_id) { elementInfo.push({ title: 'hgnc', value: element.hgnc_id }) }
-    const tooltip = createTooltipElement({
-      id: `popover-${element.transcript_id}`,
-      title: transcriptObj.name,
-      information: elementInfo
-    })
-    // add features to element
-    addFeatures(element, tooltip)
-    // create tooltip
-    this.trackContainer.appendChild(tooltip)
-    transcriptObj.tooltip = {
-      instance: createPopper(virtualElement, tooltip, {
-        modifiers: [
-          { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
-        ]
-      }),
-      virtualElement: virtualElement,
-      tooltip: tooltip,
-      isDisplayed: false
+    if ( addTooltip ) {
+      const tooltip = createTooltipElement({
+        id: `popover-${element.transcript_id}`,
+        title: transcriptObj.name,
+        information: elementInfo
+      })
+      // add features to element
+      addFeatures(element, tooltip)
+      // create tooltip
+      this.trackContainer.appendChild(tooltip)
+      transcriptObj.tooltip = {
+        instance: createPopper(virtualElement, tooltip, {
+          modifiers: [
+            { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
+          ]
+        }),
+        virtualElement: virtualElement,
+        tooltip: tooltip,
+        isDisplayed: false
+      }
+    } else { 
+      transcriptObj.tooltip = false
     }
     return transcriptObj
   }
@@ -275,6 +279,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
 
     // Go through queryResults and draw appropriate symbols
     const drawGeneName = this.getResolution < 3
+    const drawTooltips = this.getResolution < 4
     const drawExons = this.getResolution < 4
     for (const transc of filteredTranscripts) {
       if (!this.expanded && transc.height_order !== 1) { continue }
@@ -288,7 +293,8 @@ export class TranscriptTrack extends BaseAnnotationTrack {
         color,
         plotFormat,
         drawGeneName, // if gene names should be drawn
-        !drawExons // if transcripts should be represented as arrows
+        !drawExons, // if transcripts should be represented as arrows
+        drawTooltips,  // if tooltips should be added
       )
       this.geneticElements.push(transcriptObj)
     }

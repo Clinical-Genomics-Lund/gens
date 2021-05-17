@@ -95,6 +95,7 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.clearTracks()
 
     // Draw track
+    const drawTooltips = this.getResolution < 4
     for (const variant of filteredVariants) {
       const variantCategory = variant.sub_category // del, dup, sv, str
       const variantType = variant.variant_type
@@ -118,7 +119,8 @@ export class VariantTrack extends BaseAnnotationTrack {
         y1: canvasYPos,
         y2: Math.round((canvasYPos + featureHeight)),
         features: [],
-        isDisplayed: false
+        isDisplayed: false,
+        tooltip: false,
       }
       // get onscreen positions for offscreen xy coordinates
       updateVisableElementCoordinates({
@@ -127,38 +129,39 @@ export class VariantTrack extends BaseAnnotationTrack {
         scale: this.offscreenPosition.scale
       })
       // create a tooltip html element and append to DOM
-      // VARIANT_TR_TABLE[variantCategory]
-      const tooltip = createTooltipElement({
-        id: `popover-${variantObj.id}`,
-        title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
-        information: [
-          { title: 'Type', value: variant.category },
-          { title: variant.chromosome, value: `${variant.position}` },
-          { title: 'Ref', value: `${variant.reference}` },
-          { title: 'Alt', value: `${variant.alternative}` },
-          { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
-          { title: 'Quality', value: `${variant.quality}` }
-        ]
-      })
-      this.trackContainer.appendChild(tooltip)
-      // make a  virtual element as tooltip hitbox
-      const virtualElement = makeVirtualDOMElement({
-        x1: variantObj.visibleX1,
-        x2: variantObj.visibleX2,
-        y1: variantObj.visibleY1,
-        y2: variantObj.visibleY2,
-        canvas: this.contentCanvas
-      })
-      // add tooltip to variantObj
-      variantObj.tooltip = {
-        instance: createPopper(virtualElement, tooltip, {
-          modifiers: [
-            { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
+      if ( drawTooltips ) {
+        const tooltip = createTooltipElement({
+          id: `popover-${variantObj.id}`,
+          title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
+          information: [
+            { title: 'Type', value: variant.category },
+            { title: variant.chromosome, value: `${variant.position}` },
+            { title: 'Ref', value: `${variant.reference}` },
+            { title: 'Alt', value: `${variant.alternative}` },
+            { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
+            { title: 'Quality', value: `${variant.quality}` }
           ]
-        }),
-        virtualElement: virtualElement,
-        tooltip: tooltip,
-        isDisplayed: false
+        })
+        this.trackContainer.appendChild(tooltip)
+        // make a  virtual element as tooltip hitbox
+        const virtualElement = makeVirtualDOMElement({
+          x1: variantObj.visibleX1,
+          x2: variantObj.visibleX2,
+          y1: variantObj.visibleY1,
+          y2: variantObj.visibleY2,
+          canvas: this.contentCanvas
+        })
+        // add tooltip to variantObj
+        variantObj.tooltip = {
+          instance: createPopper(virtualElement, tooltip, {
+            modifiers: [
+              { name: 'offset', options: { offset: [0, virtualElement.getBoundingClientRect().height] } }
+            ]
+          }),
+          virtualElement: virtualElement,
+          tooltip: tooltip,
+          isDisplayed: false
+        }
       }
       this.geneticElements.push(variantObj)
 

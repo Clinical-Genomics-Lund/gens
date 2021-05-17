@@ -47,6 +47,7 @@ function hideFeatureInTooltip ({ tooltip, feature }) {
 }
 
 export function hideTooltip (tooltip) {
+  // skip if tooltip has not been rendered
   tooltip.tooltip.removeAttribute('data-show')
   for (const feature of tooltip.tooltip.querySelectorAll('.feature')) {
     feature.removeAttribute('data-show')
@@ -99,6 +100,9 @@ function tooltipHandler (event, track) {
   event.stopPropagation()
   const point = { x: event.offsetX, y: event.offsetY }
   for (const element of track.geneticElements) {
+    if ( !element.tooltip) {
+      continue
+    }
     const isInElement = isWithinElementBbox({
       element: {
         x1: element.visibleX1,
@@ -139,6 +143,10 @@ function tooltipHandler (event, track) {
 // update tooltip position
 function updateTooltipPos (track) {
   for (const element of track.geneticElements) {
+    // skip if tooltip has not been rendered
+    if ( !element.tooltip ) {
+      continue
+    }
     // update coordinates for the main element
     updateVisableElementCoordinates({
       element,
@@ -172,6 +180,10 @@ function updateTooltipPos (track) {
 function teardownTooltips (track) {
   while (track.geneticElements.length) {
     const element = track.geneticElements.shift()
+    // skip if tooltip has not been rendered
+    if ( !element.tooltip ) {
+      continue
+    }
     element.tooltip.instance.destroy() // kill popper
     track.trackContainer.querySelector(`#${element.tooltip.tooltip.id}`).remove()
   }
@@ -183,7 +195,9 @@ export function initTrackTooltips (track) {
   // when mouse is leaving track
   track.trackContainer.addEventListener('mouseleave',
     () => {
-      for (const element of track.geneticElements) { hideTooltip(element.tooltip) }
+      for (const element of track.geneticElements) { 
+        if (element.tooltip) hideTooltip(element.tooltip)
+      }
     })
   // when mouse is leaving track
   track.trackContainer.addEventListener('mousemove', (e) => { tooltipHandler(e, track) })

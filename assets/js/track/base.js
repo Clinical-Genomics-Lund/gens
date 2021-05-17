@@ -117,7 +117,7 @@ export class BaseAnnotationTrack {
         event.preventDefault()
         // hide all tooltips
         for (const element of this.geneticElements) {
-          hideTooltip(element.tooltip)
+          if (element.tooltip) hideTooltip(element.tooltip)
         }
         // Toggle between expanded/collapsed view
         this.expanded = !this.expanded
