@@ -121,7 +121,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
     // dont show tracks with no data in them
     if (filteredAnnotations.length > 0) {
       //  Set needed height of visible canvas and transcript tooltips
-      this.setContainerHeight(this.trackData.maxHeightOrder)
+      this.setContainerHeight(this.trackData.max_height_order)
     } else {
       //  Set needed height of visible canvas and transcript tooltips
       this.setContainerHeight(0)

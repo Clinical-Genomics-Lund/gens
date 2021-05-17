@@ -88,7 +88,7 @@ export class VariantTrack extends BaseAnnotationTrack {
     if (filteredVariants.length > 0 &&
          this.getResolution < this.maxResolution + 1
     ) {
-      this.setContainerHeight(this.trackData.maxHeightOrder)
+      this.setContainerHeight(this.trackData.max_height_order)
     } else {
       this.setContainerHeight(0)
     }
