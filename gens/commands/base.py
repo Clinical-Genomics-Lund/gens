@@ -1,10 +1,10 @@
 """Gens command line interface."""
 
-from flask.cli import FlaskGroup
 import click
-from gens.app import create_app
+from flask.cli import FlaskGroup
 
 from gens.__version__ import VERSION as version
+from gens.app import create_app
 
 from .load import load as load_command
 

@@ -1,10 +1,10 @@
 """Load transcripts into database"""
 
 import csv
-from itertools import chain
-from collections import defaultdict
-import logging
 import datetime
+import logging
+from collections import defaultdict
+from itertools import chain
 
 LOG = logging.getLogger(__name__)
 
@@ -12,14 +12,14 @@ LOG = logging.getLogger(__name__)
 def parse_mane_transc(mane_file):
     """Parse mane tranascript file and index on ensemble id."""
     mane = {}
-    LOG.info('parsing mane transcripts')
+    LOG.info("parsing mane transcripts")
     creader = csv.DictReader(mane_file, delimiter="\t")
     for row in creader:
-        ensemble_nuc = row['Ensembl_nuc'].split(".")[0]
+        ensemble_nuc = row["Ensembl_nuc"].split(".")[0]
         mane[ensemble_nuc] = {
-                "hgnc_id": row['HGNC_ID'].replace("HGNC:", ""),
-                "refseq_id": row['RefSeq_nuc'],
-                "mane_status": row['MANE_status'],
+            "hgnc_id": row["HGNC_ID"].replace("HGNC:", ""),
+            "refseq_id": row["RefSeq_nuc"],
+            "mane_status": row["MANE_status"],
         }
     return mane
 
@@ -43,7 +43,7 @@ def _count_file_len(file):
     return n_lines
 
 
-def parse_transcript_gtf(transc_file, delimiter='\t'):
+def parse_transcript_gtf(transc_file, delimiter="\t"):
     """Parse transcripts."""
     # setup reader
     COLNAMES = [
@@ -58,7 +58,7 @@ def parse_transcript_gtf(transc_file, delimiter='\t'):
         "attribute",
     ]
     target_features = ("transcript", "exon", "three_prime_utr", "five_prime_utr")
-    LOG.info('parsing transcripts')
+    LOG.info("parsing transcripts")
     cfile = csv.DictReader(transc_file, COLNAMES, delimiter=delimiter)
     for row in cfile:
         if row["seqname"].startswith("#") or row["seqname"] is None:
@@ -86,19 +86,21 @@ def _assign_height_order(transcripts):
         rest_start_height_order = 2
     elif len(mane_transcript) > 1:
         sorted_mane = [
-            *[tr for tr in mane_transcript if tr['mane'] == 'MANE Select'],
-            *[tr for tr in mane_transcript if tr['mane'] == 'MANE Plus Clinical'],
-            *[tr for tr in mane_transcript
-              if not any([tr['mane'] == 'MANE Plus Clinical', tr['mane'] == 'MANE Select'])],
+            *[tr for tr in mane_transcript if tr["mane"] == "MANE Select"],
+            *[tr for tr in mane_transcript if tr["mane"] == "MANE Plus Clinical"],
+            *[
+                tr
+                for tr in mane_transcript
+                if not any([tr["mane"] == "MANE Plus Clinical", tr["mane"] == "MANE Select"])
+            ],
         ]
         for order, tr in enumerate(sorted_mane, 1):
-            tr['height_order'] = order
+            tr["height_order"] = order
 
     # assign height order to the rest of the transcripts
     rest = (tr for tr in transcripts if tr["mane"] is None)
     for order, tr in enumerate(
-        sorted(rest, key=lambda x: int(x["start"])),
-            start=len(mane_transcript) + 1
+        sorted(rest, key=lambda x: int(x["start"])), start=len(mane_transcript) + 1
     ):
         tr["height_order"] = order
 
@@ -114,7 +116,7 @@ def build_transcripts(transc_file, mane_file, genome_build):
     mane_transc = parse_mane_transc(mane_file)
     results = defaultdict(list)
     transc_index = {}
-    LOG.info('Processing transcripts')
+    LOG.info("Processing transcripts")
     for transc, attribs in parse_transcript_gtf(transc_file):
         transcript_id = attribs.get("transcript_id")
         # store transcripts in index
@@ -131,8 +133,8 @@ def build_transcripts(transc_file, mane_file, genome_build):
                 "transcript_id": transcript_id,
                 "transcript_biotype": attribs["transcript_biotype"],
                 "mane": selected_name.get("mane_status"),
-                "hgnc_id": selected_name.get('hgnc_id'),
-                "refseq_id": selected_name.get('refseq_id'),
+                "hgnc_id": selected_name.get("hgnc_id"),
+                "refseq_id": selected_name.get("refseq_id"),
                 "features": [],
                 "created_at": datetime.datetime.now(),
             }
@@ -143,9 +145,7 @@ def build_transcripts(transc_file, mane_file, genome_build):
             if transcript_id in transc_index:
                 specific_params = {}
                 if transc["feature"] == "exon":
-                    specific_params["exon_number"] = int(
-                        attribs["exon_number"]
-                    )
+                    specific_params["exon_number"] = int(attribs["exon_number"])
                 transc_index[transcript_id]["features"].append(
                     {
                         **{

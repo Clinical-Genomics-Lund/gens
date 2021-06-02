@@ -1,16 +1,19 @@
 """Annotations."""
-import logging
 import csv
-from gens.constants import CHROMOSOMES
-from pymongo import ASCENDING
 import datetime
+import logging
 import re
+
+from pymongo import ASCENDING
+
+from gens.constants import CHROMOSOMES
 
 LOG = logging.getLogger(__name__)
 CORE_FIELDS = ("sequence", "start", "end", "name", "strand", "color", "score")
-AED_ENTRY = re.compile(r'.+:(\w+)\(\w+:(\w+)\)', re.I)
+AED_ENTRY = re.compile(r".+:(\w+)\(\w+:(\w+)\)", re.I)
 
-DEFAULT_COLOR = 'grey'
+DEFAULT_COLOR = "grey"
+
 
 class ParserError(Exception):
     pass
@@ -53,11 +56,11 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
     # parse entry and format the values
     for name, value in entry.items():
         if name in CORE_FIELDS:
-            name = 'chrom' if name == 'sequence' else name  # for compatibility
+            name = "chrom" if name == "sequence" else name  # for compatibility
             try:
                 annotation[name] = format_data(name, value)
             except ValueError as err:
-                LOG.debug(f'Bad line: {entry}')
+                LOG.debug(f"Bad line: {entry}")
                 raise ParserError(str(err))
 
     # ensure that coordinates are in correct order
@@ -66,10 +69,10 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
     set_missing_fields(annotation, annotation_name)
     # set additional values
     annotation = {
-            'source': annotation_name,
-            'hg_type': genome_build,
-            'created_at': datetime.datetime.now(),
-            **annotation,
+        "source": annotation_name,
+        "hg_type": genome_build,
+        "created_at": datetime.datetime.now(),
+        **annotation,
     }
     return annotation
 
@@ -79,10 +82,10 @@ def format_data(name, value):
     if name == "color":
         if not value:
             fmt_val = DEFAULT_COLOR
-        elif value.startswith('rgb('):
+        elif value.startswith("rgb("):
             fmt_val = value
         else:
-            fmt_val = f'rgb({value})'
+            fmt_val = f"rgb({value})"
     elif name == "chrom":
         if not value:
             raise ValueError(f"field {name} must exist")
@@ -110,7 +113,9 @@ def set_missing_fields(annotation, name):
         elif field_name == "sequence" or field_name == "strand":
             pass
         else:
-            LOG.warning(f"field {field_name} is missing from annotation {annotation} in file {name}")
+            LOG.warning(
+                f"field {field_name} is missing from annotation {annotation} in file {name}"
+            )
 
 
 def update_height_order(db, name):
@@ -147,7 +152,7 @@ def update_height_order(db, name):
 
 def parse_annotation_file(file, genome_build, format):
     """Parse a annotation file in bed or aed format."""
-    if format == 'bed':
+    if format == "bed":
         return parse_bed(file, genome_build)
-    if format == 'aed':
+    if format == "aed":
         return parse_aed(file)

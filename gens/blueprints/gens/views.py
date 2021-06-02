@@ -66,9 +66,7 @@ def display_case(sample_name):
     selected_variant = request.args.get("variant")
 
     # get annotation track
-    annotation = request.args.get(
-        "annotation", current_app.config["DEFAULT_ANNOTATION_TRACK"]
-    )
+    annotation = request.args.get("annotation", current_app.config["DEFAULT_ANNOTATION_TRACK"])
 
     return render_template(
         "gens.html",

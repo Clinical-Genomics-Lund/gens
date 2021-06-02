@@ -27,4 +27,4 @@ CHROMOSOMES = (
     "Y",
 )
 
-HG_TYPE = ('19', '38')
+HG_TYPE = ("19", "38")

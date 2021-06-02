@@ -11,9 +11,11 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants
+from gens.db import (RecordType, VariantCategory, query_records_in_region,
+                     query_variants)
 from gens.exceptions import RegionParserException
-from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
+from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
+                        parse_region_str)
 
 from .constants import CHROMOSOMES, HG_TYPE
 from .io import get_overview_json_path, get_tabix_files
@@ -78,9 +80,7 @@ def get_overview_chrom_dim(x_pos, y_pos, plot_width, hg_type):
     Returns the dimensions of all chromosome graphs in screen coordinates
     for drawing the chromosomes correctly in the overview graph
     """
-    LOG.info(
-        f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {hg_type}"
-    )
+    LOG.info(f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {hg_type}")
     chrom_dims = overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type)
     return jsonify(status="ok", chrom_dims=chrom_dims)
 
@@ -177,27 +177,27 @@ def search_annotation(query: str, hg_type, annotation_type):
     db_query = {"gene_name": re.compile("^" + re.escape(query) + "$", re.IGNORECASE)}
 
     if hg_type and int(hg_type) in HG_TYPE:
-        db_query['hg_type'] = hg_type
+        db_query["hg_type"] = hg_type
 
     elements = collection.find(db_query, sort=[("start", 1), ("chrom", 1)])
     # if no results was found
     if elements.count() == 0:
         msg = f"Did not find gene name: {query}"
         LOG.warning(msg)
-        data = {'message': msg}
+        data = {"message": msg}
         response_code = 404
     else:
         start_elem = elements.next()
-        end_elem = max(elements, key=lambda elem: elem.get('end'))
+        end_elem = max(elements, key=lambda elem: elem.get("end"))
         data = {
-            'chromosome': start_elem.get('chrom'),
-            'start_pos': start_elem.get('start'),
-            'end_pos': end_elem.get('end'),
-            'hg_type': start_elem.get('hg_type'),
+            "chromosome": start_elem.get("chrom"),
+            "start_pos": start_elem.get("start"),
+            "end_pos": end_elem.get("end"),
+            "hg_type": start_elem.get("hg_type"),
         }
         response_code = 200
 
-    return jsonify({**data, 'status': response_code})
+    return jsonify({**data, "status": response_code})
 
 
 def get_variant_data(sample_id, variant_category, **optional_kwargs):
@@ -287,7 +287,7 @@ def get_multiple_coverages():
         chromosome = chrom_info.region.split(":")[0]
         try:
             with current_app.app_context():
-                reg, *_,log2_rec, baf_rec = get_cov(
+                reg, *_, log2_rec, baf_rec = get_cov(
                     req,
                     chrom_info.x_ampl,
                     json_data=json_data,

@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="gens",
-    version='1.2.1',
+    version="1.2.1",
     description="Gens is a web-based interactive tool to visualize genomic copy number profiles from WGS data.",
     license="MIT",
     author="Ronja",
@@ -43,18 +43,17 @@ setup(
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "mongomock"],
-    entry_points={'console_scripts': [
-        'gens=gens.commands:cli'
-        ],
+    entry_points={
+        "console_scripts": ["gens=gens.commands:cli"],
     },
     package_data={
-        'gens': [
-            'gens/templates/*.html',
-            'gens/static/**/*',
-            'gens/static/**/*',
-            'scout/blueprints/**/templates/*.html',
-            'scout/blueprints/**/static/*',
-            'gens/openapi/openapi.yaml',
+        "gens": [
+            "gens/templates/*.html",
+            "gens/static/**/*",
+            "gens/static/**/*",
+            "scout/blueprints/**/templates/*.html",
+            "scout/blueprints/**/static/*",
+            "gens/openapi/openapi.yaml",
         ]
-    }
+    },
 )
