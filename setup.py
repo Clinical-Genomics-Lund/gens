@@ -47,4 +47,14 @@ setup(
         'gens=gens.commands:cli'
         ],
     },
+    package_data={
+        'gens': [
+            'gens/templates/*.html',
+            'gens/static/**/*',
+            'gens/static/**/*',
+            'scout/blueprints/**/templates/*.html',
+            'scout/blueprints/**/static/*',
+            'gens/openapi/openapi.yaml',
+        ]
+    }
 )
