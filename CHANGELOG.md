@@ -6,6 +6,9 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+ - Command line interface for manageing Gens
+ - Commands for loading transcripts, annotations and chromosome size into database
+ - Include api spec, html and static files in distribution
 ### Changed
 ### Fixed
 
