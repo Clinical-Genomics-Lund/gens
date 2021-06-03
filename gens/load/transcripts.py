@@ -5,6 +5,7 @@ import datetime
 import logging
 from collections import defaultdict
 from itertools import chain
+import click
 
 LOG = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def parse_transcript_gtf(transc_file, delimiter="\t"):
         "attribute",
     ]
     target_features = ("transcript", "exon", "three_prime_utr", "five_prime_utr")
-    LOG.info("parsing transcripts")
+    LOG.debug("parsing transcripts")
     cfile = csv.DictReader(transc_file, COLNAMES, delimiter=delimiter)
     for row in cfile:
         if row["seqname"].startswith("#") or row["seqname"] is None:
@@ -116,46 +117,47 @@ def build_transcripts(transc_file, mane_file, genome_build):
     mane_transc = parse_mane_transc(mane_file)
     results = defaultdict(list)
     transc_index = {}
-    LOG.info("Processing transcripts")
-    for transc, attribs in parse_transcript_gtf(transc_file):
-        transcript_id = attribs.get("transcript_id")
-        # store transcripts in index
-        if transc["feature"] == "transcript":
-            selected_name = mane_transc.get(transcript_id, {})
-            res = {
-                "chrom": transc["seqname"],
-                "hg_type": int(genome_build),
-                "gene_name": attribs["gene_name"],
-                "start": int(transc["start"]),
-                "end": int(transc["end"]),
-                "strand": transc["strand"],
-                "height_order": None,  # will be set later
-                "transcript_id": transcript_id,
-                "transcript_biotype": attribs["transcript_biotype"],
-                "mane": selected_name.get("mane_status"),
-                "hgnc_id": selected_name.get("hgnc_id"),
-                "refseq_id": selected_name.get("refseq_id"),
-                "features": [],
-                "created_at": datetime.datetime.now(),
-            }
-            transc_index[transcript_id] = res
-            results[attribs["gene_name"]].append(res)
-        elif transc["feature"] == ["exon", "three_prime_utr", "five_prime_utr"]:
-            # add features to existing transcript
-            if transcript_id in transc_index:
-                specific_params = {}
-                if transc["feature"] == "exon":
-                    specific_params["exon_number"] = int(attribs["exon_number"])
-                transc_index[transcript_id]["features"].append(
-                    {
-                        **{
-                            "feature": transc["feature"],
-                            "start": int(transc["start"]),
-                            "end": int(transc["end"]),
-                        },
-                        **specific_params,
-                    }
-                )
+    n_lines = _count_file_len(transc_file)
+    with click.progressbar(transc_file, length=n_lines, label="Processing transcripts") as bar:
+        for transc, attribs in parse_transcript_gtf(bar):
+            transcript_id = attribs.get("transcript_id")
+            # store transcripts in index
+            if transc["feature"] == "transcript":
+                selected_name = mane_transc.get(transcript_id, {})
+                res = {
+                    "chrom": transc["seqname"],
+                    "hg_type": int(genome_build),
+                    "gene_name": attribs["gene_name"],
+                    "start": int(transc["start"]),
+                    "end": int(transc["end"]),
+                    "strand": transc["strand"],
+                    "height_order": None,  # will be set later
+                    "transcript_id": transcript_id,
+                    "transcript_biotype": attribs["transcript_biotype"],
+                    "mane": selected_name.get("mane_status"),
+                    "hgnc_id": selected_name.get("hgnc_id"),
+                    "refseq_id": selected_name.get("refseq_id"),
+                    "features": [],
+                    "created_at": datetime.datetime.now(),
+                }
+                transc_index[transcript_id] = res
+                results[attribs["gene_name"]].append(res)
+            elif transc["feature"] in ["exon", "three_prime_utr", "five_prime_utr"]:
+                # add features to existing transcript
+                if transcript_id in transc_index:
+                    specific_params = {}
+                    if transc["feature"] == "exon":
+                        specific_params["exon_number"] = int(attribs["exon_number"])
+                    transc_index[transcript_id]["features"].append(
+                        {
+                            **{
+                                "feature": transc["feature"],
+                                "start": int(transc["start"]),
+                                "end": int(transc["end"]),
+                            },
+                            **specific_params,
+                        }
+                    )
 
     LOG.info("Assign height order values and sort features")
     for transcripts in results.values():
