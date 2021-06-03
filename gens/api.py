@@ -67,7 +67,7 @@ class ChromCoverageRequest:
     @hg_type.validator
     def valid_hg_type(self, attribute, value):
         if not value in HG_TYPE:
-            raise ValueError(f"{value} is not of valid hg types; {HG_TYPES}")
+            raise ValueError(f"{value} is not of valid hg types; {HG_TYPE}")
 
     @reduce_data.validator
     def valid_perc(self, attribute, value):

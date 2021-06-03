@@ -11,6 +11,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Include api spec, html and static files in distribution
 ### Changed
 ### Fixed
+ - Fixed typo in variable name
 
 ## [1.2.1]
 ### Added
