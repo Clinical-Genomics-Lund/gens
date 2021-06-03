@@ -61,6 +61,29 @@ Once the server has started you can open the app in your web browser at [http://
 
 To stop the instance use the command `docker-compose down`.
 
+## Setup Gens
+
+Once installed you can load annotation data into Gens database using the included command line interface. 
+
+``` bash
+gens load --help
+```
+
+Gens requires the chromosome sizes to be loaded into the database. The repository includes the sizes for grch37 and grch38 in the utils folder.
+
+To display transcripts these need to be loaded into the database.
+
+``` bash
+# download reference files
+curl --silent --output ./Homo_sapiens.GRCh38.101.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.gtf.gz
+gzip -df Homo_sapiens.GRCh38.101.gtf.gz
+curl --silent --output ./MANE.GRCh38.v0.92.summary.txt.gz ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.92/MANE.GRCh38.v0.92.summary.txt.gz
+gzip -df MANE.GRCh38.v0.92.summary.txt.gz
+# load files into database
+gens load transcripts --file Homo_sapiens.GRCh38.101.gtf --mane MANE.GRCh38.v0.92.summary.txt -b 38
+```
+
+Annotated regions can be loaded into the database in either `bed` or `aed` format.
 
 ## Data generation
 

@@ -32,9 +32,7 @@ def init_database_connection() -> None:
             )
         variables[var_name] = os.environ.get(var_name, app.config.get(var_name))
     # connect to database
-    client = MongoClient(
-        host=variables["MONGODB_HOST"], port=int(variables["MONGODB_PORT"])
-    )
+    client = MongoClient(host=variables["MONGODB_HOST"], port=int(variables["MONGODB_PORT"]))
     # store db handlers in configuration
     app.config["SCOUT_DB"] = client[variables["SCOUT_DBNAME"]]
     app.config["GENS_DB"] = client[variables["GENS_DBNAME"]]
@@ -65,9 +63,7 @@ def query_variants(case_name: str, variant_category: VariantCategory, **kwargs):
     if all(param in kwargs for param in ["start_pos", "end_pos"]):
         query = {
             **query,
-            **_make_query_region(
-                kwargs["start_pos"], kwargs["end_pos"], variant_category.value
-            ),
+            **_make_query_region(kwargs["start_pos"], kwargs["end_pos"], variant_category.value),
         }
     # query database
     LOG.info(f"Query variant database: {query}")
@@ -114,6 +110,4 @@ def query_records_in_region(
     else:
         query["height_order"] = height_order
     # query database
-    return app.config["GENS_DB"][record_type.value].find(
-        query, {"_id": False}, sort=sort_order
-    )
+    return app.config["GENS_DB"][record_type.value].find(query, {"_id": False}, sort=sort_order)

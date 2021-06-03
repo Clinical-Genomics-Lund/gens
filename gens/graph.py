@@ -62,7 +62,7 @@ def convert_data(
         ypos = req.log2_y_end - 0.2 if ypos < req.log2_y_end else ypos
 
         # Convert to screen coordinates
-        xpos = int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
+        xpos = (int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),)
         log2_records.extend([xpos, int(graph.log2_ypos - graph.log2_ampl * ypos)])
 
     # Gather the BAF records
@@ -74,7 +74,7 @@ def convert_data(
         ypos = req.baf_y_end - 0.2 if ypos < req.baf_y_end else ypos
 
         # Convert to screen coordinates
-        xpos = int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),
+        xpos = (int(x_pos + new_x_ampl * (float(record[CHRPOS_IDX]) - new_start_pos)),)
         baf_records.extend([xpos, int(graph.baf_ypos - graph.baf_ampl * ypos)])
 
     return log2_records, baf_records
@@ -90,9 +90,9 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
         x_pos = chrom_dims[chrom]["x_pos"]
         y_pos = chrom_dims[chrom]["y_pos"]
         width = chrom_dims[chrom]["width"]
-        if x_pos + margin <= current_x <= (
-            x_pos + width
-        ) and y_pos + margin <= current_y <= (y_pos + height):
+        if x_pos + margin <= current_x <= (x_pos + width) and y_pos + margin <= current_y <= (
+            y_pos + height
+        ):
             current_chrom = chrom
             break
 
@@ -148,19 +148,11 @@ def parse_region_str(region, hg_type):
             # Lookup queried gene
             collection = app.config["GENS_DB"]["transcripts" + hg_type]
             start = collection.find_one(
-                {
-                    "gene_name": re.compile(
-                        "^" + re.escape(name_search) + "$", re.IGNORECASE
-                    )
-                },
+                {"gene_name": re.compile("^" + re.escape(name_search) + "$", re.IGNORECASE)},
                 sort=[("start", 1)],
             )
             end = collection.find_one(
-                {
-                    "gene_name": re.compile(
-                        "^" + re.escape(name_search) + "$", re.IGNORECASE
-                    )
-                },
+                {"gene_name": re.compile("^" + re.escape(name_search) + "$", re.IGNORECASE)},
                 sort=[("end", -1)],
             )
             if start is not None and end is not None:
@@ -316,7 +308,5 @@ def get_chrom_data(chrom, hg_type=38):
         }
     )
     if chrom_data is None:
-        raise ValueError(
-            f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}"
-        )
+        raise ValueError(f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}")
     return chrom_data
