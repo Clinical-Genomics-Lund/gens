@@ -31,9 +31,8 @@ def load():
 @click.option(
     "-b", "--genome-build", type=click.Choice(HG_TYPE), required=True, help="Genome build"
 )
-@click.option("-u", "--update", is_flag=True, help="Update existing database with new information")
 @with_appcontext
-def annotations(file, genome_build, update):
+def annotations(file, genome_build):
     """Load annotations from file into the database."""
     COLLECTION = "annotations"
     # check if path is a directoy of a file
@@ -78,14 +77,13 @@ def annotations(file, genome_build, update):
 
 
 @load.command()
-@click.option("-f", "--file", type=click.Path(exists=True), help="Transcript file")
+@click.option("-f", "--file", type=click.File(), help="Transcript file")
 @click.option("-m", "--mane", type=click.File(), required=True, help="Mane file")
 @click.option(
     "-b", "--genome-build", type=click.Choice(HG_TYPE), required=True, help="Genome build"
 )
-@click.option("-u", "--update", is_flag=True, help="Update existing database with new information")
 @with_appcontext
-def transcripts(file, mane, genome_build, update):
+def transcripts(file, mane, genome_build):
     """Load transcripts into the database."""
     COLLECTION = "transcripts"
     LOG.info("Building transcript object")
@@ -110,9 +108,8 @@ def transcripts(file, mane, genome_build, update):
 @click.option(
     "-b", "--genome-build", type=click.Choice(HG_TYPE), required=True, help="Genome build"
 )
-@click.option("-u", "--update", is_flag=True, help="Update existing database with new information")
 @with_appcontext
-def chrom_sizes(file, genome_build, update):
+def chrom_sizes(file, genome_build):
     """Load chromosome size information into the database."""
     COLLECTION = "chromsizes"
     try:
