@@ -12,6 +12,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Display when databases last updated in /about.html
  - Display current configuration /about.html
 ### Changed
+ - Changed development status from Alpha to Stable
 ### Fixed
  - Fixed typo in variable name
 
