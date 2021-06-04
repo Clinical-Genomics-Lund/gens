@@ -57,4 +57,5 @@ setup(
             "gens/openapi/openapi.yaml",
         ]
     },
+    include_package_data=True,
 )
