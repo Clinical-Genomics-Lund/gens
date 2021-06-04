@@ -19,7 +19,6 @@ HG_TYPES = [str(ty) for ty in HG_TYPE]
 @click.group()
 def load():
     """Load information into Gens database"""
-    pass
 
 
 @load.command()
