@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /usr/src/app
-COPY setup.py setup.cfg requirements.txt ./
+COPY MANIFEST.in setup.py setup.cfg requirements.txt ./
 COPY gens gens/
 RUN apt-get update &&                                                     \
     apt-get upgrade -y &&                                                 \
