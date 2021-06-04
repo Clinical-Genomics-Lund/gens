@@ -13,6 +13,7 @@ from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
                        update_height_order)
 
 LOG = logging.getLogger(__name__)
+HG_TYPES = [str(ty) for ty in HG_TYPE]
 
 
 @click.group()
@@ -30,11 +31,7 @@ def load():
     help="File or directory of annotation files to load into the database",
 )
 @click.option(
-    "-b",
-    "--genome-build",
-    type=click.Choice(HG_TYPE),
-    required=True,
-    help="Genome build",
+    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
 )
 @with_appcontext
 def annotations(file, genome_build):
@@ -91,11 +88,7 @@ def annotations(file, genome_build):
 @click.option("-f", "--file", type=click.File(), help="Transcript file")
 @click.option("-m", "--mane", type=click.File(), required=True, help="Mane file")
 @click.option(
-    "-b",
-    "--genome-build",
-    type=click.Choice(HG_TYPE),
-    required=True,
-    help="Genome build",
+    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
 )
 @with_appcontext
 def transcripts(file, mane, genome_build):
@@ -126,11 +119,7 @@ def transcripts(file, mane, genome_build):
     help="Chromosome sizes in tsv format",
 )
 @click.option(
-    "-b",
-    "--genome-build",
-    type=click.Choice(HG_TYPE),
-    required=True,
-    help="Genome build",
+    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
 )
 @with_appcontext
 def chrom_sizes(file, genome_build):
