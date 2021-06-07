@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Welcome{% endblock title %}
+{% block title %}Gens - Version {{version}}{% endblock title %}
 {% block css_style %}
   {{ super() }}
 {% endblock css_style %}
@@ -8,8 +8,28 @@
 {% endblock scripts %}
 {% block content %}
 <div class="content">
-  <h1>Gens - Genome coverage and variant visualization</h1>
-  <p>Software version: <span class="version">{{ version }}</span></p>
+  <img id="logo" src={{ url_for("about.static", filename="gens_logo_with_text.png") }} style="width: 500px">
+  <div id="version" >Software version: <span class="version">{{ version }}</span></div>
   <p>For information on how to use Gens please refere to the CMD Wiki.</p>
+  {{ db_versions(timestamps) }}
 </div>
 {% endblock content %}
+
+
+{% macro db_versions(timestamps) %}
+  <div>
+    <h2>Loaded data</h2>
+    <div>
+      {% for track in timestamps %}
+        {% if timestamps[track] | length > 1 %}
+          <h3>{{ track }}</h3>
+          <ul>
+            {% for annotation in timestamps[track] %}<li>{{ annotation["name"] - annotation["timestamp"] }}</li>{% endfor %}
+          </ul>
+        {% else %}
+          <h3>{{ track }} - {{ timestamps[track][0]["timestamp"] }}</h3>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endmacro %}
