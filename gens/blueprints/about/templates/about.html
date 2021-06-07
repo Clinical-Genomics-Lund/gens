@@ -24,7 +24,9 @@
         {% if timestamps[track] | length > 1 %}
           <h3>{{ track }}</h3>
           <ul>
-            {% for annotation in timestamps[track] %}<li>{{ annotation["name"] - annotation["timestamp"] }}</li>{% endfor %}
+            {% for annotation in timestamps[track] %}
+              <li>{{ annotation["name"] }} - {{ annotation["timestamp"] }}</li>
+            {% endfor %}
           </ul>
         {% else %}
           <h3>{{ track }} - {{ timestamps[track][0]["timestamp"] }}</h3>
