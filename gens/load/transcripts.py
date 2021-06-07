@@ -1,7 +1,6 @@
 """Load transcripts into database"""
 
 import csv
-import datetime
 import logging
 from collections import defaultdict
 from itertools import chain
@@ -138,7 +137,6 @@ def build_transcripts(transc_file, mane_file, genome_build):
                     "hgnc_id": selected_name.get("hgnc_id"),
                     "refseq_id": selected_name.get("refseq_id"),
                     "features": [],
-                    "created_at": datetime.datetime.now(),
                 }
                 transc_index[transcript_id] = res
                 results[attribs["gene_name"]].append(res)

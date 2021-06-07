@@ -10,6 +10,7 @@ from gens.constants import HG_TYPE
 from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
                        parse_annotation_file, parse_chrom_sizes,
                        update_height_order)
+from gens.db import register_data_update
 
 LOG = logging.getLogger(__name__)
 
@@ -74,6 +75,8 @@ def annotations(file, genome_build):
         LOG.info("Update height order")
         # update the height order of annotations in the database
         update_height_order(db, annotation_name)
+        register_data_update(COLLECTION, name=annotation_name)
+    click.secho("Finished loading annotations ✔", fg="green")
 
 
 @load.command()
@@ -98,6 +101,7 @@ def transcripts(file, mane, genome_build):
     for param in ["start", "end", "chrom", "hg_type"]:
         db.create_index([(param, ASCENDING)], unique=False)
     db.create_index("hg_type", unique=False)
+    register_data_update(COLLECTION)
     click.secho("Finished loading transcripts ✔", fg="green")
 
 
@@ -122,4 +126,5 @@ def chrom_sizes(file, genome_build):
     db[COLLECTION].insert_many(chrom_sizes)
     LOG.info("Update database index")
     db[COLLECTION].create_index("hg_type", unique=False)
+    register_data_update(COLLECTION)
     click.secho("Finished updating chromosome sizes ✔", fg="green")

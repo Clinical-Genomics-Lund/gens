@@ -1,6 +1,5 @@
 """Annotations."""
 import csv
-import datetime
 import logging
 import re
 
@@ -71,7 +70,6 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
     annotation = {
         "source": annotation_name,
         "hg_type": genome_build,
-        "created_at": datetime.datetime.now(),
         **annotation,
     }
     return annotation
