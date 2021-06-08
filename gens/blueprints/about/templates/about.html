@@ -15,8 +15,10 @@
   </div>
   <p>For information on how to use Gens please refere to the CMD Wiki.</p>
   <div class="card-panel">
-    {{ db_info_card(timestamps) }}
-    {{ config_card(config, ui_colors) }}
+    <div class="row">
+      {{ db_info_card(timestamps) }}
+      {{ config_card(config, ui_colors) }}
+    </div>
   </div>
 </div>
 {% endblock content %}

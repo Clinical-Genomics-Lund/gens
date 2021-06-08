@@ -1,3 +1,18 @@
+$tablet-width: 768px;
+$desktop-width: 1024px;
+
+@mixin tablet {
+  @media (min-width: #{$tablet-width}) and (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$desktop-width}) {
+    @content;
+  }
+}
+
 .content {
     width: auto;
     display: flex;
@@ -18,16 +33,25 @@
 }
 
 .card-panel {
-    display: flex;
-    flex-direction: row;
-}
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: center;
+    }
 
-.card {
-    margin: 10px;
-    padding: 15px 20px 20px 20px;
-    width: auto;
-    border-radius: 3px;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+    .card {
+        margin: 10px;
+        padding: 15px 20px 20px 20px;
+        border-radius: 3px;
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+    }
+    @include tablet {
+        .card {
+            max-width: 100%;
+            flex: 100%;
+        }
+    }
 }
 
 #loaded-db-data {
