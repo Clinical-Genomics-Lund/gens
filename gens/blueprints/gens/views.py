@@ -9,7 +9,7 @@ from gens.__version__ import VERSION as version
 from gens.cache import cache
 from gens.graph import parse_region_str
 from gens.io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from gens.utils import get_hg_type
+from gens.utils import get_genome_build
 
 LOG = logging.getLogger(__name__)
 
@@ -36,12 +36,12 @@ def display_case(sample_name):
 
     # Set whether to get HG37 och HG38 files
     with current_app.app_context():
-        hg_filedir, hg_type = get_hg_type()
+        coverage_dir, genome_build = get_genome_build()
 
     # Check that BAF and Log2 file exists
     try:
-        _get_filepath(hg_filedir, sample_name + BAF_SUFFIX)
-        _get_filepath(hg_filedir, sample_name + COV_SUFFIX)
+        _get_filepath(coverage_dir, sample_name + BAF_SUFFIX)
+        _get_filepath(coverage_dir, sample_name + COV_SUFFIX)
     except FileNotFoundError as err:
         raise err
     else:
@@ -55,7 +55,8 @@ def display_case(sample_name):
 
     # Parse region
     with current_app.app_context():
-        hg_type = request.args.get("hg_type", "38")
+        genome_build = request.args.get("genome_build", "38")
+        args = request.args
         parsed_region = parse_region_str(region, hg_type)
     if not parsed_region:
         return abort(416)
@@ -77,11 +78,12 @@ def display_case(sample_name):
         start=start_pos,
         end=end_pos,
         sample_name=sample_name,
-        hg_type=hg_type,
-        hg_filedir=hg_filedir,
+        hg_type=genome_build,
+        hg_filedir=coverage_dir,
         print_page=print_page,
         todays_date=date.today(),
         annotation=annotation,
         selected_variant=selected_variant,
         version=version,
+        request_args=args
     )
