@@ -1,9 +1,11 @@
 """Test IO related functions."""
 
-import pytest
-from gens.io import _get_filepath, get_overview_json_path
-from unittest.mock import Mock
 import os
+from unittest.mock import Mock
+
+import pytest
+
+from gens.io import _get_filepath, get_overview_json_path
 
 
 def test_get_filepath():

@@ -20,7 +20,17 @@ class ParserError(Exception):
 
 def parse_bed(file, genome_build):
     """Parse bed file."""
-    HEADER = ("sequence", "start", "end", "name", "score", "strand", "null", "null", "color")
+    HEADER = (
+        "sequence",
+        "start",
+        "end",
+        "name",
+        "score",
+        "strand",
+        "null",
+        "null",
+        "color",
+    )
     with open(file) as bed:
         bed_reader = csv.DictReader(bed, delimiter="\t")
         # Skip bad header info
@@ -63,7 +73,9 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
                 raise ParserError(str(err))
 
     # ensure that coordinates are in correct order
-    annotation["start"], annotation["end"] = sorted([annotation["end"], annotation["start"]])
+    annotation["start"], annotation["end"] = sorted(
+        [annotation["end"], annotation["start"]]
+    )
     # set missing fields to default values
     set_missing_fields(annotation, annotation_name)
     # set additional values
@@ -122,7 +134,9 @@ def update_height_order(db, name):
     Height order is used for annotation placement
     """
     for chrom in CHROMOSOMES:
-        annotations = db.find({"chrom": chrom, "source": name}).sort([("start", ASCENDING)])
+        annotations = db.find({"chrom": chrom, "source": name}).sort(
+            [("start", ASCENDING)]
+        )
 
         height_tracker = [-1] * 200
         current_height = 1

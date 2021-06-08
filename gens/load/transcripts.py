@@ -4,6 +4,7 @@ import csv
 import logging
 from collections import defaultdict
 from itertools import chain
+
 import click
 
 LOG = logging.getLogger(__name__)
@@ -91,7 +92,9 @@ def _assign_height_order(transcripts):
             *[
                 tr
                 for tr in mane_transcript
-                if not any([tr["mane"] == "MANE Plus Clinical", tr["mane"] == "MANE Select"])
+                if not any(
+                    [tr["mane"] == "MANE Plus Clinical", tr["mane"] == "MANE Select"]
+                )
             ],
         ]
         for order, tr in enumerate(sorted_mane, 1):
@@ -117,7 +120,9 @@ def build_transcripts(transc_file, mane_file, genome_build):
     results = defaultdict(list)
     transc_index = {}
     n_lines = _count_file_len(transc_file)
-    with click.progressbar(transc_file, length=n_lines, label="Processing transcripts") as bar:
+    with click.progressbar(
+        transc_file, length=n_lines, label="Processing transcripts"
+    ) as bar:
         for transc, attribs in parse_transcript_gtf(bar):
             transcript_id = attribs.get("transcript_id")
             # store transcripts in index
