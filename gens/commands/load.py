@@ -23,17 +23,25 @@ def load():
 
 @load.command()
 @click.option(
-    "-f",
-    "--file",
+    "-a",
+    "--bam",
     required=True,
     type=click.Path(exists=True),
     help="File or directory of annotation files to load into the database",
 )
 @click.option(
+    "-c",
+    "--coverage",
+    required=True,
+    type=click.Path(exists=True),
+    help="File or directory of annotation files to load into the database",
+)
+@click.option("-i", "--sample-id", type=str, required=True, help="Sample id")
+@click.option(
     "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
 )
 @with_appcontext
-def sample(file, genome_build):
+def sample(bam, coverage, sample_id, genome_build):
     """Load a sample into Gens database."""
     pass
 
