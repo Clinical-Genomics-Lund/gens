@@ -55,9 +55,8 @@ def display_case(sample_name):
 
     # Parse region
     with current_app.app_context():
-        genome_build = request.args.get("genome_build", "38")
-        args = request.args
-        parsed_region = parse_region_str(region, hg_type)
+        genome_build = request.args.to_dict().get("genome_build", "38")
+        parsed_region = parse_region_str(region, genome_build)
     if not parsed_region:
         return abort(416)
 
@@ -85,5 +84,4 @@ def display_case(sample_name):
         annotation=annotation,
         selected_variant=selected_variant,
         version=version,
-        request_args=args
     )
