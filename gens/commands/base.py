@@ -7,6 +7,7 @@ from gens.__version__ import VERSION as version
 from gens.app import create_app
 
 from .load import load as load_command
+from .index import index as index_command
 
 
 @click.group(
@@ -22,4 +23,5 @@ def cli(*args, **kwargs):
     pass
 
 
+cli.add_command(index_command)
 cli.add_command(load_command)
