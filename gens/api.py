@@ -15,7 +15,7 @@ from gens.db import RecordType, VariantCategory, query_records_in_region, query_
 from gens.exceptions import RegionParserException
 from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
-from .constants import CHROMOSOMES, HG_TYPE
+from .constants import CHROMOSOMES, GENOME_BUILDS
 from .io import get_overview_json_path, get_tabix_files
 
 LOG = logging.getLogger(__name__)
@@ -64,8 +64,8 @@ class ChromCoverageRequest:
 
     @hg_type.validator
     def valid_hg_type(self, attribute, value):
-        if not value in HG_TYPE:
-            raise ValueError(f"{value} is not of valid hg types; {HG_TYPE}")
+        if not value in GENOME_BUILDS:
+            raise ValueError(f"{value} is not of valid hg types; {GENOME_BUILDS}")
 
     @reduce_data.validator
     def valid_perc(self, attribute, value):

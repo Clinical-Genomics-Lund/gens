@@ -6,14 +6,14 @@ from flask import current_app as app
 from flask.cli import with_appcontext
 from pymongo import ASCENDING
 
-from gens.constants import HG_TYPE
 from gens.db import register_data_update
+from gens.constants import GENOME_BUILDS
 from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
                        parse_annotation_file, parse_chrom_sizes,
                        update_height_order)
 
 LOG = logging.getLogger(__name__)
-HG_TYPES = [str(ty) for ty in HG_TYPE]
+valid_genome_builds = [str(gb) for gb in GENOME_BUILDS]
 
 
 @click.group()
@@ -30,7 +30,24 @@ def load():
     help="File or directory of annotation files to load into the database",
 )
 @click.option(
-    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
+    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+)
+@with_appcontext
+def sample(file, genome_build):
+    """Load a sample into Gens database."""
+    pass
+
+
+@load.command()
+@click.option(
+    "-f",
+    "--file",
+    required=True,
+    type=click.Path(exists=True),
+    help="File or directory of annotation files to load into the database",
+)
+@click.option(
+    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
 )
 @with_appcontext
 def annotations(file, genome_build):
@@ -87,7 +104,7 @@ def annotations(file, genome_build):
 @click.option("-f", "--file", type=click.File(), help="Transcript file")
 @click.option("-m", "--mane", type=click.File(), required=True, help="Mane file")
 @click.option(
-    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
+    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
 )
 @with_appcontext
 def transcripts(file, mane, genome_build):
@@ -118,7 +135,7 @@ def transcripts(file, mane, genome_build):
     help="Chromosome sizes in tsv format",
 )
 @click.option(
-    "-b", "--genome-build", type=click.Choice(HG_TYPES), required=True, help="Genome build"
+    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
 )
 @with_appcontext
 def chrom_sizes(file, genome_build):
