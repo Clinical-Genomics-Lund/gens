@@ -5,6 +5,7 @@ import click
 from flask import current_app as app
 from flask.cli import with_appcontext
 from pymongo import ASCENDING
+from gens.db import create_index, get_indexes
 
 from gens.db import register_data_update
 from gens.constants import GENOME_BUILDS
@@ -61,14 +62,13 @@ def sample(bam, coverage, sample_id, genome_build):
 def annotations(file, genome_build):
     """Load annotations from file into the database."""
     COLLECTION = "annotations"
+    db = app.config["GENS_DB"][COLLECTION]
+    # if collection is not indexed, crate index
+    if len(get_indexes(db, COLLECTION)) == 0:
+        create_index(db, COLLECTION)
     # check if path is a directoy of a file
     path = Path(file)
     files = path.glob("*") if path.is_dir() else [path]
-    db = app.config["GENS_DB"][COLLECTION]
-    LOG.info("Create indexes")
-    for param in ["start", "end", "chrom", "source", "height_order"]:
-        db.create_index([(param, ASCENDING)], unique=False)
-    db.create_index("hg_type", unique=False)
     LOG.info("Processing files")
     for annot_file in files:
         # verify file format
@@ -118,19 +118,17 @@ def annotations(file, genome_build):
 def transcripts(file, mane, genome_build):
     """Load transcripts into the database."""
     COLLECTION = "transcripts"
+    db = app.config["GENS_DB"][COLLECTION]
+    # if collection is not indexed, crate index
+    if len(get_indexes(db, COLLECTION)):
+        create_index(db, COLLECTION)
     LOG.info("Building transcript object")
     try:
         transcripts = build_transcripts(file, mane, genome_build)
     except Exception as err:
         raise click.UsageError(str(err))
     LOG.info("Add transcripts to database")
-    db = app.config["GENS_DB"][COLLECTION]
     db.insert_many(transcripts)
-    LOG.info("Create indexes")
-    for param in ["start", "end", "chrom", "hg_type"]:
-        db.create_index([(param, ASCENDING)], unique=False)
-    db.create_index("hg_type", unique=False)
-    register_data_update(COLLECTION)
     click.secho("Finished loading transcripts ✔", fg="green")
 
 
@@ -149,15 +147,16 @@ def transcripts(file, mane, genome_build):
 def chrom_sizes(file, genome_build):
     """Load chromosome size information into the database."""
     COLLECTION = "chromsizes"
+    db = app.config["GENS_DB"][COLLECTION]
+    # if collection is not indexed, crate index
+    if len(get_indexes(db, COLLECTION)) == 0:
+        create_index(db, COLLECTION)
+    # parse chromosome size
     try:
         chrom_sizes = parse_chrom_sizes(file, genome_build)
     except Exception as err:
         raise click.UsageError(str(err))
-    db = app.config["GENS_DB"]
     # insert collection
     LOG.info("Add chromosome sizes to database")
     db[COLLECTION].insert_many(chrom_sizes)
-    LOG.info("Update database index")
-    db[COLLECTION].create_index("hg_type", unique=False)
-    register_data_update(COLLECTION)
     click.secho("Finished updating chromosome sizes ✔", fg="green")
