@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}GENS - version {{version}}{% endblock title %}
+
+{% block css_style %}
+  {{ super() }}
+{% endblock css_style %}
+
+{% block scripts %}
+  {{ super() }}
+{% endblock scripts %}
+
+{% block content %}
+<div class="content">
+  <h1>Gens - Genome coverage and variant visualization</h1>
+  <p>Software version: <span class="version">{{ version }}</span></p>
+  <p>For information on how to use Gens please refere to the CMD Wiki.</p>
+</div>
+{% endblock content %}
