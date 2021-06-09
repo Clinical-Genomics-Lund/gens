@@ -2,6 +2,8 @@
 from enum import Enum
 
 import attr
+from datetime import datetime
+from gens.constants import GENOME_BUILDS
 
 
 class VariantCategory(Enum):
@@ -18,3 +20,15 @@ class RecordType(Enum):
     ANNOTATION = "annotations"
     TRANSCRIPT = "transcripts"
     CHROM_SIZE = "chromsizes"
+
+
+@attr.s(frozen=True)
+class SampleObj:
+    sample_id: str = attr.ib()
+    baf_file: str = attr.ib()
+    coverage_file: str = attr.ib()
+    genome_build: int = attr.ib(validator=[
+        attr.validators.instance_of(int),
+        attr.validators.in_(GENOME_BUILDS),
+    ], converter=int)
+    created_at: datetime = attr.ib()

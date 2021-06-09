@@ -9,6 +9,7 @@ from gens.db import create_index, get_indexes
 
 from gens.db import register_data_update
 from gens.constants import GENOME_BUILDS
+from gens.db import store_sample
 from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
                        parse_annotation_file, parse_chrom_sizes,
                        update_height_order)
@@ -23,9 +24,13 @@ def load():
 
 
 @load.command()
+@click.option("-i", "--sample-id", type=str, required=True, help="Sample id")
+@click.option(
+    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+)
 @click.option(
     "-a",
-    "--bam",
+    "--baf",
     required=True,
     type=click.Path(exists=True),
     help="File or directory of annotation files to load into the database",
@@ -37,14 +42,17 @@ def load():
     type=click.Path(exists=True),
     help="File or directory of annotation files to load into the database",
 )
-@click.option("-i", "--sample-id", type=str, required=True, help="Sample id")
-@click.option(
-    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
-)
 @with_appcontext
-def sample(bam, coverage, sample_id, genome_build):
+def sample(sample_id, genome_build, baf, coverage):
     """Load a sample into Gens database."""
-    pass
+    COLLECTION = "samples"
+    db = app.config["GENS_DB"]
+    # if collection is not indexed, crate index
+    if len(get_indexes(db, COLLECTION)) == 0:
+        create_index(db, COLLECTION)
+    # load samples
+    store_sample(db, sample_id=sample_id, genome_build=genome_build, baf=baf, coverage=coverage)
+    click.secho("Finished adding a new sample to database ✔", fg="green")
 
 
 @load.command()
