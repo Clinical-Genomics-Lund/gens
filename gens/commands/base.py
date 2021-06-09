@@ -8,6 +8,7 @@ from gens.app import create_app
 
 from .load import load as load_command
 from .index import index as index_command
+from .view import view as view_command
 
 
 @click.group(
@@ -25,3 +26,4 @@ def cli(*args, **kwargs):
 
 cli.add_command(index_command)
 cli.add_command(load_command)
+cli.add_command(view_command)
