@@ -18,7 +18,6 @@ from .db import init_database
 from .errors import generic_error, sample_not_found
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from .utils import get_hg_type
 
 toolbar = DebugToolbarExtension()
 dictConfig(
