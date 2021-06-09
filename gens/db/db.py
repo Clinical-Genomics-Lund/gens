@@ -3,59 +3,11 @@ import logging
 import os
 
 from flask import current_app as app
-from pymongo import MongoClient, IndexModel, ASCENDING
+from pymongo import MongoClient
 from gens.exceptions import ConfigurationException
 
 LOG = logging.getLogger(__name__)
 
-INDEXES = {
-        'annotations': [
-            IndexModel(
-                [("chrom", ASCENDING), ("start", ASCENDING), ("end", ASCENDING)],
-                name='genome_position',
-                background=True,
-                ),
-            IndexModel(
-                [("source", ASCENDING)],
-                name='source',
-                background=True,
-                ),
-            IndexModel(
-                [("height_order", ASCENDING)],
-                name='height_order',
-                background=True,
-                ),
-            IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
-                background=True,
-                ),
-            ],
-        'transcript': [
-            IndexModel(
-                [("chrom", ASCENDING), ("start", ASCENDING), ("end", ASCENDING)],
-                name='genome_position',
-                background=True,
-                ),
-            IndexModel(
-                [("height_order", ASCENDING)],
-                name='height_order',
-                background=True,
-                ),
-            IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
-                background=True,
-                ),
-            ],
-        'chrom_sizes': [
-            IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
-                background=True,
-                ),
-            ],
-        }
 
 
 def _get_config_var(name: str, app: app) -> str:
