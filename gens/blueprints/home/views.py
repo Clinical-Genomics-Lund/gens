@@ -7,7 +7,6 @@ from flask import Blueprint, current_app, render_template
 
 from gens import version
 from gens.db import get_timestamps, get_samples
-import cattr
 
 LOG = logging.getLogger(__name__)
 
@@ -35,11 +34,10 @@ home_bp = Blueprint(
 @home_bp.route("/")
 def home():
     db = current_app.config["GENS_DB"]
-    samples = [cattr.unstructure(s) for s in get_samples(db)]
 
     return render_template(
         "home.html",
-        samples=samples,
+        samples=get_samples(db),
         version=version,
     )
 

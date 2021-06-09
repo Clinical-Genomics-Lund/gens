@@ -40,7 +40,7 @@
         <tr>
           <td><a href="{{ url_for('gens.display_case', sample_name=sample_id, genome_build=genome_build) }}" target="_blank">{{sample_id}}</a></td>
           <td>{{genome_build}}</td>
-          <td>{{sample["created_at"]}}</td>
+          <td>{{sample["created_at"].strftime("%Y-%m-%d")}}</td>
         </tr>
       {% endfor %}
     </tbody>
