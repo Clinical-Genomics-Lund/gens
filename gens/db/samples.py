@@ -40,3 +40,18 @@ def get_samples(db, start = 0, n_samples = None):
     if n_samples and 0 < n_samples:
         results = itertools.islice( results, start=start, stop=start + n_samples)
     return results
+
+
+def query_sample(db, sample_id, genome_build):
+    """Get a sample with id."""
+    result = db[COLLECTION].find_one({'sample_id': sample_id})
+
+    if result is None:
+        raise ValueError(f'No sample with id: "{sample_id}" in database')
+    return SampleObj(
+        sample_id=result['sample_id'],
+        genome_build=result['hg_type'],
+        baf_file=result['baf_file'],
+        coverage_file=result['coverage_file'],
+        created_at=result['created_at'],
+    )
