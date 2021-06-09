@@ -151,7 +151,7 @@ def transcripts(file, mane, genome_build):
 @with_appcontext
 def chrom_sizes(file, genome_build):
     """Load chromosome size information into the database."""
-    db = app.config["GENS_DB"][CHROMSIZES_COLLECTION]
+    db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
     if len(get_indexes(db, CHROMSIZES_COLLECTION)) == 0:
         create_index(db, CHROMSIZES_COLLECTION)

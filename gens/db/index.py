@@ -1,11 +1,13 @@
 """Create indexes in the database."""
 import logging
 from pymongo import IndexModel, ASCENDING
+from .annotation import ANNOTATIONS, TRANSCRIPTS, CHROMSIZES
+from .samples import COLLECTION as SAMPLES
 
 LOG = logging.getLogger(__name__)
 
 INDEXES = {
-        'annotations': [
+        ANNOTATIONS: [
             IndexModel(
                 [("chrom", ASCENDING), ("start", ASCENDING), ("end", ASCENDING)],
                 name='genome_position',
@@ -27,7 +29,7 @@ INDEXES = {
                 background=True,
                 ),
             ],
-        'transcripts': [
+        TRANSCRIPTS: [
             IndexModel(
                 [("chrom", ASCENDING), ("start", ASCENDING), ("end", ASCENDING)],
                 name='genome_position',
@@ -44,14 +46,14 @@ INDEXES = {
                 background=True,
                 ),
             ],
-        'chrom_sizes': [
+        CHROMSIZES: [
             IndexModel(
                 [("genome_build", ASCENDING)],
                 name='genome_build',
                 background=True,
                 ),
             ],
-        'samples': [
+        SAMPLES: [
             IndexModel(
                 [("sample_id", ASCENDING), ("genome_build", ASCENDING)],
                 name='sample__sample_id_genome_build',
@@ -89,7 +91,7 @@ def create_index(db, collection_name):
             db[collection_name].drop_index(index_name)
     # Create new indexes
     names = ', '.join([i.document.get('name') for i in indexes])
-    LOG.info('Creating indexes {names} for collection: {collection_name}')
+    LOG.info(f'Creating indexes {names} for collection: {collection_name}')
     db[collection_name].create_indexes(indexes)
 
 

@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 # define collection names
 ANNOTATIONS = 'annotations'
 TRANSCRIPTS = 'transcripts'
-CHROMSIZES = 'chromsizes'
+CHROMSIZES = 'chrom-sizes'
 UPDATES = 'updates'
 
 
