@@ -1,16 +1,22 @@
 {% extends "layout.html" %}
+{% from "navbar.html" import navbar %}
+
 {% block title %}Gens - Version {{version}}{% endblock title %}
 
 {% block css_style %}
     {{ super() }}
-    <link rel='stylesheet' href='{{ url_for('about.static', filename='about.min.css') }}' type='text/css'>
+    <link rel='stylesheet' href='{{ url_for('home.static', filename='about.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
+{% block body %}
+  {{ navbar() }}
+  {{ super() }}
+{% endblock %}
 
 {% block content %}
 <div class="content">
   <div id="logo">
-    <img src={{ url_for("about.static", filename="gens_logo_with_text.png") }}>
+    <img src={{ url_for("home.static", filename="gens_logo_with_text.png") }}>
     <div>Software version: <span class="version">{{ version }}</span></div>
   </div>
   <p>For information on how to use Gens please refere to the CMD Wiki.</p>

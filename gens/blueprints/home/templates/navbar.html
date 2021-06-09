@@ -1,0 +1,8 @@
+{% macro navbar(selected) %}
+<nav>
+  <ul>
+    <li><a href="{{ url_for('home.home') }}">Samples</a></li>
+    <li><a href="{{ url_for('home.about') }}">About</a></li>
+  </ul>
+</nav>
+{% endmacro %}
