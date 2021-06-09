@@ -10,7 +10,7 @@ import { createPopper } from '@popperjs/core'
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
 
 export class VariantTrack extends BaseAnnotationTrack {
-  constructor (x, width, near, far, hgType, colorSchema, highlightedVariantId) {
+  constructor (x, width, near, far, genomeBuild, colorSchema, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35 // Minimized height
@@ -28,7 +28,7 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.setupHTML(x + 1)
 
     this.trackContainer.style.marginTop = '-1px'
-    this.hgType = hgType
+    this.genomeBuild = genomeBuild
 
     // GENS api parameters
     this.apiEntrypoint = 'get-variant-data'

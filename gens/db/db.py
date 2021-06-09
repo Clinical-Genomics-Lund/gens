@@ -9,7 +9,6 @@ from gens.exceptions import ConfigurationException
 LOG = logging.getLogger(__name__)
 
 
-
 def _get_config_var(name: str, app: app) -> str:
     """Get application configuration variable.
 

@@ -24,10 +24,10 @@ export function lightenColor (color, percent) {
 };
 
 export class BaseScatterTrack {
-  constructor ({ sampleName, hgType, hgFileDir }) {
+  constructor ({ sampleName, genomeBuild, hgFileDir }) {
     // setup IO
     this.sampleName = sampleName // File name to load data from
-    this.hgType = hgType // Whether to load HG37 or HG38, default is HG38
+    this.genomeBuild = genomeBuild // Whether to load HG37 or HG38, default is HG38
     this.hgFileDir = hgFileDir // File directory
     // Border
     this.borderColor = '#666' // Color of border
@@ -205,7 +205,7 @@ export class BaseAnnotationTrack {
         Object.assign({ // build query parameters
           sample_id: oc.sampleName,
           region: `${chrom}:1-None`,
-          hg_type: this.hgType,
+          genome_build: this.genomeBuild,
           collapsed: false // allways get all height orders
         }, this.additionalQueryParams) // parameters specific to track type
       )

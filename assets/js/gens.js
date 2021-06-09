@@ -8,7 +8,7 @@ export {
   panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene
 } from './navigation.js'
 
-export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selectedVariant, annotationFile }) {
+export function initCanvases ({ sampleName, genomeBuild, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // initialize and return the different canvases
   // WEBGL values
   const near = 0.1
@@ -17,13 +17,13 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
   // Listener values
   const inputField = document.getElementById('region-field')
   // Initiate interactive canvas
-  const ic = new InteractiveCanvas(inputField, lineMargin, near, far, sampleName, hgType, hgFileDir)
+  const ic = new InteractiveCanvas(inputField, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
   // Initiate variant, annotation and transcript canvases
-  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, hgType, uiColors.variants, selectedVariant)
-  const tc = new TranscriptTrack(ic.x, ic.plotWidth, near, far, hgType, uiColors.transcripts)
-  const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, hgType, annotationFile)
+  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, genomeBuild, uiColors.variants, selectedVariant)
+  const tc = new TranscriptTrack(ic.x, ic.plotWidth, near, far, genomeBuild, uiColors.transcripts)
+  const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, genomeBuild, annotationFile)
   // Initiate and draw overview canvas
-  const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, sampleName, hgType, hgFileDir)
+  const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
   return {
     ic: ic,
     vc: vc,
@@ -34,11 +34,11 @@ export function initCanvases ({ sampleName, hgType, hgFileDir, uiColors, selecte
 }
 
 // Make hard link and copy link to clipboard
-export function copyPermalink (hgType, region) {
+export function copyPermalink (genomeBuild, region) {
   // create element and add url to it
   const tempElement = document.createElement('input')
   const loc = window.location
-  tempElement.value = `${loc.host}${loc.pathname}?hg_type=${hgType}&region=${region}`
+  tempElement.value = `${loc.host}${loc.pathname}?genome_build=${genomeBuild}&region=${region}`
   // add element to DOM
   document.body.append(tempElement)
   tempElement.select()

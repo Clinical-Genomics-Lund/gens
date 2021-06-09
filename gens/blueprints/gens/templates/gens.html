@@ -45,14 +45,14 @@
         </div>
         <div id='center-group'>
             <span class='bold' title='Sample ID'>{{sample_name}}</span>
-            <span class='version'>(Genome build: {{hg_type}})</span>
+            <span class='version'>(Genome build: {{genome_build}})</span>
         </div>
         <div id='right-group'>
             <span class='header-icon print no-print'
                 onclick='gens.loadPrintPage(inputField.value);' title='Print'>
             </span>
             <span class='header-icon permalink no-print'
-                onclick='gens.copyPermalink("{{hg_type}}", inputField.value);' title='Copy permalink'>
+                onclick='gens.copyPermalink("{{genome_build}}", inputField.value);' title='Copy permalink'>
             </span>
             <span class='header-icon no-print info'></span>
             {{ info.help_popup() }}
@@ -129,14 +129,14 @@
     // Set first input field value for ic
     let start = {{ start }} === 0 ? 1 : {{ start }};
     const end = {{ end }}
-    const hgType = {{ hg_type }}
+    const genomeBuild = {{ genome_build }}
     inputField.value = '{{chrom}}' + ':' + start + '-' + {{end}};
     inputField.placeholder = inputField.value;
 
     // Redraw when new region is requested
     document.getElementById('region-form').onsubmit = (e) => {
         e.preventDefault()
-        gens.queryRegionOrGene(inputField.value, hgType)
+        gens.queryRegionOrGene(inputField.value, genomeBuild)
     }
     // Setup functions to run when the data has finished loading
     document.addEventListener('data-loaded', () => {
@@ -156,8 +156,7 @@
     // and pass flask values to tracks
     const {ic, oc, ac, tc, vc} = gens.initCanvases({
         sampleName: '{{ sample_name }}',
-        hgType: {{ hg_type }},
-        hgFileDir: '{{ hg_filedir }}',
+        genomeBuild: {{ genome_build }},
         uiColors: {{ ui_colors | tojson | safe }},
         selectedVariant: '{{ selected_variant }}',
         annotationFile: '{{ annotation }}',

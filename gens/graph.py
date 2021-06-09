@@ -31,7 +31,7 @@ REQUEST = namedtuple(
         "baf_y_end",
         "log2_y_start",
         "log2_y_end",
-        "hg_type",
+        "genome_build",
         "reduce_data",
     ),
 )
@@ -99,13 +99,13 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     return current_chrom
 
 
-def overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type):
+def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
     chrom_dims = {}
     for chrom in CHROMOSOMES:
-        chrom_data = get_chrom_data(chrom, hg_type)
+        chrom_data = get_chrom_data(chrom, genome_build)
         chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
@@ -118,7 +118,7 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type):
 
 
 @cache.memoize(50)
-def parse_region_str(region, hg_type):
+def parse_region_str(region, genome_build):
     """
     Parses a region string
     """
@@ -146,7 +146,7 @@ def parse_region_str(region, hg_type):
             chrom = name_search.upper()
         else:
             # Lookup queried gene
-            collection = app.config["GENS_DB"]["transcripts" + hg_type]
+            collection = app.config["GENS_DB"]["transcripts" + genome_build]
             start = collection.find_one(
                 {
                     "gene_name": re.compile(
@@ -171,7 +171,7 @@ def parse_region_str(region, hg_type):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    chrom_data = get_chrom_data(chrom, hg_type)
+    chrom_data = get_chrom_data(chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
@@ -249,7 +249,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
     graph = set_graph_values(req)
     # parse region
-    parsed_region = parse_region_str(req.region, req.hg_type)
+    parsed_region = parse_region_str(req.region, req.genome_build)
     if not parsed_region:
         raise RegionParserException("No parsed region")
 
@@ -270,7 +270,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         data_type = "bed"
 
         # Bound start and end balues to 0-chrom_size
-        end = min(new_end_pos, get_chrom_data(region.chrom, req.hg_type)["size"])
+        end = min(new_end_pos, get_chrom_data(region.chrom, req.genome_build)["size"])
         start = max(new_start_pos, 0)
 
         # Load BAF and Log2 data from tabix files
@@ -308,7 +308,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
 
 
 @cache.memoize(60)
-def get_chrom_data(chrom, hg_type=38):
+def get_chrom_data(chrom, genome_build=38):
     """
     Gets the size in base pairs of a chromosome
     """
@@ -316,11 +316,11 @@ def get_chrom_data(chrom, hg_type=38):
     chrom_data = app.config["GENS_DB"][RecordType.CHROM_SIZE.value].find_one(
         {
             "chrom": str(chrom),
-            "hg_type": int(hg_type),
+            "genome_build": int(genome_build),
         }
     )
     if chrom_data is None:
         raise ValueError(
-            f"Could not find data for chromosome {chrom} in DB; hg_type: {hg_type}"
+            f"Could not find data for chromosome {chrom} in DB; genome_build: {genome_build}"
         )
     return chrom_data

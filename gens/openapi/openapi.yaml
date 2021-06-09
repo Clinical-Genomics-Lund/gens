@@ -40,8 +40,8 @@ paths:
                   description: Y coordinate from where to end the drawing of the log2 track.
                   type: number
                   default: 0
-                hg_type:
-                  $ref: '#/components/schemas/HgType'
+                genome_build:
+                  $ref: '#/components/schemas/GenomeBuild'
                 reduce_data:
                   description: The fraction of which to reduce the reported data points.
                   type: number
@@ -159,11 +159,11 @@ paths:
           schema:
             type: number
             default: 0
-        - name: hg_type
+        - name: genome_build
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
         - name: x_ampl
           in: query
           description: X amplitude.
@@ -233,10 +233,10 @@ paths:
           description: Region selector
           schema:
             type: string
-        - name: hg_type
+        - name: genome_build
           in: query
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
         - name: collapsed
           in: query
           description: If the track is rendered as collapsed or not
@@ -282,11 +282,11 @@ paths:
           required: true
           schema:
             type: string
-        - name: hg_type
+        - name: genome_build
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
         - name: collapsed
           in: query
           description: If the track is rendered as collapsed or not
@@ -326,11 +326,11 @@ paths:
           required: true
           schema:
             type: string
-        - name: hg_type
+        - name: genome_build
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
         - name: collapsed
           in: query
           description: If the track is rendered as collapsed or not
@@ -370,11 +370,11 @@ paths:
           required: true
           schema:
             type: string
-        - name: hg_type
+        - name: genome_build
           in: query
           required: false
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
         - name: annotation_type
           in: query
           description: Type of annotation
@@ -395,7 +395,7 @@ paths:
                     type: number
                   end_pos:
                     type: number
-                  hg_type:
+                  genome_build:
                     type: string
                   status:
                     type: number
@@ -405,11 +405,11 @@ paths:
       description: Get source information for annotations
       operationId: gens.api.get_annotation_sources
       parameters:
-        - name: hg_type
+        - name: genome_build
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
       responses:
         '200':
           description: Successful rendering of a sample
@@ -448,11 +448,11 @@ paths:
           required: true
           schema:
             type: number
-        - name: hg_type
+        - name: genome_build
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/HgType'
+            $ref: '#/components/schemas/GenomeBuild'
       responses:
         '200':
           description: Successful rendering of a sample
@@ -473,7 +473,7 @@ components:
       description: Screen coordinate
       type: number
       minimum: 1
-    HgType:
+    GenomeBuild:
       description: hg type
       type: integer
       default: 38

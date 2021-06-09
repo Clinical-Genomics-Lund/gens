@@ -11,10 +11,16 @@ from .models import RecordType, VariantCategory
 
 LOG = logging.getLogger(__name__)
 
+# define collection names
+ANNOTATIONS = 'annotations'
+TRANSCRIPTS = 'transcripts'
+CHROMSIZES = 'chromsizes'
+UPDATES = 'updates'
+
 
 def register_data_update(track_type, name=None):
     """Register that a track was updated."""
-    db = app.config["GENS_DB"]["updates"]
+    db = app.config["GENS_DB"][UPDATES]
     LOG.debug(f"Creating timestamp for {track_type}")
     track = {"track": track_type, "name": name}
     db.remove(track)  # remove old track
@@ -24,7 +30,7 @@ def register_data_update(track_type, name=None):
 def get_timestamps(track_type="all"):
     """Get when a annotation track was last updated."""
     LOG.debug(f"Reading timestamp for {track_type}")
-    db = app.config["GENS_DB"]["updates"]
+    db = app.config["GENS_DB"][UPDATES]
     if track_type == "all":
         query = db.find()
     else:
@@ -99,7 +105,7 @@ def query_records_in_region(
     chrom,
     start_pos,
     end_pos,
-    hg_type,
+    genome_build,
     height_order=None,
     **kwargs,
 ):
@@ -107,7 +113,7 @@ def query_records_in_region(
     # build base query
     query = {
         "chrom": chrom,
-        "hg_type": hg_type,
+        "genome_build": genome_build,
         **_make_query_region(start_pos, end_pos),
         **kwargs,  # add optional search params
     }

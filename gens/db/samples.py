@@ -17,7 +17,7 @@ def store_sample(db, sample_id, baf, coverage, genome_build):
         'sample_id': sample_id,
         'baf_file': baf,
         'coverage_file': coverage,
-        'hg_type': genome_build,
+        'genome_build': genome_build,
         'created_at': datetime.datetime.now(),
     })
 
@@ -30,7 +30,7 @@ def get_samples(db, start = 0, n_samples = None):
     """
     results = (SampleObj(
         sample_id=r['sample_id'],
-        genome_build=r['hg_type'],
+        genome_build=r['genome_build'],
         baf_file=r['baf_file'],
         coverage_file=r['coverage_file'],
         created_at=r['created_at'],
@@ -50,7 +50,7 @@ def query_sample(db, sample_id, genome_build):
         raise ValueError(f'No sample with id: "{sample_id}" in database')
     return SampleObj(
         sample_id=result['sample_id'],
-        genome_build=result['hg_type'],
+        genome_build=result['genome_build'],
         baf_file=result['baf_file'],
         coverage_file=result['coverage_file'],
         created_at=result['created_at'],

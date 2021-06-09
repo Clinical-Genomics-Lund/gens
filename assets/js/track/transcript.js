@@ -25,7 +25,7 @@ function addFeatures (elem, tooltipElement) {
 }
 
 export class TranscriptTrack extends BaseAnnotationTrack {
-  constructor (x, width, near, far, hgType, colorSchema) {
+  constructor (x, width, near, far, genomeBuild, colorSchema) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35 // Minimized height
@@ -44,7 +44,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     // GENS api parameters
     this.apiEntrypoint = 'get-transcript-data'
 
-    this.hgType = hgType
+    this.genomeBuild = genomeBuild
     this.maxResolution = 4
     // Define with of the elements
     this.geneLineWidth = 2

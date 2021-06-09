@@ -5,7 +5,7 @@ import click
 from flask import current_app as app
 from flask.cli import with_appcontext
 from pymongo import ASCENDING
-from gens.db import create_index, get_indexes
+from gens.db import create_index, get_indexes, CHROMSIZES_COLLECTION, TRANSCRIPTS_COLLECTION, ANNOTATIONS_COLLECTION, SAMPLES_COLLECTION
 
 from gens.db import register_data_update
 from gens.constants import GENOME_BUILDS
@@ -45,11 +45,10 @@ def load():
 @with_appcontext
 def sample(sample_id, genome_build, baf, coverage):
     """Load a sample into Gens database."""
-    COLLECTION = "samples"
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
-    if len(get_indexes(db, COLLECTION)) == 0:
-        create_index(db, COLLECTION)
+    if len(get_indexes(db, SAMPLES_COLLECTION)) == 0:
+        create_index(db, SAMPLES_COLLECTION)
     # load samples
     store_sample(db, sample_id=sample_id, genome_build=genome_build, baf=baf, coverage=coverage)
     click.secho("Finished adding a new sample to database ✔", fg="green")
@@ -69,11 +68,10 @@ def sample(sample_id, genome_build, baf, coverage):
 @with_appcontext
 def annotations(file, genome_build):
     """Load annotations from file into the database."""
-    COLLECTION = "annotations"
-    db = app.config["GENS_DB"][COLLECTION]
+    db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
-    if len(get_indexes(db, COLLECTION)) == 0:
-        create_index(db, COLLECTION)
+    if len(get_indexes(db, ANNOTATIONS_COLLECTION)) == 0:
+        create_index(db, ANNOTATIONS_COLLECTION)
     # check if path is a directoy of a file
     path = Path(file)
     files = path.glob("*") if path.is_dir() else [path]
@@ -105,14 +103,14 @@ def annotations(file, genome_build):
 
         # Remove existing annotations in database
         LOG.info(f"Remove old entry in the database")
-        db.remove({"source": annotation_name})
+        db[ANNOTATIONS_COLLECTION].remove({"source": annotation_name})
         # add the annotations
         LOG.info(f"Load annoatations in the database")
-        db.insert_many(annotation_obj)
+        db[ANNOTATIONS_COLLECTION].insert_many(annotation_obj)
         LOG.info("Update height order")
         # update the height order of annotations in the database
         update_height_order(db, annotation_name)
-        register_data_update(COLLECTION, name=annotation_name)
+        register_data_update(ANNOTATIONS_COLLECTION, name=annotation_name)
     click.secho("Finished loading annotations ✔", fg="green")
 
 
@@ -125,18 +123,17 @@ def annotations(file, genome_build):
 @with_appcontext
 def transcripts(file, mane, genome_build):
     """Load transcripts into the database."""
-    COLLECTION = "transcripts"
-    db = app.config["GENS_DB"][COLLECTION]
+    db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
-    if len(get_indexes(db, COLLECTION)):
-        create_index(db, COLLECTION)
+    if len(get_indexes(db, TRANSCRIPTS_COLLECTION)):
+        create_index(db, TRANSCRIPTS_COLLECTION)
     LOG.info("Building transcript object")
     try:
         transcripts = build_transcripts(file, mane, genome_build)
     except Exception as err:
         raise click.UsageError(str(err))
     LOG.info("Add transcripts to database")
-    db.insert_many(transcripts)
+    db[TRANSCRIPTS_COLLECTION].insert_many(transcripts)
     click.secho("Finished loading transcripts ✔", fg="green")
 
 
@@ -154,11 +151,10 @@ def transcripts(file, mane, genome_build):
 @with_appcontext
 def chrom_sizes(file, genome_build):
     """Load chromosome size information into the database."""
-    COLLECTION = "chromsizes"
-    db = app.config["GENS_DB"][COLLECTION]
+    db = app.config["GENS_DB"][CHROMSIZES_COLLECTION]
     # if collection is not indexed, crate index
-    if len(get_indexes(db, COLLECTION)) == 0:
-        create_index(db, COLLECTION)
+    if len(get_indexes(db, CHROMSIZES_COLLECTION)) == 0:
+        create_index(db, CHROMSIZES_COLLECTION)
     # parse chromosome size
     try:
         chrom_sizes = parse_chrom_sizes(file, genome_build)
@@ -166,5 +162,5 @@ def chrom_sizes(file, genome_build):
         raise click.UsageError(str(err))
     # insert collection
     LOG.info("Add chromosome sizes to database")
-    db[COLLECTION].insert_many(chrom_sizes)
+    db[CHROMSIZES_COLLECTION].insert_many(chrom_sizes)
     click.secho("Finished updating chromosome sizes ✔", fg="green")

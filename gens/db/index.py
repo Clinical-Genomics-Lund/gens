@@ -22,8 +22,8 @@ INDEXES = {
                 background=True,
                 ),
             IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
+                [("genome_build", ASCENDING)],
+                name='genome_build',
                 background=True,
                 ),
             ],
@@ -39,21 +39,21 @@ INDEXES = {
                 background=True,
                 ),
             IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
+                [("genome_build", ASCENDING)],
+                name='genome_build',
                 background=True,
                 ),
             ],
         'chrom_sizes': [
             IndexModel(
-                [("hg_type", ASCENDING)],
-                name='hg_type',
+                [("genome_build", ASCENDING)],
+                name='genome_build',
                 background=True,
                 ),
             ],
         'samples': [
             IndexModel(
-                [("sample_id", ASCENDING), ("hg_type", ASCENDING)],
+                [("sample_id", ASCENDING), ("genome_build", ASCENDING)],
                 name='sample__sample_id_genome_build',
                 background=True,
                 ),

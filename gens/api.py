@@ -17,6 +17,7 @@ from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region
 
 from .constants import CHROMOSOMES, GENOME_BUILDS
 from .io import get_overview_json_path, get_tabix_files
+from gens.db import ANNOTATIONS_COLLECTION
 
 LOG = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class ChromCoverageRequest:
     """Request for getting coverage from multiple chromosome and regions."""
 
     sample_id: str
-    hg_type: int = attr.ib()
+    genome_build: int = attr.ib()
     plot_height: float
     top_bottom_padding: float
     baf_y_start: float
@@ -62,8 +63,8 @@ class ChromCoverageRequest:
     reduce_data: float = attr.ib()
     chromosome_pos: List[ChromosomePosition]
 
-    @hg_type.validator
-    def valid_hg_type(self, attribute, value):
+    @genome_build.validator
+    def valid_genome_build(self, attribute, value):
         if not value in GENOME_BUILDS:
             raise ValueError(f"{value} is not of valid hg types; {GENOME_BUILDS}")
 
@@ -73,29 +74,29 @@ class ChromCoverageRequest:
             raise ValueError(f"{value} is not within 0-1")
 
 
-def get_overview_chrom_dim(x_pos, y_pos, plot_width, hg_type):
+def get_overview_chrom_dim(x_pos, y_pos, plot_width, genome_build):
     """
     Returns the dimensions of all chromosome graphs in screen coordinates
     for drawing the chromosomes correctly in the overview graph
     """
     LOG.info(
-        f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {hg_type}"
+        f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {genome_build}"
     )
-    chrom_dims = overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type)
+    chrom_dims = overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build)
     return jsonify(status="ok", chrom_dims=chrom_dims)
 
 
-def get_annotation_sources(hg_type):
+def get_annotation_sources(genome_build):
     """
     Returns available annotation source files
     """
     with current_app.app_context():
-        collection = current_app.config["GENS_DB"]["annotations"]
-        sources = collection.distinct("source", {"hg_type": str(hg_type)})
+        collection = current_app.config["GENS_DB"][ANNOTATIONS_COLLECTION]
+        sources = collection.distinct("source", {"genome_build": str(genome_build)})
     return jsonify(status="ok", sources=sources)
 
 
-def get_annotation_data(region, source, hg_type, collapsed):
+def get_annotation_data(region, source, genome_build, collapsed):
     """
     Gets annotation data in requested region and converts the coordinates
     to screen coordinates
@@ -104,8 +105,8 @@ def get_annotation_data(region, source, hg_type, collapsed):
         LOG.error("Could not find annotation data in DB")
         return abort(404)
 
-    hg_type = request.args.get("hg_type", "38")
-    res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
+    genome_build = request.args.get("genome_build", "38")
+    res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
 
     # Get annotations within span [start_pos, end_pos] or annotations that
     # go over the span
@@ -115,7 +116,7 @@ def get_annotation_data(region, source, hg_type, collapsed):
             chrom=chrom,
             start_pos=start_pos,
             end_pos=end_pos,
-            hg_type=hg_type,
+            genome_build=genome_build,
             source=source,
             height_order=1 if collapsed else None,
         )
@@ -134,12 +135,12 @@ def get_annotation_data(region, source, hg_type, collapsed):
     )
 
 
-def get_transcript_data(region, hg_type, collapsed):
+def get_transcript_data(region, genome_build, collapsed):
     """
     Gets transcript data for requested region and converts the coordinates to
     screen coordinates
     """
-    res, chrom, start_pos, end_pos = parse_region_str(region, hg_type)
+    res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
 
     if region == "":
         LOG.error("Could not find transcript in database")
@@ -152,7 +153,7 @@ def get_transcript_data(region, hg_type, collapsed):
             chrom=chrom,
             start_pos=start_pos,
             end_pos=end_pos,
-            hg_type=hg_type,
+            genome_build=genome_build,
             height_order=1 if collapsed else None,
         )
     )
@@ -170,14 +171,14 @@ def get_transcript_data(region, hg_type, collapsed):
     )
 
 
-def search_annotation(query: str, hg_type, annotation_type):
+def search_annotation(query: str, genome_build, annotation_type):
     """Search for anntations of genes and return their position."""
     # Lookup queried element
     collection = current_app.config["GENS_DB"][annotation_type]
     db_query = {"gene_name": re.compile("^" + re.escape(query) + "$", re.IGNORECASE)}
 
-    if hg_type and int(hg_type) in HG_TYPE:
-        db_query["hg_type"] = hg_type
+    if genome_build and int(genome_build) in HG_TYPE:
+        db_query["genome_build"] = genome_build
 
     elements = collection.find(db_query, sort=[("start", 1), ("chrom", 1)])
     # if no results was found
@@ -193,7 +194,7 @@ def search_annotation(query: str, hg_type, annotation_type):
             "chromosome": start_elem.get("chrom"),
             "start_pos": start_elem.get("start"),
             "end_pos": end_elem.get("end"),
-            "hg_type": start_elem.get("hg_type"),
+            "genome_build": start_elem.get("genome_build"),
         }
         response_code = 200
 
@@ -205,12 +206,12 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
     default_height_order = 0
     base_return = {"status": "ok"}
     # get optional variables
-    hg_type = optional_kwargs.get("hg_type")
+    genome_build = optional_kwargs.get("genome_build")
     region = optional_kwargs.get("region")
     # if getting variants from specific regions
     region_params = {}
-    if region is not None and hg_type is not None:
-        res, chromosome, start_pos, end_pos = parse_region_str(region, hg_type)
+    if region is not None and genome_build is not None:
+        res, chromosome, start_pos, end_pos = parse_region_str(region, genome_build)
         region_params = {
             "chromosome": chromosome,
             "start_pos": start_pos,
@@ -256,7 +257,7 @@ def get_multiple_coverages():
     LOG.info(f"Got request for all chromosome coverages: {data.sample_id}")
 
     json_data, cov_file, baf_file = None, None, None
-    data_dir = current_app.config[f"HG{data.hg_type}_PATH"]
+    data_dir = current_app.config[f"HG{data.genome_build}_PATH"]
 
     # Try to find and load an overview json data file
     overview_json_path = get_overview_json_path(data.sample_id, data_dir)
@@ -281,7 +282,7 @@ def get_multiple_coverages():
             data.baf_y_end,
             data.log2_y_start,
             data.log2_y_end,
-            data.hg_type,
+            data.genome_build,
             data.reduce_data,
         )
         chromosome = chrom_info.region.split(":")[0]
@@ -331,7 +332,7 @@ def get_coverage(
     baf_y_end,
     log2_y_start,
     log2_y_end,
-    hg_type,
+    genome_build,
     reduce_data,
     x_ampl,
 ):
@@ -355,11 +356,11 @@ def get_coverage(
         baf_y_end,
         log2_y_start,
         log2_y_end,
-        hg_type,
+        genome_build,
         reduce_data,
     )
 
-    hg_filedir = current_app.config[f"HG{hg_type}_PATH"]
+    hg_filedir = current_app.config[f"HG{genome_build}_PATH"]
     cov_file, baf_file = get_tabix_files(sample_id, hg_filedir)
     # Parse region
     try:
