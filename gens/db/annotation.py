@@ -38,7 +38,7 @@ def get_timestamps(track_type="all"):
                 {
                     "tack": entry["track"],
                     "name": entry["name"],
-                    "timestamp": entry["timestamp"].strftime("%Y-%M-%d"),
+                    "timestamp": entry["timestamp"].strftime("%Y-%m-%d"),
                 }
             )
     return results
