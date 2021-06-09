@@ -27,11 +27,10 @@ def _get_filepath(*args, check=True):
     return path
 
 
-def get_tabix_files(sample_name, hg_path):
+def get_tabix_files(coverage_file, baf_file):
     """Get tabix files for sample."""
-    LOG.info(f"Get tabix names for sample: {sample_name}, path: {hg_path}")
-    cov_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + COV_SUFFIX))
-    baf_file = pysam.TabixFile(_get_filepath(hg_path, sample_name + BAF_SUFFIX))
+    cov_file = pysam.TabixFile(_get_filepath(coverage_file))
+    baf_file = pysam.TabixFile(_get_filepath(baf_file))
     return cov_file, baf_file
 
 

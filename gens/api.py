@@ -11,7 +11,7 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants
+from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants, query_sample
 from gens.exceptions import RegionParserException
 from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
@@ -266,8 +266,10 @@ def get_multiple_coverages():
             json_data = json.loads(json_gz.read().decode("utf-8"))
 
     # Fall back to BED file is no json exists
+    db = current_app.config['GENS_DB']
     if not json_data:
-        cov_file, baf_file = get_tabix_files(data.sample_id, data_dir)
+        sample_obj = query_sample(db, data.sample_id, data.genome_build)
+        cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
 
     results = {}
     for chrom_info in data.chromosome_pos:
@@ -359,9 +361,9 @@ def get_coverage(
         genome_build,
         reduce_data,
     )
-
-    hg_filedir = current_app.config[f"HG{genome_build}_PATH"]
-    cov_file, baf_file = get_tabix_files(sample_id, hg_filedir)
+    db = current_app.config['GENS_DB']
+    sample_obj = query_sample(db, sample_id, genome_build)
+    cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
     # Parse region
     try:
         with current_app.app_context():
