@@ -11,11 +11,9 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import (RecordType, VariantCategory, query_records_in_region,
-                     query_variants)
+from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants
 from gens.exceptions import RegionParserException
-from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
-                        parse_region_str)
+from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
 from .constants import CHROMOSOMES, HG_TYPE
 from .io import get_overview_json_path, get_tabix_files
@@ -80,7 +78,9 @@ def get_overview_chrom_dim(x_pos, y_pos, plot_width, hg_type):
     Returns the dimensions of all chromosome graphs in screen coordinates
     for drawing the chromosomes correctly in the overview graph
     """
-    LOG.info(f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {hg_type}")
+    LOG.info(
+        f"Get overview chromosome dim: ({x_pos}, {y_pos}), w={plot_width}, {hg_type}"
+    )
     chrom_dims = overview_chrom_dimensions(x_pos, y_pos, plot_width, hg_type)
     return jsonify(status="ok", chrom_dims=chrom_dims)
 

@@ -52,6 +52,15 @@ gulp.task('build-base-css', function () {
     .pipe(gulp.dest(`${dest}/css`))
 })
 
+gulp.task('build-about-css', function () {
+  return gulp.src(`${assetPath}/css/about.scss`)
+    .pipe(rename('about.min.css'))
+    .pipe(sourcemaps.init())
+    .pipe(sass({ outputStyle: 'compressed' }))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(`${dest}/css`))
+})
+
 gulp.task('build-error-css', function () {
   return gulp.src(`${assetPath}/css/error.scss`)
     .pipe(rename('error.min.css'))
@@ -62,12 +71,14 @@ gulp.task('build-error-css', function () {
 })
 
 gulp.task('build', gulp.parallel('build-js', 'build-gens-css',
-  'build-base-css', 'build-error-css'))
+  'build-base-css', 'build-about-css', 'build-error-css'))
 
 // DEVELOPMENT tasks
 //
 const devGlobalAssets = 'gens/static'
 const devGensAssets = 'gens/blueprints/gens/static'
+const devAboutAssets = 'gens/blueprints/about/static'
+
 gulp.task('build-js-dev', () => {
   webpackConfig.mode = 'development'
   webpackConfig.output.path = resolve('./gens/blueprints/gens/static/')
@@ -79,6 +90,13 @@ gulp.task('build-gens-css-dev', () => {
     .pipe(rename('gens.min.css'))
     .pipe(sass())
     .pipe(gulp.dest(devGensAssets))
+})
+
+gulp.task('build-about-css-dev', () => {
+  return gulp.src(`${assetPath}/css/about.scss`)
+    .pipe(rename('about.min.css'))
+    .pipe(sass())
+    .pipe(gulp.dest(devAboutAssets))
 })
 
 gulp.task('build-base-css-dev', () => {
@@ -96,7 +114,8 @@ gulp.task('build-error-css-dev', () => {
 })
 
 gulp.task('watch', () => {
-  gulp.watch(`${assetPath}/css/*.scss`, gulp.parallel('build-gens-css-dev', 'build-base-css-dev', 'build-error-css-dev'))
+  gulp.watch(`${assetPath}/css/*.scss`, gulp.parallel('build-gens-css-dev',
+    'build-about-css-dev', 'build-base-css-dev', 'build-error-css-dev'))
   gulp.watch(`${assetPath}/js/*.js`, gulp.parallel('build-js-dev'))
   gulp.watch(`${assetPath}/js/*/*.js`, gulp.parallel('build-js-dev'))
 })

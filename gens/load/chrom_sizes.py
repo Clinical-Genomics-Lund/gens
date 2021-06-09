@@ -1,7 +1,6 @@
 """Writing chromosomze size information to the database."""
 
 import csv
-import datetime
 
 from gens.constants import CHROMOSOMES
 
@@ -29,7 +28,6 @@ def parse_chrom_sizes(cfile, genome_build, delimiter="\t"):
                 "hg_type": int(genome_build),
                 "size": chrom_size,
                 "scale": scale,
-                "created_at": datetime.datetime.now(),
             }
         )
 
