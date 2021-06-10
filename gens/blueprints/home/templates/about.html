@@ -63,7 +63,7 @@
     <p>Information loaded into the Gens database and when they were last updated.</p>
     <div>
       {% for track in timestamps %}
-        {% if timestamps[track] | length > 1 %}
+        {% if timestamps[track] | length > 0 and timestamps[track][0]["name"] %}
           <h3>{{ track }}</h3>
           <ul>
             {% for annotation in timestamps[track] %}
