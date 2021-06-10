@@ -11,8 +11,15 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Include api spec, html and static files in distribution
  - Display when databases last updated in /about.html
  - Display current configuration /about.html
+ - Added landing page that show uploaded samples
+ - Added load sample command for loading samples into gens database
+ - Added index command for creating new indexes
+ - Added view sample command for displaying sample information
 ### Changed
  - Changed development status from Alpha to Stable
+ - Samples are loaded based on the paths given when uploading the sample
+ - Gens no longer uses HG38_PATH and HG37_PATH variables
+ - Use genome build instead of hg_type throughout the codebase and in API calls
 ### Fixed
  - Fixed typo in variable name
 
