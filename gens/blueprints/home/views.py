@@ -13,8 +13,6 @@ LOG = logging.getLogger(__name__)
 
 IN_CONFIG = (
     "ENV",
-    "HG19_PATH",
-    "HG38_PATH",
     "DEFAULT_ANNOTATION_TRACK",
     "GENS_DBNAME",
     "SCOUT_DBNAME",
