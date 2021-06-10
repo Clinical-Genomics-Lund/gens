@@ -30,8 +30,8 @@ home_bp = Blueprint(
 
 
 # define views
-@home_bp.route("/", methods=['GET', 'POST'])
-@home_bp.route("/home", methods=['GET', 'POST'])
+@home_bp.route("/", methods=['GET'])
+@home_bp.route("/home", methods=['GET'])
 def home():
     db = current_app.config["GENS_DB"]
 
