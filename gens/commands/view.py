@@ -26,6 +26,6 @@ def samples(summary):
         columns = ('Genome build', 'N samples')
         sample_tbl = ((gr, sum(1 for v in vals)) for gr, vals in groupby(samples, key=lambda x: x.genome_build))
     else:  # show all samples
-        columns = ('Sample Id', 'Genome build', 'Created at', 'baf file', 'cov file')
-        sample_tbl = ((s.sample_id, str(s.genome_build), s.created_at.isoformat(), s.baf_file, s.coverage_file) for s in samples)
+        columns = ('Sample Id', 'Genome build', 'Created at', 'baf file', 'cov file', 'overview_file')
+        sample_tbl = ((s.sample_id, str(s.genome_build), s.created_at.isoformat(), s.baf_file, s.coverage_file, s.overview_file) for s in samples)
     print(tabulate(sample_tbl, headers=columns))
