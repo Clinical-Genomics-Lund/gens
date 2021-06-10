@@ -4,6 +4,7 @@ from enum import Enum
 import attr
 from datetime import datetime
 from gens.constants import GENOME_BUILDS
+from typing import Optional
 
 
 class VariantCategory(Enum):
@@ -12,14 +13,6 @@ class VariantCategory(Enum):
     STRUCTURAL = "str"
     SINGLE_VAR = "sv"
     SINGLE_NT_VAR = "snv"
-
-
-class RecordType(Enum):
-    """Valid record types in the database."""
-
-    ANNOTATION = "annotations"
-    TRANSCRIPT = "transcripts"
-    CHROM_SIZE = "chromsizes"
 
 
 @attr.s(frozen=True)
@@ -32,3 +25,4 @@ class SampleObj:
         attr.validators.in_(GENOME_BUILDS),
     ], converter=int)
     created_at: datetime = attr.ib()
+    overview_file: Optional[str] = attr.ib(default=None)

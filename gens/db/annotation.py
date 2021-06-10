@@ -7,14 +7,13 @@ from itertools import groupby
 
 from flask import current_app as app
 
-from .models import RecordType, VariantCategory
+from .models import VariantCategory
 
 LOG = logging.getLogger(__name__)
 
 # define collection names
 ANNOTATIONS = 'annotations'
 TRANSCRIPTS = 'transcripts'
-CHROMSIZES = 'chrom-sizes'
 UPDATES = 'updates'
 
 
@@ -101,7 +100,7 @@ def _make_query_region(start_pos: int, end_pos: int, motif_type="other"):
 
 
 def query_records_in_region(
-    record_type: RecordType,
+    record_type,
     chrom,
     start_pos,
     end_pos,
@@ -124,6 +123,6 @@ def query_records_in_region(
     else:
         query["height_order"] = height_order
     # query database
-    return app.config["GENS_DB"][record_type.value].find(
+    return app.config["GENS_DB"][record_type].find(
         query, {"_id": False}, sort=sort_order
     )

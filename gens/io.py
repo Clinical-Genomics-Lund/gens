@@ -34,17 +34,6 @@ def get_tabix_files(coverage_file, baf_file):
     return cov_file, baf_file
 
 
-def get_overview_json_path(sample_name, hg_path):
-    """Get json file with cov and baf data for overview."""
-    LOG.info(f"Getting overview json file for smaple: {sample_name}, path: {hg_path}")
-    try:
-        json_file = _get_filepath(hg_path, sample_name + JSON_SUFFIX)
-    except FileNotFoundError:
-        LOG.info(f"No overview json file found. Will fall back to slow BED fetching!")
-        json_file = None
-    return json_file
-
-
 def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
     """
     Call tabix and generate an array of strings for each line it returns.

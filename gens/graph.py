@@ -9,7 +9,7 @@ from flask import request
 
 from .cache import cache
 from .constants import CHROMOSOMES
-from .db import RecordType
+from .db import get_chromosome_size
 from .exceptions import NoRecordsException, RegionParserException
 from .io import tabix_query
 
@@ -103,9 +103,10 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
+    db = app.config['GENS_DB']
     chrom_dims = {}
     for chrom in CHROMOSOMES:
-        chrom_data = get_chrom_data(chrom, genome_build)
+        chrom_data = get_chromosome_size(db, chrom, genome_build)
         chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
@@ -171,7 +172,8 @@ def parse_region_str(region, genome_build):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    chrom_data = get_chrom_data(chrom, genome_build)
+    db = app.config['GENS_DB']
+    chrom_data = get_chromosome_size(db, chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
@@ -247,6 +249,7 @@ def set_region_values(parsed_region, x_ampl):
 
 def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
+    db = app.config['GENS_DB']
     graph = set_graph_values(req)
     # parse region
     parsed_region = parse_region_str(req.region, req.genome_build)
@@ -270,7 +273,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         data_type = "bed"
 
         # Bound start and end balues to 0-chrom_size
-        end = min(new_end_pos, get_chrom_data(region.chrom, req.genome_build)["size"])
+        end = min(new_end_pos, get_chromosome_size(db, region.chrom, req.genome_build)["size"])
         start = max(new_start_pos, 0)
 
         # Load BAF and Log2 data from tabix files
@@ -305,22 +308,3 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     if not new_start_pos and not log2_records and not baf_records:
         raise NoRecordsException("No records")
     return region, new_start_pos, new_end_pos, log2_records, baf_records
-
-
-@cache.memoize(60)
-def get_chrom_data(chrom, genome_build=38):
-    """
-    Gets the size in base pairs of a chromosome
-    """
-
-    chrom_data = app.config["GENS_DB"][RecordType.CHROM_SIZE.value].find_one(
-        {
-            "chrom": str(chrom),
-            "genome_build": int(genome_build),
-        }
-    )
-    if chrom_data is None:
-        raise ValueError(
-            f"Could not find data for chromosome {chrom} in DB; genome_build: {genome_build}"
-        )
-    return chrom_data

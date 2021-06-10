@@ -1,7 +1,8 @@
 """Create indexes in the database."""
 import logging
 from pymongo import IndexModel, ASCENDING
-from .annotation import ANNOTATIONS, TRANSCRIPTS, CHROMSIZES
+from .annotation import ANNOTATIONS, TRANSCRIPTS
+from .chrom_sizes import CHROMSIZES
 from .samples import COLLECTION as SAMPLES
 
 LOG = logging.getLogger(__name__)

@@ -52,6 +52,8 @@ def display_case(sample_name):
     try:
         _get_filepath(sample.baf_file)
         _get_filepath(sample.coverage_file)
+        if sample.overview_file:  # verify json if it exists
+            _get_filepath(sample.overview_file)
     except FileNotFoundError as err:
         raise err
     else:

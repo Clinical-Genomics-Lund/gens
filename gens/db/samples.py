@@ -10,13 +10,14 @@ LOG = logging.getLogger(__name__)
 
 COLLECTION = 'samples'
 
-def store_sample(db, sample_id, baf, coverage, genome_build):
+def store_sample(db, sample_id, genome_build, baf, coverage, overview):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
     db[COLLECTION].insert_one({
         'sample_id': sample_id,
         'baf_file': baf,
         'coverage_file': coverage,
+        'overview_file': overview,
         'genome_build': genome_build,
         'created_at': datetime.datetime.now(),
     })
@@ -33,6 +34,7 @@ def get_samples(db, start = 0, n_samples = None):
         genome_build=r['genome_build'],
         baf_file=r['baf_file'],
         coverage_file=r['coverage_file'],
+        overview_file=r['overview_file'],
         created_at=r['created_at'],
         )
             for r in db[COLLECTION].find().sort('created_at', ASCENDING))
@@ -53,5 +55,6 @@ def query_sample(db, sample_id, genome_build):
         genome_build=result['genome_build'],
         baf_file=result['baf_file'],
         coverage_file=result['coverage_file'],
+        overview_file=result['overview_file'],
         created_at=result['created_at'],
     )

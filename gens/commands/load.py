@@ -42,15 +42,21 @@ def load():
     type=click.Path(exists=True),
     help="File or directory of annotation files to load into the database",
 )
+@click.option(
+    "-j",
+    "--overview-json",
+    type=click.Path(exists=True),
+    help="Json file that contains preprocessed overview coverage",
+)
 @with_appcontext
-def sample(sample_id, genome_build, baf, coverage):
+def sample(sample_id, genome_build, baf, coverage, overview_json):
     """Load a sample into Gens database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
     if len(get_indexes(db, SAMPLES_COLLECTION)) == 0:
         create_index(db, SAMPLES_COLLECTION)
     # load samples
-    store_sample(db, sample_id=sample_id, genome_build=genome_build, baf=baf, coverage=coverage)
+    store_sample(db, sample_id=sample_id, genome_build=genome_build, baf=baf, coverage=coverage, overview=overview_json)
     click.secho("Finished adding a new sample to database ✔", fg="green")
 
 

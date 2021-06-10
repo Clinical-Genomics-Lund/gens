@@ -1,6 +1,7 @@
 """API entry point and helper functions."""
 import gzip
 import json
+import os
 import logging
 import re
 from datetime import date
@@ -11,13 +12,13 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import RecordType, VariantCategory, query_records_in_region, query_variants, query_sample
+from gens.db import VariantCategory, query_records_in_region, query_variants, query_sample
 from gens.exceptions import RegionParserException
 from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
 from .constants import CHROMOSOMES, GENOME_BUILDS
-from .io import get_overview_json_path, get_tabix_files
-from gens.db import ANNOTATIONS_COLLECTION
+from .io import get_tabix_files
+from gens.db import ANNOTATIONS_COLLECTION, TRANSCRIPTS_COLLECTION
 
 LOG = logging.getLogger(__name__)
 
@@ -112,7 +113,7 @@ def get_annotation_data(region, source, genome_build, collapsed):
     # go over the span
     annotations = list(
         query_records_in_region(
-            record_type=RecordType.ANNOTATION,
+            record_type=ANNOTATIONS_COLLECTION,
             chrom=chrom,
             start_pos=start_pos,
             end_pos=end_pos,
@@ -149,7 +150,7 @@ def get_transcript_data(region, genome_build, collapsed):
     # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     transcripts = list(
         query_records_in_region(
-            record_type=RecordType.TRANSCRIPT,
+            record_type=TRANSCRIPTS_COLLECTION,
             chrom=chrom,
             start_pos=start_pos,
             end_pos=end_pos,
@@ -177,7 +178,7 @@ def search_annotation(query: str, genome_build, annotation_type):
     collection = current_app.config["GENS_DB"][annotation_type]
     db_query = {"gene_name": re.compile("^" + re.escape(query) + "$", re.IGNORECASE)}
 
-    if genome_build and int(genome_build) in HG_TYPE:
+    if genome_build and int(genome_build) in GENOME_BUILDS:
         db_query["genome_build"] = genome_build
 
     elements = collection.find(db_query, sort=[("start", 1), ("chrom", 1)])
@@ -256,19 +257,17 @@ def get_multiple_coverages():
         return data, 404
     LOG.info(f"Got request for all chromosome coverages: {data.sample_id}")
 
-    json_data, cov_file, baf_file = None, None, None
-    data_dir = current_app.config[f"HG{data.genome_build}_PATH"]
-
-    # Try to find and load an overview json data file
-    overview_json_path = get_overview_json_path(data.sample_id, data_dir)
-    if overview_json_path:
-        with gzip.open(overview_json_path, "r") as json_gz:
-            json_data = json.loads(json_gz.read().decode("utf-8"))
-
-    # Fall back to BED file is no json exists
+    # read sample information
     db = current_app.config['GENS_DB']
-    if not json_data:
-        sample_obj = query_sample(db, data.sample_id, data.genome_build)
+    sample_obj = query_sample(db, data.sample_id, data.genome_build)
+    # Try to find and load an overview json data file
+    json_data, cov_file, baf_file = None, None, None
+    if sample_obj.overview_file and os.path.isfile(sample_obj.overview_file):
+        LOG.info(f'Using json overview file: {sample_obj.overview_file}')
+        with gzip.open(sample_obj.overview_file, "r") as json_gz:
+            json_data = json.loads(json_gz.read().decode("utf-8"))
+    else:
+        # Fall back to BED files if json files does not exists
         cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
 
     results = {}
