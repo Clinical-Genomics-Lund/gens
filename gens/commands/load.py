@@ -140,6 +140,7 @@ def transcripts(file, mane, genome_build):
         raise click.UsageError(str(err))
     LOG.info("Add transcripts to database")
     db[TRANSCRIPTS_COLLECTION].insert_many(transcripts)
+    register_data_update(TRANSCRIPTS_COLLECTION)
     click.secho("Finished loading transcripts ✔", fg="green")
 
 
@@ -169,4 +170,5 @@ def chrom_sizes(file, genome_build):
     # insert collection
     LOG.info("Add chromosome sizes to database")
     db[CHROMSIZES_COLLECTION].insert_many(chrom_sizes)
+    register_data_update(CHROMSIZES_COLLECTION)
     click.secho("Finished updating chromosome sizes ✔", fg="green")
