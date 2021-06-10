@@ -1,11 +1,4 @@
-// Define global colors
-$menubar-font-color: #F4FAFF;
-$menubar-bg-color: #4C6D94;
-$menubar-bg-color-print: darkgrey;
-$menubar-font-color-print: white;
-// body
-$default-font-color: #202231;
-$default-bg-color: #F7F9F9;
+@import 'defaults', 'navbar';
 // region marker
 $marker-color: rgba(#81A1C1, 0.5);
 // buttons
@@ -13,9 +6,6 @@ $btn-zoom-color: #8FBCBB;
 $btn-navigate-color: #6DB2C5;
 
 $btn-submit-color: #6DB2C5;
-// font
-$default-font: Arial, Helvetica, sans-serif;
-$default-font-print: "Times New Roman", Times, serif;
 html, body {
     max-width: 100%;
     min-height: 100%;

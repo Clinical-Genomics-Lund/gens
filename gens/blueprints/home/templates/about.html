@@ -9,17 +9,16 @@
 {% endblock css_style %}
 
 {% block body %}
-  {{ navbar() }}
+  {{ navbar('about', version) }}
   {{ super() }}
 {% endblock %}
 
 {% block content %}
 <div class="content">
-  <div id="logo">
-    <img src={{ url_for("home.static", filename="gens_logo_with_text.png") }}>
-    <div>Software version: <span class="version">{{ version }}</span></div>
+  <div>
+    <h1>About GENS</h1> 
+    <p>For information on how to use Gens please see the CMD Wiki.</p>
   </div>
-  <p>For information on how to use Gens please refere to the CMD Wiki.</p>
   <div class="card-panel">
     <div class="row">
       {{ db_info_card(timestamps) }}

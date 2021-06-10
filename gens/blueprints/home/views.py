@@ -4,6 +4,7 @@ import logging
 from itertools import groupby
 
 from flask import Blueprint, current_app, render_template
+import os
 
 from gens import version
 from gens.db import get_timestamps, get_samples
@@ -31,14 +32,21 @@ home_bp = Blueprint(
 
 
 # define views
-@home_bp.route("/")
-@home_bp.route("/home")
+@home_bp.route("/", methods=['GET', 'POST'])
+@home_bp.route("/home", methods=['GET', 'POST'])
 def home():
     db = current_app.config["GENS_DB"]
 
+    samples = [{
+        'sample_id': smp.sample_id,
+        'genome_build': smp.genome_build,
+        'has_overview_file': smp.overview_file is not None,
+        'files_present': os.path.isfile(smp.baf_file) and os.path.isfile(smp.coverage_file),
+        'created_at': smp.created_at.strftime("%Y-%m-%d"),
+        } for smp in get_samples(db)]
     return render_template(
         "home.html",
-        samples=get_samples(db),
+        samples=samples,
         version=version,
     )
 
