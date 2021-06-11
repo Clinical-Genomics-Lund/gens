@@ -156,8 +156,7 @@ The final output should be two files named: **SAMPLE_ID.baf.bed.gz** and **SAMPL
 
 ## Loading data into Gens
 
-The generated data files should be put in one of the folders defined in config.py, depending on which genome build you've used. To load the data in a web browser simplt enter the URL **hostname.com:5000/SAMPLE_ID**. By default it will look for files in the hg38 folder. In order to use data from the hg19/GRCh37 folder, use **hostname.com:5000/SAMPLE_ID?hg_type=37**
-
+Load a sample into gens with the command `gens load sample` where you need to specify the sample id, genome build and the generated data files. **Note** that there sample id/ genome build combination needs to be unique. To use Gens simply navigate to the URL **hostname.com:5000/** to view a list of all samples loaded into Gens. To directly open a specific sample go to the URL **hostname.com:5000/<sample id>**.
 
 ## Data format
 
