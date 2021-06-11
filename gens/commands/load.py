@@ -86,6 +86,7 @@ def annotations(file, genome_build):
         # verify file format
         if annot_file.suffix in [".bed", ".aed"]:
             click.UsageError("Invalid file format, expects either a bed or aed file")
+        LOG.info(f'Processing {annot_file}')
         # base the annotation name on the filename
         annotation_name = annot_file.name[: -len(annot_file.suffix)]
         try:

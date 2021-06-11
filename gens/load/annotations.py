@@ -10,7 +10,7 @@ from gens.db import ANNOTATIONS_COLLECTION
 
 LOG = logging.getLogger(__name__)
 CORE_FIELDS = ("sequence", "start", "end", "name", "strand", "color", "score")
-AED_ENTRY = re.compile(r".+:(\w+)\(\w+:(\w+)\)", re.I)
+AED_ENTRY = re.compile(r"[.+:]?(\w+)\(\w+:(\w+)\)", re.I)
 
 DEFAULT_COLOR = "grey"
 
