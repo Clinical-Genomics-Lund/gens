@@ -1,13 +1,15 @@
 """Index collections in the database."""
 
 import logging
+
 import click
-from flask.cli import with_appcontext
 from flask import current_app
+from flask.cli import with_appcontext
+
 from gens.db import create_indexes, update_indexes
 
-
 LOG = logging.getLogger(__name__)
+
 
 @click.command("index", short_help="Index the database")
 @click.option(
@@ -21,12 +23,12 @@ LOG = logging.getLogger(__name__)
 def index(yes, update):
     """Create indexes for the database."""
     LOG.info("Creating indexes for the database.")
-    db = current_app.config['GENS_DB']
+    db = current_app.config["GENS_DB"]
 
     if update:
         n_updated = update_indexes(db)
         if n_updated == 0:
-            click.secho('All indexes in place, nothing updated', fg='green')
+            click.secho("All indexes in place, nothing updated", fg="green")
     else:
         create_indexes(db)
-        click.secho('New indexes created', fg='green')
+        click.secho("New indexes created", fg="green")

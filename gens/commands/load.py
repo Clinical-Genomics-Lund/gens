@@ -5,11 +5,11 @@ import click
 from flask import current_app as app
 from flask.cli import with_appcontext
 from pymongo import ASCENDING
-from gens.db import create_index, get_indexes, CHROMSIZES_COLLECTION, TRANSCRIPTS_COLLECTION, ANNOTATIONS_COLLECTION, SAMPLES_COLLECTION
 
-from gens.db import register_data_update
 from gens.constants import GENOME_BUILDS
-from gens.db import store_sample
+from gens.db import (ANNOTATIONS_COLLECTION, CHROMSIZES_COLLECTION,
+                     SAMPLES_COLLECTION, TRANSCRIPTS_COLLECTION, create_index,
+                     get_indexes, register_data_update, store_sample)
 from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
                        parse_annotation_file, parse_chrom_sizes,
                        update_height_order)
@@ -26,7 +26,11 @@ def load():
 @load.command()
 @click.option("-i", "--sample-id", type=str, required=True, help="Sample id")
 @click.option(
-    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+    "-b",
+    "--genome-build",
+    type=click.Choice(valid_genome_builds),
+    required=True,
+    help="Genome build",
 )
 @click.option(
     "-a",
@@ -56,7 +60,14 @@ def sample(sample_id, genome_build, baf, coverage, overview_json):
     if len(get_indexes(db, SAMPLES_COLLECTION)) == 0:
         create_index(db, SAMPLES_COLLECTION)
     # load samples
-    store_sample(db, sample_id=sample_id, genome_build=genome_build, baf=baf, coverage=coverage, overview=overview_json)
+    store_sample(
+        db,
+        sample_id=sample_id,
+        genome_build=genome_build,
+        baf=baf,
+        coverage=coverage,
+        overview=overview_json,
+    )
     click.secho("Finished adding a new sample to database ✔", fg="green")
 
 
@@ -69,7 +80,11 @@ def sample(sample_id, genome_build, baf, coverage, overview_json):
     help="File or directory of annotation files to load into the database",
 )
 @click.option(
-    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+    "-b",
+    "--genome-build",
+    type=click.Choice(valid_genome_builds),
+    required=True,
+    help="Genome build",
 )
 @with_appcontext
 def annotations(file, genome_build):
@@ -86,12 +101,12 @@ def annotations(file, genome_build):
         # verify file format
         if annot_file.suffix not in [".bed", ".aed"]:
             continue
-        LOG.info(f'Processing {annot_file}')
+        LOG.info(f"Processing {annot_file}")
         # base the annotation name on the filename
         annotation_name = annot_file.name[: -len(annot_file.suffix)]
         try:
             parser = parse_annotation_file(
-                annot_file, genome_build, format=annot_file.suffix[1:]
+                annot_file, genome_build, file_format=annot_file.suffix[1:]
             )
             annotation_obj = []
             for entry in parser:
@@ -125,7 +140,11 @@ def annotations(file, genome_build):
 @click.option("-f", "--file", type=click.File(), help="Transcript file")
 @click.option("-m", "--mane", type=click.File(), required=True, help="Mane file")
 @click.option(
-    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+    "-b",
+    "--genome-build",
+    type=click.Choice(valid_genome_builds),
+    required=True,
+    help="Genome build",
 )
 @with_appcontext
 def transcripts(file, mane, genome_build):
@@ -154,7 +173,11 @@ def transcripts(file, mane, genome_build):
     help="Chromosome sizes in tsv format",
 )
 @click.option(
-    "-b", "--genome-build", type=click.Choice(valid_genome_builds), required=True, help="Genome build"
+    "-b",
+    "--genome-build",
+    type=click.Choice(valid_genome_builds),
+    required=True,
+    help="Genome build",
 )
 @with_appcontext
 def chrom_sizes(file, genome_build):

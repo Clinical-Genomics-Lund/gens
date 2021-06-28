@@ -135,8 +135,10 @@ def update_height_order(db, name):
     Height order is used for annotation placement
     """
     for chrom in CHROMOSOMES:
-        annotations = db[ANNOTATIONS_COLLECTION].find({"chrom": chrom, "source": name}).sort(
-            [("start", ASCENDING)]
+        annotations = (
+            db[ANNOTATIONS_COLLECTION]
+            .find({"chrom": chrom, "source": name})
+            .sort([("start", ASCENDING)])
         )
 
         height_tracker = [-1] * 200

@@ -1,6 +1,6 @@
 """Read and write chrom sizes."""
 
-CHROMSIZES = 'chrom-sizes'
+CHROMSIZES = "chrom-sizes"
 
 
 def get_chromosome_size(db, chrom, genome_build=38):

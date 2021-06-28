@@ -6,8 +6,8 @@ from flask.cli import FlaskGroup
 from gens.__version__ import VERSION as version
 from gens.app import create_app
 
-from .load import load as load_command
 from .index import index as index_command
+from .load import load as load_command
 from .view import view as view_command
 
 

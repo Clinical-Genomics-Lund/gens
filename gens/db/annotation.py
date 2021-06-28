@@ -12,9 +12,9 @@ from .models import VariantCategory
 LOG = logging.getLogger(__name__)
 
 # define collection names
-ANNOTATIONS = 'annotations'
-TRANSCRIPTS = 'transcripts'
-UPDATES = 'updates'
+ANNOTATIONS = "annotations"
+TRANSCRIPTS = "transcripts"
+UPDATES = "updates"
 
 
 def register_data_update(track_type, name=None):

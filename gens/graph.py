@@ -103,7 +103,7 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
-    db = app.config['GENS_DB']
+    db = app.config["GENS_DB"]
     chrom_dims = {}
     for chrom in CHROMOSOMES:
         chrom_data = get_chromosome_size(db, chrom, genome_build)
@@ -172,7 +172,7 @@ def parse_region_str(region, genome_build):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    db = app.config['GENS_DB']
+    db = app.config["GENS_DB"]
     chrom_data = get_chromosome_size(db, chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
@@ -249,7 +249,7 @@ def set_region_values(parsed_region, x_ampl):
 
 def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
-    db = app.config['GENS_DB']
+    db = app.config["GENS_DB"]
     graph = set_graph_values(req)
     # parse region
     parsed_region = parse_region_str(req.region, req.genome_build)
@@ -273,7 +273,9 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         data_type = "bed"
 
         # Bound start and end balues to 0-chrom_size
-        end = min(new_end_pos, get_chromosome_size(db, region.chrom, req.genome_build)["size"])
+        end = min(
+            new_end_pos, get_chromosome_size(db, region.chrom, req.genome_build)["size"]
+        )
         start = max(new_start_pos, 0)
 
         # Load BAF and Log2 data from tabix files

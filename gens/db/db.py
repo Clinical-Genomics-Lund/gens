@@ -4,6 +4,7 @@ import os
 
 from flask import current_app as app
 from pymongo import MongoClient
+
 from gens.exceptions import ConfigurationException
 
 LOG = logging.getLogger(__name__)

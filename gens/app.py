@@ -12,7 +12,7 @@ from flask_compress import Compress
 from flask_debugtoolbar import DebugToolbarExtension
 
 from .__version__ import VERSION as version
-from .blueprints import home_bp, gens_bp
+from .blueprints import gens_bp, home_bp
 from .cache import cache
 from .db import init_database
 from .errors import generic_error, sample_not_found

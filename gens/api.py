@@ -1,8 +1,8 @@
 """API entry point and helper functions."""
 import gzip
 import json
-import os
 import logging
+import os
 import re
 from datetime import date
 from typing import List
@@ -12,13 +12,15 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import VariantCategory, query_records_in_region, query_variants, query_sample
+from gens.db import (ANNOTATIONS_COLLECTION, TRANSCRIPTS_COLLECTION,
+                     VariantCategory, query_records_in_region, query_sample,
+                     query_variants)
 from gens.exceptions import RegionParserException
-from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
+from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
+                        parse_region_str)
 
 from .constants import CHROMOSOMES, GENOME_BUILDS
 from .io import get_tabix_files
-from gens.db import ANNOTATIONS_COLLECTION, TRANSCRIPTS_COLLECTION
 
 LOG = logging.getLogger(__name__)
 
@@ -258,17 +260,19 @@ def get_multiple_coverages():
     LOG.info(f"Got request for all chromosome coverages: {data.sample_id}")
 
     # read sample information
-    db = current_app.config['GENS_DB']
+    db = current_app.config["GENS_DB"]
     sample_obj = query_sample(db, data.sample_id, data.genome_build)
     # Try to find and load an overview json data file
     json_data, cov_file, baf_file = None, None, None
     if sample_obj.overview_file and os.path.isfile(sample_obj.overview_file):
-        LOG.info(f'Using json overview file: {sample_obj.overview_file}')
+        LOG.info(f"Using json overview file: {sample_obj.overview_file}")
         with gzip.open(sample_obj.overview_file, "r") as json_gz:
             json_data = json.loads(json_gz.read().decode("utf-8"))
     else:
         # Fall back to BED files if json files does not exists
-        cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
+        cov_file, baf_file = get_tabix_files(
+            sample_obj.coverage_file, sample_obj.baf_file
+        )
 
     results = {}
     for chrom_info in data.chromosome_pos:
@@ -360,7 +364,7 @@ def get_coverage(
         genome_build,
         reduce_data,
     )
-    db = current_app.config['GENS_DB']
+    db = current_app.config["GENS_DB"]
     sample_obj = query_sample(db, sample_id, genome_build)
     cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
     # Parse region

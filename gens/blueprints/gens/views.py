@@ -7,9 +7,9 @@ from flask import Blueprint, abort, current_app, render_template, request
 
 from gens import version
 from gens.cache import cache
+from gens.db import query_sample
 from gens.graph import parse_region_str
 from gens.io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from gens.db import query_sample
 
 LOG = logging.getLogger(__name__)
 
