@@ -163,9 +163,9 @@ def update_height_order(db, name):
                     height_tracker += [-1] * 100
 
 
-def parse_annotation_file(file, genome_build, format):
+def parse_annotation_file(file, genome_build, file_format):
     """Parse a annotation file in bed or aed format."""
-    if format == "bed":
+    if file_format == "bed":
         return parse_bed(file, genome_build)
-    if format == "aed":
+    if file_format == "aed":
         return parse_aed(file)

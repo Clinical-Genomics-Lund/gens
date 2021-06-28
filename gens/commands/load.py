@@ -132,7 +132,7 @@ def transcripts(file, mane, genome_build):
     """Load transcripts into the database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
-    if len(get_indexes(db, TRANSCRIPTS_COLLECTION)):
+    if len(get_indexes(db, TRANSCRIPTS_COLLECTION)) > 0:
         create_index(db, TRANSCRIPTS_COLLECTION)
     LOG.info("Building transcript object")
     try:
