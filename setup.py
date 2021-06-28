@@ -6,10 +6,10 @@ from setuptools import find_packages, setup
 
 setup(
     name="gens",
-    version="1.2.1",
+    version="2.0.0",
     description="Gens is a web-based interactive tool to visualize genomic copy number profiles from WGS data.",
     license="MIT",
-    author="Ronja",
+    author="Ronja, Markus Johansson",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
