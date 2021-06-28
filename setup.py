@@ -41,6 +41,7 @@ setup(
         "cattrs",
         "connexion[swagger-ui]",
         "flask-compress",
+        "tabulate",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "mongomock"],

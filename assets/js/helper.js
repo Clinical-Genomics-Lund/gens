@@ -1,13 +1,13 @@
 // Various helper functions
 import { get } from './fetch.js'
 
-function cacheChromSizes (hgType = '38') {
+function cacheChromSizes (genomeBuild = '38') {
   const cache = {}
-  return async hgType => {
-    if (!cache[hgType]) {
+  return async genomeBuild => {
+    if (!cache[genomeBuild]) {
       const result = await get('get-overview-chrom-dim',
         {
-          hg_type: hgType,
+          genome_build: genomeBuild,
           x_pos: 1,
           y_pos: 1,
           plot_width: 1
@@ -16,9 +16,9 @@ function cacheChromSizes (hgType = '38') {
       for (const chrom in result.chrom_dims) {
         sizes[chrom] = result.chrom_dims[chrom].size
       }
-      cache[hgType] = sizes
+      cache[genomeBuild] = sizes
     }
-    return cache[hgType]
+    return cache[genomeBuild]
   }
 }
 

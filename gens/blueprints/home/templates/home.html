@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% from "navbar.html" import navbar %}
+
+{% block title %}GENS - version {{version}}{% endblock title %}
+
+{% block css_style %}
+  {{ super() }}
+  <link rel='stylesheet' href='{{ url_for('home.static', filename='home.min.css') }}' type='text/css'>
+{% endblock css_style %}
+
+{% block scripts %}
+  {{ super() }}
+{% endblock scripts %}
+
+{% block body %}
+  {{ navbar('home', version) }}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <h1>Samples</h1>
+  <p>There are {{ samples | length }} samles loaded into Gens. Click on a <em>sample_id</em> to open it</p>
+  <div>
+    {{ samples_table(samples) }}
+  </div>
+</div>
+{% endblock content %}
+
+{% macro samples_table(samples_obj)%}
+  <table>
+    <thead>
+      <tr>
+        <td>Sample id</td>
+        <td>Genome build</td>
+        <td>Overivew file</td>
+        <td>BAM/BAF found</td>
+        <td>Import date</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sample in samples_obj %}
+        {% set genome_build=sample["genome_build"]%}
+        {% set sample_id=sample["sample_id"]%}
+        <tr>
+          <td id="id-cell"><a href="{{ url_for('gens.display_case', sample_name=sample_id, genome_build=genome_build) }}" target="_blank">{{ sample_id }}</a></td>
+          <td id="build-cell" class="align-right">{{ genome_build }}</td>
+          <td id="overview-cell"  class="align-right">
+            {% if sample["has_overview_file"] %}
+              <span class="icon icon-check"></span>
+            {% else %}
+              <span class="icon icon-x icon-color-red"></span>
+            {% endif %}
+          </td>
+          <td id="has-files-cell" class="align-right">
+            {% if sample["files_present"] %}
+              <span class="icon icon-check"></span>
+            {% else %}
+              <span class="icon icon-x icon-color-red"></span>
+            {% endif %}
+          </td>
+          <td id="date-cell">{{sample["created_at"]}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}

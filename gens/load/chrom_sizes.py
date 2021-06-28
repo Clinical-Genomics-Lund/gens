@@ -25,7 +25,7 @@ def parse_chrom_sizes(cfile, genome_build, delimiter="\t"):
         chrom_sizes.append(
             {
                 "chrom": row["chrom"],
-                "hg_type": int(genome_build),
+                "genome_build": int(genome_build),
                 "size": chrom_size,
                 "scale": scale,
             }

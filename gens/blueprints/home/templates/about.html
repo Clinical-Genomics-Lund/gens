@@ -1,19 +1,24 @@
 {% extends "layout.html" %}
+{% from "navbar.html" import navbar %}
+
 {% block title %}Gens - Version {{version}}{% endblock title %}
 
 {% block css_style %}
     {{ super() }}
-    <link rel='stylesheet' href='{{ url_for('about.static', filename='about.min.css') }}' type='text/css'>
+    <link rel='stylesheet' href='{{ url_for('home.static', filename='about.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
+{% block body %}
+  {{ navbar('about', version) }}
+  {{ super() }}
+{% endblock %}
 
 {% block content %}
 <div class="content">
-  <div id="logo">
-    <img src={{ url_for("about.static", filename="gens_logo_with_text.png") }}>
-    <div>Software version: <span class="version">{{ version }}</span></div>
+  <div>
+    <h1>About GENS</h1> 
+    <p>For information on how to use Gens please see the CMD Wiki.</p>
   </div>
-  <p>For information on how to use Gens please refere to the CMD Wiki.</p>
   <div class="card-panel">
     <div class="row">
       {{ db_info_card(timestamps) }}
@@ -58,7 +63,7 @@
     <p>Information loaded into the Gens database and when they were last updated.</p>
     <div>
       {% for track in timestamps %}
-        {% if timestamps[track] | length > 1 %}
+        {% if timestamps[track] | length > 0 and timestamps[track][0]["name"] %}
           <h3>{{ track }}</h3>
           <ul>
             {% for annotation in timestamps[track] %}

@@ -14,5 +14,5 @@ test('Test copyPermalink', () => {
   // expect copy to clipboard has been called
   expect(document.execCommand).toHaveBeenCalledWith('copy')
   // assert the content copied
-  expect(inputElem.value).toEqual('www.example.com/sampleId?hg_type=38&region=1:10-100')
+  expect(inputElem.value).toEqual('www.example.com/sampleId?genome_build=38&region=1:10-100')
 })

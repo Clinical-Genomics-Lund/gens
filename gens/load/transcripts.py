@@ -130,7 +130,7 @@ def build_transcripts(transc_file, mane_file, genome_build):
                 selected_name = mane_transc.get(transcript_id, {})
                 res = {
                     "chrom": transc["seqname"],
-                    "hg_type": int(genome_build),
+                    "genome_build": int(genome_build),
                     "gene_name": attribs["gene_name"],
                     "start": int(transc["start"]),
                     "end": int(transc["end"]),

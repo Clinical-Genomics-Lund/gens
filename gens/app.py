@@ -12,7 +12,7 @@ from flask_compress import Compress
 from flask_debugtoolbar import DebugToolbarExtension
 
 from .__version__ import VERSION as version
-from .blueprints import about_bp, gens_bp
+from .blueprints import gens_bp, home_bp
 from .cache import cache
 from .db import init_database
 from .errors import generic_error, sample_not_found
@@ -90,4 +90,4 @@ def register_errors(app):
 def register_blueprints(app):
     """Register blueprints."""
     app.register_blueprint(gens_bp)
-    app.register_blueprint(about_bp)
+    app.register_blueprint(home_bp)

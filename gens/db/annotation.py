@@ -7,14 +7,19 @@ from itertools import groupby
 
 from flask import current_app as app
 
-from .models import RecordType, VariantCategory
+from .models import VariantCategory
 
 LOG = logging.getLogger(__name__)
+
+# define collection names
+ANNOTATIONS = "annotations"
+TRANSCRIPTS = "transcripts"
+UPDATES = "updates"
 
 
 def register_data_update(track_type, name=None):
     """Register that a track was updated."""
-    db = app.config["GENS_DB"]["updates"]
+    db = app.config["GENS_DB"][UPDATES]
     LOG.debug(f"Creating timestamp for {track_type}")
     track = {"track": track_type, "name": name}
     db.remove(track)  # remove old track
@@ -24,7 +29,7 @@ def register_data_update(track_type, name=None):
 def get_timestamps(track_type="all"):
     """Get when a annotation track was last updated."""
     LOG.debug(f"Reading timestamp for {track_type}")
-    db = app.config["GENS_DB"]["updates"]
+    db = app.config["GENS_DB"][UPDATES]
     if track_type == "all":
         query = db.find()
     else:
@@ -38,7 +43,7 @@ def get_timestamps(track_type="all"):
                 {
                     "tack": entry["track"],
                     "name": entry["name"],
-                    "timestamp": entry["timestamp"].strftime("%Y-%M-%d"),
+                    "timestamp": entry["timestamp"].strftime("%Y-%m-%d"),
                 }
             )
     return results
@@ -95,11 +100,11 @@ def _make_query_region(start_pos: int, end_pos: int, motif_type="other"):
 
 
 def query_records_in_region(
-    record_type: RecordType,
+    record_type,
     chrom,
     start_pos,
     end_pos,
-    hg_type,
+    genome_build,
     height_order=None,
     **kwargs,
 ):
@@ -107,7 +112,7 @@ def query_records_in_region(
     # build base query
     query = {
         "chrom": chrom,
-        "hg_type": hg_type,
+        "genome_build": genome_build,
         **_make_query_region(start_pos, end_pos),
         **kwargs,  # add optional search params
     }
@@ -118,6 +123,6 @@ def query_records_in_region(
     else:
         query["height_order"] = height_order
     # query database
-    return app.config["GENS_DB"][record_type.value].find(
+    return app.config["GENS_DB"][record_type].find(
         query, {"_id": False}, sort=sort_order
     )

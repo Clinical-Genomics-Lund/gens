@@ -21,7 +21,7 @@ function stringToHash (string) {
 }
 
 export class AnnotationTrack extends BaseAnnotationTrack {
-  constructor (x, width, near, far, hgType, defaultAnnotation) {
+  constructor (x, width, near, far, genomeBuild, defaultAnnotation) {
     // Dimensions of track canvas
     const visibleHeight = 300 // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35 // Minimized height
@@ -41,7 +41,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
     this.setupHTML(x + 1)
 
     this.trackContainer.style.marginTop = '-1px'
-    this.hgType = hgType
+    this.genomeBuild = genomeBuild
 
     // Setup annotation list
     this.sourceList = document.getElementById('source-list')
@@ -64,7 +64,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
 
   // Fills the list with source files
   annotSourceList (defaultAnntotation) {
-    get('get-annotation-sources', { hg_type: this.hgType })
+    get('get-annotation-sources', { genome_build: this.genomeBuild })
       .then(result => {
         if (result.sources.length > 0) {
           this.sourceList.style.visibility = 'visible'

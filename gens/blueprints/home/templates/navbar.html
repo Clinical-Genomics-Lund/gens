@@ -1,0 +1,12 @@
+{% macro navbar(selected, version) %}
+<nav class="navbar">
+  <div class="logo-container"><span class="logo"></span></div>
+  <div class="version">v{{ version }}</div>
+  <ul>
+    <li><a {% if selected == 'home' %}class="active"{% endif %} 
+        href="{{ url_for('home.home') }}">Samples</a></li>
+    <li><a {% if selected == 'about' %}class="active"{% endif %}
+        href="{{ url_for('home.about') }}">About</a></li>
+  </ul>
+</nav>
+{% endmacro %}

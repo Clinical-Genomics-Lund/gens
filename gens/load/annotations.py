@@ -6,10 +6,11 @@ import re
 from pymongo import ASCENDING
 
 from gens.constants import CHROMOSOMES
+from gens.db import ANNOTATIONS_COLLECTION
 
 LOG = logging.getLogger(__name__)
 CORE_FIELDS = ("sequence", "start", "end", "name", "strand", "color", "score")
-AED_ENTRY = re.compile(r".+:(\w+)\(\w+:(\w+)\)", re.I)
+AED_ENTRY = re.compile(r"[.+:]?(\w+)\(\w+:(\w+)\)", re.I)
 
 DEFAULT_COLOR = "grey"
 
@@ -81,7 +82,7 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
     # set additional values
     annotation = {
         "source": annotation_name,
-        "hg_type": genome_build,
+        "genome_build": genome_build,
         **annotation,
     }
     return annotation
@@ -134,8 +135,10 @@ def update_height_order(db, name):
     Height order is used for annotation placement
     """
     for chrom in CHROMOSOMES:
-        annotations = db.find({"chrom": chrom, "source": name}).sort(
-            [("start", ASCENDING)]
+        annotations = (
+            db[ANNOTATIONS_COLLECTION]
+            .find({"chrom": chrom, "source": name})
+            .sort([("start", ASCENDING)])
         )
 
         height_tracker = [-1] * 200
@@ -144,7 +147,7 @@ def update_height_order(db, name):
             while True:
                 if int(annot["start"]) > height_tracker[current_height - 1]:
                     # Add height to DB
-                    db.update(
+                    db[ANNOTATIONS_COLLECTION].update(
                         {"_id": annot["_id"], "source": annot["source"]},
                         {"$set": {"height_order": current_height}},
                     )
@@ -162,9 +165,9 @@ def update_height_order(db, name):
                     height_tracker += [-1] * 100
 
 
-def parse_annotation_file(file, genome_build, format):
+def parse_annotation_file(file, genome_build, file_format):
     """Parse a annotation file in bed or aed format."""
-    if format == "bed":
+    if file_format == "bed":
         return parse_bed(file, genome_build)
-    if format == "aed":
+    if file_format == "aed":
         return parse_aed(file)

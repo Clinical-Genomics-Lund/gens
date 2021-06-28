@@ -65,9 +65,9 @@ export function parseRegionDesignation (regionString) {
   }
 }
 
-export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38' }) {
+export async function limitRegionToChromosome ({ chrom, start, end, genomeBuild = '38' }) {
   // assert that start/stop are within start and end of chromosome
-  const sizes = await chromSizes(hgType)
+  const sizes = await chromSizes(genomeBuild)
   const chromSize = sizes[chrom]
   start = start === null ? 1 : start
   end = end === null ? chromSize : end
@@ -91,7 +91,7 @@ export async function limitRegionToChromosome ({ chrom, start, end, hgType = '38
 }
 
 export async function drawTrack ({
-  chrom, start, end, hgType = '38',
+  chrom, start, end, genomeBuild = '38',
   exclude = [], force = false, ...kwargs
 }) {
   // update input field
@@ -110,13 +110,13 @@ export async function drawTrack ({
 // If query is a regionString draw the relevant region
 // If input is a chromosome display entire chromosome
 // Else query api for genes with that name and draw that region
-export function queryRegionOrGene (query, hgType = 38) {
+export function queryRegionOrGene (query, genomeBuild = 38) {
   if (query.includes(':')) {
     drawTrack(parseRegionDesignation(query))
   } else if (CHROMOSOMES.includes(query)) {
     drawTrack({ chrom: query, start: 1, end: null })
   } else {
-    get('search-annotation', { query: query, hg_type: hgType })
+    get('search-annotation', { query: query, genome_build: genomeBuild })
       .then(result => {
         if (result.status === 200) {
           drawTrack({

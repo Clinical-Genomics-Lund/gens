@@ -27,4 +27,4 @@ CHROMOSOMES = (
     "Y",
 )
 
-HG_TYPE = (37, 38)
+GENOME_BUILDS = (37, 38)

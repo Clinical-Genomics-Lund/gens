@@ -1,0 +1,57 @@
+@import "defaults", "navbar";
+
+$table-border-color: #ddd;
+
+
+.align-right { text-align: right; }
+.content {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    table {
+      border-collapse: collapse;
+      tr {
+          border: 1px solid $table-border-color;
+      }
+      td {
+          padding: 8px 12px;
+          border: 1px solid $table-border-color;
+      }
+
+      thead {
+          background-color: $menubar-bg-color;
+          color: $menubar-font-color;
+          font-weight: bold;
+      }
+
+      tbody {
+          // hover and coloring of table rows
+          tr:nth-child(even) { background-color: #f2f2f2;}
+          tr:hover { background-color: $table-border-color;}
+          // other styling
+      }
+    }
+
+}
+
+// icons
+.icon {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    transform: scale(1.4);
+}
+
+.icon-color-red {filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);}
+
+.icon-check {
+    background: url(./svg/check.svg) no-repeat top left;
+}
+
+.icon-x {
+    background: url(./svg/x.svg) no-repeat top left;
+}
+

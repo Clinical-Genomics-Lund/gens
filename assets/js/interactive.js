@@ -6,8 +6,8 @@ import { get } from './fetch.js'
 import { BaseScatterTrack } from './track.js'
 
 export class InteractiveCanvas extends BaseScatterTrack {
-  constructor (inputField, lineMargin, near, far, sampleName, hgType, hgFileDir) {
-    super({ sampleName, hgType, hgFileDir })
+  constructor (inputField, lineMargin, near, far, sampleName, genomeBuild, hgFileDir) {
+    super({ sampleName, genomeBuild, hgFileDir })
     // The canvas input field to display and fetch chromosome range from
     this.inputField = inputField
     // Plot variables
@@ -216,7 +216,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     get('get-coverage', {
       region: `${chrom}:${start}-${end}`,
       sample_id: this.sampleName,
-      hg_type: this.hgType,
+      genome_build: this.genomeBuild,
       hg_filedir: this.hgFileDir,
       x_pos: this.extraWidth,
       y_pos: this.y,
