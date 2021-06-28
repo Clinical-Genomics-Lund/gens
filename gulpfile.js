@@ -70,8 +70,8 @@ gulp.task('build-error-css', function () {
     .pipe(gulp.dest(`${dest}/css`))
 })
 
-gulp.task('build', gulp.parallel('build-js', 'build-gens-css',
-'build-about-css', 'build-error-css'))
+gulp.task('build', gulp.parallel('build-js', 'build-gens-css', 
+'build-home-css', 'build-about-css', 'build-error-css'))
 
 // DEVELOPMENT tasks
 //
