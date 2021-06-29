@@ -14,7 +14,6 @@ from .view import view as view_command
 @click.group(
     cls=FlaskGroup,
     create_app=create_app,
-    invoke_without_command=True,
     add_default_commands=False,
     add_version_option=False,
 )
