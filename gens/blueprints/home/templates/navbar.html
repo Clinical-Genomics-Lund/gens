@@ -1,6 +1,8 @@
 {% macro navbar(selected, version) %}
 <nav class="navbar">
-  <div class="logo-container"><span class="logo"></span></div>
+  <a id="home-link" href="{{ url_for('home.home') }}">
+    <div class="logo-container"><span class="logo"></span></div>
+  </a>
   <div class="version">v{{ version }}</div>
   <ul>
     <li><a {% if selected == 'home' %}class="active"{% endif %} 

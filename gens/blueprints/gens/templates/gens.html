@@ -37,9 +37,11 @@
 <div id='main-container'>
     <div class="header">
         <div id='left-group'>
-            <div id="logo-container">
-                <span class='logo'></span>
-            </div>
+            <a id="home-link" href="{{ url_for('home.home') }}">
+                <div id="logo-container">
+                    <span class='logo'></span>
+                </div>
+            </a>
             <span class='version'>v{{ version }}</span>
             <span class='date'>{{todays_date}}</span>
         </div>
