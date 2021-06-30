@@ -1,6 +1,7 @@
 @import "defaults", "navbar";
 
 $table-border-color: #ddd;
+$selected-color: adjust-color($menubar-bg-color, $lightness: +30%);
 
 
 .align-right { text-align: right; }
@@ -10,6 +11,10 @@ $table-border-color: #ddd;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
+    .display-info {
+        margin-bottom: 4px;
+    }
 
     table {
       border-collapse: collapse;
@@ -34,7 +39,62 @@ $table-border-color: #ddd;
           // other styling
       }
     }
+}
 
+.pagination {
+    float: right;
+    margin-top: 10px;
+    padding-bottom: 50px;
+
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li:hover { background-color: $table-border-color;}
+
+    li {
+        float: left;
+        border-style: solid solid solid hidden;
+        border-width: 1px;
+        border-color: grey;
+    }
+
+    li:first-child {
+        border-style: solid;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    li:last-child {
+        border-style: solid solid solid hidden;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    a {
+        display: block;
+        padding: 8px;
+        text-decoration: none;
+        color: $default-font-color;
+    }
+}
+
+.disabled {
+    pointer-events: none;
+    a {
+        color: dimgray;
+    }
+}
+
+.selected {
+    background-color: $selected-color;
+
+    a {
+        color: $menubar-font-color;
+    }
 }
 
 // icons

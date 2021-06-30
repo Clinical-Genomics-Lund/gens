@@ -15,6 +15,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Added load sample command for loading samples into gens database
  - Added index command for creating new indexes
  - Added view sample command for displaying sample information
+ - Added pagination samples table
 ### Changed
  - Changed development status from Alpha to Stable
  - Samples are loaded based on the paths given when uploading the sample
