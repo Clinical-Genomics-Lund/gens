@@ -22,12 +22,14 @@
   <h1>Samples</h1>
   <p>There are {{ samples | length }} samles loaded into Gens. Click on a <em>sample_id</em> to open it</p>
   <div>
-    {{ samples_table(samples) }}
+    {{ samples_table(samples, pagination) }}
   </div>
 </div>
 {% endblock content %}
 
-{% macro samples_table(samples_obj)%}
+{% macro samples_table(samples_obj, pagination)%}
+  {% set per_page = samples_obj | length %}
+  <p class="display-info">Displaying <em>{{ pagination["from"] }}</em> to <em>{{ pagination["to"] }}</em> of <em>{{ per_page * pagination.last_page }}</em> samples</p>
   <table>
     <thead>
       <tr>
@@ -64,4 +66,27 @@
       {% endfor %}
     </tbody>
   </table>
+  {{ pagination_bar(pagination) }}
+{% endmacro %}
+
+{% macro pagination_bar(pagination)%}
+  <div class="pagination">
+    <ul>
+      {% set start = 1 if pagination["current_page"] == 1 else pagination["current_page"] - 1 %}
+      <!-- next -->
+      <li class="page-item {{ 'disabled' if pagination["current_page"] == 1 else '' }}">
+        <a href="{{url_for('home.home', page=pagination["current_page"] - 1) }}">Previous</a>
+      </li>
+      <!-- create numbers -->
+      {% for num in range(start, start + 3) %}
+        <li class="page-item {{ 'disabled' if pagination["last_page"] < num else '' }} {{ 'selected' if pagination["current_page"] == num else '' }}">
+          <a href="{{url_for('home.home', page=num) }}">{{ num }}</a>
+        </li>
+      {% endfor %}
+      <!-- previous -->
+      <li class="page-item {{ 'disabled' if pagination["current_page"] == pagination["last_page"] else '' }}">
+        <a href="{{url_for('home.home', page=pagination["current_page"] + 1) }}">Next</a>
+      </li>
+    </ul>
+  </div>
 {% endmacro %}

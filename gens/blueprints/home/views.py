@@ -4,12 +4,14 @@ import logging
 import os
 from itertools import groupby
 
-from flask import Blueprint, current_app, render_template
+from flask import Blueprint, current_app, render_template, request
 
 from gens import version
 from gens.db import get_samples, get_timestamps
 
 LOG = logging.getLogger(__name__)
+
+SAMPLES_PER_PAGE = 20
 
 IN_CONFIG = (
     "ENV",
@@ -30,11 +32,26 @@ home_bp = Blueprint(
 
 
 # define views
-@home_bp.route("/", methods=["GET"])
-@home_bp.route("/home", methods=["GET"])
+@home_bp.route("/", methods=["GET", "POST"])
+@home_bp.route("/home", methods=["GET", "POST"])
 def home():
     db = current_app.config["GENS_DB"]
-
+    # set pagination
+    page = request.args.get("page", 1, type=int)
+    start = (page - 1) * SAMPLES_PER_PAGE
+    samples, tot_samples = get_samples(db, start=start, n_samples=SAMPLES_PER_PAGE)
+    # calculate pagination
+    pagination_info = {
+        "from": start + 1,
+        "to": start + SAMPLES_PER_PAGE,
+        "current_page": page,
+        "last_page": (
+            tot_samples // SAMPLES_PER_PAGE
+            if tot_samples % SAMPLES_PER_PAGE == 0
+            else (tot_samples // SAMPLES_PER_PAGE) + 1
+        ),
+    }
+    # parse samples
     samples = [
         {
             "sample_id": smp.sample_id,
@@ -44,11 +61,12 @@ def home():
             and os.path.isfile(smp.coverage_file),
             "created_at": smp.created_at.strftime("%Y-%m-%d"),
         }
-        for smp in get_samples(db)
+        for smp in samples
     ]
     return render_template(
         "home.html",
         samples=samples,
+        pagination=pagination_info,
         version=version,
     )
 

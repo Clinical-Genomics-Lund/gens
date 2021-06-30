@@ -25,7 +25,7 @@ def samples(summary):
     """View samples stored in the database"""
     db = app.config["GENS_DB"]
     # print samples to terminal
-    samples = get_samples(db)
+    samples, _ = get_samples(db)
     if summary:  # count number of samples per genome build
         columns = ("Genome build", "N samples")
         sample_tbl = (

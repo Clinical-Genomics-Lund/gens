@@ -7,12 +7,24 @@ from flask.cli import with_appcontext
 from pymongo import ASCENDING
 
 from gens.constants import GENOME_BUILDS
-from gens.db import (ANNOTATIONS_COLLECTION, CHROMSIZES_COLLECTION,
-                     SAMPLES_COLLECTION, TRANSCRIPTS_COLLECTION, create_index,
-                     get_indexes, register_data_update, store_sample)
-from gens.load import (ParserError, build_transcripts, parse_annotation_entry,
-                       parse_annotation_file, parse_chrom_sizes,
-                       update_height_order)
+from gens.db import (
+    ANNOTATIONS_COLLECTION,
+    CHROMSIZES_COLLECTION,
+    SAMPLES_COLLECTION,
+    TRANSCRIPTS_COLLECTION,
+    create_index,
+    get_indexes,
+    register_data_update,
+    store_sample,
+)
+from gens.load import (
+    ParserError,
+    build_transcripts,
+    parse_annotation_entry,
+    parse_annotation_file,
+    parse_chrom_sizes,
+    update_height_order,
+)
 
 LOG = logging.getLogger(__name__)
 valid_genome_builds = [str(gb) for gb in GENOME_BUILDS]

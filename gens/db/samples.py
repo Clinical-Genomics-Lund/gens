@@ -46,9 +46,9 @@ def get_samples(db, start=0, n_samples=None):
         for r in db[COLLECTION].find().sort("created_at", ASCENDING)
     )
     # limit results to n results
-    if n_samples and 0 < n_samples:
-        results = itertools.islice(results, start=start, stop=start + n_samples)
-    return results
+    if isinstance(n_samples, (int)) and 0 < n_samples:
+        results = itertools.islice(results, start, start + n_samples)
+    return results, db[COLLECTION].count_documents({})
 
 
 def query_sample(db, sample_id, genome_build):

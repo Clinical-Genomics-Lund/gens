@@ -12,12 +12,16 @@ import cattr
 import connexion
 from flask import abort, current_app, jsonify, request
 
-from gens.db import (ANNOTATIONS_COLLECTION, TRANSCRIPTS_COLLECTION,
-                     VariantCategory, query_records_in_region, query_sample,
-                     query_variants)
+from gens.db import (
+    ANNOTATIONS_COLLECTION,
+    TRANSCRIPTS_COLLECTION,
+    VariantCategory,
+    query_records_in_region,
+    query_sample,
+    query_variants,
+)
 from gens.exceptions import RegionParserException
-from gens.graph import (REQUEST, get_cov, overview_chrom_dimensions,
-                        parse_region_str)
+from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
 
 from .constants import CHROMOSOMES, GENOME_BUILDS
 from .io import get_tabix_files
