@@ -14,8 +14,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 from .__version__ import VERSION as version
 from .blueprints import gens_bp, home_bp
 from .cache import cache
-from .db import init_database
-from .errors import generic_error, sample_not_found
+from .db import init_database, SampleNotFoundError
+from .errors import generic_error, sample_not_found, missing_files
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
 
@@ -82,7 +82,8 @@ def initialize_extensions(app):
 
 def register_errors(app):
     """Register error pages for gens app."""
-    app.register_error_handler(FileNotFoundError, sample_not_found)
+    app.register_error_handler(SampleNotFoundError, sample_not_found)
+    app.register_error_handler(FileNotFoundError, missing_files)
     app.register_error_handler(404, generic_error)
     app.register_error_handler(416, generic_error)
     app.register_error_handler(500, generic_error)

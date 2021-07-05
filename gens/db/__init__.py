@@ -12,4 +12,4 @@ from .chrom_sizes import get_chromosome_size
 from .db import init_database_connection as init_database
 from .index import create_index, create_indexes, get_indexes, update_indexes
 from .samples import COLLECTION as SAMPLES_COLLECTION
-from .samples import get_samples, query_sample, store_sample
+from .samples import get_samples, query_sample, store_sample, SampleNotFoundError

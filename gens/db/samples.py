@@ -13,6 +13,12 @@ LOG = logging.getLogger(__name__)
 COLLECTION = "samples"
 
 
+class SampleNotFoundError(Exception):
+    def __init__(self, message, sample_id):
+        super().__init__(message)
+
+        self.sample_id = sample_id
+
 def store_sample(db, sample_id, genome_build, baf, coverage, overview):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
@@ -56,7 +62,7 @@ def query_sample(db, sample_id, genome_build):
     result = db[COLLECTION].find_one({"sample_id": sample_id})
 
     if result is None:
-        raise ValueError(f'No sample with id: "{sample_id}" in database')
+        raise SampleNotFoundError(f'No sample with id: "{sample_id}" in database', sample_id)
     return SampleObj(
         sample_id=result["sample_id"],
         genome_build=result["genome_build"],
