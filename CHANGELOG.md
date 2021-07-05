@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 ### Fixed
+ - Missing tbi files now returns 404 status code
 
 ## [2.0.0]
 ### Added
