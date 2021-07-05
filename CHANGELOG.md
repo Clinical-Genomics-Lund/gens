@@ -8,7 +8,10 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
  - Added seperate error page for when accessing a sample not in the database
 ### Changed
+ - Do not warn when using default configuration
 ### Fixed
+ - Missing tbi files now returns 404 status code
+ - Fixed sort order of samples table
  - Prevent "internal error" when trying to access sample not in database
 
 ## [2.0.0]
