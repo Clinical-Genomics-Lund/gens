@@ -6,8 +6,10 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+ - Added seperate error page for when accessing a sample not in the database
 ### Changed
 ### Fixed
+ - Prevent "internal error" when trying to access sample not in database
 
 ## [2.0.0]
 ### Added
