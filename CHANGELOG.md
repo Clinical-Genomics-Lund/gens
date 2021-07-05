@@ -7,6 +7,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+ - Do not warn when using default configuration
 ### Fixed
  - Missing tbi files now returns 404 status code
  - Fixed sort order of samples table

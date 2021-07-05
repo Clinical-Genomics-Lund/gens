@@ -54,7 +54,8 @@ def create_app():
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
     app.config.from_object("gens.config")
     if os.environ.get("GENS_CONFIG") is None:
-        LOG.warning("No user configuration set, set path with $GENS_CONFIG variable")
+        LOG.info("Using default Gens configuration")
+        LOG.debug("No user configuration set with $GENS_CONFIG environmental variable")
     else:
         app.config.from_envvar("GENS_CONFIG")
     # initialize database and store db content
