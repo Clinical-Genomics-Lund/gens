@@ -4,7 +4,7 @@ import datetime
 import itertools
 import logging
 
-from pymongo import ASCENDING
+from pymongo import DESCENDING
 
 from .models import SampleObj
 
@@ -43,7 +43,7 @@ def get_samples(db, start=0, n_samples=None):
             overview_file=r["overview_file"],
             created_at=r["created_at"],
         )
-        for r in db[COLLECTION].find().sort("created_at", ASCENDING)
+        for r in db[COLLECTION].find().sort("created_at", DESCENDING)
     )
     # limit results to n results
     if isinstance(n_samples, (int)) and 0 < n_samples:

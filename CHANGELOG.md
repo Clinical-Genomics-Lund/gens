@@ -9,6 +9,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Fixed
  - Missing tbi files now returns 404 status code
+ - Fixed sort order of samples table
 
 ## [2.0.0]
 ### Added
