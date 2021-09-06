@@ -32,12 +32,22 @@ def missing_files(error):
         404,
     )
 
+def generic_exception_error(error):
+    """Resource not found."""
+    return (
+        render_template(
+            "generic_exception_error.html",
+            error_type=type(error).__name__,
+            message=error.args,
+        ),
+        404,
+    )
 
-def generic_error(error):
+def generic_abort_error(error):
     """Internal server error page."""
     return (
         render_template(
-            "generic_error.html",
+            "generic_abort_error.html",
             error_code=error.code,
             error_desc=error.description,
         ),

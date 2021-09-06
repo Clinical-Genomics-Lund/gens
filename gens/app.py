@@ -14,8 +14,9 @@ from flask_debugtoolbar import DebugToolbarExtension
 from .__version__ import VERSION as version
 from .blueprints import gens_bp, home_bp
 from .cache import cache
-from .db import init_database, SampleNotFoundError
-from .errors import generic_error, sample_not_found, missing_files
+from .db import SampleNotFoundError, init_database
+from .errors import (generic_abort_error, generic_exception_error,
+                     missing_files, sample_not_found)
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
 
@@ -84,9 +85,10 @@ def register_errors(app):
     """Register error pages for gens app."""
     app.register_error_handler(SampleNotFoundError, sample_not_found)
     app.register_error_handler(FileNotFoundError, missing_files)
-    app.register_error_handler(404, generic_error)
-    app.register_error_handler(416, generic_error)
-    app.register_error_handler(500, generic_error)
+    app.register_error_handler(404, generic_abort_error)
+    app.register_error_handler(416, generic_abort_error)
+    app.register_error_handler(500, generic_abort_error)
+    app.register_error_handler(Exception, generic_exception_error)
 
 
 def register_blueprints(app):
