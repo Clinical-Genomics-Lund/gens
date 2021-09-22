@@ -22,8 +22,9 @@ from gens.load import (
     build_transcripts,
     parse_annotation_entry,
     parse_annotation_file,
-    parse_chrom_sizes,
     update_height_order,
+    get_assembly_info,
+    build_chromosomes_obj,
 )
 
 LOG = logging.getLogger(__name__)
@@ -180,7 +181,6 @@ def transcripts(file, mane, genome_build):
 @click.option(
     "-f",
     "--file",
-    required=True,
     type=click.File(),
     help="Chromosome sizes in tsv format",
 )
@@ -191,20 +191,43 @@ def transcripts(file, mane, genome_build):
     required=True,
     help="Genome build",
 )
+@click.option(
+    "-t",
+    "--timeout",
+    type=int,
+    default=10,
+    help="Timeout for queries.",
+)
 @with_appcontext
-def chrom_sizes(file, genome_build):
+def chromosome_info(file, genome_build, timeout):
     """Load chromosome size information into the database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
     if len(get_indexes(db, CHROMSIZES_COLLECTION)) == 0:
         create_index(db, CHROMSIZES_COLLECTION)
-    # parse chromosome size
+    # get chromosome info from ensemble
+    # if file is given, use sizes from file else download chromsizes from ebi
+    LOG.info(f'Query ensembl for assembly info for {genome_build}')
+    assembly_info = get_assembly_info(genome_build, timeout=timeout)
+    # index chromosome on name
+    chrom_data = {
+        elem['name']: elem
+        for elem 
+        in assembly_info['top_level_region'] 
+        if elem.get('coord_system') == 'chromosome'
+    }
+    chrom_data = {chrom: chrom_data[chrom] for chrom in assembly_info['karyotype']}
     try:
-        chrom_sizes = parse_chrom_sizes(file, genome_build)
+        LOG.info('Build chromosome object')
+        chromosomes_data = build_chromosomes_obj(chrom_data, genome_build, timeout)
     except Exception as err:
         raise click.UsageError(str(err))
+    # remove old entries
+    res = db[CHROMSIZES_COLLECTION].delete_many({'genome_build': int(genome_build)})
+    LOG.info(f"Removed {res.deleted_count} old entries with genome build: {genome_build}")
     # insert collection
-    LOG.info("Add chromosome sizes to database")
-    db[CHROMSIZES_COLLECTION].insert_many(chrom_sizes)
+    LOG.info("Add chromosome info to database")
+    db[CHROMSIZES_COLLECTION].insert_many(chromosomes_data)
     register_data_update(CHROMSIZES_COLLECTION)
+    # build cytogenetic data 
     click.secho("Finished updating chromosome sizes ✔", fg="green")

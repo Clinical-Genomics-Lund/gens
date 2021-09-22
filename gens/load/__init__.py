@@ -4,5 +4,5 @@ from .annotations import (
     parse_annotation_file,
     update_height_order,
 )
-from .chrom_sizes import parse_chrom_sizes
+from .chromosomes import build_chromosomes_obj, get_assembly_info
 from .transcripts import build_transcripts
