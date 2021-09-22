@@ -1,5 +1,10 @@
+# other
 *~
 \#*
+tags
+coverage
+*.aed
+
 # python
 *.pyc
 .mypy_cache
@@ -9,6 +14,8 @@ utils/Homo_sapiens.GRCh38.99.gtf
 utils/MANE.GRCh38.v0.8.summary.txt
 utils/hg38_annotations/
 venv/
+*.egg-info
+.eggs
 
 # node
 node_modules
