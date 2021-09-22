@@ -19,6 +19,7 @@ from gens.db import (
     query_records_in_region,
     query_sample,
     query_variants,
+    get_chromosome_size,
 )
 from gens.exceptions import RegionParserException
 from gens.graph import REQUEST, get_cov, overview_chrom_dimensions, parse_region_str
@@ -397,3 +398,11 @@ def get_coverage(
         padded_end=n_end,
         status="ok",
     )
+
+def get_chromosome_info(chromosome, genome_build):
+    """Query the database for information on a chromosome."""
+    db = current_app.config["GENS_DB"]
+
+    chrom_info = get_chromosome_size(db, chromosome.upper(), genome_build)
+    del(chrom_info['_id'])
+    return jsonify(chrom_info)
