@@ -7,8 +7,12 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
  - Added seperate error page for when accessing a sample not in the database
+ - load chromosome-info stores centromere position and cyto band info
+ - Display viewed chromosome region in cytogenetic ideogram figure
 ### Changed
  - Do not warn when using default configuration
+ - Renamed cli gens load chrom-sizes to gens load chromosome-info
+ - Removed gens load chromosome-info dependancy on additional files
 ### Fixed
  - Missing tbi files now returns 404 status code
  - Fixed sort order of samples table
