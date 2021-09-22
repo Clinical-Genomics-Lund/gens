@@ -15,13 +15,6 @@ def build_chromosomes_obj(chromosome_data, genome_build, timeout):
     tot_scale = 0
     for name, data in chromosome_data.items():
         LOG.info(f'Processing chromosome {name}')
-        # get centeromer position by querying assembly annotation from EBI
-        assembly_id = next(
-            syn['name'] 
-            for syn in data.get('synonyms', []) 
-            if syn['dbname'] == 'INSDC'
-        )
-        embl_annot = get_assembly_annotation(assembly_id, timeout=timeout)
         # calculate genome scale
         chrom_len = data['length']
         if first_chrom_len is None:
@@ -31,6 +24,13 @@ def build_chromosomes_obj(chromosome_data, genome_build, timeout):
         tot_scale += round(chrom_len / first_chrom_len, 2)
         # skip for mitochondria
         if not name == 'MT':
+            # get centeromer position by querying assembly annotation from EBI
+            assembly_id = next(
+                syn['name'].rsplit('.')[0]  # strip assembly version
+                for syn in data.get('synonyms', []) 
+                if syn['dbname'] == 'INSDC'
+            )
+            embl_annot = get_assembly_annotation(assembly_id, timeout=timeout)
             start, end = parse_centromere_pos(embl_annot)
             centro_pos = {"start": start, "end": end}
             # parse cytogenic bands
