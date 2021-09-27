@@ -1,0 +1,178 @@
+<!-- GENS overview template -->
+{% import 'info.html' as info %}
+
+{% macro annotation_track(track_name) %}
+    <div id="{{ track_name }}-container" class="track-container">
+        <p class='track-xlabel'>{{ track_name | capitalize }}</p>
+        <div id='{{ track_name }}-track-container' class='info-container' title='{{ track_name }}'>
+            <canvas id='{{ track_name }}-content' class='info-canvas'></canvas>
+            <canvas id='{{ track_name }}-draw' class='info-canvas offscreen'></canvas>
+            <div id='{{ track_name }}-titles' class='info-titles'></div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% extends "layout.html" %}
+{% block title %}Visualization{% endblock title %}
+{% block css_style %}
+    {{ super() }}
+    <link rel='stylesheet' href='{{ url_for('gens.static', filename='gens.min.css') }}' type='text/css'>
+{% endblock css_style %}
+{% block scripts %}
+    <script src='{{ url_for('gens.static', filename='gens.min.js') }}'></script>
+{% endblock scripts %}
+
+{% macro loading() %}
+    <div class="loading-view">
+        <div class="loading-container">
+            <p id="loading" class="message">Loading sample</p>
+            <p id="printing" class="message" hidden>Preparing to print</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% block body %}
+{{ loading() }}
+<div id='main-container'>
+    <div class="header">
+        <div id='left-group'>
+            <a id="home-link" href="{{ url_for('home.home') }}">
+                <div id="logo-container">
+                    <span class='logo'></span>
+                </div>
+            </a>
+            <span class='version'>v{{ version }}</span>
+            <span class='date'>{{todays_date}}</span>
+        </div>
+        <div id='center-group'>
+            <span class='bold' title='Sample ID'>{{sample_name}}</span>
+            <span class='version'>(Genome build: {{genome_build}})</span>
+        </div>
+        <div id='right-group'>
+            <span class='header-icon print no-print'
+                onclick='gens.loadPrintPage(inputField.value);' title='Print'>
+            </span>
+            <span class='header-icon permalink no-print'
+                onclick='gens.copyPermalink("{{genome_build}}", inputField.value);' title='Copy permalink'>
+            </span>
+            <span class='header-icon no-print info'></span>
+            {{ info.help_popup() }}
+        </div>
+    </div>
+
+    <div id='visualization-container'>
+        <div id='interactive-container' class='track-container'>
+            <canvas id='interactive-content'></canvas>
+            <canvas id='interactive-static'></canvas>
+            <div id='interactive-marker' class='marker'></div>
+            <div id='loading-div'>LOADING...</div>
+        </div>
+
+        {{ annotation_track("variant") }}
+        {{ annotation_track("transcript") }}
+        {{ annotation_track("annotation") }}
+
+        <div id='button-container'>
+            <select id='source-list'></select>
+            <button onclick='gens.panTracks("left");' class='button--pan no-print'>
+                <span class='icon arrow-left' title='Left'></span>
+            </button>
+            <button onclick='gens.zoomIn();' class='button--zoom-in no-print'>
+                <span class='icon search-plus' title='Zoom in'></span>
+            </button>
+            <button onclick='gens.zoomOut();' class='button--zoom-out no-print'>
+                <span class='icon search-minus' title='Zoom out'></span>
+            </button>
+            <button onclick='gens.panTracks("right");' class='button--pan no-print'>
+                <span class='icon arrow-right' title='Right'></span>
+            </button>
+            <form id='region-form'>
+                <input onFocus='this.select();' id='region-field' type='text' size=20>
+                <input type='submit' class='button button--submit no-print' title='Submit range'>
+            </form>
+        </div>
+
+        <div id='overview-container'>
+            <canvas id='overview-static'></canvas>
+            <div class='marker' id='overview-marker'></div>
+        </div>
+    </div>
+</div>
+<script>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    const _apiHost = 'api/';
+
+    // Print page settings
+    let printing = false;
+    if ('{{print_page}}' == 'true') {
+        console.log('printing fools')
+        printing = true;
+        let mainContainer = document.querySelector('#main-container');
+        mainContainer.style.width = '1122px';
+        mainContainer.style.overflowY = 'hidden';
+        let loading = document.querySelector('.loading-container');
+        loading.querySelector("#loading").toggleAttribute("hidden")
+        loading.querySelector("#printing").toggleAttribute("hidden")
+    }
+
+    // Listener values
+    const inputField = document.getElementById('region-field');
+    inputField.addEventListener('error', event => {
+      inputField.classList.add('error')
+      inputField.disabled = true
+      setTimeout(() => {
+        inputField.classList.remove('error')
+        inputField.value = inputField.placeholder
+        inputField.disabled = false
+      }, 1500)
+    })
+
+    // Set first input field value for ic
+    let start = {{ start }} === 0 ? 1 : {{ start }};
+    const end = {{ end }}
+    const genomeBuild = {{ genome_build }}
+    inputField.value = '{{chrom}}' + ':' + start + '-' + {{end}};
+    inputField.placeholder = inputField.value;
+
+    // Redraw when new region is requested
+    document.getElementById('region-form').onsubmit = (e) => {
+        e.preventDefault()
+        gens.queryRegionOrGene(inputField.value, genomeBuild)
+    }
+    // Setup functions to run when the data has finished loading
+    document.addEventListener('data-loaded', () => {
+        // hide loading
+        document.querySelector('.loading-view')
+                .toggleAttribute('hidden');
+        // display grid containers
+        document.querySelector('#visualization-container')
+                .style.display = 'grid';
+        // display printing
+        if (printing == true) {
+          gens.printPage();
+        }
+    });
+
+    // Initiate variant, annotation and transcript canvases
+    // and pass flask values to tracks
+    const {ic, oc, ac, tc, vc} = gens.initCanvases({
+        sampleName: '{{ sample_name }}',
+        genomeBuild: {{ genome_build }},
+        uiColors: {{ ui_colors | tojson | safe }},
+        selectedVariant: '{{ selected_variant }}',
+        annotationFile: '{{ annotation }}',
+    })
+    // draw statis content
+    gens.setupDrawEventManager({
+     target: document.getElementById('visualization-container')
+    })
+    Promise.all([ic.drawStaticContent(), oc.drawOverviewContent()]).then( () => {
+        // setup event managers and draw the tracks
+        gens.drawTrack({chrom: '{{ chrom }}', start: start, end: {{ end }} })
+        document.dispatchEvent(new Event('data-loaded'))
+    })
+
+
+</script>
+{% endblock body %}

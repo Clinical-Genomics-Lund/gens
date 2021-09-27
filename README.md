@@ -1,9 +1,13 @@
-# GENS
+<p align="center">
+  <img src="images/gens_logo_with_text.png">
+</p>
 
+[![CodeFactor](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens/badge)](https://www.codefactor.io/repository/github/clinical-genomics-lund/gens)
+[![Coverage Status](https://coveralls.io/repos/github/Clinical-Genomics-Lund/gens/badge.svg?branch=master)](https://coveralls.io/github/Clinical-Genomics-Lund/gens?branch=master)
 
 ## About
 
-**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things use IGV! 
+**Gens** is a web-based interactive tool to visualize genomic copy number profiles from WGS data (although it could theoretically be used for any type of data). It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple Kbp, for smaller things use IGV!
 
 This screenshot shows an 8 Kbp deletion (known polymorphism). Sorry about the boring screenshot, but we cannot show identifiable data.
 <img src="images/gens_screenshot.png">
@@ -18,6 +22,14 @@ cd Gens
 virtualenv -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+You also need to build the javacript and css files and put them into the directory `gens/static/js` and `gens/static/css` respectively. To build the assets you need to have node installed on your system.
+``` bash
+# install build dependancies and build web assets.
+npm install && npm run build
+# copy built assets gens/static
+cp -r build/{js,css} gens/static/
 ```
 
 Start the application using:
@@ -37,7 +49,8 @@ A simple demo and development instance of Gens can be launched either with the c
 services:
   gens:
     volumes:
-      - /media/isilon/backup_hopper/results/wgs:/access/wgs  # /path/on/host:/path/inside/container
+      - /fs1/results/wgs/plotdata:/access/wgs/hg19  # /path/on/host:/path/inside/container
+      - /fs1/results/wgs/plot_data:/access/wgs/hg38
 ```
 
 The repository contains a Makefile with common docker-compose shortcuts for interacting with the containerized Gens app. To see the full list of shortcuts use the command `make help`.
@@ -48,6 +61,29 @@ Once the server has started you can open the app in your web browser at [http://
 
 To stop the instance use the command `docker-compose down`.
 
+## Setup Gens
+
+Once installed you can load annotation data into Gens database using the included command line interface. 
+
+``` bash
+gens load --help
+```
+
+Gens requires the chromosome sizes to be loaded into the database. The repository includes the sizes for grch37 and grch38 in the utils folder.
+
+To display transcripts these need to be loaded into the database.
+
+``` bash
+# download reference files
+curl --silent --output ./Homo_sapiens.GRCh38.101.gtf.gz ftp://ftp.ensembl.org/pub/release-101/gtf/homo_sapiens/Homo_sapiens.GRCh38.101.gtf.gz
+gzip -df Homo_sapiens.GRCh38.101.gtf.gz
+curl --silent --output ./MANE.GRCh38.v0.92.summary.txt.gz ftp://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_0.92/MANE.GRCh38.v0.92.summary.txt.gz
+gzip -df MANE.GRCh38.v0.92.summary.txt.gz
+# load files into database
+gens load transcripts --file Homo_sapiens.GRCh38.101.gtf --mane MANE.GRCh38.v0.92.summary.txt -b 38
+```
+
+Annotated regions can be loaded into the database in either `bed` or `aed` format.
 
 ## Data generation
 
@@ -95,7 +131,7 @@ Then in your pipeline. Use these commands to count and normalize the data of a s
 gatk CollectReadCounts                                              \
     -I subject.bam -L targets_preprocessed_100bp_bins.interval_list \
     --interval-merging-rule OVERLAPPING_ONLY -O subject.hdf5
-                                                                                                                                            
+
 gatk --java-options "-Xmx30g" DenoiseReadCounts                     \
     -I subject.hdf5 --count-panel-of-normals male_pon_100bp.hdf5    \
     --standardized-copy-ratios subject.standardizedCR.tsv           \
@@ -114,14 +150,13 @@ Once you have the standardized coverage file from GATK and a gVCF you can create
 utils/generate_gens_data.pl subject.standardizedCR.tsv subject.gvcf SAMPLE_ID gnomad_hg38.0.05.txt.gz
 ```
 
-The script requires that **bgzip** and **tabix** are installed in a $PATH directory. 
+The script requires that **bgzip** and **tabix** are installed in a $PATH directory.
 
 The final output should be two files named: **SAMPLE_ID.baf.bed.gz** and **SAMPLE_ID.cov.bed.gz**
 
 ## Loading data into Gens
 
-The generated data files should be put in one of the folders defined in config.py, depending on which genome build you've used. To load the data in a web browser simplt enter the URL **hostname.com:5000/SAMPLE_ID**. By default it will look for files in the hg38 folder. In order to use data from the hg19/GRCh37 folder, use **hostname.com:5000/SAMPLE_ID?hg_type=37** 
-
+Load a sample into gens with the command `gens load sample` where you need to specify the sample id, genome build and the generated data files. **Note** that there sample id/ genome build combination needs to be unique. To use Gens simply navigate to the URL **hostname.com:5000/** to view a list of all samples loaded into Gens. To directly open a specific sample go to the URL **hostname.com:5000/<sample id>**.
 
 ## Data format
 
@@ -169,6 +204,14 @@ We're using all SNPs in gnomAD with an total allele frequency > 5%, which in gno
 
 ## Limitations
 
-- Only works in web browsers supporting OffscreenCanvas ([MDN browser compatibility](https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas#Browser_compatibility)). This means that it essentially only works in Chrome (and theoretically Edge and Opera, but that has not been tested). Unfortunately, enabling the experimental OffscreenCanvas support in Firefox does not appear to work (as of version 75). The OffscreenCanvas could probably be made optional, to support all modern web browsers.
-
 - Currently no efforts have been made to make it work for non-human organisms. Chromosome names are currently hardcoded to 1-23,X,Y.
+
+## Browser compatibility
+
+This table lists the browsers and versions where Gens has been tested and deemed to be functional. The versions are by no means the minimum required version, but rather the earliest versions we've tested Gens in since starting this table.
+
+| Browser | Functional | Versions | Issues |
+|---------|------------|----------|--------|
+| Chrome  | YES        | >=87     |        |
+| Firefox | YES        | >=84     |        |
+| Edge    | YES        | >=87     |        |

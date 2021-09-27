@@ -1,15 +1,33 @@
 *~
 \#*
+# python
 *.pyc
+.mypy_cache
 deploy.sh
 utils/Homo_sapiens.GRCh37.87.gtf
 utils/Homo_sapiens.GRCh38.99.gtf
 utils/MANE.GRCh38.v0.8.summary.txt
 utils/hg38_annotations/
 venv/
-config.py
+
+# node
+node_modules
+build
+npm-debug.log
+.env
+.DS_Store
 
 # docker volumes
 volumes/*/data/*
+volumes/*/wgs/*
 !volumes/gens/data/.gitkeep
 !volumes/mongodb/data/.gitkeep
+
+# generated assets
+.webassets-cache
+gens/static/js/*
+!gens/static/js/.gitkeep
+gens/static/css/*
+!gens/static/css/.gitkeep
+*.min.css
+*.min.js

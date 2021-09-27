@@ -1,0 +1,550 @@
+openapi: 3.0.1
+info:
+  title: Gens API
+  version: "1.0"
+  description: GENS genome browser API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api
+paths:
+  /get-multiple-coverages:
+    post:
+      summary: Get BAF and LOG2 coverage information
+      description: Get BAF and LOG2 coverage information
+      operationId: gens.api.get_multiple_coverages
+      requestBody:
+        description: Coverage parameters for each chromosome for bulk query
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sample_id:
+                  description: Sample id
+                  type: string
+                baf_y_start:
+                  description: Y coordinate from where to draw BAF track.
+                  type: number
+                  default: 0
+                baf_y_end:
+                  description: Y coordinate from where to end draw BAF track.
+                  type: number
+                  default: 0
+                log2_y_start:
+                  description: Y coordinate from where to start drawing the log2 track.
+                  type: number
+                  default: 0
+                log2_y_end:
+                  description: Y coordinate from where to end the drawing of the log2 track.
+                  type: number
+                  default: 0
+                genome_build:
+                  $ref: '#/components/schemas/GenomeBuild'
+                reduce_data:
+                  description: The fraction of which to reduce the reported data points.
+                  type: number
+                  nullable: true
+                  default: null
+                chromosome_pos:
+                  description: Array containing objects describing which regions of chromsomes to get
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChromosomePosition'
+      responses:
+        '200':
+          description: BAF and LOG2 coverage for region
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    data:
+                      description: Log2 record
+                      type: array
+                      items:
+                        type: integer
+                        format: int32
+                    baf:
+                      description: BAF record
+                      type: array
+                      items:
+                        type: integer
+                        format: int32
+                    chrom:
+                      type: string
+                    x_pos:
+                      type: number
+                    y_pos:
+                      type: number
+                    start:
+                      $ref: '#/components/schemas/ScreenCoordinate'
+                    end:
+                      $ref: '#/components/schemas/ScreenCoordinate'
+                    status:
+                      type: string
+  /get-coverage:
+    get:
+      summary: Get BAF and LOG2 coverage information
+      description: Get BAF and LOG2 coverage information
+      operationId: gens.api.get_coverage
+      parameters:
+        - name: sample_id
+          in: query
+          description: Region selector
+          required: true
+          schema:
+            type: string
+        - name: region
+          in: query
+          description: Region selector
+          required: true
+          schema:
+            type: string
+            default: "1:100000-200000"
+        - name: x_pos
+          in: query
+          description: X position
+          required: true
+          schema:
+            $ref: '#/components/schemas/ScreenCoordinate'
+        - name: y_pos
+          in: query
+          description: Y position
+          required: true
+          schema:
+            $ref: '#/components/schemas/ScreenCoordinate'
+        - name: plot_height
+          in: query
+          description: Height of the plot
+          required: true
+          schema:
+            type: number
+            default: 1
+        - name: top_bottom_padding
+          in: query
+          description: Top and bottom padding
+          required: true
+          schema:
+            type: number
+            default: 1
+        - name: baf_y_start
+          in: query
+          description: Y coordinate from where to draw BAF track.
+          required: true
+          schema:
+            type: number
+            default: 0
+        - name: baf_y_end
+          in: query
+          description: Y coordinate from where to begin end draw BAF track.
+          required: true
+          schema:
+            type: number
+            default: 0
+        - name: log2_y_start
+          in: query
+          description: Y coordinate from where to draw log2 track.
+          required: true
+          schema:
+            type: number
+            default: 0
+        - name: log2_y_end
+          in: query
+          description: Y coordinate from where to begin end draw log2 track.
+          required: true
+          schema:
+            type: number
+            default: 0
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+        - name: x_ampl
+          in: query
+          description: X amplitude.
+          required: true
+          schema:
+            type: number
+            default: 1
+        - name: reduce_data
+          in: query
+          description: The fraction of which to reduce the reported data points.
+          schema:
+            type: number
+            nullable: true
+            default: null
+      responses:
+        '200':
+          description: BAF and LOG2 coverage for region
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    description: Log2 record
+                    type: array
+                    items:
+                      type: integer
+                      format: int32
+                  baf:
+                    description: BAF record
+                    type: array
+                    items:
+                      type: integer
+                      format: int32
+                  chrom:
+                    type: string
+                  x_pos:
+                    type: number
+                  y_pos:
+                    type: number
+                  start:
+                    $ref: '#/components/schemas/ScreenCoordinate'
+                  end:
+                    $ref: '#/components/schemas/ScreenCoordinate'
+                  status:
+                    type: string
+  /get-variant-data:
+    get:
+      summary: Get annotation data
+      description: Get annotation data
+      operationId: gens.api.get_variant_data
+      parameters:
+        - name: sample_id
+          in: query
+          description: Unique sample identifier
+          required: true
+          schema:
+            type: string
+        - name: variant_category
+          in: query
+          description: Type of variants to get.
+          required: true
+          schema:
+            type: string
+        - name: region
+          in: query
+          description: Region selector
+          schema:
+            type: string
+        - name: genome_build
+          in: query
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+        - name: collapsed
+          in: query
+          description: If the track is rendered as collapsed or not
+          schema:
+            $ref: '#/components/schemas/CollapsedTrack'
+      responses:
+        '200':
+          description: Annotation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  annotations:
+                    type: array
+                    items:
+                      type: string
+                  start_pos:
+                    type: number
+                  end_pos:
+                    type: number
+                  max_height_order:
+                    type: integer
+                  res:
+                    type: string
+  /get-annotation-data:
+    get:
+      summary: Get annotation data
+      description: Get annotation data
+      operationId: gens.api.get_annotation_data
+      parameters:
+        - name: region
+          in: query
+          description: Region selector
+          required: true
+          schema:
+            type: string
+        - name: source
+          in: query
+          description: data source to be fetched
+          required: true
+          schema:
+            type: string
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+        - name: collapsed
+          in: query
+          description: If the track is rendered as collapsed or not
+          schema:
+            $ref: '#/components/schemas/CollapsedTrack'
+      responses:
+        '200':
+          description: Annotation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  annotations:
+                    type: array
+                    items:
+                      type: string
+                  start_pos:
+                    type: number
+                  end_pos:
+                    type: number
+                  max_height_order:
+                    type: integer
+                  res:
+                    type: string
+  /get-transcript-data:
+    get:
+      summary: Get transcript data
+      description: Get transcript data
+      operationId: gens.api.get_transcript_data
+      parameters:
+        - name: region
+          in: query
+          description: Region selector
+          required: true
+          schema:
+            type: string
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+        - name: collapsed
+          in: query
+          description: If the track is rendered as collapsed or not
+          schema:
+            $ref: '#/components/schemas/CollapsedTrack'
+      responses:
+        '200':
+          description: Annotation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  transcripts:
+                    type: array
+                    items:
+                      type: string
+                  start_pos:
+                    type: number
+                  end_pos:
+                    type: number
+                  max_height_order:
+                    type: integer
+                  res:
+                    type: string
+  /search-annotation:
+    get:
+      summary: Search for an annotation element
+      description: Search for a region in the annotation data.
+      operationId: gens.api.search_annotation
+      parameters:
+        - name: query
+          in: query
+          description: Name of element of interest
+          required: true
+          schema:
+            type: string
+        - name: genome_build
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+        - name: annotation_type
+          in: query
+          description: Type of annotation
+          schema:
+            type: string
+            default: transcripts
+      responses:
+        '200':
+          description: Annotation positional information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chromosome:
+                    type: string
+                  start_pos:
+                    type: number
+                  end_pos:
+                    type: number
+                  genome_build:
+                    type: string
+                  status:
+                    type: number
+  /get-annotation-sources:
+    get:
+      summary: Get source information for annotations
+      description: Get source information for annotations
+      operationId: gens.api.get_annotation_sources
+      parameters:
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+      responses:
+        '200':
+          description: Successful rendering of a sample
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  sources:
+                    type: array
+                    items:
+                      type: string
+  /get-overview-chrom-dim:
+    get:
+      summary: Get dimensions of all chromosome graphs in screen coordinates.
+      description: Get dimensions of all chromosome graphs in screen coordinates for drawing the chromosomes correctly in the overview graph
+      operationId: gens.api.get_overview_chrom_dim
+      parameters:
+        - name: x_pos
+          in: query
+          description: X position
+          required: true
+          schema:
+            $ref: '#/components/schemas/ScreenCoordinate'
+        - name: y_pos
+          in: query
+          description: Y position
+          required: true
+          schema:
+            $ref: '#/components/schemas/ScreenCoordinate'
+        - name: plot_width
+          in: query
+          description: Full width of the plot
+          required: true
+          schema:
+            type: number
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+      responses:
+        '200':
+          description: Successful rendering of a sample
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  chrom_dims:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChromDim'
+components:
+  schemas:
+    ScreenCoordinate:
+      description: Screen coordinate
+      type: number
+      minimum: 1
+    GenomeBuild:
+      description: hg type
+      type: integer
+      default: 38
+    CollapsedTrack:
+      description: If track should be rendered as collapsed or not
+      type: boolean
+      default: false
+    ChromosomePosition:
+      description: Positional information of which part of the chromosome to get information of.
+      required:
+        - region
+      properties:
+        region:
+          description: Regional description string (<chrom>:<start>-<end>)
+          type: string
+        x_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        y_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        x_ampl:
+          type: number
+          default: 0
+    ChromPosition:
+      description: Positional information of which part of the chromosome to get information of.
+      required:
+        - region
+      properties:
+        region:
+          description: Regional description string (<chrom>:<start>-<end>)
+          type: string
+        x_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        y_pos:
+          $ref: '#/components/schemas/ScreenCoordinate'
+        baf_y_start:
+          type: number
+          default: 0
+        baf_y_end:
+          type: number
+          default: 0
+        log2_y_start:
+          type: number
+          default: 0
+        log2_y_end:
+          type: number
+          default: 0
+        x_ampl:
+          type: number
+          default: 0
+    ChromDim:
+      description: Chromosome dimensions
+      required:
+        - chromosome
+        - size
+        - width
+        - x_pos
+        - y_pos
+      type: object
+      properties:
+        chromosome:
+          description: Chromosome dimension
+          type: string
+        size:
+          description: Chromosome size
+          type: integer
+        width:
+          description: Normalized width
+          type: number
+        x_pos:
+          description: X position
+          type: number
+        y_pos:
+          description: Y position
+          type: number

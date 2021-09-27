@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% from "navbar.html" import navbar %}
+
+{% block title %}Gens - Version {{version}}{% endblock title %}
+
+{% block css_style %}
+    {{ super() }}
+    <link rel='stylesheet' href='{{ url_for('home.static', filename='about.min.css') }}' type='text/css'>
+{% endblock css_style %}
+
+{% block body %}
+  {{ navbar('about', version) }}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div>
+    <h1>About GENS</h1> 
+    <p>For information on how to use Gens please see the CMD Wiki.</p>
+  </div>
+  <div class="card-panel">
+    <div class="row">
+      {{ db_info_card(timestamps) }}
+      {{ config_card(config, ui_colors) }}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+
+{% macro config_card(config, ui_colors) %}
+  <div id="config" class="card">
+    <h2>Configuration</h2>
+    <p>The current configuration of Gens.</p>
+    <ul>
+      {% for name, value in config.items() %}
+        <li><strong>{{ name }}</strong>: {{ value }}</li>
+      {% endfor %}
+    </ul>
+    <div>
+      {% if ui_colors %}
+        <h3>Configured UI colors</h3>
+        {% for name, category in ui_colors.items() %}
+          <h4>{{ name }}</h4>
+          <div class="color-element-category">
+          {% for item, color in category.items() %}
+            <div class="color-group">
+              <span class="title">{{ item }}</span>
+              <div class="color-box" style="background-color: {{ color }}"></div>
+            </div>
+          <div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro db_info_card(timestamps) %}
+  <div id="loaded-db-data" class="card">
+    <h2>Database</h2>
+    <p>Information loaded into the Gens database and when they were last updated.</p>
+    <div>
+      {% for track in timestamps %}
+        {% if timestamps[track] | length > 0 and timestamps[track][0]["name"] %}
+          <h3>{{ track }}</h3>
+          <ul>
+            {% for annotation in timestamps[track] %}
+              <li>{{ annotation["name"] }} - <span class="year">{{ annotation["timestamp"] }}</span></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <h3>{{ track }} - <span class="year">{{ timestamps[track][0]["timestamp"] }}</span></h3>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% endmacro %}

@@ -1,29 +1,36 @@
 version: "3.8"
 services:
-  mongodb:
+  markus_mongodb:
+    container_name: markus_mongodb
     image: mongo
     volumes:
-      - ./volumes/mongodb/data:/data/db
+      - ./volumes/mongo_db/data:/data/db
     networks:
       - gens-net
-  gens:
+  markus_gens:
+    container_name: markus_gens
     build: .
     volumes:
-      - ./utils:/home/worker/app/utils
-      - ./gens.py:/home/worker/app/gens.py
-      - ./templates:/home/worker/app/templates
-      - ./static:/home/worker/app/static
-      - ./volumes/gens/data:/home/worker/data
-      - /media/isilon/backup_hopper/results/wgs:/access/wgs
+      - ./utils:/home/app/app/utils
+      - ./gens:/home/app/app/gens
+      - ./volumes/gens/data:/home/app/data
+      - ./volumes/gens/wgs:/home/app/access/wgs
+        #- /media/isilon/backup_hopper/results/wgs:/access/wgs
     environment:
+      - FLASK_APP=gens/app.py
       - FLASK_ENV=development
-      - MONGO_HOST=mongodb
+      - MONGODB_HOST=markus_mongodb
+      - MONGODB_PORT=27017
+      - SCOUT_DBNAME=scout
+      - GENS_DBNAME=gens
+    expose:
+      - '5000'
     ports:
       - "5003:5000"
     networks:
       - gens-net
     depends_on:
-      - mongodb
+      - markus_mongodb
     command: "flask run --host 0.0.0.0"
 networks:
   gens-net:
@@ -31,4 +38,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.22.0.0/24
+        - subnet: 172.23.0.0/24
