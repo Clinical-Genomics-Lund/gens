@@ -1,0 +1,5 @@
+[*.{html,js,py}]
+indent_style = space
+
+[*.{js,html}]
+indent_size = 2
