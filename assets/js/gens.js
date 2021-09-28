@@ -2,7 +2,7 @@
 
 import { InteractiveCanvas } from './interactive.js'
 import { OverviewCanvas } from './overview.js'
-import { CHROMOSOMES, VariantTrack, AnnotationTrack, TranscriptTrack } from './track.js'
+import { CHROMOSOMES, VariantTrack, AnnotationTrack, TranscriptTrack, cytogeneticIdeogram } from './track.js'
 export {
   setupDrawEventManager, drawTrack, previousChromosome, nextChromosome,
   panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene
@@ -24,6 +24,8 @@ export function initCanvases ({ sampleName, genomeBuild, hgFileDir, uiColors, se
   const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, genomeBuild, annotationFile)
   // Initiate and draw overview canvas
   const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
+  // Draw cytogenetic ideogram figure
+  cytogeneticIdeogram('cytogenetic-band', '1', genomeBuild, ic.x, ic.plotWidth)
   return {
     ic: ic,
     vc: vc,
