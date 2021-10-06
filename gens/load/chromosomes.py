@@ -11,17 +11,11 @@ def build_chromosomes_obj(chromosome_data, genome_build, timeout):
     """Build chromosome object containing normalized size."""
     chromosomes = []
 
-    first_chrom_len = None
-    tot_scale = 0
+    genome_size = sum(c['length'] for c in chromosome_data.values())
     for name, data in chromosome_data.items():
         LOG.info(f'Processing chromosome {name}')
         # calculate genome scale
-        chrom_len = data['length']
-        if first_chrom_len is None:
-            first_chrom_len = chrom_len
-
-        scale = round(chrom_len / first_chrom_len, 2)
-        tot_scale += round(chrom_len / first_chrom_len, 2)
+        scale = round(data['length'] / genome_size, 2)
         # skip for mitochondria
         if not name == 'MT':
             # get centeromer position by querying assembly annotation from EBI
@@ -49,7 +43,7 @@ def build_chromosomes_obj(chromosome_data, genome_build, timeout):
             "chrom": name,
             "genome_build": int(genome_build),
             "bands": cyto_bands,
-            "size": chrom_len,
+            "size": data['length'],
             "scale": scale,
             "centromere": centro_pos,
         })
