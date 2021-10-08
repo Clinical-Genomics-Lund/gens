@@ -154,6 +154,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
             chrom: this.chromosome,
             start: start,
             end: end,
+            exclude: ['cytogenetic-ideogram'],
             force: true
           })
         }
@@ -412,7 +413,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.blitInteractiveCanvas({ start: region.start, end: region.end, updateCoord: false })
     drawTrack({
       ...region,
-      exclude: [`${this.contentCanvas.parentElement.id}`],
+      exclude: [`${this.contentCanvas.parentElement.id}`, 'cytogenetic-ideogram'],
       displayLoading: false
     })
   }

@@ -9,7 +9,10 @@ function redrawEvent ({ region, exclude = [], ...kwargs }) {
 }
 
 function drawEventManager ({ target, throttleTime }) {
-  const tracks = target.querySelectorAll('.track-container')
+  const tracks = [
+    ...target.querySelectorAll('.track-container'), 
+    target.querySelector('#cytogenetic-ideogram')
+  ]
   let lastEventTime = 0
   return (event) => {
     const now = Date.now()
@@ -102,9 +105,9 @@ export async function drawTrack ({
     redrawEvent({ region, exclude, force, ...kwargs })
   )
   // make overview update its region marking
-  document.getElementById('overview-container').dispatchEvent(
-    new CustomEvent('mark-region', { detail: { region: region } })
-  )
+  const markRegionEvent = new CustomEvent('mark-region', { detail: { region: region } })
+  document.getElementById('overview-container').dispatchEvent(markRegionEvent)
+  document.getElementById('cytogenetic-ideogram').dispatchEvent(markRegionEvent)
 }
 
 // If query is a regionString draw the relevant region
@@ -157,7 +160,7 @@ export function panTracks (direction = 'left') {
     pos.start += distance
     pos.end += distance
   }
-  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end })
+  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end, exclude: ['cytogenetic-ideogram'] })
 }
 
 // Handle zoom in button click
@@ -166,7 +169,7 @@ export function zoomIn () {
   const factor = Math.floor((pos.end - pos.start) * 0.2)
   pos.start += factor
   pos.end -= factor
-  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end })
+  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end, exclude: ['cytogenetic-ideogram']})
 }
 
 // Handle zoom out button click
@@ -175,7 +178,7 @@ export function zoomOut () {
   const factor = Math.floor((pos.end - pos.start) / 3)
   pos.start = (pos.start - factor) < 1 ? 1 : pos.start - factor
   pos.end += factor
-  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end })
+  drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end, exclude: ['cytogenetic-ideogram'] })
 }
 
 // Dispatch dispatch an event to draw a given region
