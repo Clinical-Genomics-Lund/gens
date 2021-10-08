@@ -13,6 +13,7 @@ services:
     volumes:
       - ./utils:/home/app/app/utils
       - ./gens:/home/app/app/gens
+      - ./setup.py:/home/app/app/setup.py
       - ./volumes/gens/data:/home/app/data
       - ./volumes/gens/wgs:/home/app/access/wgs
         #- /media/isilon/backup_hopper/results/wgs:/access/wgs
