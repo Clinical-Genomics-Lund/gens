@@ -31,7 +31,7 @@ export class CytogeneticIdeogram {
     markerElement.classList = ["marker"]
     markerElement.style.height = `${height - 4}px`
     markerElement.style.width = 0
-    markerElement.style.top = `-${height}px`
+    markerElement.style.top = `-${height -4}px`
     markerElement.style.marginLeft = `${x}px`
     this.targetElement.appendChild(markerElement)
     // chromosomeImage
@@ -62,8 +62,18 @@ export class CytogeneticIdeogram {
       if (this.drawPaths !== null && chrom === this.drawPaths.chromosome.chromInfo.chrom) {
         const { scale, x } = this.drawPaths.chromosome.chromInfo
         const markerElement = document.getElementById('ideogram-marker')
-        markerElement.style.marginLeft = `${x + (start * scale)}px`
-        markerElement.style.width = `${(end - start + 1) * scale}px`
+        markerElement.style.marginLeft = `${Math.round(x + (start * scale))}px`
+        markerElement.style.width = `${Math.round((end - start + 1) * scale)}px`
+        // dispatch event to update title
+        const scaledStart = Math.round(start * scale)
+        const scaledEnd = Math.round(end * scale)
+        const bandsWithinMaredRegion = this.drawPaths.bands.filter((band) => {
+          return (band.start < scaledStart) && (band.end < scaledEnd)
+        })
+        document.getElementById('visualization-container').dispatchEvent( 
+          new CustomEvent('update-title', { 
+            detail: { bands: bandsWithinMaredRegion, chrom: chrom } })
+        )
       }
     })
     // register event for moving and zooming region marker
@@ -73,6 +83,7 @@ export class CytogeneticIdeogram {
         // remove old figures
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.ctx.save()
+        markerElement.style.width = 0
         // draw new figure
         cytogeneticIdeogram({
           ctx: this.ctx,
@@ -87,6 +98,17 @@ export class CytogeneticIdeogram {
       }
     })
   }
+}
+
+export function setupGenericEventManager({eventName, ownerElement, targetElementIds}) {
+  // pass directed from owner element to taget elements
+  ownerElement.addEventListener(eventName, (event) => {
+    targetElementIds.map((id) => { 
+      document.getElementById(id).dispatchEvent(
+        new CustomEvent(eventName, {detail: event.detail})
+      )
+    })
+  })
 }
 
 function createChromosomeTooltip({ bandId }) {
@@ -136,11 +158,11 @@ async function getChromosomeInfo(chromosomeName, genomeBuild) {
 }
 
 function drawChromosome({ ctx, x, y, width, height, centromere, bands, color, lineColor }) {
-  const basePosColor = '#480ca8' // dark green
+  const basePosColor = '#000' // dark green
   const bandColors = {
     gneg: '#FFFAF0',
-    acen: '#b5179e',
-    gvar: '#f72585',
+    acen: '#673888',
+    gvar: '#4C6D94',
     gpos25: lightenColor(basePosColor, 75),
     gpos50: lightenColor(basePosColor, 50),
     gpos75: lightenColor(basePosColor, 25),

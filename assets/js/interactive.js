@@ -20,6 +20,8 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.plotHeight = 180 // Height of one plot
     this.x = document.body.clientWidth / 2 - this.plotWidth / 2 // X-position for first plot
     this.y = 10 + 2 * lineMargin + this.titleMargin // Y-position for first plot
+    this.titleYPos = null
+    this.titleBbox = null
     this.canvasHeight = 2 + this.y + 2 * (this.leftRightPadding + this.plotHeight) // Height for whole canvas
 
     // setup objects for tracking the positions of draw and content canvases
@@ -64,7 +66,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     // Initialize marker div
     this.markerElem = document.getElementById('interactive-marker')
     this.markerElem.style.height = `${this.plotHeight * 2}px`
-    this.markerElem.style.top = `${this.y + 81}px`
+    this.markerElem.style.top = `${this.y + 131}px`
 
     // State values
     this.allowDraw = true
@@ -78,6 +80,17 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.scale = this.calcScale()
 
     // Setup listeners
+    // update chromosome title event
+    this.contentCanvas.addEventListener('update-title', event => {
+      console.log(`interactive got an ${event.type} event`)
+      const len = event.detail.bands.length
+      if (len > 0) { 
+        const bandIds = len === 1 ? event.detail.bands[0].id : `${event.detail.bands[0].id}-${event.detail.bands[len-1].id}`
+        this.drawCanvas.getContext('2d').clearRect(this.titleBbox.x, this.titleBbox.y, this.titleBbox.width, this.titleBbox.height)
+        this.titleBbox = this.drawTitle(`Chromosome ${event.detail.chrom}; ${bandIds}`)
+        this.blitChromName({textPosition: this.titleBbox})
+      }
+    })
     // redraw events
     this.contentCanvas.parentElement.addEventListener('draw', event => {
       console.log('interactive got draw event')
@@ -155,12 +168,13 @@ export class InteractiveCanvas extends BaseScatterTrack {
             start: start,
             end: end,
             exclude: ['cytogenetic-ideogram'],
-            force: true
+            force: true,
+            drawTitle: false
           })
         }
       } else if (this.drag) {
         // reload window when stop draging
-        drawTrack({ ...readInputField(), force: true, displayLoading: false })
+        drawTrack({ ...readInputField(), force: true, displayLoading: false, drawTitle: false })
       }
       // reset dragging behaviour
       this.markingRegion = false
@@ -205,7 +219,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
   }
 
   // Draw values for interactive canvas
-  async drawInteractiveContent ({ chrom, start, end, displayLoading = true }) {
+  async drawInteractiveContent ({ chrom, start, end, displayLoading = true, drawTitle = true }) {
     console.log('drawing interactive canvas', chrom, start, end)
     if (displayLoading) {
       this.loadingDiv.style.display = 'block'
@@ -293,20 +307,18 @@ export class InteractiveCanvas extends BaseScatterTrack {
         ctx, data: result.data, color: this.log2.color
       })
 
-      // Draw chromosome title on the content canvas as a blitting
-      // work around
-      const textYPos = result.y_pos - this.titleMargin
-      const textBbox = drawText({
-        ctx,
-        x: document.body.clientWidth / 2,
-        y: textYPos,
-        text: 'Chromosome ' + result.chrom,
-        fontProp: 'bold 15',
-        align: 'center'
-      })
       // Transfer image to visible canvas
       this.blitInteractiveCanvas({ start, end })
-      this.blitChromName(textBbox)
+      // Draw chromosome title on the content canvas as a blitting
+      // work around
+      this.titleYPos = result.y_pos - this.titleMargin
+      if ( drawTitle ) {
+        this.titleBbox !== null && this.blitChromName(
+          {textPosition: this.titleBbox, clearOnly: true
+        })
+        this.titleBbox = this.drawTitle(`Chromosome ${result.chrom}`)
+        this.blitChromName({textPosition: this.titleBbox})
+      }
 
       return result
     }).then((result) => {
@@ -322,6 +334,18 @@ export class InteractiveCanvas extends BaseScatterTrack {
       this.inputField.dispatchEvent(
         new CustomEvent('error', { detail: { error: error } })
       )
+    })
+  }
+
+  drawTitle(title) {
+    const ctx = this.drawCanvas.getContext('2d')
+    return drawText({
+      ctx,
+      x: Math.round(document.body.clientWidth / 2),
+      y: this.titleYPos,
+      text: title,
+      fontProp: 'bold 15',
+      align: 'center'
     })
   }
 
@@ -341,7 +365,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.markerElem.style.width = '0px'
   }
 
-  blitChromName (textPosition) {
+  blitChromName ({textPosition, clearOnly=false}) {
     const ctx = this.contentCanvas.getContext('2d')
     const padding = 20
     //    clear area on contentCanvas
@@ -352,7 +376,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
       textPosition.height
     )
     // transfer from draw canvas
-    ctx.drawImage(
+    !clearOnly && ctx.drawImage(
       this.drawCanvas, // source
       textPosition.x - padding / 2, // sX
       textPosition.y, // sY
