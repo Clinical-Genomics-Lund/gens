@@ -62,6 +62,6 @@ COPY --from=node-builder /usr/src/app/build/css/home.min.css /usr/src/app/build/
 COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/static/
 
 # make mountpoints and change ownership of app
-RUN mkdir -p /media /access /fs1 && chown -R app:app /home/app/app /media /access /fs1
+RUN mkdir -p /access /fs1/results && chown -R app:app /home/app/app /access /fs1
 # Change the user to app
 USER app
