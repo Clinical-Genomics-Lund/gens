@@ -308,12 +308,8 @@ def get_multiple_coverages():
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
             return abort(416)
-        except RegionParserException as err:
-            LOG.error(f"{type(err).__name__} - {err}")
-            return abort(404)
         except Exception as err:
             LOG.error(f"{type(err).__name__} - {err}")
-            raise err
             return abort(500)
 
         results[chromosome] = {
@@ -383,7 +379,6 @@ def get_coverage(
         return abort(416)
     except Exception as err:
         LOG.error(f"{type(err).__name__} - {err}")
-        raise
         return abort(500)
 
     return jsonify(

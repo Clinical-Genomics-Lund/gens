@@ -65,10 +65,10 @@ def get_assembly_info(genome_build, specie: str='homo_sapiens', bands: bool=True
     resp.raise_for_status()
     return resp.json()
 
-def get_assembly_annotation(insdc_id, format='embl', timeout=2):
+def get_assembly_annotation(insdc_id, data_format='embl', timeout=2):
     """Get assembly for id from EBI using INSDC id."""
     LOG.debug(f"Get assembly annotation for {insdc_id}")
-    resp = requests.get(f'https://www.ebi.ac.uk/ena/browser/api/{format}/{insdc_id}', timeout=timeout)
+    resp = requests.get(f'https://www.ebi.ac.uk/ena/browser/api/{data_format}/{insdc_id}', timeout=timeout)
     # crash if not successful
     resp.raise_for_status()
     return resp.text
