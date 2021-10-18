@@ -7,25 +7,12 @@ from flask.cli import with_appcontext
 from pymongo import ASCENDING
 
 from gens.constants import GENOME_BUILDS
-from gens.db import (
-    ANNOTATIONS_COLLECTION,
-    CHROMSIZES_COLLECTION,
-    SAMPLES_COLLECTION,
-    TRANSCRIPTS_COLLECTION,
-    create_index,
-    get_indexes,
-    register_data_update,
-    store_sample,
-)
-from gens.load import (
-    ParserError,
-    build_transcripts,
-    parse_annotation_entry,
-    parse_annotation_file,
-    update_height_order,
-    get_assembly_info,
-    build_chromosomes_obj,
-)
+from gens.db import (ANNOTATIONS_COLLECTION, CHROMSIZES_COLLECTION,
+                     SAMPLES_COLLECTION, TRANSCRIPTS_COLLECTION, create_index,
+                     get_indexes, register_data_update, store_sample)
+from gens.load import (ParserError, build_chromosomes_obj, build_transcripts,
+                       get_assembly_info, parse_annotation_entry,
+                       parse_annotation_file, update_height_order)
 
 LOG = logging.getLogger(__name__)
 valid_genome_builds = [str(gb) for gb in GENOME_BUILDS]
@@ -207,27 +194,28 @@ def chromosome_info(file, genome_build, timeout):
         create_index(db, CHROMSIZES_COLLECTION)
     # get chromosome info from ensemble
     # if file is given, use sizes from file else download chromsizes from ebi
-    LOG.info(f'Query ensembl for assembly info for {genome_build}')
+    LOG.info(f"Query ensembl for assembly info for {genome_build}")
     assembly_info = get_assembly_info(genome_build, timeout=timeout)
     # index chromosome on name
     chrom_data = {
-        elem['name']: elem
-        for elem 
-        in assembly_info['top_level_region'] 
-        if elem.get('coord_system') == 'chromosome'
+        elem["name"]: elem
+        for elem in assembly_info["top_level_region"]
+        if elem.get("coord_system") == "chromosome"
     }
-    chrom_data = {chrom: chrom_data[chrom] for chrom in assembly_info['karyotype']}
+    chrom_data = {chrom: chrom_data[chrom] for chrom in assembly_info["karyotype"]}
     try:
-        LOG.info('Build chromosome object')
+        LOG.info("Build chromosome object")
         chromosomes_data = build_chromosomes_obj(chrom_data, genome_build, timeout)
     except Exception as err:
         raise click.UsageError(str(err))
     # remove old entries
-    res = db[CHROMSIZES_COLLECTION].delete_many({'genome_build': int(genome_build)})
-    LOG.info(f"Removed {res.deleted_count} old entries with genome build: {genome_build}")
+    res = db[CHROMSIZES_COLLECTION].delete_many({"genome_build": int(genome_build)})
+    LOG.info(
+        f"Removed {res.deleted_count} old entries with genome build: {genome_build}"
+    )
     # insert collection
     LOG.info("Add chromosome info to database")
     db[CHROMSIZES_COLLECTION].insert_many(chromosomes_data)
     register_data_update(CHROMSIZES_COLLECTION)
-    # build cytogenetic data 
+    # build cytogenetic data
     click.secho("Finished updating chromosome sizes ✔", fg="green")

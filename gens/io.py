@@ -29,7 +29,7 @@ def _get_filepath(*args, check=True):
 
 def get_tabix_files(coverage_file, baf_file):
     """Get tabix files for sample."""
-    _get_filepath(coverage_file + '.tbi') and _get_filepath(baf_file + '.tbi')
+    _get_filepath(coverage_file + ".tbi") and _get_filepath(baf_file + ".tbi")
     cov_file = pysam.TabixFile(_get_filepath(coverage_file))
     baf_file = pysam.TabixFile(_get_filepath(baf_file))
     return cov_file, baf_file
