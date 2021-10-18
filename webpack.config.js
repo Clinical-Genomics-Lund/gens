@@ -8,8 +8,21 @@ const config = {
     library: 'gens',
   },
   resolve: {
-    extensions: ['.js','.jsx']
+    extensions: ['.js','.jsx'],
   },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      }
+    ],
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      process: 'process/browser'
+    })
+  ],
   mode: 'production',
 };
 module.exports = config;

@@ -1,11 +1,12 @@
 """Defenition of custom error pages"""
 
-import os
 import logging
+import os
 
 from flask import render_template
 
 LOG = logging.getLogger(__name__)
+
 
 def sample_not_found(error):
     """Resource not found."""
@@ -32,6 +33,7 @@ def missing_files(error):
         404,
     )
 
+
 def generic_exception_error(error):
     """Resource not found."""
     return (
@@ -42,6 +44,7 @@ def generic_exception_error(error):
         ),
         404,
     )
+
 
 def generic_abort_error(error):
     """Internal server error page."""

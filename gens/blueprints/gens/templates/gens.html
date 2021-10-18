@@ -62,6 +62,7 @@
     </div>
 
     <div id='visualization-container'>
+        <div id="cytogenetic-ideogram"></div>
         <div id='interactive-container' class='track-container'>
             <canvas id='interactive-content'></canvas>
             <canvas id='interactive-static'></canvas>
@@ -106,7 +107,6 @@
     // Print page settings
     let printing = false;
     if ('{{print_page}}' == 'true') {
-        console.log('printing fools')
         printing = true;
         let mainContainer = document.querySelector('#main-container');
         mainContainer.style.width = '1122px';
@@ -164,13 +164,20 @@
         annotationFile: '{{ annotation }}',
     })
     // draw statis content
+    const visualizationContainer = document.getElementById('visualization-container')
     gens.setupDrawEventManager({
-     target: document.getElementById('visualization-container')
+     target: visualizationContainer 
     })
+    gens.setupGenericEventManager({
+      eventName: 'update-title',
+      ownerElement: visualizationContainer,
+      targetElementIds: ['interactive-content'],
+    })
+
     Promise.all([ic.drawStaticContent(), oc.drawOverviewContent()]).then( () => {
         // setup event managers and draw the tracks
         gens.drawTrack({chrom: '{{ chrom }}', start: start, end: {{ end }} })
-        document.dispatchEvent(new Event('data-loaded'))
+        document.dispatchEvent(new CustomEvent('data-loaded'))
     })
 
 

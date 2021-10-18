@@ -65,7 +65,7 @@ export function drawLine ({ ctx, x, y, x2, y2, lineWidth = 1, color = 'black' })
 // Draws a box from top left corner with a top and bottom margin
 export function drawRect ({
   ctx, x, y, width, height, lineWidth, color = null,
-  fillColor = null, open = false
+  fillColor = null, open = false, debug = false
 }) {
   x = Math.floor(x) + 0.5
   y = Math.floor(y) + 0.5
@@ -74,22 +74,26 @@ export function drawRect ({
   if (color !== null) ctx.strokeStyle = color
   ctx.lineWidth = lineWidth
 
+  // define path to draw
+  const path = new Path2D()
+
   // Draw box without left part, to allow stacking boxes
   // horizontally without getting double lines between them.
   if (open === true) {
-    ctx.beginPath()
-    ctx.moveTo(x, y)
-    ctx.lineTo(x + width, y)
-    ctx.lineTo(x + width, y + height)
-    ctx.lineTo(x, y + height)
-    ctx.stroke()
+    path.moveTo(x, y)
+    path.lineTo(x + width, y)
+    path.lineTo(x + width, y + height)
+    path.lineTo(x, y + height)
   // Draw normal 4-sided box
-  } else if (fillColor !== null) {
-    ctx.fillStyle = fillColor
-    ctx.fillRect(x, y, width, height)
   } else {
-    ctx.strokeRect(x, y, width, height)
+    path.rect(x, y, width, height)
   }
+  ctx.stroke(path)
+  if (fillColor !== null) { 
+    ctx.fillStyle = fillColor
+    ctx.fill(path)
+  }
+  return path
 }
 
 // Draw an arrow in desired direction

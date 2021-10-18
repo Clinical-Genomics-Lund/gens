@@ -467,12 +467,44 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ChromDim'
+  /get-chromosome-info:
+    get:
+      summary: Get information on a given chromosome
+      description: Get information on a given chromosome including centeromere pos and bands
+      operationId: gens.api.get_chromosome_info
+      parameters:
+        - name: chromosome
+          in: query
+          description: Chromosome name
+          required: true
+          schema:
+            $ref: '#/components/schemas/ChromosomeName'
+        - name: genome_build
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/GenomeBuild'
+      responses:
+        '200':
+          description: Successful rendering of a sample
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  chrom_info:
+                    type: array
 components:
   schemas:
     ScreenCoordinate:
       description: Screen coordinate
       type: number
       minimum: 1
+    ChromosomeName:
+      description: Chromosome
+      type: string
     GenomeBuild:
       description: hg type
       type: integer

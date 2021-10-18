@@ -278,21 +278,33 @@ html, body {
     }
 }
 
-#interactive-container {
+#chromosome-title {
     display: grid;
     grid-row: 1;
+    grid-column: 1;
+}
+
+#cytogenetic-ideogram {
+    display: grid;
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#interactive-container {
+    display: grid;
+    grid-row: 3;
     grid-column: 1;
 
     #interactive-static {
         z-index: 1;
         pointer-events: none;
-        grid-row: 2;
+        grid-row: 4;
         grid-column: 1;
     }
 
     #interactive-content {
         z-index: 1;
-        grid-row: 2;
+        grid-row: 4;
         grid-column: 1;
     }
 
@@ -327,6 +339,7 @@ html, body {
 .marker {
     background-color: $marker-color;
     pointer-events:none;
+    position: relative;
 }
 
 .info-container[data-state=nodata] {
@@ -480,7 +493,7 @@ html, body {
         flex: 1;
     }
     .spinner {
-        border-top: 3px solid rgba($black, 0.5);
+        border-top: 3px solid rgba($menubar-bg-color, 0.5);
         border-right: 3px solid transparent;
         border-radius: 50%;
         width: 30px;
