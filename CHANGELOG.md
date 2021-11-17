@@ -6,6 +6,11 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+### Changed
+### Fixed
+
+## [2.1.0]
+### Added
  - Added seperate error page for when accessing a sample not in the database
  - load chromosome-info stores centromere position and cyto band info
  - Display viewed chromosome region in cytogenetic ideogram figure
