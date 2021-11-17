@@ -139,7 +139,8 @@ export class VariantTrack extends BaseAnnotationTrack {
             { title: 'Ref', value: `${variant.reference}` },
             { title: 'Alt', value: `${variant.alternative}` },
             { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
-            { title: 'Quality', value: `${variant.quality}` }
+            { title: 'Quality', value: `${variant.quality}` },
+            { title: 'Rank score', value: `${variant.rank_score}` }
           ]
         })
         this.trackContainer.appendChild(tooltip)

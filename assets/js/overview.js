@@ -22,6 +22,23 @@ export class OverviewCanvas extends BaseScatterTrack {
     this.topBottomPadding = 8 // Padding for top and bottom in graph
     this.leftmostPoint = this.x + 10 // Draw y-values for graph left of this point
 
+    // Setup canvas for repeated patterns
+    this.patternCanvas = document.createElement('canvas')
+    const size = 20
+    this.patternCanvas.width = size
+    this.patternCanvas.height = size
+    const patternCtx = this.patternCanvas.getContext('2d')
+    patternCtx.fillStyle = "#E6E9ED"
+    patternCtx.strokeStyle = "#4C6D94"
+    patternCtx.lineWidth = Math.round(size / 10)
+    patternCtx.lineCap = 'square'
+    patternCtx.fillRect(0, 0, size, size)
+    patternCtx.moveTo(size / 2, 0)
+    patternCtx.lineTo(size, size / 2)
+    patternCtx.moveTo(0, size / 2)
+    patternCtx.lineTo(size / 2, size)
+    patternCtx.stroke()
+
     // BAF values
     this.baf = {
       yStart: 1.0, // Start value for y axis
@@ -39,6 +56,7 @@ export class OverviewCanvas extends BaseScatterTrack {
     }
 
     // Canvas variables
+    this.disabledChroms = []
     this.width = document.body.clientWidth // Canvas width
     this.height = this.y + 2 * this.plotHeight + 2 * this.topBottomPadding // Canvas height
     this.drawCanvas.width = parseInt(this.width)
@@ -58,14 +76,16 @@ export class OverviewCanvas extends BaseScatterTrack {
       this.staticCanvas.addEventListener('mousedown', event => {
         event.stopPropagation()
         const selectedChrom = this.pixelPosToGenomicLoc(event.x)
-        // Dont update if chrom previously selected
-        // Move interactive view to selected region
-        const chrom = selectedChrom.chrom
-        const start = 1
-        const end = this.dims[chrom].size - 1
-        // Mark region
-        this.markRegion({ chrom, start, end })
-        drawTrack({ chrom, start, end }) // redraw canvas
+        if (!this.disabledChroms.includes(selectedChrom.chrom)) {
+          // Dont update if chrom previously selected
+          // Move interactive view to selected region
+          const chrom = selectedChrom.chrom
+          const start = 1
+          const end = this.dims[chrom].size - 1
+          // Mark region
+          this.markRegion({ chrom, start, end })
+          drawTrack({ chrom, start, end }) // redraw canvas
+        }
       })
       this.staticCanvas.parentElement.addEventListener('mark-region', event => {
         this.markRegion({ ...event.detail.region })
@@ -182,16 +202,23 @@ export class OverviewCanvas extends BaseScatterTrack {
       height: this.plotHeight
     })
     // Plot scatter data
-    drawPoints({
-      ctx,
-      data: chromCovData.baf,
-      color: this.baf.color
-    })
-    drawPoints({
-      ctx,
-      data: chromCovData.data,
-      color: this.log2.color
-    })
+    if ( chromCovData.baf.length > 0 || chromCovData.data.length > 0 ) {
+      drawPoints({
+        ctx,
+        data: chromCovData.baf,
+        color: this.baf.color
+      })
+      drawPoints({
+        ctx,
+        data: chromCovData.data,
+        color: this.log2.color
+      })
+    } else {
+      const pattern = ctx.createPattern(this.patternCanvas, 'repeat')
+      ctx.fillStyle = pattern
+      ctx.fillRect(chromCovData.x_pos, chromCovData.y_pos + 1, width - 2, (this.plotHeight * 2) - 2)
+      this.disabledChroms.push(chrom)
+    }
   }
 
   async drawOverviewContent (printing) {

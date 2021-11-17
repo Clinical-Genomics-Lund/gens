@@ -308,5 +308,5 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         data_type=data_type,
     )
     if not new_start_pos and not log2_records and not baf_records:
-        raise NoRecordsException("No records")
+        LOG.warning("No records for region")
     return region, new_start_pos, new_end_pos, log2_records, baf_records

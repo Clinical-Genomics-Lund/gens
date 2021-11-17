@@ -11,6 +11,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
  - Display viewed chromosome region in cytogenetic ideogram figure
 ### Changed
 ### Fixed
+ - Can now display samples that doesnt have data on all chromosomes
 
 ## [2.0.1]
 ### Added
