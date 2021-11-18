@@ -20,7 +20,7 @@ tests
 venv/
 
 # node
-node_modules
+node_modules/
 build
 npm-debug.log
 .env
@@ -31,10 +31,11 @@ Dockerfile
 docker-compose.yml
 
 # volumes
-volumes
+volumes/
 
 # other
 *.aed
+*.gz
 tags
 utils/Homo_sapiens.GRCh37.87.gtf
 utils/Homo_sapiens.GRCh38.99.gtf
