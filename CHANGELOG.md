@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 ### Fixed
+ - Fixed annotation tracks being hidden behind other elements
 
 ## [2.1.0]
 ### Added

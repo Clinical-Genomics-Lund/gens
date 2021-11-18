@@ -219,7 +219,7 @@ html, body {
 
 #button-container {
     text-align: center;
-    grid-row: 5;
+    grid-row: 7;
     grid-column: 1;
     margin-top: 5px;
 
@@ -368,16 +368,16 @@ html, body {
 }
 
 #variant-container {
-    grid-row: 2;
+    grid-row: 4;
 }
 
 #transcript-container {
-    grid-row: 3;
+    grid-row: 5;
 }
 
 #annotation-container {
     padding-top: 10px;
-    grid-row: 4;
+    grid-row: 6;
 }
 
 .track-xlabel {
@@ -523,7 +523,7 @@ html, body {
 
 #overview-container {
     display: grid;
-    grid-row: 6;
+    grid-row: 8;
     grid-column: 1;
 
     #overview-static {
