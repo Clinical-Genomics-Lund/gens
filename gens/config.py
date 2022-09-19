@@ -1,7 +1,7 @@
 """Gens default configuration."""
 # Database connection
-MONGODB_HOST = "mongodb"
-MONGODB_PORT = 27017
+MONGODB_GENS_URI = "mongodb"
+MONGODB_SCOUT_URI = "mongodb"
 GENS_DBNAME = "gens"
 SCOUT_DBNAME = "scout"
 
