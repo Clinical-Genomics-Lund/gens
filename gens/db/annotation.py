@@ -22,7 +22,7 @@ def register_data_update(track_type, name=None):
     db = app.config["GENS_DB"][UPDATES]
     LOG.debug(f"Creating timestamp for {track_type}")
     track = {"track": track_type, "name": name}
-    db.remove(track)  # remove old track
+    db.delete_one(track)  # remove old track
     db.insert_one({**track, "timestamp": datetime.datetime.now()})
 
 
