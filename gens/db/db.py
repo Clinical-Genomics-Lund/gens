@@ -24,7 +24,7 @@ def init_database_connection() -> None:
     # verify that database was properly configured
     LOG.info("Initialize db connection")
     variables = {}
-    for var_name in ["MONGODB_HOST", "MONGODB_PORT", "SCOUT_DBNAME", "GENS_DBNAME"]:
+    for var_name in ["MONGODB_SCOUT_URI", "MONGODB_GENS_URI", "SCOUT_DBNAME", "GENS_DBNAME"]:
         if not any([var_name in os.environ, var_name in app.config]):
             raise ConfigurationException(
                 f"Variable {var_name} not defined in either config or env variable"
