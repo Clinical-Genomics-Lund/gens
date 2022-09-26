@@ -22,7 +22,11 @@ class ParserError(Exception):
 def parse_bed(file, genome_build):
     """Parse bed file."""
     with open(file) as bed:
-        return csv.DictReader(bed, delimiter="\t")
+        bed_reader = csv.DictReader(bed, delimiter="\t")
+
+        # Load in annotations
+        for line in bed_reader:
+            yield line
 
 
 def parse_aed(file):
