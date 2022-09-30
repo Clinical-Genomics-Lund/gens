@@ -9,6 +9,13 @@ from gens.constants import CHROMOSOMES
 from gens.db import ANNOTATIONS_COLLECTION
 
 LOG = logging.getLogger(__name__)
+FIELD_TRANSLATIONS = {
+    "chromosome": "sequence",
+    "position": "start",
+    "stop": "end",
+    "chromstart": "start",
+    "chromend": "end"
+}
 CORE_FIELDS = ("sequence", "start", "end", "name", "strand", "color", "score")
 AED_ENTRY = re.compile(r"[.+:]?(\w+)\(\w+:(\w+)\)", re.I)
 
@@ -52,6 +59,10 @@ def parse_annotation_entry(entry, genome_build, annotation_name):
     annotation = {}
     # parse entry and format the values
     for name, value in entry.items():
+        name = name.strip("#")
+        name = name.lower()
+        if name in FIELD_TRANSLATIONS:
+            name = FIELD_TRANSLATIONS[name]
         if name in CORE_FIELDS:
             name = "chrom" if name == "sequence" else name  # for compatibility
             try:
