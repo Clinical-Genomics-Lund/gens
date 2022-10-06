@@ -76,11 +76,11 @@ CMD gunicorn \
     --bind=$GUNICORN_BIND  \
     --threads=$GUNICORN_THREADS \
     --timeout=$GUNICORN_TIMEOUT \
-    --chdir /home/app/app/gens/ \
+    --chdir /home/app/app/ \
     --proxy-protocol \
     --forwarded-allow-ips="10.0.2.100,127.0.0.1" \
     --log-syslog \
     --access-logfile - \
     --error-logfile - \
     --log-level="debug" \
-    gens.server.auto:app
+    gens.wsgi:app
