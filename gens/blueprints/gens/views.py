@@ -74,6 +74,7 @@ def display_case(sample_name):
         start=start_pos,
         end=end_pos,
         sample_name=sample_name,
+        case_name=sample.case_name,
         genome_build=genome_build,
         print_page=print_page,
         annotation=annotation,

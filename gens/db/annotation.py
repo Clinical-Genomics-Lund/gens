@@ -49,11 +49,12 @@ def get_timestamps(track_type="all"):
     return results
 
 
-def query_variants(case_name: str, variant_category: VariantCategory, **kwargs):
+def query_variants(case_name: str, sample_name: str, variant_category: VariantCategory, **kwargs):
     """Search the scout database for variants associated with a case.
 
-    case_id :: name for a case (not database uid)
-    varaint_category :: categories
+    case_name :: display name for a case
+    sample_name :: display name for a sample
+    variant_category :: categories
 
     Kwargs are optional search parameters that are passed to db.find().
     """
@@ -66,6 +67,7 @@ def query_variants(case_name: str, variant_category: VariantCategory, **kwargs):
     query = {
         "case_id": response["_id"],
         "category": variant_category.value,
+        "samples.display_name": sample_name,
     }
     # add chromosome
     if "chromosome" in kwargs:

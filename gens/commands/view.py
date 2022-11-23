@@ -35,6 +35,7 @@ def samples(summary):
     else:  # show all samples
         columns = (
             "Sample Id",
+            "Case name",
             "Genome build",
             "Created at",
             "baf file",
@@ -44,6 +45,7 @@ def samples(summary):
         sample_tbl = (
             (
                 s.sample_id,
+                s.case_name,
                 str(s.genome_build),
                 s.created_at.isoformat(),
                 s.baf_file,
