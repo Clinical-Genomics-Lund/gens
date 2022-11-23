@@ -47,13 +47,19 @@ def load():
     help="File or directory of annotation files to load into the database",
 )
 @click.option(
+    "-n",
+    "--case-name",
+    required=True,
+    help="Display name of case",
+)
+@click.option(
     "-j",
     "--overview-json",
     type=click.Path(exists=True),
     help="Json file that contains preprocessed overview coverage",
 )
 @with_appcontext
-def sample(sample_id, genome_build, baf, coverage, overview_json):
+def sample(sample_id, genome_build, baf, coverage, case_name, overview_json):
     """Load a sample into Gens database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
@@ -63,6 +69,7 @@ def sample(sample_id, genome_build, baf, coverage, overview_json):
     store_sample(
         db,
         sample_id=sample_id,
+        case_name=case_name,
         genome_build=genome_build,
         baf=baf,
         coverage=coverage,

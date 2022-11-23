@@ -216,6 +216,12 @@ paths:
       description: Get annotation data
       operationId: gens.api.get_variant_data
       parameters:
+        - name: case_name
+          in: query
+          description: Case display name
+          required: true
+          schema:
+            type: string
         - name: sample_id
           in: query
           description: Unique sample identifier

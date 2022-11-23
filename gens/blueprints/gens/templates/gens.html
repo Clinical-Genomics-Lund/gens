@@ -158,6 +158,7 @@
     // and pass flask values to tracks
     const {ic, oc, ac, tc, vc} = gens.initCanvases({
         sampleName: '{{ sample_name }}',
+        caseName: '{{ case_name }}',
         genomeBuild: {{ genome_build }},
         uiColors: {{ ui_colors | tojson | safe }},
         selectedVariant: '{{ selected_variant }}',

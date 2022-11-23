@@ -204,7 +204,7 @@ def search_annotation(query: str, genome_build, annotation_type):
     return jsonify({**data, "status": response_code})
 
 
-def get_variant_data(sample_id, variant_category, **optional_kwargs):
+def get_variant_data(case_name, sample_id, variant_category, **optional_kwargs):
     """Search Scout database for variants associated with a case and return info in JSON format."""
     default_height_order = 0
     base_return = {"status": "ok"}
@@ -231,6 +231,7 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
     try:
         variants = list(
             query_variants(
+                case_name,
                 sample_id,
                 cattr.structure(variant_category, VariantCategory),
                 **region_params,
