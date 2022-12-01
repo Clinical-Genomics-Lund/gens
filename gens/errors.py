@@ -21,19 +21,6 @@ def sample_not_found(error):
     )
 
 
-def missing_files(error):
-    """Resource not found."""
-    file_name = os.path.basename(str(error))
-
-    return (
-        render_template(
-            "missing_files.html",
-            missing_file=file_name,
-        ),
-        404,
-    )
-
-
 def generic_exception_error(error):
     """Resource not found."""
     return (
