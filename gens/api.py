@@ -237,7 +237,7 @@ def get_variant_data(sample_id, variant_category, **optional_kwargs):
             )
         )
     except ValueError as err:
-        abort(404, str(err))
+        return (jsonify({"detail": str(err)}), 404)
     # return all detected variants
     return (
         jsonify(
@@ -302,10 +302,10 @@ def get_multiple_coverages():
                 )
         except RegionParserException as err:
             LOG.error(f"{type(err).__name__} - {err}")
-            return abort(416)
+            return (jsonify({"detail": str(err)}), 416)
         except Exception as err:
             LOG.error(f"{type(err).__name__} - {err}")
-            return abort(500)
+            return (jsonify({"detail": str(err)}), 500)
 
         results[chromosome] = {
             "data": log2_rec,
@@ -343,8 +343,9 @@ def get_coverage(
     """
     # Validate input
     if sample_id == "":
-        LOG.error(f"Invalid case_id: {sample_id}")
-        return abort(416)
+        msg = f"Invalid case_id: {sample_id}"
+        LOG.error(msg)
+        return (jsonify({"detail": msg}), 416)
 
     # Set some input values
     req = REQUEST(
@@ -371,10 +372,8 @@ def get_coverage(
             )
     except RegionParserException as err:
         LOG.error(f"{type(err).__name__} - {err}")
-        return abort(416)
     except Exception as err:
         LOG.error(f"{type(err).__name__} - {err}")
-        return abort(500)
 
     return jsonify(
         data=log2_rec,
