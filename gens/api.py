@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import re
-from datetime import date
 from typing import List
 
 import attr
@@ -105,8 +104,9 @@ def get_annotation_data(region, source, genome_build, collapsed):
     to screen coordinates
     """
     if region == "" or source == "":
-        LOG.error("Could not find annotation data in DB")
-        return abort(404)
+        msg = "Could not find annotation data in DB"
+        LOG.error(msg)
+        retrun (jsonify({"detail": msg}), 404)
 
     genome_build = request.args.get("genome_build", "38")
     res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
@@ -146,8 +146,9 @@ def get_transcript_data(region, genome_build, collapsed):
     res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
 
     if region == "":
-        LOG.error("Could not find transcript in database")
-        return abort(404)
+        msg = "Could not find transcript in database"
+        LOG.error(msg)
+        retrun (jsonify({"detail": msg}), 404)
 
     # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     transcripts = list(
