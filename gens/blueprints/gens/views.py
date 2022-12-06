@@ -29,6 +29,8 @@ def display_case(sample_name):
     Renders the Gens template
     Expects sample_id as input to be able to load the sample data
     """
+    case_name = request.args.get("case_name", None)
+    
     # get genome build and region
     region = request.args.get("region", None)
     print_page = request.args.get("print_page", "false")
@@ -46,7 +48,7 @@ def display_case(sample_name):
 
     # verify that sample has been loaded
     db = current_app.config["GENS_DB"]
-    sample = query_sample(db, sample_name, genome_build)
+    sample = query_sample(db, sample_name, case_name, genome_build)
 
     # Check that BAF and Log2 file exists
     try:
@@ -74,7 +76,7 @@ def display_case(sample_name):
         start=start_pos,
         end=end_pos,
         sample_name=sample_name,
-        case_name=sample.case_name,
+        case_name=case_name,
         genome_build=genome_build,
         print_page=print_page,
         annotation=annotation,

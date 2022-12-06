@@ -22,7 +22,10 @@ paths:
               type: object
               properties:
                 sample_id:
-                  description: Sample id
+                  description: Sample/individual displayname
+                  type: string
+                case_name:
+                  description: Case display name
                   type: string
                 baf_y_start:
                   description: Y coordinate from where to draw BAF track.
@@ -94,7 +97,13 @@ paths:
       parameters:
         - name: sample_id
           in: query
-          description: Region selector
+          description: Sample/individual displayname
+          required: true
+          schema:
+            type: string
+        - name: case_name
+          in: query
+          description: Case display name
           required: true
           schema:
             type: string

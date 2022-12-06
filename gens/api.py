@@ -55,6 +55,7 @@ class ChromCoverageRequest:
     """Request for getting coverage from multiple chromosome and regions."""
 
     sample_id: str
+    case_name: str
     genome_build: int = attr.ib()
     plot_height: float
     top_bottom_padding: float
@@ -262,7 +263,7 @@ def get_multiple_coverages():
 
     # read sample information
     db = current_app.config["GENS_DB"]
-    sample_obj = query_sample(db, data.sample_id, data.genome_build)
+    sample_obj = query_sample(db, data.sample_id, data.case_name, data.genome_build)
     # Try to find and load an overview json data file
     json_data, cov_file, baf_file = None, None, None
     if sample_obj.overview_file and os.path.isfile(sample_obj.overview_file):
@@ -325,6 +326,7 @@ def get_multiple_coverages():
 
 def get_coverage(
     sample_id,
+    case_name,
     region,
     x_pos,
     y_pos,
@@ -362,7 +364,7 @@ def get_coverage(
         reduce_data,
     )
     db = current_app.config["GENS_DB"]
-    sample_obj = query_sample(db, sample_id, genome_build)
+    sample_obj = query_sample(db, sample_id, case_name, genome_build)
     cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
     # Parse region
     try:

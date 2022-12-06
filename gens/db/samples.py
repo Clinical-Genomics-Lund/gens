@@ -60,9 +60,13 @@ def get_samples(db, start=0, n_samples=None):
     return results, db[COLLECTION].count_documents({})
 
 
-def query_sample(db, sample_id, genome_build):
+def query_sample(db, sample_id, case_name, genome_build):
     """Get a sample with id."""
-    result = db[COLLECTION].find_one({"sample_id": sample_id})
+    result = None
+    if case_name is None:
+        result = db[COLLECTION].find_one({"sample_id": sample_id})
+    else:
+        result = db[COLLECTION].find_one({"sample_id": sample_id, "case_name": case_name})
 
     if result is None:
         raise SampleNotFoundError(
