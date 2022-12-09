@@ -55,7 +55,7 @@ class ChromCoverageRequest:
     """Request for getting coverage from multiple chromosome and regions."""
 
     sample_id: str
-    case_name: str
+    case_id: str
     genome_build: int = attr.ib()
     plot_height: float
     top_bottom_padding: float
@@ -205,7 +205,7 @@ def search_annotation(query: str, genome_build, annotation_type):
     return jsonify({**data, "status": response_code})
 
 
-def get_variant_data(case_name, sample_id, variant_category, **optional_kwargs):
+def get_variant_data(case_id, sample_id, variant_category, **optional_kwargs):
     """Search Scout database for variants associated with a case and return info in JSON format."""
     default_height_order = 0
     base_return = {"status": "ok"}
@@ -232,7 +232,7 @@ def get_variant_data(case_name, sample_id, variant_category, **optional_kwargs):
     try:
         variants = list(
             query_variants(
-                case_name,
+                case_id,
                 sample_id,
                 cattr.structure(variant_category, VariantCategory),
                 **region_params,
@@ -263,7 +263,7 @@ def get_multiple_coverages():
 
     # read sample information
     db = current_app.config["GENS_DB"]
-    sample_obj = query_sample(db, data.sample_id, data.case_name, data.genome_build)
+    sample_obj = query_sample(db, data.sample_id, data.case_id, data.genome_build)
     # Try to find and load an overview json data file
     json_data, cov_file, baf_file = None, None, None
     if sample_obj.overview_file and os.path.isfile(sample_obj.overview_file):
@@ -326,7 +326,7 @@ def get_multiple_coverages():
 
 def get_coverage(
     sample_id,
-    case_name,
+    case_id,
     region,
     x_pos,
     y_pos,
@@ -364,7 +364,7 @@ def get_coverage(
         reduce_data,
     )
     db = current_app.config["GENS_DB"]
-    sample_obj = query_sample(db, sample_id, case_name, genome_build)
+    sample_obj = query_sample(db, sample_id, case_id, genome_build)
     cov_file, baf_file = get_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
     # Parse region
     try:

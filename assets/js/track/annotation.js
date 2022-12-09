@@ -63,7 +63,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
   }
 
   // Fills the list with source files
-  annotSourceList (defaultAnntotation) {
+  annotSourceList (defaultAnnotation) {
     get('get-annotation-sources', { genome_build: this.genomeBuild })
       .then(result => {
         if (result.sources.length > 0) {
@@ -76,7 +76,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
           opt.innerHTML = fileName
 
           // Set mimisbrunnr as default file
-          if (fileName.match(defaultAnntotation)) {
+          if (fileName.match(defaultAnnotation)) {
             opt.setAttribute('selected', true)
           }
           this.sourceList.appendChild(opt)

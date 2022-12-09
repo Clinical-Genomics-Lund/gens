@@ -44,9 +44,9 @@
       {% for sample in samples_obj %}
         {% set genome_build=sample["genome_build"]%}
         {% set sample_id=sample["sample_id"]%}
-        {% set case_name=sample["case_name"]%}
+        {% set case_id=sample["case_id"]%}
         <tr>
-          <td id="id-cell"><a href="{{ url_for('gens.display_case', sample_name=sample_id, case_name=case_name, genome_build=genome_build) }}" target="_blank">{{ sample_id }}</a></td>
+          <td id="id-cell"><a href="{{ url_for('gens.display_case', sample_name=sample_id, case_id=case_id, genome_build=genome_build) }}" target="_blank">{{ sample_id }}</a></td>
           <td id="build-cell" class="align-right">{{ genome_build }}</td>
           <td id="overview-cell"  class="align-right">
             {% if sample["has_overview_file"] %}

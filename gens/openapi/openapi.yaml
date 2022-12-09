@@ -24,8 +24,8 @@ paths:
                 sample_id:
                   description: Sample/individual displayname
                   type: string
-                case_name:
-                  description: Case display name
+                case_id:
+                  description: Case id
                   type: string
                 baf_y_start:
                   description: Y coordinate from where to draw BAF track.
@@ -101,9 +101,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: case_name
+        - name: case_id
           in: query
-          description: Case display name
+          description: Case id
           required: true
           schema:
             type: string
@@ -225,9 +225,9 @@ paths:
       description: Get annotation data
       operationId: gens.api.get_variant_data
       parameters:
-        - name: case_name
+        - name: case_id
           in: query
-          description: Case display name
+          description: Case id
           required: true
           schema:
             type: string

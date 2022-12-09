@@ -24,8 +24,9 @@ export function lightenColor (color, percent) {
 };
 
 export class BaseScatterTrack {
-  constructor ({ sampleName, genomeBuild, hgFileDir }) {
+  constructor ({ caseId, sampleName, genomeBuild, hgFileDir }) {
     // setup IO
+    this.caseId = caseId // Case id to use for querying data
     this.sampleName = sampleName // File name to load data from
     this.genomeBuild = genomeBuild // Whether to load HG37 or HG38, default is HG38
     this.hgFileDir = hgFileDir // File directory
