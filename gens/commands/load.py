@@ -48,7 +48,7 @@ def load():
 )
 @click.option(
     "-n",
-    "--case-name",
+    "--case-id",
     required=True,
     help="Id of case",
 )
