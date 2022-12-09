@@ -17,13 +17,13 @@ export function initCanvases({ sampleName, caseId, genomeBuild, hgFileDir, uiCol
   // Listener values
   const inputField = document.getElementById('region-field')
   // Initiate interactive canvas
-  const ic = new InteractiveCanvas(inputField, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
+  const ic = new InteractiveCanvas(inputField, lineMargin, near, far, caseId, sampleName, genomeBuild, hgFileDir)
   // Initiate variant, annotation and transcript canvases
   const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, caseId, genomeBuild, uiColors.variants, selectedVariant)
   const tc = new TranscriptTrack(ic.x, ic.plotWidth, near, far, genomeBuild, uiColors.transcripts)
   const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, genomeBuild, annotationFile)
   // Initiate and draw overview canvas
-  const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
+  const oc = new OverviewCanvas(ic.x, ic.plotWidth, lineMargin, near, far, caseId, sampleName, genomeBuild, hgFileDir)
   // Draw cytogenetic ideogram figure
   const cg = new CytogeneticIdeogram({
     targetId: 'cytogenetic-ideogram',

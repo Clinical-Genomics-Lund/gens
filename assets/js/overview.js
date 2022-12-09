@@ -7,9 +7,9 @@ import { createGraph, drawPoints, drawGraphLines, drawText, drawRotatedText } fr
 import { drawTrack } from './navigation.js'
 
 export class OverviewCanvas extends BaseScatterTrack {
-  constructor (xPos, fullPlotWidth, lineMargin, near, far, sampleName,
+  constructor (xPos, fullPlotWidth, lineMargin, near, far, caseId, sampleName,
     genomeBuild, hgFileDir) {
-    super({ sampleName, genomeBuild, hgFileDir })
+    super({ caseId, sampleName, genomeBuild, hgFileDir })
 
     // Plot variables
     this.fullPlotWidth = fullPlotWidth // Width for all chromosomes to fit in
@@ -225,6 +225,7 @@ export class OverviewCanvas extends BaseScatterTrack {
     await this.getOverviewChromDim()
     // query gens for coverage values
     const covData = await create('get-multiple-coverages', {
+      case_id: this.caseId,
       sample_id: this.sampleName,
       genome_build: this.genomeBuild,
       plot_height: this.plotHeight,
