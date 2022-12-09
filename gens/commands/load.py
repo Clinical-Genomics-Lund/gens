@@ -50,7 +50,7 @@ def load():
     "-n",
     "--case-name",
     required=True,
-    help="Display name of case",
+    help="Id of case",
 )
 @click.option(
     "-j",

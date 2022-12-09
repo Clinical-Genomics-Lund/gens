@@ -35,7 +35,7 @@ def samples(summary):
     else:  # show all samples
         columns = (
             "Sample Id",
-            "Case name",
+            "Case Id",
             "Genome build",
             "Created at",
             "baf file",

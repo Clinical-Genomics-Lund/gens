@@ -52,7 +52,7 @@ def get_timestamps(track_type="all"):
 def query_variants(case_id: str, sample_name: str, variant_category: VariantCategory, **kwargs):
     """Search the scout database for variants associated with a case.
 
-    case_id :: display name for a case
+    case_id :: id for a case
     sample_name :: display name for a sample
     variant_category :: categories
 
