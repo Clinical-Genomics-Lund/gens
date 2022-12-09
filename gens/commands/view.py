@@ -45,7 +45,7 @@ def samples(summary):
         sample_tbl = (
             (
                 s.sample_id,
-                s.case_name,
+                s.case_id,
                 str(s.genome_build),
                 s.created_at.isoformat(),
                 s.baf_file,

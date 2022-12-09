@@ -59,7 +59,7 @@ def load():
     help="Json file that contains preprocessed overview coverage",
 )
 @with_appcontext
-def sample(sample_id, genome_build, baf, coverage, case_name, overview_json):
+def sample(sample_id, genome_build, baf, coverage, case_id, overview_json):
     """Load a sample into Gens database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
@@ -69,7 +69,7 @@ def sample(sample_id, genome_build, baf, coverage, case_name, overview_json):
     store_sample(
         db,
         sample_id=sample_id,
-        case_name=case_name,
+        case_id=case_id,
         genome_build=genome_build,
         baf=baf,
         coverage=coverage,

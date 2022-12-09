@@ -24,7 +24,7 @@ paths:
                 sample_id:
                   description: Sample/individual displayname
                   type: string
-                case_name:
+                case_id:
                   description: Case display name
                   type: string
                 baf_y_start:
@@ -101,7 +101,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: case_name
+        - name: case_id
           in: query
           description: Case display name
           required: true
@@ -225,7 +225,7 @@ paths:
       description: Get annotation data
       operationId: gens.api.get_variant_data
       parameters:
-        - name: case_name
+        - name: case_id
           in: query
           description: Case display name
           required: true

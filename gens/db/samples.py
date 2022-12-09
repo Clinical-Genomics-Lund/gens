@@ -20,13 +20,13 @@ class SampleNotFoundError(Exception):
         self.sample_id = sample_id
 
 
-def store_sample(db, sample_id, case_name, genome_build, baf, coverage, overview):
+def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
     db[COLLECTION].insert_one(
         {
             "sample_id": sample_id,
-            "case_name": case_name,
+            "case_id": case_id,
             "baf_file": baf,
             "coverage_file": coverage,
             "overview_file": overview,
@@ -45,7 +45,7 @@ def get_samples(db, start=0, n_samples=None):
     results = (
         SampleObj(
             sample_id=r["sample_id"],
-            case_name=r["case_name"],
+            case_id=r["case_id"],
             genome_build=r["genome_build"],
             baf_file=r["baf_file"],
             coverage_file=r["coverage_file"],
@@ -60,13 +60,13 @@ def get_samples(db, start=0, n_samples=None):
     return results, db[COLLECTION].count_documents({})
 
 
-def query_sample(db, sample_id, case_name, genome_build):
+def query_sample(db, sample_id, case_id, genome_build):
     """Get a sample with id."""
     result = None
-    if case_name is None:
+    if case_id is None:
         result = db[COLLECTION].find_one({"sample_id": sample_id})
     else:
-        result = db[COLLECTION].find_one({"sample_id": sample_id, "case_name": case_name})
+        result = db[COLLECTION].find_one({"sample_id": sample_id, "case_id": case_id})
 
     if result is None:
         raise SampleNotFoundError(
@@ -74,7 +74,7 @@ def query_sample(db, sample_id, case_name, genome_build):
         )
     return SampleObj(
         sample_id=result["sample_id"],
-        case_name=result["case_name"],
+        case_id=result["case_id"],
         genome_build=result["genome_build"],
         baf_file=result["baf_file"],
         coverage_file=result["coverage_file"],

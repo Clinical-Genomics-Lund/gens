@@ -8,7 +8,7 @@ export {
   panTracks, zoomIn, zoomOut, parseRegionDesignation, queryRegionOrGene
 } from './navigation.js'
 
-export function initCanvases({ sampleName, caseName, genomeBuild, hgFileDir, uiColors, selectedVariant, annotationFile }) {
+export function initCanvases({ sampleName, caseId, genomeBuild, hgFileDir, uiColors, selectedVariant, annotationFile }) {
   // initialize and return the different canvases
   // WEBGL values
   const near = 0.1
@@ -19,7 +19,7 @@ export function initCanvases({ sampleName, caseName, genomeBuild, hgFileDir, uiC
   // Initiate interactive canvas
   const ic = new InteractiveCanvas(inputField, lineMargin, near, far, sampleName, genomeBuild, hgFileDir)
   // Initiate variant, annotation and transcript canvases
-  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, caseName, genomeBuild, uiColors.variants, selectedVariant)
+  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, caseId, genomeBuild, uiColors.variants, selectedVariant)
   const tc = new TranscriptTrack(ic.x, ic.plotWidth, near, far, genomeBuild, uiColors.transcripts)
   const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, genomeBuild, annotationFile)
   // Initiate and draw overview canvas
