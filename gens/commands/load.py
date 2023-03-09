@@ -125,7 +125,7 @@ def annotations(file, genome_build):
 
         # Remove existing annotations in database
         LOG.info(f"Remove old entry in the database")
-        db[ANNOTATIONS_COLLECTION].remove({"source": annotation_name})
+        db[ANNOTATIONS_COLLECTION].delete_many({"source": annotation_name})
         # add the annotations
         LOG.info(f"Load annoatations in the database")
         db[ANNOTATIONS_COLLECTION].insert_many(annotation_obj)
