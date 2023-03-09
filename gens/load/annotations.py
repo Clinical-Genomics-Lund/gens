@@ -145,7 +145,7 @@ def update_height_order(db, name):
             while True:
                 if int(annot["start"]) > height_tracker[current_height - 1]:
                     # Add height to DB
-                    db[ANNOTATIONS_COLLECTION].update_many(
+                    db[ANNOTATIONS_COLLECTION].update_one(
                         {"_id": annot["_id"], "source": annot["source"]},
                         {"$set": {"height_order": current_height}},
                     )
