@@ -30,6 +30,7 @@ def display_case(sample_name):
     Expects sample_id as input to be able to load the sample data
     """
     case_id = request.args.get("case_id", None)
+    individual_id = request.args.get("individual_id", sample_name)
     
     # get genome build and region
     region = request.args.get("region", None)
@@ -48,7 +49,7 @@ def display_case(sample_name):
 
     # verify that sample has been loaded
     db = current_app.config["GENS_DB"]
-    sample = query_sample(db, sample_name, case_id, genome_build)
+    sample = query_sample(db, individual_id, case_id, genome_build)
 
     # Check that BAF and Log2 file exists
     try:
@@ -75,7 +76,7 @@ def display_case(sample_name):
         chrom=chrom,
         start=start_pos,
         end=end_pos,
-        sample_name=sample_name,
+        sample_name=individual_id,
         case_id=case_id,
         genome_build=genome_build,
         print_page=print_page,
