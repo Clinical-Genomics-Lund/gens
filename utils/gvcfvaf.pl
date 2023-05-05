@@ -28,24 +28,17 @@ my $skipped = 0;
 while(<GNOMAD>) {
 	chomp;
 	my( $gnomad_chr, $gnomad_pos ) = split /\t/;
-	print STDERR "Skipping gnomad $gnomad_chr $gnomad_pos ".$gvcf->{chr}." ".$gvcf->{start}."\n" if chr_less($gnomad_chr, $gvcf->{chr});
-	next if chr_less($gnomad_chr, $gvcf->{chr});
-	if( $gvcf->{start} < $gnomad_pos or chr_less($gvcf->{chr}, $gnomad_chr) ) {
-		my $prev_gvcf_chr = $gvcf->{chr};
-		do {
-			$gvcf_line = <GVCF>;
-			#$gvcf = parse_gvcf_entry($a);
-			$gvcf = gvcf_position($gvcf_line);
-		} until eof(GVCF) or ( $gvcf->{end} >= $gnomad_pos or $gvcf->{start} >= $gnomad_pos or $gvcf->{chr} ne $prev_gvcf_chr );
+	while( !eof(GVCF) and ( $gvcf->{start} < $gnomad_pos or chr_less($gvcf->{chr}, $gnomad_chr) ) ) {
+		$gvcf_line = <GVCF>;
+		#$gvcf = parse_gvcf_entry($a);
+		$gvcf = gvcf_position($gvcf_line);
 	}
-	if( $gnomad_pos >= $gvcf->{start} and $gnomad_chr eq $gvcf->{chr} ) {
-		if( $gnomad_pos <= $gvcf->{end} ) {
-			$gvcf = parse_gvcf_entry($gvcf_line);
-			print $gnomad_chr."\t".$gnomad_pos."\t".($gvcf->{frq} or 0)."\n" if defined $gvcf->{frq};
-		}
-		else {
-			$skipped ++;
-		}
+	if( $gnomad_pos == $gvcf->{start} and $gnomad_chr eq $gvcf->{chr} ) {
+		$gvcf = parse_gvcf_entry($gvcf_line);
+		print $gnomad_chr."\t".$gnomad_pos."\t".($gvcf->{frq} or 0)."\n" if defined $gvcf->{frq};
+	}
+	else {
+		$skipped ++;
 	}
 	last if eof(GVCF);
 }   
@@ -93,14 +86,15 @@ sub parse_gvcf_entry {
 			if( $fmt[$i] eq "GT" ) {
 				my( $a, $b ) = (split /\//, $sam[$i]);
 				$alt = $b;
-				return \%data if ( $alt ne "." && $alt != 0 ) and ( !defined $ALT[$alt-1] or length($ALT[$alt-1]) > 1 );
+				$alt = 0 if $alt eq ".";
+				return \%data if $alt != 0 and ( !defined $ALT[$alt-1] or length($ALT[$alt-1]) > 1 );
 				last;
 			}
 		}
 		for my $i (0 .. $#fmt) {
 			if( $fmt[$i] eq "AD" ) {
-				if( $alt ne "." && $alt != 0 ) {
-					$alt_cnt = (split /,/, $sam[$i])[$alt];
+				if( $alt != 0 ) {
+					$alt_cnt = (split /,/, $sam[$i])[$alt-1];
 				}
 				else {
 					my @cnts = split /,/, $sam[$i];
@@ -119,7 +113,7 @@ sub parse_gvcf_entry {
 		}
 		return \%data if $dp < 10;
 		$data{frq} = $alt_cnt / $dp;
-		$data{alt} = $ALT[$alt];
+		# $data{alt} = $ALT[$alt-1];
 		$data{ref} = $a[3];
 		$data{all} = $a[9];
 	}
