@@ -22,26 +22,34 @@ while($gvcf_line = <GVCF>) {
 	last unless $gvcf_line =~ /^#/;
 }
 
+my $gvcf_count = 0;
+my $gnomad_count = 0;
+my $match_count = 0;
+
 #my $gvcf = parse_gvcf_entry($gvcf_line);
 my $gvcf = gvcf_position($gvcf_line);
-my $skipped = 0;
 while(<GNOMAD>) {
 	chomp;
 	my( $gnomad_chr, $gnomad_pos ) = split /\t/;
+	++gnomad_count;
 	while( !eof(GVCF) and chr_position_less($gvcf->{chr}, $gvcf->{start}, $gnomad_chr, $gnomad_pos) ) {
 		$gvcf_line = <GVCF>;
 		#$gvcf = parse_gvcf_entry($a);
 		$gvcf = gvcf_position($gvcf_line);
+		++gvcf_count;
 	}
 	if( $gnomad_pos == $gvcf->{start} and $gnomad_chr eq $gvcf->{chr} ) {
 		$gvcf = parse_gvcf_entry($gvcf_line);
 		print $gnomad_chr."\t".$gnomad_pos."\t".($gvcf->{frq} or 0)."\n" if defined $gvcf->{frq};
-	}
-	else {
-		$skipped ++;
+		++match_count;
 	}
 	last if eof(GVCF);
-}   
+}
+
+#print STDERR "$gvcf_count variants found.\n";
+#print STDERR "$gnomad_count gnomad positions found.\n";
+#print STDERR "$match_count variants found at gnomad positions!\n";
+my $skipped = $gvcf_count - $match_count;
 print STDERR "$skipped variants skipped!\n";
 
 
