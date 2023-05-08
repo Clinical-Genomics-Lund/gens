@@ -9,6 +9,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Fixed
  - Fixed annotation tracks being hidden behind other elements
+ - Use sample id as individual id to link out from Gens home sample list
 
 ## [2.1.0]
 ### Added
