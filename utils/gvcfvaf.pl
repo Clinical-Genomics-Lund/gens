@@ -31,17 +31,17 @@ my $gvcf = gvcf_position($gvcf_line);
 while(<GNOMAD>) {
 	chomp;
 	my( $gnomad_chr, $gnomad_pos ) = split /\t/;
-	++gnomad_count;
+	++$gnomad_count;
 	while( !eof(GVCF) and chr_position_less($gvcf->{chr}, $gvcf->{start}, $gnomad_chr, $gnomad_pos) ) {
 		$gvcf_line = <GVCF>;
 		#$gvcf = parse_gvcf_entry($a);
 		$gvcf = gvcf_position($gvcf_line);
-		++gvcf_count;
+		++$gvcf_count;
 	}
 	if( $gnomad_pos == $gvcf->{start} and $gnomad_chr eq $gvcf->{chr} ) {
 		$gvcf = parse_gvcf_entry($gvcf_line);
 		print $gnomad_chr."\t".$gnomad_pos."\t".($gvcf->{frq} or 0)."\n" if defined $gvcf->{frq};
-		++match_count;
+		++$match_count;
 	}
 	last if eof(GVCF);
 }
