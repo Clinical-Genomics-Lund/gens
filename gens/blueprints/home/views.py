@@ -55,6 +55,7 @@ def home():
     samples = [
         {
             "sample_id": smp.sample_id,
+            "case_id": smp.case_id,
             "genome_build": smp.genome_build,
             "has_overview_file": smp.overview_file is not None,
             "files_present": os.path.isfile(smp.baf_file)
