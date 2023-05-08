@@ -47,7 +47,7 @@
         {% set case_id=sample["case_id"]%}
         <tr>
           <td id="id-cell"><a href="{% if case_id %}
-          {{ url_for('gens.display_case', sample_name=False, individual_id=sample_id, case_id=case_id, genome_build=genome_build) }}
+          {{ url_for('gens.display_case', sample_name=sample_id, individual_id=sample_id, case_id=case_id, genome_build=genome_build) }}
           {% else %}
            {{ url_for('gens.display_case', sample_name=sample_id, genome_build=genome_build) }}
           {% endif %}" target="_blank">{{ sample_id }}</a></td>
