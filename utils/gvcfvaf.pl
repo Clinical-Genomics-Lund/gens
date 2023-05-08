@@ -28,7 +28,7 @@ my $skipped = 0;
 while(<GNOMAD>) {
 	chomp;
 	my( $gnomad_chr, $gnomad_pos ) = split /\t/;
-	while( !eof(GVCF) and ( $gvcf->{start} < $gnomad_pos or chr_less($gvcf->{chr}, $gnomad_chr) ) ) {
+	while( !eof(GVCF) and chr_position_less($gvcf->{chr}, $gvcf->{start}, $gnomad_chr, $gnomad_pos) ) {
 		$gvcf_line = <GVCF>;
 		#$gvcf = parse_gvcf_entry($a);
 		$gvcf = gvcf_position($gvcf_line);
@@ -44,6 +44,12 @@ while(<GNOMAD>) {
 }   
 print STDERR "$skipped variants skipped!\n";
 
+
+sub chr_position_less {
+	my( $chr1, $pos1, $chr2, $pos2 ) = @_;
+	return $pos1 < $pos2 if $chr1 eq $chr2;
+	return chr_less($chr1, $chr2);
+}
 
 sub chr_less {
 	my( $chr1, $chr2 ) = @_;
