@@ -10,6 +10,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
  - Fixed annotation tracks being hidden behind other elements
  - Use sample id as individual id to link out from Gens home sample list
+ - Some fixes from MHKC CG-Lund, e.g. status codes and a JSON error
 
 ## [2.1.0]
 ### Added

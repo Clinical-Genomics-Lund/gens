@@ -242,7 +242,6 @@ export class TranscriptTrack extends BaseAnnotationTrack {
       scale: (this.drawCanvas.width /
               (endPos - startPos))
     }
-    this.geneticElements = []
 
     // Set needed height of visible canvas and transcript tooltips
     this.setContainerHeight(maxHeightOrder)
