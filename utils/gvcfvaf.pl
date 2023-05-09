@@ -108,7 +108,7 @@ sub parse_gvcf_entry {
 		for my $i (0 .. $#fmt) {
 			if( $fmt[$i] eq "AD" ) {
 				if( $alt != 0 ) {
-					$alt_cnt = (split /,/, $sam[$i])[$alt-1];
+					$alt_cnt = (split /,/, $sam[$i])[$alt];
 				}
 				else {
 					my @cnts = split /,/, $sam[$i];
