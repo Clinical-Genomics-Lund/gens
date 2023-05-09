@@ -100,8 +100,7 @@ sub parse_gvcf_entry {
 			if( $fmt[$i] eq "GT" ) {
 				my( $a, $b ) = (split /\//, $sam[$i]);
 				$alt = $b;
-				$alt = 0 if $alt eq ".";
-				return \%data if $alt != 0 and ( !defined $ALT[$alt-1] or length($ALT[$alt-1]) > 1 );
+				return \%data if $alt eq "." or $alt != 0 and ( !defined $ALT[$alt-1] or length($ALT[$alt-1]) > 1 );
 				last;
 			}
 		}
