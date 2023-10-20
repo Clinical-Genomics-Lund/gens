@@ -61,20 +61,17 @@ $menubar-font-color-print: white;
     
     li {
       float: left;
-
+      
       a {
         display: block;
+        color: inherit;
         text-align: center;
         padding: 16px 18px;
         text-decoration: none;
       }
+    }
 
-      a:visited {
-        color: adjust-color($menubar-font-color, $blue: +30);
-      }
-
-      a:hover {
-        background-color: $menubar-bg-color-dark 
-      }
+    a:hover {
+      background-color: $menubar-bg-color-dark
     }
 }
