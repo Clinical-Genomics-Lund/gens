@@ -60,9 +60,12 @@ export class CytogeneticIdeogram {
     this.targetElement.addEventListener('mark-region', (event) => {
       // if marking a subset of chromosome
       const { chrom, start, end } = event.detail.region
+      // get marker element
+      const markerElement = document.getElementById('ideogram-marker')
       if (this.drawPaths !== null && chrom === this.drawPaths.chromosome.chromInfo.chrom) {
+        // if segment of chromosome is drawn
         const { scale, x } = this.drawPaths.chromosome.chromInfo
-        const markerElement = document.getElementById('ideogram-marker')
+        markerElement.hidden = false // display marker
         markerElement.style.marginLeft = `${Math.round(x + (start * scale))}px`
         markerElement.style.width = `${Math.round((end - start + 1) * scale)}px`
         // dispatch event to update title
@@ -73,6 +76,9 @@ export class CytogeneticIdeogram {
           new CustomEvent('update-title', { 
             detail: { bands: bandsWithinMarkedRegion, chrom: chrom } })
         )
+      } else {
+        // if entire chromosome is drawn
+        markerElement.hidden = true // hide marker
       }
     })
     // register event for moving and zooming region marker
