@@ -4,6 +4,7 @@ import { drawRect } from '../draw.js'
 import { lightenColor } from './base.js'
 import tippy, { followCursor } from 'tippy.js'
 import 'tippy.js/dist/tippy.css';
+import { isElementOverlapping } from './utils.js';
 import { thisExpression } from '@babel/types';
 
 export class CytogeneticIdeogram {
@@ -67,12 +68,10 @@ export class CytogeneticIdeogram {
         // dispatch event to update title
         const scaledStart = Math.round(start * scale)
         const scaledEnd = Math.round(end * scale)
-        const bandsWithinMaredRegion = this.drawPaths.bands.filter((band) => {
-          return (band.start < scaledStart) && (band.end < scaledEnd)
-        })
+        const bandsWithinMarkedRegion = this.drawPaths.bands.filter((band) => isElementOverlapping({start: scaledStart, end: scaledEnd}, band))
         document.getElementById('visualization-container').dispatchEvent( 
           new CustomEvent('update-title', { 
-            detail: { bands: bandsWithinMaredRegion, chrom: chrom } })
+            detail: { bands: bandsWithinMarkedRegion, chrom: chrom } })
         )
       }
     })
