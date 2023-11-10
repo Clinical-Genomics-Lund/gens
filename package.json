@@ -12,7 +12,7 @@
     "build": "gulp build",
     "lint": "eslint assets",
     "watch": "gulp watch",
-    "test": "jest --coverage assets/js"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,18 @@
     "url": "https://github.com/Clinical-Genomics-Lund/Gens/issues"
   },
   "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
+  "jest": {
+    "moduleFileExtensions": ["js", "ts", "tsx", "jsx"],
+    "moduleNameMapper": {
+      "\\.(css|less|sass|scss)$": "<rootDir>/assets/__mocks__/styleMock.js",
+      "\\.(gif|tff|eot|svg)$": "<rootDir>/assets/__mocks__/fileMock.js"
+    },
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8",
+    "verbose": false
+  },
   "devDependencies": {
     "@babel/core": "^7.13.10",
     "@babel/plugin-transform-runtime": "^7.13.10",

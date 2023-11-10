@@ -9,6 +9,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 ### Fixed
  - Fixed annotation tracks being hidden behind other elements
+ - Increased contrast of region selector
+ - Chromosome bands are displayed properly
 
 ## [2.1.0]
 ### Added
