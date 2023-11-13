@@ -24,7 +24,7 @@ RUN apt-get update &&                                                     \
 # BUILDER NODE #
 ################
 
-FROM node:14.15.5-alpine3.10 as node-builder
+FROM node:20.8.1-alpine as node-builder
 WORKDIR /usr/src/app
 COPY package.json package-lock.json webpack.config.js gulpfile.js ./
 COPY assets assets

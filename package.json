@@ -25,7 +25,12 @@
   },
   "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
   "jest": {
-    "moduleFileExtensions": ["js", "ts", "tsx", "jsx"],
+    "moduleFileExtensions": [
+      "js",
+      "ts",
+      "tsx",
+      "jsx"
+    ],
     "moduleNameMapper": {
       "\\.(css|less|sass|scss)$": "<rootDir>/assets/__mocks__/styleMock.js",
       "\\.(gif|tff|eot|svg)$": "<rootDir>/assets/__mocks__/fileMock.js"
