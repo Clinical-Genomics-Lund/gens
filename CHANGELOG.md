@@ -7,6 +7,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+ - Updated flask and pinned connexion to v2
 ### Fixed
  - Fixed annotation tracks being hidden behind other elements
  - Increased contrast of region selector
