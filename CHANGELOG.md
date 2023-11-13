@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
  - Updated flask and pinned connexion to v2
+ - Updated node version of github action to 17.x
 ### Fixed
  - Fixed annotation tracks being hidden behind other elements
  - Increased contrast of region selector
