@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@popperjs/core": "^2.9.2",
-    "npm": "^7.5.4",
+    "npm": "^10.2.3",
     "tippy.js": "^6.3.2"
   },
   "name": "gens",
