@@ -7,6 +7,11 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+### Fixed
+
+## [2.1.1]
+### Added
+### Changed
  - Updated flask and pinned connexion to v2
  - Updated node version of github action to 17.x
 ### Fixed
