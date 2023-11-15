@@ -184,16 +184,16 @@ def search_annotation(query: str, genome_build, annotation_type):
     if genome_build and int(genome_build) in GENOME_BUILDS:
         db_query["genome_build"] = genome_build
 
-    elements = collection.find(db_query, sort=[("start", 1), ("chrom", 1)])
+    elements = list(collection.find(db_query, sort=[("start", 1), ("chrom", 1)]))
     # if no results was found
-    if elements.count() == 0:
+    if len(elements) == 0:
         msg = f"Did not find gene name: {query}"
         LOG.warning(msg)
         data = {"message": msg}
         response_code = 404
     else:
-        start_elem = elements.next()
-        end_elem = max(elements, key=lambda elem: elem.get("end"))
+        start_elem = elements[0]
+        end_elem = max(elements[1:], key=lambda elem: elem.get("end"))
         data = {
             "chromosome": start_elem.get("chrom"),
             "start_pos": start_elem.get("start"),
