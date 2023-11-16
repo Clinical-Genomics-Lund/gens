@@ -2,6 +2,7 @@
 import logging
 
 from app.config import MONGODB_URI
+
 from .db import gens_db, scout_db
 
 LOG = logging.getLogger(__name__)
