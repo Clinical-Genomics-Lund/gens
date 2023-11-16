@@ -4,12 +4,12 @@
 
 {% block css_style %}
     {{ super() }}
-    <link rel='stylesheet' href='{{ url_for('static', filename='/css/error.min.css') }}' type='text/css'>
+    <link rel='stylesheet' href='{{ url_for('static', filename='css/error.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
 {% block body %}
 <div class="content">
-    <img id="broken-dna" src="{{ url_for("static", filename='/svg/broken-dna.svg') }}" alt="broken DNA" />
+    <img id="broken-dna" src="{{ url_for("static", filename='svg/broken-dna.svg') }}" alt="broken DNA" />
     <div class="error-msg-container">
         <h1 class="headline">Error - {{ error_type }}</h1>
         {% for row in message %}
