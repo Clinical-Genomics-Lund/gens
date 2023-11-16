@@ -1,14 +1,15 @@
 version: "3.8"
 services:
-  markus_mongodb:
-    container_name: markus_mongodb
-    image: mongo
+  mongodb:
+    container_name: mongodb
+    image: mongo:7
     volumes:
       - ./volumes/mongo_db/data:/data/db
     networks:
       - gens-net
-  markus_gens:
-    container_name: markus_gens
+
+  gens:
+    container_name: gens
     build: .
     volumes:
       - ./utils:/home/app/app/utils
@@ -20,19 +21,39 @@ services:
     environment:
       - FLASK_APP=gens/app.py
       - FLASK_ENV=development
-      - MONGODB_HOST=markus_mongodb
+      - MONGODB_HOST=mongodb
       - MONGODB_PORT=27017
       - SCOUT_DBNAME=scout
       - GENS_DBNAME=gens
     expose:
       - '5000'
     ports:
-      - "5003:5000"
+      - "5000:5000"
     networks:
       - gens-net
     depends_on:
-      - markus_mongodb
+      - mongodb
+      - api
     command: "flask run --host 0.0.0.0"
+
+  api:
+    container_name: api
+    build:
+      context: api
+      network: host
+    environment:
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+    expose:
+      - '5000'
+    ports:
+      - "5001:5000"
+    networks:
+      - gens-net
+    depends_on:
+      - mongodb
+    command: "uvicorn app.main:app --reload --host 0.0.0.0"
+
 networks:
   gens-net:
     driver: bridge
