@@ -1,4 +1,5 @@
 [project]
+name = "gens_api"
 dynamic = ["version"]
 readme = "README.md"
 description = "Gens API"
