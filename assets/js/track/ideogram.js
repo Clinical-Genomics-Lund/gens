@@ -4,6 +4,7 @@ import { drawRect } from '../draw.js'
 import { lightenColor } from './base.js'
 import tippy, { followCursor } from 'tippy.js'
 import 'tippy.js/dist/tippy.css';
+import { isElementOverlapping } from './utils.js';
 import { thisExpression } from '@babel/types';
 
 export class CytogeneticIdeogram {
@@ -59,21 +60,25 @@ export class CytogeneticIdeogram {
     this.targetElement.addEventListener('mark-region', (event) => {
       // if marking a subset of chromosome
       const { chrom, start, end } = event.detail.region
+      // get marker element
+      const markerElement = document.getElementById('ideogram-marker')
       if (this.drawPaths !== null && chrom === this.drawPaths.chromosome.chromInfo.chrom) {
+        // if segment of chromosome is drawn
         const { scale, x } = this.drawPaths.chromosome.chromInfo
-        const markerElement = document.getElementById('ideogram-marker')
+        markerElement.hidden = false // display marker
         markerElement.style.marginLeft = `${Math.round(x + (start * scale))}px`
         markerElement.style.width = `${Math.round((end - start + 1) * scale)}px`
         // dispatch event to update title
         const scaledStart = Math.round(start * scale)
         const scaledEnd = Math.round(end * scale)
-        const bandsWithinMaredRegion = this.drawPaths.bands.filter((band) => {
-          return (band.start < scaledStart) && (band.end < scaledEnd)
-        })
+        const bandsWithinMarkedRegion = this.drawPaths.bands.filter((band) => isElementOverlapping({start: scaledStart, end: scaledEnd}, band))
         document.getElementById('visualization-container').dispatchEvent( 
           new CustomEvent('update-title', { 
-            detail: { bands: bandsWithinMaredRegion, chrom: chrom } })
+            detail: { bands: bandsWithinMarkedRegion, chrom: chrom } })
         )
+      } else {
+        // if entire chromosome is drawn
+        markerElement.hidden = true // hide marker
       }
     })
     // register event for moving and zooming region marker

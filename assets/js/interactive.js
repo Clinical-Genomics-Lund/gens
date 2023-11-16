@@ -10,7 +10,7 @@ export class InteractiveCanvas extends BaseScatterTrack {
     super({ caseId, sampleName, genomeBuild, hgFileDir })
     // The canvas input field to display and fetch chromosome range from
     this.inputField = inputField
-    // Plot variables
+    // Plot variable
     this.titleMargin = 80 // Margin between plot and title
     this.legendMargin = 45 // Margin between legend and plot
     this.leftRightPadding = 2 // Padding for left and right in graph
@@ -359,11 +359,13 @@ export class InteractiveCanvas extends BaseScatterTrack {
     // Update the dom element
     this.markerElem.style.left = start < end ? `${start}px` : `${end}px`
     this.markerElem.style.width = `${Math.abs(end - start) + 1}px`
+    this.markerElem.hidden = false
   }
 
   resetRegionMarker () {
     this.markerElem.style.left = '0px'
     this.markerElem.style.width = '0px'
+    this.markerElem.hidden = true
   }
 
   blitChromName ({textPosition, clearOnly=false}) {
