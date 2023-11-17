@@ -1,6 +1,6 @@
 @import 'defaults', 'navbar';
 // region marker
-$marker-color: rgba(#81A1C1, 0.5);
+$marker-color: rgba(#dcd16f, 0.3);
 // buttons
 $btn-zoom-color: #8FBCBB;
 $btn-navigate-color: #6DB2C5;
@@ -288,6 +288,13 @@ html, body {
     display: grid;
     grid-row: 2;
     grid-column: 1;
+
+    .marker {
+        border-style: solid;
+        border-color: red;
+        border-left-width: 2px;
+        border-right-width: 2px;
+    }
 }
 
 #interactive-container {
@@ -338,6 +345,9 @@ html, body {
 
 .marker {
     background-color: $marker-color;
+    border:  dashed 1px #7c7c7c;
+    border-top-width: 0;
+    border-bottom-width: 0;
     pointer-events:none;
     position: relative;
 }
@@ -572,5 +582,9 @@ html, body {
 
     #overview-marker {
         position:relative;
+    }
+
+    .marker {
+        border-color: darkred;
     }
 }

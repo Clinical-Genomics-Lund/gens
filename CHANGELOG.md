@@ -8,10 +8,19 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 ### Fixed
+
+## [2.1.1]
+### Added
+### Changed
+ - Updated flask and pinned connexion to v2
+ - Updated node version of github action to 17.x
+### Fixed
  - Fixed annotation tracks being hidden behind other elements
  - Use sample id as individual id to link out from Gens home sample list
  - Some fixes from MHKC CG-Lund, e.g. status codes and a JSON error
  - Removes some leading `/` that were breaking links
+ - Increased contrast of region selector
+ - Chromosome bands are displayed properly
 
 ## [2.1.0]
 ### Added
