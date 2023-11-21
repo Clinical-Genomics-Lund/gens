@@ -7,6 +7,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+Changes the main view's page title to be `sample_name` and adds `sample_name` and `case_id` to the header title
 ### Fixed
 
 ## [2.1.1]
