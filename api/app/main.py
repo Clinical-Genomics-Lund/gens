@@ -5,16 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import allowed_origins
 from .db import close_mongo_connection, connect_to_mongo
-from .routers import root
+from .routers import root, sample
 
 
-def configure_cors(app):
+def configure_cors(application):
     """Configure cros site resource sharing for API.
 
     configuration is only applied if there are allowed origins specified in config
     """
     if len(allowed_origins) > 0:
-        app.add_middleware(
+        application.add_middleware(
             CORSMiddleware,
             allow_origins=allowed_origins,
             allow_credentials=True,
@@ -32,3 +32,4 @@ app.add_event_handler("shutdown", close_mongo_connection)
 
 # add api routes
 app.include_router(root.router)
+app.include_router(sample.router)

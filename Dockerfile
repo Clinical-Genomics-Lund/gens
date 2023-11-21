@@ -62,6 +62,10 @@ COPY --from=node-builder /usr/src/app/build/css/home.min.css /usr/src/app/build/
 COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/static/
 
 # make mountpoints and change ownership of app
+<<<<<<< bf5e0ce2b9d697b7370835158699c6e836bb9c1a
 RUN mkdir -p /access /fs1/results /fs1/results_dev && chown -R app:app /home/app/app /access /fs1 /fs1/results_dev
+=======
+RUN mkdir -p /access /fs1/results /fs1/results_dev && chown -R app:app /home/app/app /access /fs1
+>>>>>>> WIP API port
 # Change the user to app
 USER app

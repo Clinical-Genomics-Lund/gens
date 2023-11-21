@@ -65,6 +65,13 @@ class GensDb(Database):
     def __init__(self) -> None:
         super().__init__(GENS_DB_NAME)
 
+        # define collections
+        self.samples = None
+        self.updates = None
+        self.chrom_sizes = None
+        self.annotations = None
+        self.transcripts = None
+
     def setup(self, uri: str):
         """Setup database connection and collections.
 
