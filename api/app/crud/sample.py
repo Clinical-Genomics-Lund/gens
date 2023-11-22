@@ -4,7 +4,7 @@ import json
 import logging
 import os
 
-from app.db import gens_db
+from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
 from app.graph import Request, get_coverage
 from app.io import read_tabix_files
@@ -13,7 +13,7 @@ from app.models.sample import Sample, FrequencyQueryObject, GenomeBuild, Multipl
 LOG = logging.getLogger(__name__)
 
 
-def read_sample(sample_id: str, genome_build: GenomeBuild) -> Sample:
+def get_gens_sample(sample_id: str, genome_build: GenomeBuild) -> Sample:
     """Get a sample with id."""
     result = gens_db.samples.find_one(
         {"sample_id": sample_id, "genome_build": str(genome_build.value)}
@@ -33,7 +33,23 @@ def read_sample(sample_id: str, genome_build: GenomeBuild) -> Sample:
     )
 
 
-def read_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutput:
+def get_scout_case(case_name: str, projection={}):
+    """Query the Scout database for a case.
+
+    :param case_name: Case display name
+    :type case_name: str
+    :raises SampleNotFoundError: raised if sample is not in the Scout db
+    :return: Case information
+    :rtype: _type_
+    """    
+    result = scout_db.case.find_one({"display_name": case_name}, projection)
+
+    if result is None:
+        raise SampleNotFoundError(f'No sample with id: "{case_name}" in database')
+    return result
+
+
+def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutput:
     """Read default Log2 ratio and BAF values for overview graph."""
     sample_info: Sample = read_sample(query.sample_id, query.genome_build)
     # Try to find and load an overview json data file
