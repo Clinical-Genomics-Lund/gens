@@ -6,6 +6,7 @@ from fractions import Fraction
 from typing import Tuple
 
 import pysam
+from pysam.libctabix import TabixFile as TabixFileType
 
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
@@ -25,7 +26,9 @@ def _get_filepath(*args, check=True):
     return path
 
 
-def read_tabix_files(coverage_file: str, baf_file: str) -> Tuple[pysam.TabixFile, pysam.TabixFile]:
+def read_tabix_files(
+    coverage_file: str, baf_file: str
+) -> Tuple[TabixFileType, TabixFileType]:
     """Read coverage and baf Tabix files.
 
     :param coverage_file: coverage file path
@@ -33,22 +36,18 @@ def read_tabix_files(coverage_file: str, baf_file: str) -> Tuple[pysam.TabixFile
     :param baf_file: baf file path
     :type baf_file: str
     :return: Tabix indexed coverage files.
-    :rtype: Tuple[pysam.TabixFile, pysam.TabixFile]
-    """    
-    _get_filepath(coverage_file + ".tbi") and _get_filepath(baf_file + ".tbi")
+    :rtype: Tuple[TabixFileType, TabixFileType]
+    """
     cov_file = pysam.TabixFile(_get_filepath(coverage_file))
     baf_file = pysam.TabixFile(_get_filepath(baf_file))
     return cov_file, baf_file
 
 
 def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
-    """
-    Call tabix and generate an array of strings for each line it returns.
-    """
-
+    """Call tabix and generate an array of strings for each line it returns."""
     # Get data from bed file
     record_name = f"{res}_{chrom}"
-    LOG.info(f"Query {tbix.filename}; {record_name} {start} {end}; reduce: {reduce}")
+    LOG.info("Query %s; %s %d %d; reduce: %d", tbix.filename, record_name, start, end, reduce)
     try:
         records = tbix.fetch(record_name, start, end)
     except ValueError as err:

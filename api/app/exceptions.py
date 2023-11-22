@@ -1,5 +1,6 @@
 """Collection of shared exceptions."""
 
+
 class ConfigurationException(BaseException):
     """Configuration error."""
 
@@ -19,6 +20,6 @@ class NoRecordsException(GraphException):
 class SampleNotFoundError(Exception):
     """Raised when a sample is not found."""
 
+
 class RegionParserError(Exception):
     """Raised if there are errors parsing coverage or frequency info."""
-

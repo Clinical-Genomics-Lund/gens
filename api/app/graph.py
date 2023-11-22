@@ -3,22 +3,19 @@ import logging
 import re
 from collections import namedtuple
 
-from flask import current_app as app
-from flask import request
-
-from .cache import cache
-from .constants import CHROMOSOMES
-from .db import get_chromosome_size
+from .models.sample import Chromosomes, GenomeBuild
+from .crud.chromosome import read_chromosome_size
+from .db import gens_db
 from .exceptions import RegionParserError
 from .io import tabix_query
 
 LOG = logging.getLogger(__name__)
 
 
-GRAPH = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
-REGION = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
+Graph = namedtuple("graph", ("baf_ampl", "log2_ampl", "baf_ypos", "log2_ypos"))
+Region = namedtuple("region", ("res", "chrom", "start_pos", "end_pos"))
 
-REQUEST = namedtuple(
+Request = namedtuple(
     "request",
     (
         "region",
@@ -36,7 +33,6 @@ REQUEST = namedtuple(
 )
 
 
-@cache.memoize(0)
 def convert_data(
     graph, req, log2_list, baf_list, x_pos, new_start_pos, new_x_ampl, data_type="bed"
 ):
@@ -85,7 +81,7 @@ def find_chrom_at_pos(chrom_dims, height, current_x, current_y, margin):
     """
     current_chrom = None
 
-    for chrom in CHROMOSOMES:
+    for chrom in Chromosomes:
         x_pos = chrom_dims[chrom]["x_pos"]
         y_pos = chrom_dims[chrom]["y_pos"]
         width = chrom_dims[chrom]["width"]
@@ -102,10 +98,9 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     """
     Calculates the position for all chromosome graphs in the overview canvas
     """
-    db = app.config["GENS_DB"]
     chrom_dims = {}
-    for chrom in CHROMOSOMES:
-        chrom_data = get_chromosome_size(db, chrom, genome_build)
+    for chrom in Chromosomes:
+        chrom_data = read_chromosome_size(chrom, genome_build)
         chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
@@ -117,8 +112,7 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     return chrom_dims
 
 
-@cache.memoize(50)
-def parse_region_str(region, genome_build):
+def parse_region_str(region: str, genome_build: GenomeBuild):
     """
     Parses a region string
     """
@@ -140,26 +134,27 @@ def parse_region_str(region, genome_build):
 
     if name_search is not None:
         # Query is for a full range chromosome
-        if name_search.upper() in CHROMOSOMES:
+        if name_search.upper() in Chromosomes:
             start = 0
             end = "None"
             chrom = name_search.upper()
         else:
             # Lookup queried gene
-            collection = app.config["GENS_DB"]["transcripts" + genome_build]
-            start = collection.find_one(
+            start = gens_db.transcripts.find_one(
                 {
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
-                    )
+                    ),
+                    "genome_build": genome_build
                 },
                 sort=[("start", 1)],
             )
-            end = collection.find_one(
+            end = gens_db.transcripts.find_one(
                 {
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
-                    )
+                    ),
+                    "genome_build": genome_build
                 },
                 sort=[("end", -1)],
             )
@@ -171,8 +166,7 @@ def parse_region_str(region, genome_build):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    db = app.config["GENS_DB"]
-    chrom_data = get_chromosome_size(db, chrom, genome_build)
+    chrom_data = read_chromosome_size(chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
@@ -190,13 +184,14 @@ def parse_region_str(region, genome_build):
         start = max(0, start - (end - chrom_data["size"]))
         end = chrom_data["size"]
 
-    resolution = "d"
     if size > 15000000:
         resolution = "a"
     elif size > 1400000:
         resolution = "b"
     elif size > 200000:
         resolution = "c"
+    else:
+        resolution = "d"
 
     return resolution, chrom, start, end
 
@@ -207,7 +202,7 @@ def set_graph_values(req):
     """
     log2_height = abs(req.log2_y_end - req.log2_y_start)
     baf_height = abs(req.baf_y_end - req.baf_y_start)
-    return GRAPH(
+    return Graph(
         (req.plot_height - 2 * req.top_bottom_padding) / baf_height,
         (req.plot_height - req.top_bottom_padding * 2) / log2_height,
         req.y_pos + req.plot_height - req.top_bottom_padding,
@@ -215,15 +210,14 @@ def set_graph_values(req):
     )
 
 
-def set_region_values(parsed_region, x_ampl):
+def set_region_values(parsed_region, x_ampl, extra_plot_width=0, overview=False):
     """
     Sets region values
     """
-    extra_plot_width = float(request.args.get("extra_plot_width", 0))
     res, chrom, start_pos, end_pos = parsed_region
 
     # Set resolution for overview graph
-    if request.args.get("overview", False):
+    if overview:
         res = "o"
 
     # Move negative start and end position to positive values
@@ -238,7 +232,7 @@ def set_region_values(parsed_region, x_ampl):
     # X ampl contains the total width to plot x data on
     x_ampl = (x_ampl + 2 * extra_plot_width) / (new_end_pos - new_start_pos)
     return (
-        REGION(res, chrom, start_pos, end_pos),
+        Region(res, chrom, start_pos, end_pos),
         new_start_pos,
         new_end_pos,
         x_ampl,
@@ -246,9 +240,8 @@ def set_region_values(parsed_region, x_ampl):
     )
 
 
-def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
+def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
-    db = app.config["GENS_DB"]
     graph = set_graph_values(req)
     # parse region
     parsed_region = parse_region_str(req.region, req.genome_build)
@@ -273,7 +266,7 @@ def get_cov(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
 
         # Bound start and end balues to 0-chrom_size
         end = min(
-            new_end_pos, get_chromosome_size(db, region.chrom, req.genome_build)["size"]
+            new_end_pos, read_chromosome_size(region.chrom, req.genome_build)["size"]
         )
         start = max(new_start_pos, 0)
 
