@@ -13,7 +13,7 @@
 {% endmacro %}
 
 {% extends "layout.html" %}
-{% block title %}Visualization{% endblock title %}
+{% block title %}{{ sample_name }}{% endblock title %}
 {% block css_style %}
     {{ super() }}
     <link rel='stylesheet' href='{{ url_for('gens.static', filename='gens.min.css') }}' type='text/css'>
@@ -46,7 +46,7 @@
             <span class='date'>{{todays_date}}</span>
         </div>
         <div id='center-group'>
-            <span class='bold' title='Sample ID'>{{sample_name}}</span>
+            <span class='bold' title='Sample ID'>{{sample_name}} | {{case_id}} | {{individual_id}}</span>
             <span class='version'>(Genome build: {{genome_build}})</span>
         </div>
         <div id='right-group'>
@@ -157,7 +157,7 @@
     // Initiate variant, annotation and transcript canvases
     // and pass flask values to tracks
     const {ic, oc, ac, tc, vc} = gens.initCanvases({
-        sampleName: '{{ sample_name }}',
+        sampleName: '{{ individual_id }}',
         caseId: '{{ case_id }}',
         genomeBuild: {{ genome_build }},
         uiColors: {{ ui_colors | tojson | safe }},
