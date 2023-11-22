@@ -11,6 +11,7 @@ dependencies = [
     "uvicorn[standard]",
     "pydantic-factories",
     "pymongo==4.5.0",
+    "pysam>=0.15.4",
 ]
 authors = [
   {name = "Markus Johansson", email = "markus.h.johansson@skane.se"},
