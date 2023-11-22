@@ -1,7 +1,7 @@
 """Chromosome CRUD operation."""
 from app.db import gens_db
 from typing import Any
-from app.models.sample import GenomeBuild
+from app.models.genomic import GenomeBuild
 
 def read_chromosome_size(chromosome: str, genome_build: GenomeBuild = GenomeBuild.HG38) -> Any:
     """Read chromosome size from the database.

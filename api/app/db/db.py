@@ -108,7 +108,10 @@ class ScoutDb(Database):
         self.setup_collections()
 
     def setup_collections(self) -> None:
-        """."""
+        """Store Scout collections as methods."""
+
+        self.case = self.db["case"]
+        self.variant = self.db["variant"]
 
 
 gens_db = GensDb()
