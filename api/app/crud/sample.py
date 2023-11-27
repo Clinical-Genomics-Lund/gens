@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from typing import Dict
+from pathlib import Path
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
@@ -111,3 +112,9 @@ def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutpu
             "end": reg.end_pos,
         }
     return results
+
+
+def create_sample(sample_obj: Sample) -> None:
+    """Store a new sample in the database."""
+    LOG.info(f'Store sample %s in database', sample_obj.sample_id)
+    gens_db.samples.insert_one(sample_obj)
