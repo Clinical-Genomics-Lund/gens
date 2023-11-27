@@ -49,5 +49,13 @@ class RegionPosition(BaseModel):
     """Genomic region designation."""
 
     chromosome: Chromosomes
-    start: PositiveInt
-    end: PositiveInt
+    start: PositiveInt | None
+    end: PositiveInt | None
+
+    def has_coordinates(self) -> bool:
+        """Check if position has coordinates.
+
+        :return: Return true if start and end pos are defined
+        :rtype: bool
+        """        
+        return self.start is not None and self.end is not None

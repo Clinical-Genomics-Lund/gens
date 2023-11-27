@@ -12,8 +12,11 @@ router = APIRouter()
 
 DEFAULT_TAGS = ["sample"]
 
+
 @router.post("/get-multiple-coverages", tags=DEFAULT_TAGS)
-async def fetch_multiple_coverages(query: FrequencyQueryObject) -> Dict[str, str | MultipleCoverageOutput]:
+async def fetch_multiple_coverages(
+    query: FrequencyQueryObject,
+) -> Dict[str, str | MultipleCoverageOutput]:
     """Get BAF and LOG2 coverage information"""
     coverages: Frequencies = get_multiple_coverages(query)
     return jsonable_encoder({"results": coverages, "status": "ok"})
