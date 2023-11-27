@@ -17,7 +17,7 @@ COPY --chown=worker:worker pyproject.toml ./
 RUN pip install --no-cache-dir --editable .
 
 # make mountpoints and change ownership of app
-RUN mkdir -p /access /fs1/results /fs1/results_dev && chown -R app:app /home/app/app /access /fs1
+RUN mkdir -p /access /fs1/results /fs1/results_dev && chown -R worker:worker /access /fs1
 
 # run app as non-root user
 USER worker
