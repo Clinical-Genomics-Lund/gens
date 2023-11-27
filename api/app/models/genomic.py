@@ -55,6 +55,7 @@ class RegionPosition(BaseModel):
     chromosome: Chromosomes
     start: PositiveInt | None
     end: PositiveInt | None
+    genome_build: GenomeBuild | None
 
     def has_coordinates(self) -> bool:
         """Check if position has coordinates.

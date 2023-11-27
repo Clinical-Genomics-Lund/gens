@@ -2,11 +2,11 @@
 from typing import Any
 
 from app.db import gens_db
-from app.models.genomic import GenomeBuild
+from app.models.genomic import Chromosomes, GenomeBuild
 
 
-def read_chromosome_size(
-    chromosome: str, genome_build: GenomeBuild = GenomeBuild.HG38
+def get_chromosome(
+    chromosome: Chromosomes, genome_build: GenomeBuild = GenomeBuild.HG38
 ) -> Any:
     """Read chromosome size from the database.
 
@@ -20,9 +20,10 @@ def read_chromosome_size(
     """
     chrom_data = gens_db.chrom_sizes.find_one(
         {
-            "chrom": str(chromosome),
+            "chrom": chromosome.value,
             "genome_build": int(genome_build.value),
-        }
+        },
+        {"_id": 0},
     )
     if chrom_data is None:
         raise ValueError(

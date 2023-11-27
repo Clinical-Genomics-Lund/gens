@@ -1,11 +1,16 @@
 """Entrypoints relating to annotation tracks with regions of interest."""
 from typing import Any, List
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.crud.annotation import get_annotations_in_region
+from app.crud.annotation import (
+    get_annotations_in_region,
+    get_track_names,
+    search_annotation_db,
+)
+from app.crud.transcript import search_transcript_db
 from app.graph import parse_region_str
-from app.models.base import AnnotationTrackBaseOutput
+from app.models.base import AnnotationRecordTypes, AnnotationTrackBaseOutput
 from app.models.genomic import Chromosomes, GenomeBuild, RegionPosition
 
 router = APIRouter()
@@ -56,3 +61,45 @@ async def get_annotations(
         status="ok",
     )
     return output
+
+
+@router.get("/get-annotation-sources", tags=DEFAULT_TAGS)
+async def get_annotation_sources(genome_build: int) -> List[str]:
+    """Get annotation tracks in Gens.
+
+    :param genome_build: Genome build
+    :type genome_build: int
+    :return: List of annotation tracks
+    :rtype: List[str]
+    """
+    genome_build = GenomeBuild(genome_build)
+    names = get_track_names(genome_build)
+    return names
+
+
+@router.get("/search-annotation", tags=DEFAULT_TAGS)
+async def search_annotations(
+    query: str, genome_build: int, annotation_type: AnnotationRecordTypes
+) -> RegionPosition:
+    """Search annotation database."""
+    genome_build = GenomeBuild(genome_build)
+
+    if annotation_type == AnnotationRecordTypes.ANNOTATION:
+        result = search_annotation_db(query, genome_build)
+    else:
+        result = search_transcript_db(query, genome_build)
+
+    if len(result) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No element found"
+        )
+    else:
+        result = result[0]
+
+    position = RegionPosition(
+        chromosome=Chromosomes(result.get("chrom")),
+        start=result.get("start"),
+        end=result.get("end"),
+        genome_build=genome_build,
+    )
+    return position
