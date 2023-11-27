@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import allowed_origins
 from .db import close_mongo_connection, connect_to_mongo
-from .routers import root, sample, variant
+from .routers import annotation, root, sample, variant
 
 
 def configure_cors(application):
@@ -34,3 +34,4 @@ app.add_event_handler("shutdown", close_mongo_connection)
 app.include_router(root.router)
 app.include_router(sample.router)
 app.include_router(variant.router)
+app.include_router(annotation.router)

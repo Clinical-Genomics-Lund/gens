@@ -3,12 +3,12 @@ import logging
 import re
 from collections import namedtuple
 
-from .models.sample import Chromosomes, GenomeBuild
-from .models.base import ZoomLevel
 from .crud.chromosome import read_chromosome_size
 from .db import gens_db
 from .exceptions import RegionParserError
 from .io import tabix_query
+from .models.base import ZoomLevel
+from .models.sample import Chromosomes, GenomeBuild
 
 LOG = logging.getLogger(__name__)
 
@@ -146,7 +146,7 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
                     ),
-                    "genome_build": genome_build
+                    "genome_build": genome_build,
                 },
                 sort=[("start", 1)],
             )
@@ -155,7 +155,7 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
                     ),
-                    "genome_build": genome_build
+                    "genome_build": genome_build,
                 },
                 sort=[("end", -1)],
             )

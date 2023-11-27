@@ -47,7 +47,9 @@ def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
     """Call tabix and generate an array of strings for each line it returns."""
     # Get data from bed file
     record_name = f"{res}_{chrom}"
-    LOG.info("Query %s; %s %d %d; reduce: %d", tbix.filename, record_name, start, end, reduce)
+    LOG.info(
+        "Query %s; %s %d %d; reduce: %d", tbix.filename, record_name, start, end, reduce
+    )
     try:
         records = tbix.fetch(record_name, start, end)
     except ValueError as err:

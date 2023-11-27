@@ -1,7 +1,9 @@
 """Variant related data."""
 
-from pydantic import Field
 from typing import List
+
+from pydantic import Field
+
 from .base import RWModel
 from .genomic import VariantCategory
 
@@ -9,7 +11,7 @@ from .genomic import VariantCategory
 class ScoutVariant(RWModel):
     """Container of variant information from Scout."""
 
-    id: str = Field(..., alias='_id')
+    id: str = Field(..., alias="_id")
     variant_id: str
     display_name: str
     category: VariantCategory
