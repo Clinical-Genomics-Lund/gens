@@ -14,7 +14,7 @@ class Sample(RWModel):
     baf_file: str
     coverage_file: str
     overview_file: str | None = None
-    created_at: datetime
+    created_at: datetime = datetime.now()
 
 
 class ChromosomePosition(BaseModel):  # pylint: disable=too-few-public-methods
