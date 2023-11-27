@@ -3,7 +3,7 @@ import logging
 import re
 from collections import namedtuple
 
-from .crud.chromosome import read_chromosome_size
+from .crud.chromosome import get_chromosome
 from .db import gens_db
 from .exceptions import RegionParserError
 from .io import tabix_query
@@ -101,7 +101,7 @@ def overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build):
     """
     chrom_dims = {}
     for chrom in Chromosomes:
-        chrom_data = read_chromosome_size(chrom, genome_build)
+        chrom_data = get_chromosome(chrom, genome_build)
         chrom_width = plot_width * float(chrom_data["scale"])
         chrom_dims[chrom] = {
             "x_pos": x_pos,
@@ -167,7 +167,7 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
                 LOG.warning("Did not find range for gene name")
                 return None
 
-    chrom_data = read_chromosome_size(chrom, genome_build)
+    chrom_data = get_chromosome(chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
