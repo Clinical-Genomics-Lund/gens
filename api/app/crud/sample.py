@@ -3,12 +3,19 @@ import gzip
 import json
 import logging
 import os
+from typing import Dict
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
 from app.graph import Request, get_coverage
 from app.io import read_tabix_files
-from app.models.sample import Sample, FrequencyQueryObject, GenomeBuild, MultipleCoverageOutput, Chromosomes
+from app.models.sample import (
+    Chromosomes,
+    FrequencyQueryObject,
+    GenomeBuild,
+    MultipleCoverageOutput,
+    Sample,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +40,7 @@ def get_gens_sample(sample_id: str, genome_build: GenomeBuild) -> Sample:
     )
 
 
-def get_scout_case(case_name: str, projection={}):
+def get_scout_case(case_name: str, **projection: Dict[str, int]):
     """Query the Scout database for a case.
 
     :param case_name: Case display name
@@ -41,7 +48,7 @@ def get_scout_case(case_name: str, projection={}):
     :raises SampleNotFoundError: raised if sample is not in the Scout db
     :return: Case information
     :rtype: _type_
-    """    
+    """
     result = scout_db.case.find_one({"display_name": case_name}, projection)
 
     if result is None:
@@ -51,7 +58,7 @@ def get_scout_case(case_name: str, projection={}):
 
 def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutput:
     """Read default Log2 ratio and BAF values for overview graph."""
-    sample_info: Sample = read_sample(query.sample_id, query.genome_build)
+    sample_info: Sample = get_gens_sample(query.sample_id, query.genome_build)
     # Try to find and load an overview json data file
     json_data, cov_file, baf_file = None, None, None
     if sample_info.overview_file is not None and os.path.isfile(

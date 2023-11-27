@@ -1,29 +1,23 @@
 """Routers for reading and manipulating variant data."""
 
 from fastapi import APIRouter, HTTPException, status
-from typing import List, Any
-from pydantic import PositiveInt
 
-from app.exceptions import SampleNotFoundError
-from app.models.genomic import GenomeBuild, Chromosomes, VariantCategory, RegionPosition
-from app.models.base import RWModel, ZoomLevel
-from app.models.variant import ScoutVariants
 from app.crud.variant import get_variants as get_variants_data
+from app.exceptions import SampleNotFoundError
 from app.graph import parse_region_str
+from app.models.base import AnnotationTrackBaseOutput
+from app.models.genomic import Chromosomes, GenomeBuild, RegionPosition, VariantCategory
+from app.models.variant import ScoutVariants
 
 DEFAULT_TAGS = ["sample"]
 
 
-class VariantOutput(RWModel):
+class VariantOutput(
+    AnnotationTrackBaseOutput
+):  # pylint: disable=too-few-public-methods
     """Get variants entrypoint output format."""
 
-    chromosome: Chromosomes
-    start_pos: PositiveInt
-    end_pos: PositiveInt
     variants: ScoutVariants
-    max_height_order: int
-    res: ZoomLevel
-    status: str
 
 
 router = APIRouter()
@@ -57,7 +51,7 @@ async def get_variants(
         chromosome=chromosome,
         start_pos=start_pos,
         end_pos=end_pos,
-        variants=variants[0:2],
+        variants=variants,
         res=res,
         max_height_order=0 if region is not None else 1,
         status="ok",

@@ -1,10 +1,11 @@
 """Sample related data models."""
 from datetime import datetime
+from typing import Dict, List
+
 from pydantic import BaseModel, Field, PositiveInt
-from typing import List, Dict
 
 from .base import RWModel
-from .genomic import GenomeBuild, Chromosomes
+from .genomic import Chromosomes, GenomeBuild
 
 
 class Sample(RWModel):
