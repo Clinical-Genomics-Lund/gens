@@ -4,6 +4,7 @@ import re
 from collections import namedtuple
 
 from .models.sample import Chromosomes, GenomeBuild
+from .models.base import ZoomLevel
 from .crud.chromosome import read_chromosome_size
 from .db import gens_db
 from .exceptions import RegionParserError
@@ -185,13 +186,13 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
         end = chrom_data["size"]
 
     if size > 15000000:
-        resolution = "a"
+        resolution = ZoomLevel.A
     elif size > 1400000:
-        resolution = "b"
+        resolution = ZoomLevel.B
     elif size > 200000:
-        resolution = "c"
+        resolution = ZoomLevel.B
     else:
-        resolution = "d"
+        resolution = ZoomLevel.B
 
     return resolution, chrom, start, end
 
