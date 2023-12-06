@@ -8,6 +8,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
  - Changes the main view's page title to be `sample_name` and adds `sample_name` and `case_id` to the header title
+ - Updated external images used in GitHub actions, including tj-actions/branch-names to v7 (fixes a security issue)
+ - Updated Python and MongoDB version used in tests workflow to 3.8 and 7 respectively
 ### Fixed
 
 ## [2.1.1]
