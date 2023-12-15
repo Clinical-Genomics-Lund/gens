@@ -16,6 +16,7 @@ utils/hg38_annotations/
 venv/
 *.egg-info
 .eggs
+.idea
 
 # node
 node_modules

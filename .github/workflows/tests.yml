@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
-        mongodb-version: ["3.6"]
+        python-version: [3.8]
+        mongodb-version: ["7"]
 
     steps:
 
     # Check out Scout code
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # Set up python
     - name: Set up Python ${{ matrix.python-version}}
@@ -51,7 +51,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
