@@ -202,6 +202,42 @@ The **o** resolution is used only for the whole genome overview plot. The number
 
 We're using all SNPs in gnomAD with an total allele frequency > 5%, which in gnomAD 2.1 is approximately 7.5 million SNPs.
 
+### Loading reference tracks
+
+Gens allows adding multiple tracks, most easily provided in one directory. As an illustration, here is how to format a UCSC DGV bb track for Gens display.
+
+Download the DGV bb track from [UCSC](https://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=varRep&hgta_track=dgvPlus&hgta_table=dgvMerged&hgta_doSchema=describe+table+schema).
+Convert bigBed to Bed, cut relevant columns and name them according to Gens standard.
+```
+./bigBedToBed /home/proj/stage/rare-disease/gens-tracks/dgvMerged.bb dgvMerged.bed
+cut -f1,2,3,4,9 dgvMerged.bed > dgvMerged.fivecol.bed
+cat > header
+Chromosome	Start	Stop	Name	Color
+cat header dgvMerged.fivecol.bed > /home/proj/stage/rare-disease/gens-tracks/DGV_UCSC_2023-03-09.bed
+```
+
+```
+us
+conda activate S_gens
+gens load annotations -b 37 -f /home/proj/stage/rare-disease/gens-tracks
+```
+
+This should result in something like:
+```
+[2023-12-15 14:45:06,959] INFO in app: Using default Gens configuration
+[2023-12-15 14:45:06,959] INFO in db: Initialize db connection
+[2023-12-15 14:45:07,111] INFO in load: Processing files
+[2023-12-15 14:45:07,112] INFO in load: Processing /home/proj/stage/rare-disease/gens-tracks/Final_common_CNV_clusters_0.bed
+[2023-12-15 14:45:07,144] INFO in load: Remove old entry in the database
+[2023-12-15 14:45:07,230] INFO in load: Load annoatations in the database
+[2023-12-15 14:45:07,309] INFO in load: Update height order
+[2023-12-15 14:45:10,792] INFO in load: Processing /home/proj/stage/rare-disease/gens-tracks/DGV_UCSC_2023-03-09.bed
+[2023-12-15 14:45:16,170] INFO in load: Remove old entry in the database
+[2023-12-15 14:45:16,173] INFO in load: Load annoatations in the database
+[2023-12-15 14:45:41,873] INFO in load: Update height order
+Finished loading annotations ✔
+```
+
 ## Limitations
 
 - Currently no efforts have been made to make it work for non-human organisms. Chromosome names are currently hardcoded to 1-23,X,Y.

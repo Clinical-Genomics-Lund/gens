@@ -6,6 +6,10 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
 ### Added
+- Document track processing and loading
+
+## [2.1.1]
+### Added
 ### Changed
  - Changes the main view's page title to be `sample_name` and adds `sample_name` and `case_id` to the header title
  - Updated external images used in GitHub actions, including tj-actions/branch-names to v7 (fixes a security issue)
