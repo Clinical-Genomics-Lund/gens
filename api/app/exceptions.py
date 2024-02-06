@@ -21,5 +21,9 @@ class SampleNotFoundError(Exception):
     """Raised when a sample is not found."""
 
 
+class ParserException(Exception):
+    """Raised if there are errors parsing coverage or frequency info."""
+
+
 class RegionParserError(Exception):
     """Raised if there are errors parsing coverage or frequency info."""
