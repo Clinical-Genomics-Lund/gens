@@ -25,7 +25,7 @@ class AnnotationOutput(
 
     annotations: List[Any]
 
-
+# -> AnnotationOutput
 @router.get("/get-annotation-data", tags=DEFAULT_TAGS)
 async def get_annotations(
     region: str,
@@ -34,11 +34,11 @@ async def get_annotations(
     collapsed: bool = Query(
         ..., description="If track should be rendered as collapsed or not"
     ),
-) -> AnnotationOutput:
+):
     """Get annotation for track."""
     genome_build = GenomeBuild(genome_build)  # todo remove
     res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
-    region = RegionPosition(chromosome=Chromosomes(chrom), start=start_pos, end=end_pos)
+    region = RegionPosition(chromosome=Chromosomes(chrom), start=start_pos, end=end_pos, genome_build=genome_build)
     annotations = list(
         get_annotations_in_region(
             track_name=source,

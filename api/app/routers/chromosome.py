@@ -26,5 +26,5 @@ def get_dimensions(
 ):
     """Calclulate the on screen dimensions of the ideogram."""
     genome_build = GenomeBuild(genome_build)
-    dimensions = overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build.value)
+    dimensions = overview_chrom_dimensions(x_pos, y_pos, plot_width, genome_build)
     return {"status": "ok", "chrom_dims": dimensions}
