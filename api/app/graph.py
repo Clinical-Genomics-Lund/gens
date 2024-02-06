@@ -124,7 +124,7 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
             chrom, pos_range = region.split(":")
             start, end = pos_range.split("-")
             chrom.replace("chr", "")
-            chrom = chrom.upper()
+            chrom = Chromosomes(chrom.upper())
         else:
             # Not in standard format, query in form of full chromsome
             # or gene
@@ -146,7 +146,7 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
                     ),
-                    "genome_build": genome_build,
+                    "genome_build": genome_build.value,
                 },
                 sort=[("start", 1)],
             )
@@ -155,12 +155,12 @@ def parse_region_str(region: str, genome_build: GenomeBuild):
                     "gene_name": re.compile(
                         "^" + re.escape(name_search) + "$", re.IGNORECASE
                     ),
-                    "genome_build": genome_build,
+                    "genome_build": genome_build.value,
                 },
                 sort=[("end", -1)],
             )
             if start is not None and end is not None:
-                chrom = start["chrom"]
+                chrom = Chromosomes(start["chrom"])
                 start = start["start"]
                 end = end["end"]
             else:

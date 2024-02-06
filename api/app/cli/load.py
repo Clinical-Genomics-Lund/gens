@@ -7,12 +7,11 @@ from app.models.genomic import GenomeBuild
 from app.models.sample import Sample
 from app.db import gens_db
 from app.crud.sample import create_sample
-from gens.db import (ANNOTATIONS_COLLECTION, CHROMSIZES_COLLECTION,
-                     SAMPLES_COLLECTION, TRANSCRIPTS_COLLECTION, create_index,
-                     get_indexes, register_data_update)
-from gens.load import (ParserError, build_chromosomes_obj, build_transcripts,
-                       get_assembly_info, parse_annotation_entry,
-                       parse_annotation_file, update_height_order)
+from ..db import GensDbCollections, create_index, get_indexes
+from ..io.chromosomes import build_chromosomes_obj, get_assembly_info
+from ..io.transcripts import build_transcripts
+from ..io.annotation import parse_annotation_file, parse_annotation_entry, update_height_order
+from ..exceptions import ParserException
 
 LOG = logging.getLogger(__name__)
 
@@ -111,7 +110,7 @@ def annotations(file, genome_build):
                         entry, genome_build, annotation_name
                     )
                     annotation_obj.append(entry_obj)
-                except ParserError as err:
+                except ParserException as err:
                     LOG.warning(str(err))
                     continue
 

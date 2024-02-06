@@ -1,6 +1,7 @@
 """Mongodb interface."""
 
 import logging
+from enum import Enum
 
 from pymongo import MongoClient
 from pymongo.database import Database as MongoDatabase
@@ -11,6 +12,16 @@ from app.config import GENS_DB_NAME, SCOUT_DB_NAME
 from .errors import ConnectionNotConfigured, DatabaseConnectionError
 
 LOG = logging.getLogger(__name__)
+
+
+class GensDbCollections(Enum):
+    """Collections in the Gens db"""
+
+    SAMPLE = 'samples'
+    UPDATES = 'updates'
+    CHROMOSOME_SIZE = 'chrom-sizes'
+    ANNOTATION = 'annotations'
+    TRANSCRIPT = 'transcripts'
 
 
 class Database:
@@ -84,11 +95,11 @@ class GensDb(Database):
     def setup_collections(self) -> None:
         """Store Gens collections as methods."""
 
-        self.samples = self.db["samples"]
-        self.updates = self.db["updates"]
-        self.chrom_sizes = self.db["chrom-sizes"]
-        self.annotations = self.db["annotations"]
-        self.transcripts = self.db["transcripts"]
+        self.samples = self.db[GensDbCollections.SAMPLE.value]
+        self.updates = self.db[GensDbCollections.UPDATES.value]
+        self.chrom_sizes = self.db[GensDbCollections.CHROMOSOME_SIZE.value]
+        self.annotations = self.db[GensDbCollections.ANNOTATION.value]
+        self.transcripts = self.db[GensDbCollections.TRANSCRIPT.value]
 
 
 class ScoutDb(Database):

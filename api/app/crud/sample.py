@@ -4,7 +4,6 @@ import json
 import logging
 import os
 from typing import Dict
-from pathlib import Path
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
