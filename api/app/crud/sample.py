@@ -4,6 +4,8 @@ import json
 import logging
 import os
 from typing import Dict
+from pymongo import DESCENDING
+from fastapi.encoders import jsonable_encoder    
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
@@ -38,6 +40,41 @@ def get_gens_sample(sample_id: str, genome_build: GenomeBuild) -> Sample:
         overview_file=result["overview_file"],
         created_at=result["created_at"],
     )
+
+
+def create_gens_sample(sample: Sample) -> Sample:
+    """Create new sample."""
+    resp = gens_db.samples.insert_one(jsonable_encoder(sample, by_alias=False))
+    return resp.inserted_id
+
+
+def get_gens_samples(skip=None, limit=None):
+    """Get samples stored in the databse.
+
+    use n_samples to limit the results to x most recent samples
+    """
+    samples = []
+    query = gens_db.samples.find().sort("created_at", DESCENDING) 
+    # add limit
+    if skip is not None and isinstance(skip, int):
+        query = query.skip(skip)
+
+    if limit is not None and isinstance(limit, int):
+        query = query.limit(limit)
+
+    # fetch result and cast to sample object
+    results = []
+    for res in query:
+        sample_obj = Sample(
+            sample_id=res["sample_id"],
+            genome_build=int(res["genome_build"]),
+            baf_file=res["baf_file"],
+            coverage_file=res["coverage_file"],
+            overview_file=res["overview_file"],
+            created_at=res["created_at"],
+        )
+        results.append(sample_obj)
+    return results
 
 
 def get_scout_case(case_name: str, **projection: Dict[str, int]):
