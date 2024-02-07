@@ -35,6 +35,7 @@
 {% block body %}
 {{ loading() }}
 <div id='main-container'>
+    API URL {{ api_url }}
     <div class="header">
         <div id='left-group'>
             <a id="home-link" href="{{ url_for('home.home') }}">
@@ -102,7 +103,7 @@
 </div>
 <script>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-    const _apiHost = 'api/';
+    const _apiHost = '{{ api_url }}';
 
     // Print page settings
     let printing = false;

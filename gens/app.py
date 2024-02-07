@@ -6,8 +6,7 @@ import os
 from datetime import date
 from logging.config import dictConfig
 
-import connexion
-from flask import abort, render_template, request
+from flask import abort, render_template, request, Flask
 from flask_compress import Compress
 
 from .__version__ import VERSION as version
@@ -17,7 +16,6 @@ from .db import SampleNotFoundError, init_database
 from .errors import (generic_abort_error, generic_exception_error, sample_not_found)
 from .graph import parse_region_str
 from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from connexion.resolver import RestyResolver
 
 dictConfig(
     {
@@ -44,9 +42,7 @@ compress = Compress()
 
 def create_app():
     """Create and setup Gens application."""
-    application = connexion.FlaskApp(__name__, specification_dir="openapi/")
-    application.add_api("openapi.yaml")
-    app = application.app
+    app = Flask(__name__)
     # configure app
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
     app.config.from_object("gens.config")
@@ -66,7 +62,7 @@ def create_app():
     initialize_extensions(app)
     # register bluprints and errors
     register_blueprints(app)
-    register_errors(app)
+    #register_errors(app)
 
     return app
 
