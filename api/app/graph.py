@@ -267,7 +267,7 @@ def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
 
         # Bound start and end balues to 0-chrom_size
         end = min(
-            new_end_pos, read_chromosome_size(region.chrom, req.genome_build)["size"]
+            new_end_pos, get_chromosome(region.chrom, req.genome_build)["size"]
         )
         start = max(new_start_pos, 0)
 

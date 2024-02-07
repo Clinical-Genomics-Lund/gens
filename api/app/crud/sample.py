@@ -5,7 +5,8 @@ import logging
 import os
 from typing import Dict
 from pymongo import DESCENDING
-from fastapi.encoders import jsonable_encoder    
+from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
@@ -18,6 +19,7 @@ from app.models.sample import (
     MultipleCoverageOutput,
     Sample,
 )
+from ..exceptions import RegionParserError
 
 LOG = logging.getLogger(__name__)
 
@@ -91,6 +93,73 @@ def get_scout_case(case_name: str, **projection: Dict[str, int]):
     if result is None:
         raise SampleNotFoundError(f'No sample with id: "{case_name}" in database')
     return result
+
+
+def get_region_coverage(
+    sample_id,
+    region,
+    x_pos,
+    y_pos,
+    plot_height,
+    top_bottom_padding,
+    baf_y_start,
+    baf_y_end,
+    log2_y_start,
+    log2_y_end,
+    genome_build,
+    reduce_data,
+    x_ampl,
+):
+    """
+    Reads and formats Log2 ratio and BAF values for overview graph
+    Returns the coverage in screen coordinates for frontend rendering
+    """
+    # Validate input
+    if sample_id == "":
+        msg = f"Invalid case_id: {sample_id}"
+        LOG.error(msg)
+        raise HTTPException(
+            status=status.HTTP_416_RANGE_NOT_SATISFIABLE,
+            detail=msg,
+        )
+
+    # Set some input values
+    req = Request(
+        region,
+        x_pos,
+        y_pos,
+        plot_height,
+        top_bottom_padding,
+        baf_y_start,
+        baf_y_end,
+        log2_y_start,
+        log2_y_end,
+        genome_build,
+        reduce_data,
+    )
+    sample_obj = get_gens_sample(sample_id, genome_build)
+    cov_file, baf_file = read_tabix_files(sample_obj.coverage_file, sample_obj.baf_file)
+    # Parse region
+    try:
+        reg, n_start, n_end, log2_rec, baf_rec = get_coverage(
+            req, x_ampl, cov_fh=cov_file, baf_fh=baf_file
+        )
+    except RegionParserError as err:
+        LOG.error(f"{type(err).__name__} - {err}")
+    except Exception as err:
+        LOG.error(f"{type(err).__name__} - {err}")
+
+    return { 
+        "data": log2_rec,
+        "baf": baf_rec,
+        "chrom": reg.chrom,
+        "x_pos": round(req.x_pos),
+        "y_pos": round(req.y_pos),
+        "query_start": reg.start_pos,
+        "query_end": reg.end_pos,
+        "padded_start": n_start,
+        "padded_end": n_end,
+     }
 
 
 def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutput:
