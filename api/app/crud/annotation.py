@@ -60,7 +60,9 @@ def get_track_names(genome_build: GenomeBuild) -> List[str]:
     :return: List of annotation track names.
     :rtype: List[str]
     """
-    names = gens_db.annotations.distinct("source", {"genome_build": str(genome_build.value)})
+    names = gens_db.annotations.distinct(
+        "source", {"genome_build": str(genome_build.value)}
+    )
     return names
 
 

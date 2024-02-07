@@ -241,7 +241,9 @@ def set_region_values(parsed_region, x_ampl, extra_plot_width=0, overview=False)
     )
 
 
-def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
+def get_coverage(
+    req, x_ampl, extra_plot_width=0, json_data=None, cov_fh=None, baf_fh=None
+):
     """Get Log2 ratio and BAF values for chromosome with screen coordinates."""
     graph = set_graph_values(req)
     # parse region
@@ -256,7 +258,9 @@ def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         new_end_pos,
         new_x_ampl,
         extra_plot_width,
-    ) = set_region_values(parsed_region, x_ampl)
+    ) = set_region_values(
+        parsed_region, x_ampl=x_ampl, extra_plot_width=extra_plot_width
+    )
 
     if json_data:
         data_type = "json"
@@ -266,9 +270,7 @@ def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
         data_type = "bed"
 
         # Bound start and end balues to 0-chrom_size
-        end = min(
-            new_end_pos, get_chromosome(region.chrom, req.genome_build)["size"]
-        )
+        end = min(new_end_pos, get_chromosome(region.chrom, req.genome_build)["size"])
         start = max(new_start_pos, 0)
 
         # Load BAF and Log2 data from tabix files

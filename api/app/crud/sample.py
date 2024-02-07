@@ -4,9 +4,10 @@ import json
 import logging
 import os
 from typing import Dict
-from pymongo import DESCENDING
+
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
+from pymongo import DESCENDING
 
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
@@ -19,6 +20,7 @@ from app.models.sample import (
     MultipleCoverageOutput,
     Sample,
 )
+
 from ..exceptions import RegionParserError
 
 LOG = logging.getLogger(__name__)
@@ -56,7 +58,7 @@ def get_gens_samples(skip=None, limit=None):
     use n_samples to limit the results to x most recent samples
     """
     samples = []
-    query = gens_db.samples.find().sort("created_at", DESCENDING) 
+    query = gens_db.samples.find().sort("created_at", DESCENDING)
     # add limit
     if skip is not None and isinstance(skip, int):
         query = query.skip(skip)
@@ -102,6 +104,7 @@ def get_region_coverage(
     y_pos,
     plot_height,
     top_bottom_padding,
+    extra_plot_width,
     baf_y_start,
     baf_y_end,
     log2_y_start,
@@ -142,14 +145,18 @@ def get_region_coverage(
     # Parse region
     try:
         reg, n_start, n_end, log2_rec, baf_rec = get_coverage(
-            req, x_ampl, cov_fh=cov_file, baf_fh=baf_file
+            req,
+            extra_plot_width=extra_plot_width,
+            x_ampl=x_ampl,
+            cov_fh=cov_file,
+            baf_fh=baf_file,
         )
     except RegionParserError as err:
         LOG.error(f"{type(err).__name__} - {err}")
     except Exception as err:
         LOG.error(f"{type(err).__name__} - {err}")
 
-    return { 
+    return {
         "data": log2_rec,
         "baf": baf_rec,
         "chrom": reg.chrom,
@@ -159,7 +166,7 @@ def get_region_coverage(
         "query_end": reg.end_pos,
         "padded_start": n_start,
         "padded_end": n_end,
-     }
+    }
 
 
 def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutput:
@@ -221,5 +228,5 @@ def get_multiple_coverages(query: FrequencyQueryObject) -> MultipleCoverageOutpu
 
 def create_sample(sample_obj: Sample) -> None:
     """Store a new sample in the database."""
-    LOG.info(f'Store sample %s in database', sample_obj.sample_id)
+    LOG.info(f"Store sample %s in database", sample_obj.sample_id)
     gens_db.samples.insert_one(sample_obj)

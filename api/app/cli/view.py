@@ -6,9 +6,8 @@ from itertools import groupby
 import click
 from flask import current_app as app
 from flask.cli import with_appcontext
-from tabulate import tabulate
-
 from gens.db import get_samples
+from tabulate import tabulate
 
 LOG = logging.getLogger(__name__)
 
