@@ -26,6 +26,9 @@ def configure_cors(application):
 # Setup API
 app = FastAPI(title="Gens")
 
+# configure CORS
+configure_cors(app)
+
 # configure events
 app.add_event_handler("startup", connect_to_mongo)
 app.add_event_handler("shutdown", close_mongo_connection)

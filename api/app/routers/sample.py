@@ -5,7 +5,7 @@ from typing import Dict, List
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 
-from app.crud.sample import get_multiple_coverages, get_gens_samples, get_gens_sample, create_gens_sample
+from app.crud.sample import get_region_coverage, get_multiple_coverages, get_gens_samples, get_gens_sample, create_gens_sample
 from app.models.sample import FrequencyQueryObject, MultipleCoverageOutput, Sample, GenomeBuild
 
 router = APIRouter()
@@ -35,6 +35,37 @@ async def create_sample(sample: Sample) -> Sample:
     """Read info on a single sample."""
     status = create_gens_sample(sample)
     return jsonable_encoder(sample)
+
+
+# region=1:1-248956422
+#sample_id=23MD10254
+# genome_build=38
+#hg_filedir=undefined&x_pos=753.6&y_pos=94&plot_height=180&extra_plot_width=753.6
+#top_bottom_padding=8&x_ampl=1130.4&baf_y_start=1&baf_y_end=0&log2_y_start=4&log2_y_end=-4&reduce_data=1
+@router.get("/get-coverage", tags=DEFAULT_TAGS)
+async def get_coverage_for_region(
+    sample_id: str,
+    region: str,
+    genome_build: int,
+    x_pos: float,
+    y_pos: float,
+    plot_height: int,
+    extra_plot_width: float,
+    top_bottom_padding: int,
+    x_ampl: float,
+    baf_y_start: int,
+    baf_y_end: int,
+    log2_y_start: int,
+    log2_y_end: int,
+    reduce_data: int,
+):
+    """Get BAF and LOG2 coverage information for a given region."""
+    query = {}
+    genome_build = GenomeBuild(genome_build)
+    coverage = get_region_coverage(
+        sample_id, region, x_pos, y_pos, plot_height, top_bottom_padding, baf_y_start, baf_y_end, log2_y_start, log2_y_end, genome_build, reduce_data, x_ampl
+    )
+    return jsonable_encoder({"status": "ok", **coverage})
 
 
 @router.post("/get-multiple-coverages", tags=DEFAULT_TAGS)

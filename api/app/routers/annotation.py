@@ -1,5 +1,5 @@
 """Entrypoints relating to annotation tracks with regions of interest."""
-from typing import Any, List
+from typing import Any, List, Dict
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -64,7 +64,7 @@ async def get_annotations(
 
 
 @router.get("/get-annotation-sources", tags=DEFAULT_TAGS)
-async def get_annotation_sources(genome_build: int) -> List[str]:
+async def get_annotation_sources(genome_build: int) -> Dict[str, str | List[str]]:
     """Get annotation tracks in Gens.
 
     :param genome_build: Genome build
@@ -74,7 +74,7 @@ async def get_annotation_sources(genome_build: int) -> List[str]:
     """
     genome_build = GenomeBuild(genome_build)
     names = get_track_names(genome_build)
-    return names
+    return {"status": "ok", "sources": names}
 
 
 @router.get("/search-annotation", tags=DEFAULT_TAGS)
