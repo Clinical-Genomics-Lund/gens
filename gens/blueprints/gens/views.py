@@ -67,6 +67,7 @@ def display_case(sample_name):
     )
 
     _, chrom, start_pos, end_pos = parsed_region
+    api_url = current_app.config["GENS_API_URL"]
     return render_template(
         "gens.html",
         ui_colors=current_app.config["UI_COLORS"],
@@ -78,6 +79,7 @@ def display_case(sample_name):
         print_page=print_page,
         annotation=annotation,
         selected_variant=selected_variant,
+        api_url=api_url,
         todays_date=date.today(),
         version=version,
     )

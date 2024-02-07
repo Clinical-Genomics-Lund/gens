@@ -1,9 +1,13 @@
 """Gens default configuration."""
+import os
+
 # Database connection
 MONGODB_HOST = "mongodb"
 MONGODB_PORT = 27017
 GENS_DBNAME = "gens"
 SCOUT_DBNAME = "scout"
+
+GENS_API_URL = os.getenv("GENS_API_URL", "http://mtlucmds2.lund.skane.se:8815/") 
 
 # Annotation
 DEFAULT_ANNOTATION_TRACK = (
