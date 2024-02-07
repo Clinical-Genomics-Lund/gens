@@ -260,8 +260,8 @@ def get_coverage(req, x_ampl, json_data=None, cov_fh=None, baf_fh=None):
 
     if json_data:
         data_type = "json"
-        baf_list = json_data[region.chrom]["baf"]
-        log2_list = json_data[region.chrom]["cov"]
+        baf_list = json_data[region.chrom.value]["baf"]
+        log2_list = json_data[region.chrom.vlaue]["cov"]
     else:
         data_type = "bed"
 

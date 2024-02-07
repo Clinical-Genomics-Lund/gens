@@ -8,6 +8,9 @@ from typing import Tuple
 import pysam
 from pysam.libctabix import TabixFile as TabixFileType
 
+from ..models.genomic import Chromosomes 
+from ..models.base import ZoomLevel
+
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
 JSON_SUFFIX = ".overview.json.gz"
@@ -43,10 +46,10 @@ def read_tabix_files(
     return cov_file, baf_file
 
 
-def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
+def tabix_query(tbix, res: ZoomLevel, chrom: Chromosomes, start: float | None = None, end: float | None=None, reduce=None):
     """Call tabix and generate an array of strings for each line it returns."""
     # Get data from bed file
-    record_name = f"{res}_{chrom}"
+    record_name = f"{res.value}_{chrom.value}"
     LOG.info(
         "Query %s; %s %d %d; reduce: %d", tbix.filename, record_name, start, end, reduce
     )
