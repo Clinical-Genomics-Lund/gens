@@ -3,11 +3,11 @@ import csv
 import logging
 import re
 
-from pymongo import ASCENDING
-from app.exceptions import ParserException
-
 from gens.constants import CHROMOSOMES
 from gens.db import ANNOTATIONS_COLLECTION
+from pymongo import ASCENDING
+
+from app.exceptions import ParserException
 
 LOG = logging.getLogger(__name__)
 CORE_FIELDS = ("sequence", "start", "end", "name", "strand", "color", "score")

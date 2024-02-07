@@ -1,3 +1,3 @@
 """Functions for IO operations."""
 
-from .coverage import tabix_query, read_tabix_files
+from .coverage import read_tabix_files, tabix_query

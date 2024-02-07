@@ -1,5 +1,5 @@
 """Entrypoints relating to annotation tracks with regions of interest."""
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -25,6 +25,7 @@ class AnnotationOutput(
 
     annotations: List[Any]
 
+
 # -> AnnotationOutput
 @router.get("/get-annotation-data", tags=DEFAULT_TAGS)
 async def get_annotations(
@@ -38,7 +39,12 @@ async def get_annotations(
     """Get annotation for track."""
     genome_build = GenomeBuild(genome_build)  # todo remove
     res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
-    region = RegionPosition(chromosome=Chromosomes(chrom), start=start_pos, end=end_pos, genome_build=genome_build)
+    region = RegionPosition(
+        chromosome=Chromosomes(chrom),
+        start=start_pos,
+        end=end_pos,
+        genome_build=genome_build,
+    )
     annotations = list(
         get_annotations_in_region(
             track_name=source,

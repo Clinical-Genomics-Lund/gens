@@ -17,11 +17,11 @@ LOG = logging.getLogger(__name__)
 class GensDbCollections(Enum):
     """Collections in the Gens db"""
 
-    SAMPLE = 'samples'
-    UPDATES = 'updates'
-    CHROMOSOME_SIZE = 'chrom-sizes'
-    ANNOTATION = 'annotations'
-    TRANSCRIPT = 'transcripts'
+    SAMPLE = "samples"
+    UPDATES = "updates"
+    CHROMOSOME_SIZE = "chrom-sizes"
+    ANNOTATION = "annotations"
+    TRANSCRIPT = "transcripts"
 
 
 class Database:

@@ -2,6 +2,7 @@
 import logging
 
 from pymongo import ASCENDING, IndexModel
+
 from .db import GensDbCollections
 
 LOG = logging.getLogger(__name__)

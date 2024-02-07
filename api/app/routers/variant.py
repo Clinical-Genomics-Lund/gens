@@ -35,7 +35,12 @@ async def get_variants(
     res, chromosome, start_pos, end_pos = parse_region_str(region, genome_build)
     if chromosome is not None:
         chromosome = Chromosomes(chromosome)
-        region = RegionPosition(chromosome=chromosome, start=start_pos, end=end_pos, genome_build=genome_build)
+        region = RegionPosition(
+            chromosome=chromosome,
+            start=start_pos,
+            end=end_pos,
+            genome_build=genome_build,
+        )
     else:
         region = None
 

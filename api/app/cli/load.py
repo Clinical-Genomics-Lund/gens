@@ -3,15 +3,20 @@ from pathlib import Path
 
 import click
 
+from app.crud.sample import create_sample
+from app.db import gens_db
 from app.models.genomic import GenomeBuild
 from app.models.sample import Sample
-from app.db import gens_db
-from app.crud.sample import create_sample
+
 from ..db import GensDbCollections, create_index, get_indexes
+from ..exceptions import ParserException
+from ..io.annotation import (
+    parse_annotation_entry,
+    parse_annotation_file,
+    update_height_order,
+)
 from ..io.chromosomes import build_chromosomes_obj, get_assembly_info
 from ..io.transcripts import build_transcripts
-from ..io.annotation import parse_annotation_file, parse_annotation_entry, update_height_order
-from ..exceptions import ParserException
 
 LOG = logging.getLogger(__name__)
 
