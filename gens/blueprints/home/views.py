@@ -84,3 +84,8 @@ def about():
         config=config,
         ui_colors=ui_colors,
     )
+
+@public_endpoint
+@home_bp.route("/landing")
+def landing():
+    return render_template("landing.html")
