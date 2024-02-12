@@ -3,11 +3,9 @@ Whole genome visualization of BAF and log2 ratio
 """
 import logging
 import os
-from datetime import date
 from logging.config import dictConfig
 
 import connexion
-from flask import abort, render_template, request
 from flask_compress import Compress
 
 from .__version__ import VERSION as version
@@ -15,13 +13,11 @@ from .blueprints import gens_bp, home_bp
 from .cache import cache
 from .db import SampleNotFoundError, init_database
 from .errors import (generic_abort_error, generic_exception_error, sample_not_found)
-from .graph import parse_region_str
-from .io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
-from connexion.resolver import RestyResolver
+from .extensions import login_manager
 
 dictConfig(
     {
-        "version": 1,
+        "version": version,
         "disable_existing_loggers": False,
         "formatters": {
             "default": {
@@ -64,6 +60,9 @@ def create_app():
 
     # prepare app context
     initialize_extensions(app)
+
+    configure_extensions(app)
+
     # register bluprints and errors
     register_blueprints(app)
     register_errors(app)
@@ -75,6 +74,34 @@ def initialize_extensions(app):
     """Initialize flask extensions."""
     cache.init_app(app)
     compress.init_app(app)
+    login_manager.init_app(app)
+
+
+def configure_extensions(app):
+    # configure extensions
+    if app.config.get("GOOGLE"):
+        LOG.info("Google login enabled")
+        # setup connection to google oauth2
+        configure_oauth_login(app)
+
+
+def configure_oauth_login(app):
+    """Register the Google Oauth2 login client using config settings"""
+
+    google_conf = app.config["GOOGLE"]
+    discovery_url = google_conf.get("discovery_url")
+    client_id = google_conf.get("client_id")
+    client_secret = google_conf.get("client_secret")
+
+    extensions.oauth_client.init_app(app)
+
+    extensions.oauth_client.register(
+        name="google",
+        server_metadata_url=discovery_url,
+        client_id=client_id,
+        client_secret=client_secret,
+        client_kwargs={"scope": "openid email profile"},
+    )
 
 
 def register_errors(app):
