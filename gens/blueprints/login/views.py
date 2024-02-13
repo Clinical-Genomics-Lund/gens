@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, flash, redirect, request, url_for
 
 from flask_login import login_user, logout_user
 
@@ -9,6 +9,8 @@ from gens.extensions import login_manager, oauth_client
 from gens.blueprints.home.views import public_endpoint
 
 # from . import controllers
+
+LOG = logging.getLogger(__name__)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -47,14 +49,14 @@ def login():
             except Exception as ex:
                 flash("An error has occurred while logging user in using Google OAuth")
 
-    if request.args.get("email"):  # Log in against Scout database
+    if request.form.get("email"):  # Log in against Scout database
         user_mail = request.args.get("email")
         LOG.info("Validating user %s against Scout database", user_mail)
 
     user_obj = user(user_mail)
     if user_obj is None:
         flash("User not found in Scout database", "warning")
-        return redirect(url_for("public.index"))
+        return redirect(url_for("home.landing"))
 
     return perform_login(user_obj)
 
@@ -78,7 +80,7 @@ def logout():
     session.pop("name", None)
     session.pop("locale", None)
     flash("You have been logged out", "success")
-    return redirect(url_for("public.index"))
+    return redirect(url_for("home.landing"))
 
 
 def perform_login(user_dict):

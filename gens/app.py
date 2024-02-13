@@ -136,3 +136,4 @@ def register_blueprints(app):
     """Register blueprints."""
     app.register_blueprint(gens_bp)
     app.register_blueprint(home_bp)
+    app.register_blueprint(login_bp)

@@ -1,6 +1,8 @@
 """Retrieve users from scout db"""
 from flask_login import UserMixin
 
+from flask import current_app as app
+
 from typing import Optional
 
 class LoginUser(UserMixin):
@@ -22,6 +24,7 @@ class LoginUser(UserMixin):
 def user(email: str) -> Optional[LoginUser]:
     db = app.config["SCOUT_DB"]
 
+    query = {}
     query["email"] = email
 
     user_dict = db.user.find_one(query)

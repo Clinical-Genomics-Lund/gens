@@ -4,6 +4,7 @@ import logging
 import os
 
 from flask import Blueprint, current_app, render_template, request
+from flask_login import current_user
 
 from gens import version
 from gens.db import get_samples, get_timestamps
@@ -95,4 +96,6 @@ def public_endpoint(function):
 @home_bp.route("/landing")
 @public_endpoint
 def landing():
-    return render_template("landing.html")
+
+    return render_template("landing.html",
+                           version=version,)

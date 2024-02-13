@@ -13,7 +13,7 @@
     </li>
   </ul>
   <ul class="navbar-nav navbar-right">
-  {% if current_user.is_authenticated %}
+  {% if current_user and current_user.is_authenticated %}
     <li class="nav-item dropdown">
       <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ current_user.name }} <span class="caret"></span></a>
       <ul class="dropdown-menu">
@@ -24,7 +24,7 @@
     </li>
   {% else %}
     <li class="nav-item {% if selected == 'landing' %}active{% endif %}">
-      <a href="{{ url_for('login.landing') }}">Login</a>
+      <a href="{{ url_for('home.landing') }}">Login</a>
     </li>
   {% endif %}
 

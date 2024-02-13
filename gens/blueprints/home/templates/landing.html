@@ -19,79 +19,23 @@
 
 {% block content %}
 <div class="content">
-  <h1>Samples</h1>
-  <p>There are {{ samples | length }} samles loaded into Gens. Click on a <em>sample_id</em> to open it</p>
+  GENS - version <strong>{{ version }}</strong>
+
+  <mark>Gens</mark> is a web-based interactive tool to visualize genomic copy number profiles from WGS data. It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use Scout/IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple of Kbp, for smaller things use Scout/IGV!
   <div>
-    {{ samples_table(samples, pagination) }}
+  {% if current_user and current_user.is_authenticated %}
+    <a class="btn btn-primary btn-lg text-white" href="{{ url_for('home.home') }}">Welcome to GENS {{ current_user.name }}!</a>
+  {% else %}
+    <form class="row" method="POST" action="{{ url_for('login.login') }}">
+     <div class="col-8">
+       <input type="text" placeholder="email" class="form-control" name="email">
+     </div>
+     <div class="col-4">
+       <button type="submit" class="btn btn-primary form-control text-white">Login</button>
+     </div>
+    </form>
+  {% endif %}
   </div>
 </div>
 {% endblock content %}
 
-{% macro samples_table(samples_obj, pagination)%}
-  {% set per_page = samples_obj | length %}
-  <p class="display-info">Displaying <em>{{ pagination["from"] }}</em> to <em>{{ pagination["to"] }}</em> of <em>{{ per_page * pagination.last_page }}</em> samples</p>
-  <table>
-    <thead>
-      <tr>
-        <td>Sample id</td>
-        <td>Genome build</td>
-        <td>Overivew file</td>
-        <td>BAM/BAF found</td>
-        <td>Import date</td>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sample in samples_obj %}
-        {% set genome_build=sample["genome_build"]%}
-        {% set sample_id=sample["sample_id"]%}
-        {% set case_id=sample["case_id"]%}
-        <tr>
-          <td id="id-cell"><a href="{% if case_id %}
-          {{ url_for('gens.display_case', sample_name=sample_id, individual_id=sample_id, case_id=case_id, genome_build=genome_build) }}
-          {% else %}
-           {{ url_for('gens.display_case', sample_name=sample_id, genome_build=genome_build) }}
-          {% endif %}" target="_blank">{{ sample_id }}</a></td>
-          <td id="build-cell" class="align-right">{{ genome_build }}</td>
-          <td id="overview-cell"  class="align-right">
-            {% if sample["has_overview_file"] %}
-              <span class="icon icon-check"></span>
-            {% else %}
-              <span class="icon icon-x icon-color-red"></span>
-            {% endif %}
-          </td>
-          <td id="has-files-cell" class="align-right">
-            {% if sample["files_present"] %}
-              <span class="icon icon-check"></span>
-            {% else %}
-              <span class="icon icon-x icon-color-red"></span>
-            {% endif %}
-          </td>
-          <td id="date-cell">{{sample["created_at"]}}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {{ pagination_bar(pagination) }}
-{% endmacro %}
-
-{% macro pagination_bar(pagination)%}
-  <div class="pagination">
-    <ul>
-      {% set start = 1 if pagination["current_page"] == 1 else pagination["current_page"] - 1 %}
-      <!-- next -->
-      <li class="page-item {{ 'disabled' if pagination["current_page"] == 1 else '' }}">
-        <a href="{{url_for('home.home', page=pagination["current_page"] - 1) }}">Previous</a>
-      </li>
-      <!-- create numbers -->
-      {% for num in range(start, start + 3) %}
-        <li class="page-item {{ 'disabled' if pagination["last_page"] < num else '' }} {{ 'selected' if pagination["current_page"] == num else '' }}">
-          <a href="{{url_for('home.home', page=num) }}">{{ num }}</a>
-        </li>
-      {% endfor %}
-      <!-- previous -->
-      <li class="page-item {{ 'disabled' if pagination["current_page"] == pagination["last_page"] else '' }}">
-        <a href="{{url_for('home.home', page=pagination["current_page"] + 1) }}">Next</a>
-      </li>
-    </ul>
-  </div>
-{% endmacro %}
