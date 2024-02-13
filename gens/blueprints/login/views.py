@@ -1,15 +1,23 @@
 import logging
 
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, current_app, request
 
 from flask_login import login_user, logout_user
 
+from gens.db.users import user
 from gens.extensions import login_manager, oauth_client
+from gens.blueprints.home.views import public_endpoint
 
-from . import controllers
+# from . import controllers
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Returns the currently active user as an object."""
+    user_obj = db.user(user_id)
+    return user_obj
 
 
-home_bp = Blueprint(
+login_bp = Blueprint(
     "login",
     __name__,
     template_folder="templates",
@@ -39,6 +47,16 @@ def login():
             except Exception as ex:
                 flash("An error has occurred while logging user in using Google OAuth")
 
+    if request.args.get("email"):  # Log in against Scout database
+        user_mail = request.args.get("email")
+        LOG.info("Validating user %s against Scout database", user_mail)
+
+    user_obj = user(user_mail)
+    if user_obj is None:
+        flash("User not found in Scout database", "warning")
+        return redirect(url_for("public.index"))
+
+    return perform_login(user_obj)
 
 
 @login_bp.route("/authorized")
@@ -65,10 +83,10 @@ def logout():
 
 def perform_login(user_dict):
     if login_user(user_dict, remember=True):
-        flash("you logged in as: {}".format(user_dict.name), "success")
+        flash("You logged in as: {}".format(user_dict.name), "success")
         next_url = session.pop("next_url", None)
-        return redirect(request.args.get("next") or next_url or url_for("cases.index"))
+        return redirect(request.args.get("next") or next_url or url_for("home.home"))
     flash("Sorry, you were not logged in", "warning")
-    return redirect(url_for("public.index"))
+    return redirect(url_for("home.landing"))
 
 

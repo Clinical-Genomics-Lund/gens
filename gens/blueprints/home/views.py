@@ -85,7 +85,14 @@ def about():
         ui_colors=ui_colors,
     )
 
-@public_endpoint
+
+def public_endpoint(function):
+    """Set an endpoint as public"""
+    function.is_public = True
+    return function
+
+
 @home_bp.route("/landing")
+@public_endpoint
 def landing():
     return render_template("landing.html")

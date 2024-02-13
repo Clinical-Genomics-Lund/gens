@@ -6,10 +6,12 @@ import os
 from logging.config import dictConfig
 
 import connexion
+from flask import redirect, request, url_for
 from flask_compress import Compress
+from flask_login import current_user
 
 from .__version__ import VERSION as version
-from .blueprints import gens_bp, home_bp
+from .blueprints import gens_bp, home_bp, login_bp
 from .cache import cache
 from .db import SampleNotFoundError, init_database
 from .errors import (generic_abort_error, generic_exception_error, sample_not_found)
@@ -17,7 +19,7 @@ from .extensions import login_manager
 
 dictConfig(
     {
-        "version": version,
+        "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
             "default": {
@@ -66,6 +68,23 @@ def create_app():
     # register bluprints and errors
     register_blueprints(app)
     register_errors(app)
+
+    @app.before_request
+    def check_user():
+        if app.config.get("LOGIN_DISABLED") or not request.endpoint:
+            return
+
+        # check if the endpoint requires authentication
+        static_endpoint = "static" in request.endpoint
+        public_endpoint = getattr(app.view_functions[request.endpoint], "is_public", False)
+        relevant_endpoint = not (static_endpoint or public_endpoint)
+        # if endpoint requires auth, check if user is authenticated
+        if relevant_endpoint and not current_user.is_authenticated:
+            # combine visited URL (convert byte string query string to unicode!)
+            next_url = "{}?{}".format(request.path, request.query_string.decode())
+            login_url = url_for("home.landing", next=next_url)
+            return redirect(login_url)
+
 
     return app
 
