@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, current_app, flash, redirect, request, url_for
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for
 
 from flask_login import login_user, logout_user
 
@@ -15,7 +15,8 @@ LOG = logging.getLogger(__name__)
 @login_manager.user_loader
 def load_user(user_id):
     """Returns the currently active user as an object."""
-    user_obj = db.user(user_id)
+
+    user_obj = user(user_id)
     return user_obj
 
 
@@ -50,7 +51,7 @@ def login():
                 flash("An error has occurred while logging user in using Google OAuth")
 
     if request.form.get("email"):  # Log in against Scout database
-        user_mail = request.args.get("email")
+        user_mail = request.form.get("email")
         LOG.info("Validating user %s against Scout database", user_mail)
 
     user_obj = user(user_mail)

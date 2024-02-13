@@ -1,4 +1,4 @@
-{% macro navbar(selected, version) %}
+{% macro navbar(selected, version, current_user) %}
 <nav class="navbar">
   <a class="navbar-brand" id="home-link" href="{{ url_for('home.home') }}">
     <div class="logo-container"><span class="logo"></span></div>
