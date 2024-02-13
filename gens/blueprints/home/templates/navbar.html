@@ -1,29 +1,23 @@
 {% macro navbar(selected, version, current_user) %}
 <nav class="navbar">
-  <a class="navbar-brand" id="home-link" href="{{ url_for('home.home') }}">
+  <a id="home-link" href="{{ url_for('home.home') }}">
     <div class="logo-container"><span class="logo"></span></div>
   </a>
   <div class="version">v{{ version }}</div>
-  <ul class="navbar-nav me-auto">
-    <li class="nav-item {% if selected == 'home' %}active{% endif %}">
-      <a class="nav-link" href="{{ url_for('home.home') }}">Samples</a>
+  <ul>
+    <li class="{% if selected == 'home' %}active{% endif %}">
+      <a href="{{ url_for('home.home') }}">Samples</a>
     </li>
-    <li class="nav-item {% if selected == 'about' %}active{% endif %}">
-      <a class="nav-link" href="{{ url_for('home.about') }}">About</a>
+    <li class="{% if selected == 'about' %}active{% endif %}">
+      <a href="{{ url_for('home.about') }}">About</a>
     </li>
-  </ul>
-  <ul class="navbar-nav navbar-right">
+
   {% if current_user and current_user.is_authenticated %}
-    <li class="nav-item dropdown">
-      <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ current_user.name }} <span class="caret"></span></a>
-      <ul class="dropdown-menu">
-        <li>
-          <a class="dropdown-item" href="{{ url_for('login.logout') }}">Logout</a>
-        </li>
-      </ul>
+    <li class="logout">
+      <a href="{{ url_for('login.logout') }}">Logout {{ current_user.name }} </a>
     </li>
   {% else %}
-    <li class="nav-item {% if selected == 'landing' %}active{% endif %}">
+    <li class="logout {% if selected == 'landing' %}active{% endif %}">
       <a href="{{ url_for('home.landing') }}">Login</a>
     </li>
   {% endif %}

@@ -5,11 +5,11 @@
 
 {% block css_style %}
     {{ super() }}
-    <link rel='stylesheet' href='{{ url_for('home.static', filename='about.min.css') }}' type='text/css'>
+    <link rel='stylesheet' href='{{ url_for('static', filename='css/about.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
 {% block body %}
-  {{ navbar('about', version) }}
+  {{ navbar('about', version, current_user) }}
   {{ super() }}
 {% endblock %}
 
