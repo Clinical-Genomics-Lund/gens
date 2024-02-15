@@ -39,9 +39,7 @@ def get_transcript_data(
     # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     transcripts = list(
         get_transcripts_in_region(
-            chrom=chrom,
-            start_pos=start_pos,
-            end_pos=end_pos,
+            region=region,
             genome_build=genome_build,
             height_order=1 if collapsed else None,
         )
