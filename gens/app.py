@@ -15,7 +15,7 @@ from .blueprints import gens_bp, home_bp, login_bp
 from .cache import cache
 from .db import SampleNotFoundError, init_database
 from .errors import (generic_abort_error, generic_exception_error, sample_not_found)
-from .extensions import login_manager
+from .extensions import login_manager, oauth_client
 
 dictConfig(
     {
@@ -112,9 +112,9 @@ def configure_oauth_login(app):
     client_id = google_conf.get("client_id")
     client_secret = google_conf.get("client_secret")
 
-    extensions.oauth_client.init_app(app)
+    oauth_client.init_app(app)
 
-    extensions.oauth_client.register(
+    oauth_client.register(
         name="google",
         server_metadata_url=discovery_url,
         client_id=client_id,
