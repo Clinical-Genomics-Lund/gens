@@ -5,7 +5,7 @@
 
 {% block css_style %}
   {{ super() }}
-  <link rel='stylesheet' href='{{ url_for('static', filename='css/home.min.css') }}' type='text/css'>
+  <link rel='stylesheet' href='{{ url_for('home.static', filename='home.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
 {% block scripts %}
