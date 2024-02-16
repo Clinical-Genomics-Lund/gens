@@ -29,7 +29,7 @@ You also need to build the javacript and css files and put them into the directo
 # install build dependancies and build web assets.
 npm install && npm run build
 # copy built assets gens/static
-cp -r build/{js,css} gens/static/
+cp build/css/error.min.css gens/static/css/; cp build/css/home.min.css build/css/about.min.css build/css/landing.min.css gens/blueprints/home/static/; cp build/*/gens.min.* gens/blueprints/gens/static/
 ```
 
 Start the application using:
