@@ -7,6 +7,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 - Document track processing and loading
+- OAuth authentication
 
 ## [2.1.1]
 ### Added

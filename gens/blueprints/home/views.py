@@ -2,9 +2,9 @@
 
 import logging
 import os
-from itertools import groupby
 
 from flask import Blueprint, current_app, render_template, request
+from flask_login import current_user
 
 from gens import version
 from gens.db import get_samples, get_timestamps
@@ -85,3 +85,17 @@ def about():
         config=config,
         ui_colors=ui_colors,
     )
+
+
+def public_endpoint(function):
+    """Set an endpoint as public"""
+    function.is_public = True
+    return function
+
+
+@home_bp.route("/landing")
+@public_endpoint
+def landing():
+
+    return render_template("landing.html",
+                           version=version,)

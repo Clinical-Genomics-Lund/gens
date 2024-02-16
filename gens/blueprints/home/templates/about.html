@@ -9,7 +9,7 @@
 {% endblock css_style %}
 
 {% block body %}
-  {{ navbar('about', version) }}
+  {{ navbar('about', version, current_user) }}
   {{ super() }}
 {% endblock %}
 

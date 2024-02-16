@@ -9,7 +9,7 @@ from gens import version
 from gens.cache import cache
 from gens.db import query_sample
 from gens.graph import parse_region_str
-from gens.io import BAF_SUFFIX, COV_SUFFIX, _get_filepath
+from gens.io import _get_filepath
 
 LOG = logging.getLogger(__name__)
 

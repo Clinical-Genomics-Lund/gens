@@ -1,4 +1,4 @@
-{% macro navbar(selected, version) %}
+{% macro navbar(selected, version, current_user) %}
 <nav class="navbar">
   <a id="home-link" href="{{ url_for('home.home') }}">
     <div class="logo-container"><span class="logo"></span></div>
@@ -11,6 +11,17 @@
     <li class="{% if selected == 'about' %}active{% endif %}">
       <a href="{{ url_for('home.about') }}">About</a>
     </li>
+
+  {% if current_user and current_user.is_authenticated %}
+    <li class="logout">
+      <a href="{{ url_for('login.logout') }}">Logout {{ current_user.name }} </a>
+    </li>
+  {% else %}
+    <li class="logout {% if selected == 'landing' %}active{% endif %}">
+      <a href="{{ url_for('home.landing') }}">Login</a>
+    </li>
+  {% endif %}
+
   </ul>
 </nav>
 {% endmacro %}

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% from "navbar.html" import navbar %}
+
+{% block title %}GENS - version {{version}}{% endblock title %}
+
+{% block css_style %}
+  {{ super() }}
+  <link rel='stylesheet' href='{{ url_for('home.static', filename='landing.min.css') }}' type='text/css'>
+{% endblock css_style %}
+
+{% block scripts %}
+  {{ super() }}
+{% endblock scripts %}
+
+{% block body %}
+  {{ navbar('landing', version, current_user) }}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <h1>GENS - <strong>v{{ version }}</strong></h1>
+  <div class="mainlogo">
+    <img src="{{ url_for('home.static', filename='svg/gens-logo-only.svg')}}" alt="Gens logotype: a stylised blue G with red, yellow and green lines representing tracks.">
+  </div>
+  <p><strong>Gens</strong> is a web-based interactive tool to visualize genomic copy number profiles from WGS data.
+    It plots the normalized read depth and alternative allele frequency.</p>
+  <p><strong>Gens</strong> currently does not attempt to visualize breakpoint information: use Scout/IGV for that.
+    The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple of Kbp.
+    For smaller things, use Scout/IGV.
+  </p>
+  {% if current_user and current_user.is_authenticated %}
+    <a class="btn" href="{{ url_for('home.home') }}">Welcome to GENS {{ current_user.name }}!</a>
+  {% elif config.GOOGLE %}
+        <a class="btn" href="{{ url_for('login.login') }}" role="button">
+          Login with Google
+        </a>
+  {% else %}
+    <form method="POST" action="{{ url_for('login.login') }}">
+    <ul>
+      <li>
+       <input type="text" placeholder="email" class="form-control" name="email">
+     </li>
+     <li>
+       <button type="submit" class="btn">Login</button>
+     </li>
+    </ul>
+    </form>
+  {% endif %}
+  </div>
+</div>
+{% endblock content %}
+

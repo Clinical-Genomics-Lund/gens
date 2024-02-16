@@ -40,7 +40,7 @@ $menubar-font-color-print: white;
     }
 
     .logo {
-        background: url(./svg/gens-logo-only.svg) no-repeat top left;
+        background: url(/gens/static/svg/gens-logo-only.svg) no-repeat top left;
         background-size: contain;
         width: 35px;
         height: 35px;
@@ -69,7 +69,13 @@ $menubar-font-color-print: white;
         padding: 16px 18px;
         text-decoration: none;
       }
+
+      .logout {
+       float: right;
+      }
+
     }
+
 
     a:hover {
       background-color: $menubar-bg-color-dark

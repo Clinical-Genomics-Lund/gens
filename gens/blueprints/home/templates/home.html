@@ -13,7 +13,7 @@
 {% endblock scripts %}
 
 {% block body %}
-  {{ navbar('home', version) }}
+  {{ navbar('home', version, current_user) }}
   {{ super() }}
 {% endblock %}
 

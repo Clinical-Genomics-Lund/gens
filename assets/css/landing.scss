@@ -1,0 +1,84 @@
+@import "defaults", "navbar";
+
+$table-border-color: #ddd;
+$selected-color: adjust-color($menubar-bg-color, $lightness: +30%);
+
+
+.align-right { text-align: right; }
+.content {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: center;
+
+    .display-info {
+        margin-bottom: 4px;
+    }
+
+    form {
+        float: right;
+        margin-top: 10px;
+        padding-bottom: 50px;
+    }
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        float: left;
+        border-style: solid;
+        border-radius: 5px;
+        border-width: 1px;
+        border-color: grey;
+    }
+
+    a {
+        padding: 8px;
+    }
+
+    p {
+        width: 600px;
+    }
+    
+    input {
+        font-family: $default-font;
+        font-size: 1.5em;
+    }
+}
+
+
+
+.btn {
+    font-family: $default-font;
+    font-size: 1.5em;
+    border-radius: 3px;
+    color: $menubar-font-color;
+    background-color: $menubar-bg-color;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+}
+
+
+.mainlogo {
+    img {
+        width: 500px;
+    }
+}
+
+
+.disabled {
+    pointer-events: none;
+    a {
+        color: dimgray;
+    }
+}
+
+.selected {
+    background-color: $selected-color;
+
+    a {
+        color: $menubar-font-color;
+    }
+}
