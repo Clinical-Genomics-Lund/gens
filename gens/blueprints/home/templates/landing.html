@@ -5,7 +5,7 @@
 
 {% block css_style %}
   {{ super() }}
-  <link rel='stylesheet' href='{{ url_for('home.static', filename='home.min.css') }}' type='text/css'>
+  <link rel='stylesheet' href='{{ url_for('home.static', filename='landing.min.css') }}' type='text/css'>
 {% endblock css_style %}
 
 {% block scripts %}
@@ -19,25 +19,30 @@
 
 {% block content %}
 <div class="content">
-  GENS - version <strong>{{ version }}</strong>
+  <h1>GENS - <strong>v{{ version }}</strong></h1>
 
-  <mark>Gens</mark> is a web-based interactive tool to visualize genomic copy number profiles from WGS data. It plots the normalized read depth and alternative allele frequency. It currently does not attempt to visualize breakpoint information, so use Scout/IGV for that! The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple of Kbp, for smaller things use Scout/IGV!
-  <div>
-
+  <p></o><mark>Gens</mark> is a web-based interactive tool to visualize genomic copy number profiles from WGS data.
+    It plots the normalized read depth and alternative allele frequency.
+    Gens currently does not attempt to visualize breakpoint information, so use Scout/IGV for that!
+    The way we generate the data it is suitable for visualizing CNVs of sizes down to a couple of Kbp,
+    for smaller things use Scout/IGV!
+  </p>
   {% if current_user and current_user.is_authenticated %}
-    <a class="btn btn-primary btn-lg text-white" href="{{ url_for('home.home') }}">Welcome to GENS {{ current_user.name }}!</a>
+    <a class="btn" href="{{ url_for('home.home') }}">Welcome to GENS {{ current_user.name }}!</a>
   {% elif config.GOOGLE %}
-        <a class="btn btn-primary btn-lg text-white" href="{{ url_for('login.login') }}" role="button">
+        <a class="btn" href="{{ url_for('login.login') }}" role="button">
           Login with Google
         </a>
   {% else %}
-    <form class="row" method="POST" action="{{ url_for('login.login') }}">
-     <div class="col-8">
+    <form method="POST" action="{{ url_for('login.login') }}">
+    <ul>
+      <li>
        <input type="text" placeholder="email" class="form-control" name="email">
-     </div>
-     <div class="col-4">
+     </li>
+     <li>
        <button type="submit" class="btn btn-primary form-control text-white">Login</button>
-     </div>
+     </li>
+    </ul>
     </form>
   {% endif %}
   </div>

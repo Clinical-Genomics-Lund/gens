@@ -52,6 +52,15 @@ gulp.task('build-home-css', function () {
     .pipe(gulp.dest(`${dest}/css`))
 })
 
+gulp.task('build-landing-css', function () {
+  return gulp.src(`${assetPath}/css/landing.scss`)
+    .pipe(rename('landing.min.css'))
+    .pipe(sourcemaps.init())
+    .pipe(sass({ outputStyle: 'compressed' }))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest(`${dest}/css`))
+})
+
 gulp.task('build-about-css', function () {
   return gulp.src(`${assetPath}/css/about.scss`)
     .pipe(rename('about.min.css'))
@@ -71,7 +80,7 @@ gulp.task('build-error-css', function () {
 })
 
 gulp.task('build', gulp.parallel('build-js', 'build-gens-css', 
-'build-home-css', 'build-about-css', 'build-error-css'))
+'build-home-css', 'build-landing-css', 'build-about-css', 'build-error-css'))
 
 // DEVELOPMENT tasks
 //
@@ -99,6 +108,13 @@ gulp.task('build-about-css-dev', () => {
     .pipe(gulp.dest(devAboutAssets))
 })
 
+gulp.task('build-landing-css-dev', () => {
+  return gulp.src(`${assetPath}/css/landing.scss`)
+    .pipe(rename('landing.min.css'))
+    .pipe(sass())
+    .pipe(gulp.dest(devAboutAssets))
+})
+
 gulp.task('build-home-css-dev', () => {
   return gulp.src(`${assetPath}/css/home.scss`)
     .pipe(rename('home.min.css'))
@@ -115,7 +131,7 @@ gulp.task('build-error-css-dev', () => {
 
 gulp.task('watch', () => {
   gulp.watch(`${assetPath}/css/*.scss`, gulp.parallel('build-gens-css-dev', 'build-home-css-dev',
-    'build-about-css-dev', 'build-error-css-dev'))
+    'build-about-css-dev', 'build-landing-css-dev', 'build-error-css-dev'))
   gulp.watch(`${assetPath}/js/*.js`, gulp.parallel('build-js-dev'))
   gulp.watch(`${assetPath}/js/*/*.js`, gulp.parallel('build-js-dev'))
 })
