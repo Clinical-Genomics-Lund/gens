@@ -8,7 +8,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Document track processing and loading
 - OAuth authentication
-
+- Use sample id instead of display name for variant retrieval
+- 
 ## [2.1.1]
 ### Added
 ### Changed
