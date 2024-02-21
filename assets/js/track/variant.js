@@ -7,7 +7,7 @@ import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateV
 import { createPopper } from '@popperjs/core'
 
 // Draw variants
-const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
+const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication', cnv: 'copy number variation', inv: 'inversion', bnd: 'break end' }
 
 export class VariantTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, caseId, genomeBuild, colorSchema, highlightedVariantId) {
@@ -132,7 +132,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         scale: this.offscreenPosition.scale
       })
       // create a tooltip html element and append to DOM
-      if ( drawTooltips ) {
+      if (drawTooltips && ['dup', 'del', 'cnv'].includes(variantCategory)) {
         const tooltip = createTooltipElement({
           id: `popover-${variantObj.id}`,
           title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
@@ -189,6 +189,7 @@ export class VariantTrack extends BaseAnnotationTrack {
             color
           })
           break
+        case 'cnv':
         case 'dup':
           drawLine({
             ctx: this.drawCtx,
@@ -206,6 +207,10 @@ export class VariantTrack extends BaseAnnotationTrack {
             y2: variantObj.y2,
             color
           })
+          break
+        case 'bnd':
+        case 'inv':
+          // no support for balanced events
           break
         default: // other types of elements
           drawLine({
