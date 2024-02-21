@@ -9,6 +9,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 - Document track processing and loading
 - OAuth authentication
 ### Changed
+- Use sample id instead of display name for variant retrieval
 - Hide balanced variants
 
 ## [2.1.1]
