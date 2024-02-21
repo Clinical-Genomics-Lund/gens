@@ -228,15 +228,17 @@ export class VariantTrack extends BaseAnnotationTrack {
         this.drawHighlight(variantObj.x1, variantObj.x2)
       }
 
-      const textYPos = this.tracksYPos(heightOrder)
-      // Draw variant type
-      drawText({
-        ctx: this.drawCtx,
-        text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        x: scale * ((variantObj.start + variantObj.end) / 2 - this.offscreenPosition.start),
-        y: textYPos + this.featureHeight,
-        fontProp: textSize
-      })
+      if (['dup', 'del', 'cnv'].includes(variantCategory)) {
+        const textYPos = this.tracksYPos(heightOrder)
+        // Draw variant type
+        drawText({
+          ctx: this.drawCtx,
+          text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+          x: scale * ((variantObj.start + variantObj.end) / 2 - this.offscreenPosition.start),
+          y: textYPos + this.featureHeight,
+          fontProp: textSize
+        })
+      }
     }
   }
 }
