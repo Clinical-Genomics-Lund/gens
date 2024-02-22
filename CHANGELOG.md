@@ -12,7 +12,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 - Use sample id instead of display name for variant retrieval
 - Hide balanced variants
 - Keyboard pan speed increased
-
+- Dont shrink pan window when attemting to pan over start
 
 ## [2.1.1]
 ### Added
