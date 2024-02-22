@@ -159,7 +159,7 @@ export function panTracks(direction = 'left', speed = 0.1) {
   }
   // drawTrack will correct the window eventually, but let us not go negative at least
   if (pos.start < 0) {
-    pos.end = pos.end + distance - pos.start
+    pos.end = pos.end - pos.start
     pos.start = 1
   }
   drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end, drawTitle: false, exclude: ['cytogenetic-ideogram'] })
