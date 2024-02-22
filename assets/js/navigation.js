@@ -260,10 +260,10 @@ document.addEventListener('keyevent', event => {
         nextChromosome()
         break
       case 'a':
-        panTracks('left')
+        panTracks('left', 0.7)
         break
       case 'd':
-        panTracks('right')
+        panTracks('right', 0.7)
         break
       case 'ArrowUp':
       case 'w':
