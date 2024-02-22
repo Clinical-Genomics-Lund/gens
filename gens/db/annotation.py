@@ -63,7 +63,8 @@ def query_variants(case_id: str, sample_name: str, variant_category: VariantCate
     query = {
         "case_id": case_id,
         "category": variant_category.value,
-        "samples.display_name": sample_name,
+        "$or": [{"samples.sample_id": sample_name},
+                {"samples.display_name": sample_name}]
     }
     # add chromosome
     if "chromosome" in kwargs:
