@@ -147,18 +147,20 @@ export function previousChromosome() {
 }
 
 // Pan whole canvas and tracks to the left
-export function panTracks(direction = 'left') {
+export function panTracks(direction = 'left', speed = 0.1) {
   const pos = readInputField()
-  let distance = Math.floor(0.1 * (pos.end - pos.start))
-  // Don't allow negative values
-  distance = (pos.start < distance) ? distance + (pos.start - distance) : distance
-  // todo keep distance constant
+  const distance = Math.abs(Math.floor(speed * (pos.end - pos.start)))
   if (direction === 'left') {
     pos.start -= distance
     pos.end -= distance
   } else {
     pos.start += distance
     pos.end += distance
+  }
+  // drawTrack will correct the window eventually, but let us not go negative at least
+  if (pos.start < 1) {
+    pos.start = 1
+    pos.end = distance
   }
   drawTrack({ chrom: pos.chrom, start: pos.start, end: pos.end, drawTitle: false, exclude: ['cytogenetic-ideogram'] })
 }
@@ -260,10 +262,10 @@ document.addEventListener('keyevent', event => {
         nextChromosome()
         break
       case 'a':
-        panTracks('left')
+        panTracks('left', 0.7)
         break
       case 'd':
-        panTracks('right')
+        panTracks('right', 0.7)
         break
       case 'ArrowUp':
       case 'w':

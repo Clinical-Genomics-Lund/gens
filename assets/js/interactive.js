@@ -84,8 +84,8 @@ export class InteractiveCanvas extends BaseScatterTrack {
     this.contentCanvas.addEventListener('update-title', event => {
       console.log(`interactive got an ${event.type} event`)
       const len = event.detail.bands.length
-      if (len > 0) { 
-        const bandIds = len === 1 ? event.detail.bands[0].id : `${event.detail.bands[0].id}-${event.detail.bands[len-1].id}`
+      if (len > 0) {
+        const bandIds = len === 1 ? event.detail.bands[0].id : `${event.detail.bands[0].id}-${event.detail.bands[len - 1].id}`
         this.drawCanvas.getContext('2d').clearRect(this.titleBbox.x, this.titleBbox.y, this.titleBbox.width, this.titleBbox.height)
         this.titleBbox = this.drawTitle(`Chromosome ${event.detail.chrom}; ${bandIds}`)
         this.blitChromName({textPosition: this.titleBbox})

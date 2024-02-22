@@ -11,6 +11,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - Use sample id instead of display name for variant retrieval
 - Hide balanced variants
+- Keyboard pan speed increased
+
 
 ## [2.1.1]
 ### Added
