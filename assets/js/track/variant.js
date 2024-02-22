@@ -7,7 +7,7 @@ import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateV
 import { createPopper } from '@popperjs/core'
 
 // Draw variants
-const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication' }
+const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication', cnv: 'copy number variation', inv: 'inversion', bnd: 'break end' }
 
 export class VariantTrack extends BaseAnnotationTrack {
   constructor (x, width, near, far, caseId, genomeBuild, colorSchema, highlightedVariantId) {
@@ -132,7 +132,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         scale: this.offscreenPosition.scale
       })
       // create a tooltip html element and append to DOM
-      if ( drawTooltips ) {
+      if (drawTooltips && ['dup', 'del', 'cnv'].includes(variantCategory)) {
         const tooltip = createTooltipElement({
           id: `popover-${variantObj.id}`,
           title: `${variantType.toUpperCase()}: ${variant.category} - ${VARIANT_TR_TABLE[variantCategory]}`,
@@ -142,6 +142,7 @@ export class VariantTrack extends BaseAnnotationTrack {
             { title: 'Ref', value: `${variant.reference}` },
             { title: 'Alt', value: `${variant.alternative}` },
             { title: 'Cytoband start/end', value: `${variant.cytoband_start}/${variant.cytoband_end}` },
+            { title: 'Length', value: `${variant.length}` },
             { title: 'Quality', value: `${variant.quality}` },
             { title: 'Rank score', value: `${variant.rank_score}` }
           ]
@@ -189,6 +190,7 @@ export class VariantTrack extends BaseAnnotationTrack {
             color
           })
           break
+        case 'cnv':
         case 'dup':
           drawLine({
             ctx: this.drawCtx,
@@ -207,6 +209,10 @@ export class VariantTrack extends BaseAnnotationTrack {
             color
           })
           break
+        case 'bnd':
+        case 'inv':
+          // no support for balanced events
+          break
         default: // other types of elements
           drawLine({
             ctx: this.drawCtx,
@@ -223,15 +229,17 @@ export class VariantTrack extends BaseAnnotationTrack {
         this.drawHighlight(variantObj.x1, variantObj.x2)
       }
 
-      const textYPos = this.tracksYPos(heightOrder)
-      // Draw variant type
-      drawText({
-        ctx: this.drawCtx,
-        text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
-        x: scale * ((variantObj.start + variantObj.end) / 2 - this.offscreenPosition.start),
-        y: textYPos + this.featureHeight,
-        fontProp: textSize
-      })
+      if (['dup', 'del', 'cnv'].includes(variantCategory)) {
+        const textYPos = this.tracksYPos(heightOrder)
+        // Draw variant type
+        drawText({
+          ctx: this.drawCtx,
+          text: `${variant.category} - ${variantType} ${VARIANT_TR_TABLE[variantCategory]}; length: ${variantLength}`,
+          x: scale * ((variantObj.start + variantObj.end) / 2 - this.offscreenPosition.start),
+          y: textYPos + this.featureHeight,
+          fontProp: textSize
+        })
+      }
     }
   }
 }
