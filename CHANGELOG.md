@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/)
 
 About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
-## [x.x.x]
+## [2.2]
 ### Added
 - Document track processing and loading
 - OAuth authentication
@@ -12,7 +12,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 - Use sample id instead of display name for variant retrieval
 - Hide balanced variants
 - Keyboard pan speed increased
-- Dont shrink pan window when attemting to pan over start
+- Don't shrink pan window when attemting to pan over start
 
 ## [2.1.1]
 ### Added
