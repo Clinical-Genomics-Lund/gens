@@ -10,7 +10,7 @@ import { createPopper } from '@popperjs/core'
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication', cnv: 'copy number variation', inv: 'inversion', bnd: 'break end' }
 
 export class VariantTrack extends BaseAnnotationTrack {
-  constructor (x, width, near, far, caseId, genomeBuild, colorSchema, highlightedVariantId) {
+  constructor (x, width, near, far, caseId, genomeBuild, colorSchema, scoutBaseURL, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35 // Minimized height
@@ -167,6 +167,14 @@ export class VariantTrack extends BaseAnnotationTrack {
           tooltip: tooltip,
           isDisplayed: false
         }
+        // add context menu event listener to same virtual hitbox
+        virtualElement.addEventListener("click", () => {
+            url = scoutBaseURL + "inst/case/sv/variants/" + variant.id
+            var win = window.open(url, '_blank');
+            win.focus();
+          }, false)
+        virtualElement.addEventListener("dblclick", pinVariant, false)
+        virtualElement.addEventListener("contextmenu", classifyVariant, false)
       }
       this.geneticElements.push(variantObj)
 

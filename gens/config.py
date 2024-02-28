@@ -5,6 +5,9 @@ MONGODB_SCOUT_URI = "mongodb://localhost:27017"
 GENS_DBNAME = "gens"
 SCOUT_DBNAME = "scout"
 
+# Scout browser base URL for link out and API
+SCOUT_BASE_URL = "http://localhost:8000"
+
 # Annotation
 DEFAULT_ANNOTATION_TRACK = (
     "Mimisbrunnr_databank_plausibly_pathogenic_CNVs_Lund_hg38.aed"
