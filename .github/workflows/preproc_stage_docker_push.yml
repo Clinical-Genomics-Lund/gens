@@ -34,4 +34,4 @@ jobs:
           context: ./utils/
           file: ./utils/Dockerfile
           push: true
-          tags: "clinicalgenomics/gens-preproc:${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens-preproc:latest"
+          tags: "clinicalgenomics/gens-preproc-stage:${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens-preproc-stage:latest"
