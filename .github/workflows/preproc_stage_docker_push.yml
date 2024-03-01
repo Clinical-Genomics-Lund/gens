@@ -1,13 +1,13 @@
-name: Publish preproc to Docker
+name: Publish preproc to Docker stage
 
 on:
-  push:
+  pull_request:
     branches:
       - master
 
 jobs:
-  docker-preproc-push:
-    name: Create preproc Docker image
+  docker-preproc-stage-push:
+    name: Create preproc stage Docker image
     runs-on: ubuntu-latest
     steps:
       - name: Check out git repository
@@ -28,9 +28,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push
+        if: steps.branch-name.outputs.is_default == 'false'
         uses: docker/build-push-action@v5
         with:
           context: ./utils/
           file: ./utils/Dockerfile
           push: true
-          tags: "clinicalgenomics/gens-preproc:${{ github.event.release.tag_name }}, clinicalgenomics/gens-preproc-stage:${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens-preproc-stage:latest"
+          tags: "clinicalgenomics/gens-preproc:${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens-preproc:latest"
