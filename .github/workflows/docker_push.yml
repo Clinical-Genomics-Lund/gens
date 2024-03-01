@@ -33,4 +33,4 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: "clinicalgenomics/gens:${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens:latest"
+          tags: "clinicalgenomics/gens:${{ github.event.release.tag_name }}, ${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens:latest"
