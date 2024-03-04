@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/)
 
 About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
+## [unreleased]
+### Fixed
+- Error image background static path
+
 ## [2.2]
 ### Added
 - Document track processing and loading
