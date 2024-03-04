@@ -9,7 +9,7 @@
 
 {% block body %}
 <div class="content">
-    <img id="broken-dna" src="{{ url_for("static", filename='svg/broken-dna.svg') }}" alt="broken DNA" />
+    <img id="broken-dna" src="{{ url_for("home.static", filename='svg/broken-dna.svg') }}" alt="broken DNA" />
     <div class="error-msg-container">
         <h1 class="headline">Missing sample</h1>
         <p>The sample <span class="bold">{{ file_name }}</span> has not been added to Gens database. Please contact the administrator to resolve this issue.</p>
