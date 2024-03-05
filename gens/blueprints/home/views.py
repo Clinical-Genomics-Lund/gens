@@ -66,8 +66,9 @@ def home():
     ]
     return render_template(
         "home.html",
-        samples=samples,
         pagination=pagination_info,
+        samples=samples,
+        scout_base_url=current_app.config.get("SCOUT_BASE_URL"),
         version=version,
     )
 
@@ -80,10 +81,10 @@ def about():
         ui_colors = current_app.config.get("UI_COLORS")
     return render_template(
         "about.html",
-        timestamps=timestamps,
-        version=version,
         config=config,
+        timestamps=timestamps,
         ui_colors=ui_colors,
+        version=version,
     )
 
 
