@@ -52,8 +52,9 @@
           {% else %}
            {{ url_for('gens.display_case', sample_name=sample_id, genome_build=genome_build) }}
           {% endif %}" target="_blank">{{ sample_id }}</a></td>
-          <td id="case-cell">{% if case_id %}<a href="
-            {{ scout_base_url + "/case/case_id/" + case_id }}">{{ case_id }}</a></td>
+          <td id="case-cell">{% if case_id %}
+            <a href="{{ scout_base_url + "/case/case_id/" + case_id }}">{{ case_id }}</a>
+          {% endif %}</td>
           <td id="build-cell" class="align-right">{{ genome_build }}</td>
           <td id="overview-cell"  class="align-right">
             {% if sample["has_overview_file"] %}
