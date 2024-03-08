@@ -8,7 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Link out to Scout: introduce config variable for base URL
 - Link out to Scout: case links on home sample list
-- 
+- Link out to Scout: click variant to open Scout page
 ### Changed
 - Archive prod docker image with release tag name. Update action versions.
 ### Fixed

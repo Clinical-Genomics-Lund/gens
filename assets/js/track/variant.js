@@ -170,11 +170,13 @@ export class VariantTrack extends BaseAnnotationTrack {
         // add context menu event listener to same virtual hitbox
         virtualElement.addEventListener('click', () => {
           var url = this.scoutBaseURL + '/document_id/' + variant.id
+          console.log(`Visit ${url}: scout variant`)
           var win = window.open(url, '_blank')
           win.focus()
         }, false)
         virtualElement.addEventListener('dblclick', () => {
           var url = this.scoutBaseURL + '/' + variant.id + '/pin'
+          console.log(`Visit ${url}: scout PIN variant`)
           window.open(url, '_blank')
         }, false)
         // virtualElement.addEventListener('contextmenu', classifyVariant, false)
