@@ -168,13 +168,13 @@ export class VariantTrack extends BaseAnnotationTrack {
           isDisplayed: false
         }
         // add context menu event listener to same virtual hitbox
-        virtualElement.addEventListener('click', function () {
+        variantObj.addEventListener('click', function () {
           var url = this.scoutBaseURL + '/document_id/' + variant.id
           console.log(`Visit ${url}: scout variant`)
           var win = window.open(url, '_blank')
           win.focus()
         }, false)
-        virtualElement.addEventListener('dblclick', function () {
+        variantObj.addEventListener('dblclick', function () {
           var url = this.scoutBaseURL + '/' + variant.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
           window.open(url, '_blank')
