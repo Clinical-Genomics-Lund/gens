@@ -161,7 +161,7 @@
         caseId: '{{ case_id }}',
         genomeBuild: {{ genome_build }},
         uiColors: {{ ui_colors | tojson | safe }},
-        scoutBaseURL: {{ scout_base_url | safe }},
+        scoutBaseURL: '{{ scout_base_url | safe }}',
         selectedVariant: '{{ selected_variant }}',
         annotationFile: '{{ annotation }}',
     })

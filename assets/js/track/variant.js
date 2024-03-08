@@ -175,7 +175,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         }, false)
         virtualElement.addEventListener('dblclick', () => {
           var url = this.scoutBaseURL + '/' + variant.id + '/pin'
-          var win = window.open(url, '_blank')
+          window.open(url, '_blank')
         }, false)
         // virtualElement.addEventListener('contextmenu', classifyVariant, false)
       }
