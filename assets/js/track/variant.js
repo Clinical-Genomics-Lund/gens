@@ -36,7 +36,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       variant_category: 'sv',
       case_id: caseId
     }
-
+    this.scoutBaseURL = scoutBaseURL
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId
     initTrackTooltips(this)
@@ -168,13 +168,16 @@ export class VariantTrack extends BaseAnnotationTrack {
           isDisplayed: false
         }
         // add context menu event listener to same virtual hitbox
-        virtualElement.addEventListener("click", () => {
-            url = scoutBaseURL + "inst/case/sv/variants/" + variant.id
-            var win = window.open(url, '_blank');
-            win.focus();
-          }, false)
-        virtualElement.addEventListener("dblclick", pinVariant, false)
-        virtualElement.addEventListener("contextmenu", classifyVariant, false)
+        virtualElement.addEventListener('click', () => {
+          var url = this.scoutBaseURL + '/document_id/' + variant.id
+          var win = window.open(url, '_blank')
+          win.focus()
+        }, false)
+        virtualElement.addEventListener('dblclick', () => {
+          var url = this.scoutBaseURL + '/' + variant.id + '/pin'
+          var win = window.open(url, '_blank')
+        }, false)
+        // virtualElement.addEventListener('contextmenu', classifyVariant, false)
       }
       this.geneticElements.push(variantObj)
 
