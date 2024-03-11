@@ -2,7 +2,6 @@
 
 import { get } from '../fetch.js'
 import { hideTooltip } from './tooltip.js'
-import { isWithinElementBbox } from './utils';
 
 // Calculate offscreen position
 export function calculateOffscreenWindowPos ({ start, end, multiplier }) {

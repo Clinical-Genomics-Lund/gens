@@ -29,11 +29,12 @@ export class VariantTrack extends BaseAnnotationTrack {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
         console.log('click x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.tooltip.virtualElement.x1 + ' vE x2:' + element.tooltip.virtualElement.x2)
-        if (isWithinElementBbox(element.tooltip.virtualElement, point)) {
+        const ve = element.tooltip.virtualElement
+        if (isWithinElementBbox({ ve, point })) {
           console.log('In bounding box ')
-          var url = this.scoutBaseURL + '/document_id/' + element.id
+          const url = this.scoutBaseURL + '/document_id/' + element.id
           console.log(`Visit ${url}: scout variant`)
-          var win = await window.open(url, '_blank')
+          const win = await window.open(url, '_blank')
           win.focus()
         }
       }
@@ -43,8 +44,9 @@ export class VariantTrack extends BaseAnnotationTrack {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
         console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.tooltip.virtualElement.x1 + ' vE x2:' + element.tooltip.virtualElement.x2)
-        if (isWithinElementBbox(element.tooltip.virtualElement, point)) {
-          var url = this.scoutBaseURL + '/' + element.id + '/pin'
+        ve = element.tooltip.virtualElement
+        if (isWithinElementBbox( {ve, point })) {
+          const url = this.scoutBaseURL + '/' + element.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
           await window.open(url, '_blank')
         }
