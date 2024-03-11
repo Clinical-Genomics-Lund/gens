@@ -28,7 +28,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('x: ' + point.x + ' y: ' + point.y)
+        console.log('click x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.virtualElement.x1 + ' vE x2:' + element.virtualElement.x2)
         if (isWithinElementBbox(element.virtualElement, point)) {
           console.log('In bounding box ')
           var url = this.scoutBaseURL + '/document_id/' + element.id
@@ -42,7 +42,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('x: ' + point.x + ' y: ' + point.y)
+        console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.virtualElement.x1 + ' vE x2:' + element.virtualElement.x2)
         if (isWithinElementBbox(element.virtualElement, point)) {
           var url = this.scoutBaseURL + '/' + element.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
