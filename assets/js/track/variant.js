@@ -143,7 +143,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       // create variant object
       const featureHeight = variantCategory === 'del' ? 7 : 8
       const variantObj = {
-        id: variant.variant_id,
+        id: variant.document_id,
         name: variant.display_name,
         start: variant.position,
         end: variant.end,
