@@ -28,8 +28,10 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('click x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.tooltip.virtualElement.x1 + ' vE x2:' + element.tooltip.virtualElement.x2)
         const ve = element.tooltip.virtualElement
+        if (ve) {
+          console.log('click x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + ve.x1 + ' vE x2:' + ve.x2)
+        }
         if (isWithinElementBbox({ ve, point })) {
           console.log('In bounding box ')
           const url = this.scoutBaseURL + '/document_id/' + element.id
@@ -43,9 +45,11 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + element.tooltip.virtualElement.x1 + ' vE x2:' + element.tooltip.virtualElement.x2)
-        ve = element.tooltip.virtualElement
-        if (isWithinElementBbox( {ve, point })) {
+        const ve = element.tooltip.virtualElement
+        if (element.tooltip) {
+          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + ve.x1 + ' vE x2:' + ve.x2)
+        }
+        if (isWithinElementBbox({ ve, point })) {
           const url = this.scoutBaseURL + '/' + element.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
           await window.open(url, '_blank')
