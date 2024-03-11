@@ -6,7 +6,6 @@ export function makeVirtualDOMElement ({ x1, x2, y1, y2, canvas }) {
   return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2, canvas) }
 }
 
-
 // Make a virtual DOM element from a genetic element object
 export function generateGetBoundingClientRect (x1, x2, y1, y2, canvas) {
   const track = canvas

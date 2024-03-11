@@ -45,11 +45,10 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        const ve = element.tooltip.virtualElement
-        if (element.tooltip) {
-          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + ve.x1 + ' vE x2:' + ve.x2)
+        if (element.id) {
+          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
         }
-        if (isWithinElementBbox({ ve, point })) {
+        if (isWithinElementBbox({ element, point })) {
           const url = this.scoutBaseURL + '/' + element.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
           await window.open(url, '_blank')
