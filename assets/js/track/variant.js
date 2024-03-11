@@ -28,11 +28,10 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        const ve = element.tooltip.virtualElement
-        if (ve) {
-          console.log('click x: ' + point.x + ' y: ' + point.y + ' vE x1: ' + ve.x1 + ' vE x2:' + ve.x2)
+        if (element.id) {
+          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
         }
-        if (isWithinElementBbox({ ve, point })) {
+        if (isWithinElementBbox({ element, point })) {
           console.log('In bounding box ')
           const url = this.scoutBaseURL + '/document_id/' + element.id
           console.log(`Visit ${url}: scout variant`)
