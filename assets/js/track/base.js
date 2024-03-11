@@ -2,6 +2,7 @@
 
 import { get } from '../fetch.js'
 import { hideTooltip } from './tooltip.js'
+import { isWithinElementBbox } from './utils';
 
 // Calculate offscreen position
 export function calculateOffscreenWindowPos ({ start, end, multiplier }) {
@@ -110,7 +111,7 @@ export class BaseAnnotationTrack {
 
     this.trackContainer.parentElement.addEventListener('draw', (event) => {
       console.log('track recived draw', event.detail.region)
-      this.drawTrack({ ...event.detail.region })
+      this.drawTrack({...event.detail.region})
     })
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',
@@ -136,6 +137,32 @@ export class BaseAnnotationTrack {
         })
         this.blitCanvas(this.onscreenPosition.start, this.onscreenPosition.end)
       }, false)
+    // add context menu event listener to same virtual hitbox
+    this.trackContainer.addEventListener('click', async (event) => {
+      for (const element of this.geneticElements) {
+        const rect = this.contentCanvas.getBoundingClientRect()
+        const point = {x: event.clientX - rect.left, y: event.clientY - rect.top}
+        console.log('x: ' + point.x + ' y: ' + point.y)
+        if (isWithinElementBbox(element.virtualElement, point)) {
+          var url = this.scoutBaseURL + '/document_id/' + variant.id
+          console.log(`Visit ${url}: scout variant`)
+          var win = window.open(url, '_blank')
+          win.focus()
+        }
+      }
+    }, false)
+    this.trackContainer.addEventListener('dblclick', async (event) => {
+      for (const element of this.geneticElements) {
+        const rect = this.contentCanvas.getBoundingClientRect()
+        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+        console.log('x: ' + point.x + ' y: ' + point.y)
+        if (isWithinElementBbox(element.virtualElement, point)) {
+          var url = this.scoutBaseURL + '/' + variant.id + '/pin'
+          console.log(`Visit ${url}: scout PIN variant`)
+          window.open(url, '_blank')
+        }
+      }
+    }, false)
   }
 
   // Clears previous tracks

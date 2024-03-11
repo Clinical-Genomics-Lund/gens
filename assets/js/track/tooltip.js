@@ -1,7 +1,7 @@
 // functions for handling tooltips
 import { getVisibleXCoordinates, getVisibleYCoordinates, isWithinElementBbox } from './utils.js'
 
-// make virtual DOM element that represents a annoatation element
+// make virtual DOM element that represents a annotation element
 export function makeVirtualDOMElement ({ x1, x2, y1, y2, canvas }) {
   return { getBoundingClientRect: generateGetBoundingClientRect(x1, x2, y1, y2, canvas) }
 }
@@ -20,7 +20,7 @@ export function generateGetBoundingClientRect (x1, x2, y1, y2, canvas) {
   })
 }
 
-export function updateVisableElementCoordinates ({ element, screenPosition, scale }) {
+export function updateVisibleElementCoordinates ({ element, screenPosition, scale }) {
   const { x1, x2 } = getVisibleXCoordinates({ canvas: screenPosition, feature: element, scale: scale })
   const { y1, y2 } = getVisibleYCoordinates({ element })
   // update coordinates
@@ -148,7 +148,7 @@ function updateTooltipPos (track) {
       continue
     }
     // update coordinates for the main element
-    updateVisableElementCoordinates({
+    updateVisibleElementCoordinates({
       element,
       canvas: track.contentCanvas,
       screenPosition: track.onscreenPosition,
@@ -156,7 +156,7 @@ function updateTooltipPos (track) {
     })
     // update coordinates for features on element
     for (const feature of element.features) {
-      updateVisableElementCoordinates({
+      updateVisibleElementCoordinates({
         element: feature,
         canvas: track.contentCanvas,
         screenPosition: track.onscreenPosition,

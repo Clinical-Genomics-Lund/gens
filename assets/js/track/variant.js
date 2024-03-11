@@ -3,7 +3,7 @@
 import { BaseAnnotationTrack } from './base.js'
 import { isElementOverlapping } from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
-import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 
 // Draw variants
@@ -126,7 +126,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         tooltip: false,
       }
       // get onscreen positions for offscreen xy coordinates
-      updateVisableElementCoordinates({
+      updateVisibleElementCoordinates({
         element: variantObj,
         screenPosition: this.onscreenPosition,
         scale: this.offscreenPosition.scale
@@ -167,19 +167,6 @@ export class VariantTrack extends BaseAnnotationTrack {
           tooltip: tooltip,
           isDisplayed: false
         }
-        // add context menu event listener to same virtual hitbox
-        variantObj.addEventListener('click', function () {
-          var url = this.scoutBaseURL + '/document_id/' + variant.id
-          console.log(`Visit ${url}: scout variant`)
-          var win = window.open(url, '_blank')
-          win.focus()
-        }, false)
-        variantObj.addEventListener('dblclick', function () {
-          var url = this.scoutBaseURL + '/' + variant.id + '/pin'
-          console.log(`Visit ${url}: scout PIN variant`)
-          window.open(url, '_blank')
-        }, false)
-        // virtualElement.addEventListener('contextmenu', classifyVariant, false)
       }
       this.geneticElements.push(variantObj)
 

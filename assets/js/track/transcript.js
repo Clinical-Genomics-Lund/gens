@@ -1,7 +1,7 @@
 // Transcript definition
 
 import { BaseAnnotationTrack, lightenColor } from './base.js'
-import { initTrackTooltips, createTooltipElement, createHtmlList, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { initTrackTooltips, createTooltipElement, createHtmlList, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 import { drawRect, drawLine, drawArrow, drawText } from '../draw.js'
 import { getVisibleXCoordinates, isElementOverlapping } from './utils.js'
@@ -187,7 +187,7 @@ export class TranscriptTrack extends BaseAnnotationTrack {
     }
 
     // adapt coordinates to global screen coordinates from coorinates local to canvas
-    updateVisableElementCoordinates({
+    updateVisibleElementCoordinates({
       element: transcriptObj,
       screenPosition: this.onscreenPosition,
       scale: this.offscreenPosition.scale
