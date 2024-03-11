@@ -54,7 +54,6 @@ export class BaseAnnotationTrack {
     this.colorSchema = colorSchema
     // errors preventing fetching of data
     this.preventDrawingTrack = false
-    this.scoutBaseURL = scoutBaseURL
     // Dimensions of track canvas
     this.width = Math.round(width) // Width of displayed canvas
     this.drawCanvasMultiplier = 4
