@@ -1,7 +1,7 @@
 // Variant track definition
 
 import { BaseAnnotationTrack } from './base.js'
-import { isElementOverlapping } from './utils.js'
+import {isElementOverlapping, isWithinElementBbox} from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
 import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
@@ -22,8 +22,35 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.contentCanvas = document.getElementById('variant-content')
     this.trackTitle = document.getElementById('variant-titles')
     this.trackContainer = document.getElementById('variant-track-container')
+    this.scoutBaseURL = scoutBaseURL
+    // add context menu event listener to same virtual hitbox
+    this.trackContainer.addEventListener('click', async (event) => {
+      for (const element of this.geneticElements) {
+        const rect = this.contentCanvas.getBoundingClientRect()
+        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+        console.log('x: ' + point.x + ' y: ' + point.y)
+        if (isWithinElementBbox(element.virtualElement, point)) {
+          console.log('In bounding box ')
+          var url = this.scoutBaseURL + '/document_id/' + element.id
+          console.log(`Visit ${url}: scout variant`)
+          var win = await window.open(url, '_blank')
+          win.focus()
+        }
+      }
+    }, false)
+    this.trackContainer.addEventListener('dblclick', async (event) => {
+      for (const element of this.geneticElements) {
+        const rect = this.contentCanvas.getBoundingClientRect()
+        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+        console.log('x: ' + point.x + ' y: ' + point.y)
+        if (isWithinElementBbox(element.virtualElement, point)) {
+          var url = this.scoutBaseURL + '/' + element.id + '/pin'
+          console.log(`Visit ${url}: scout PIN variant`)
+          await window.open(url, '_blank')
+        }
+      }
+    }, false)
     this.featureHeight = 18
-
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1)
 
@@ -36,7 +63,6 @@ export class VariantTrack extends BaseAnnotationTrack {
       variant_category: 'sv',
       case_id: caseId
     }
-    this.scoutBaseURL = scoutBaseURL
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId
     initTrackTooltips(this)

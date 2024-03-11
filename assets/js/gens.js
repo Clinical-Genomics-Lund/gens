@@ -19,7 +19,7 @@ export function initCanvases({ sampleName, caseId, genomeBuild, hgFileDir, uiCol
   // Initiate interactive canvas
   const ic = new InteractiveCanvas(inputField, lineMargin, near, far, caseId, sampleName, genomeBuild, hgFileDir)
   // Initiate variant, annotation and transcript canvases
-  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, caseId, genomeBuild, uiColors.variants, scoutBaseURL, selectedVariant)
+  const vc = new VariantTrack(ic.x, ic.plotWidth, near, far, caseId, genomeBuild, uiColors.variants, selectedVariant)
   const tc = new TranscriptTrack(ic.x, ic.plotWidth, near, far, genomeBuild, uiColors.transcripts)
   const ac = new AnnotationTrack(ic.x, ic.plotWidth, near, far, genomeBuild, annotationFile)
   // Initiate and draw overview canvas

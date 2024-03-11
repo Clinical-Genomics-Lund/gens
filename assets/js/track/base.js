@@ -54,7 +54,7 @@ export class BaseAnnotationTrack {
     this.colorSchema = colorSchema
     // errors preventing fetching of data
     this.preventDrawingTrack = false
-
+    this.scoutBaseURL = scoutBaseURL
     // Dimensions of track canvas
     this.width = Math.round(width) // Width of displayed canvas
     this.drawCanvasMultiplier = 4
@@ -110,7 +110,6 @@ export class BaseAnnotationTrack {
     this.trackTitle.style.height = this.minHeight + 'px'
 
     this.trackContainer.parentElement.addEventListener('draw', (event) => {
-      console.log('track recived draw', event.detail.region)
       this.drawTrack({...event.detail.region})
     })
     // Setup context menu
@@ -137,32 +136,6 @@ export class BaseAnnotationTrack {
         })
         this.blitCanvas(this.onscreenPosition.start, this.onscreenPosition.end)
       }, false)
-    // add context menu event listener to same virtual hitbox
-    this.trackContainer.addEventListener('click', async (event) => {
-      for (const element of this.geneticElements) {
-        const rect = this.contentCanvas.getBoundingClientRect()
-        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('x: ' + point.x + ' y: ' + point.y)
-        if (isWithinElementBbox(element.virtualElement, point)) {
-          var url = this.scoutBaseURL + '/document_id/' + variant.id
-          console.log(`Visit ${url}: scout variant`)
-          var win = await window.open(url, '_blank')
-          win.focus()
-        }
-      }
-    }, false)
-    this.trackContainer.addEventListener('dblclick', async (event) => {
-      for (const element of this.geneticElements) {
-        const rect = this.contentCanvas.getBoundingClientRect()
-        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        console.log('x: ' + point.x + ' y: ' + point.y)
-        if (isWithinElementBbox(element.virtualElement, point)) {
-          var url = this.scoutBaseURL + '/' + variant.id + '/pin'
-          console.log(`Visit ${url}: scout PIN variant`)
-          await window.open(url, '_blank')
-        }
-      }
-    }, false)
   }
 
   // Clears previous tracks
