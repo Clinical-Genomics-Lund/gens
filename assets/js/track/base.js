@@ -141,12 +141,12 @@ export class BaseAnnotationTrack {
     this.trackContainer.addEventListener('click', async (event) => {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
-        const point = {x: event.clientX - rect.left, y: event.clientY - rect.top}
+        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
         console.log('x: ' + point.x + ' y: ' + point.y)
         if (isWithinElementBbox(element.virtualElement, point)) {
           var url = this.scoutBaseURL + '/document_id/' + variant.id
           console.log(`Visit ${url}: scout variant`)
-          var win = window.open(url, '_blank')
+          var win = await window.open(url, '_blank')
           win.focus()
         }
       }
@@ -159,7 +159,7 @@ export class BaseAnnotationTrack {
         if (isWithinElementBbox(element.virtualElement, point)) {
           var url = this.scoutBaseURL + '/' + variant.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
-          window.open(url, '_blank')
+          await window.open(url, '_blank')
         }
       }
     }, false)
