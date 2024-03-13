@@ -29,7 +29,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
         if (element.id) {
-          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
+          console.log('click x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
         }
         if (isWithinElementBbox({ element, point })) {
           console.log('In bounding box ')
