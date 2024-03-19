@@ -1,7 +1,7 @@
 // Variant track definition
 
 import { BaseAnnotationTrack } from './base.js'
-import {isElementOverlapping, isWithinElementBbox} from './utils.js'
+import { isElementOverlapping, isWithinElementBbox, isWithinElementVisibleBbox } from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
 import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
@@ -27,15 +27,11 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.trackContainer.addEventListener('click', async (event) => {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
-        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        if (element.id) {
-          console.log('click x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
-        }
-        if (isWithinElementBbox({ element, point })) {
-          console.log('In bounding box ')
+        const point = { x: (event.clientX - rect.left), y: event.clientY - rect.top }
+        if (isWithinElementVisibleBbox({ element, point })) {
           const url = this.scoutBaseURL + '/document_id/' + element.id
           console.log(`Visit ${url}: scout variant`)
-          const win = await window.open(url, '_blank')
+          const win = window.open(url, '_blank')
           win.focus()
         }
       }
@@ -44,10 +40,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        if (element.id) {
-          console.log('dblclick x: ' + point.x + ' y: ' + point.y + ' E x1: ' + element.x1 + ' E x2:' + element.x2 + ' vis x1: ' + element.visibleX1 + ' vis x2:' + element.visibleX2)
-        }
-        if (isWithinElementBbox({ element, point })) {
+        if (isWithinElementVisibleBbox({ element, point })) {
           const url = this.scoutBaseURL + '/' + element.id + '/pin'
           console.log(`Visit ${url}: scout PIN variant`)
           await window.open(url, '_blank')
@@ -198,7 +191,9 @@ export class VariantTrack extends BaseAnnotationTrack {
           isDisplayed: false
         }
       }
-      this.geneticElements.push(variantObj)
+      if (['dup', 'del', 'cnv'].includes(variantCategory)) {
+        this.geneticElements.push(variantObj)
+      }
 
       // Keep track of latest track
       if (this.heightOrderRecord.latestHeight !== heightOrder) {

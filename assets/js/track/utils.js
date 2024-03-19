@@ -39,3 +39,7 @@ export function isElementOverlapping (first, second) {
 export function isWithinElementBbox ({ element, point }) {
   return (element.x1 < point.x && point.x < element.x2) && (element.y1 < point.y && point.y < element.y2)
 }
+
+export function isWithinElementVisibleBbox ({ element, point }) {
+  return (element.visibleX1 < point.x && point.x < element.visibleX2) && (element.visibleY1 < point.y && point.y < element.visibleY2)
+}
