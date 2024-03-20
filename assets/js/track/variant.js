@@ -23,27 +23,16 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.trackTitle = document.getElementById('variant-titles')
     this.trackContainer = document.getElementById('variant-track-container')
     this.scoutBaseURL = scoutBaseURL
-    // add context menu event listener to same virtual hitbox
+    // Add click menu event listener linking out to the Scout variant
     this.trackContainer.addEventListener('click', async (event) => {
       for (const element of this.geneticElements) {
         const rect = this.contentCanvas.getBoundingClientRect()
         const point = { x: (event.clientX - rect.left), y: event.clientY - rect.top }
         if (isWithinElementVisibleBbox({ element, point })) {
           const url = this.scoutBaseURL + '/document_id/' + element.id
-          console.log(`Visit ${url}: scout variant`)
+          console.log(`Visit ${url}: Scout variant`)
           const win = window.open(url, '_blank')
           win.focus()
-        }
-      }
-    }, false)
-    this.trackContainer.addEventListener('dblclick', async (event) => {
-      for (const element of this.geneticElements) {
-        const rect = this.contentCanvas.getBoundingClientRect()
-        const point = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-        if (isWithinElementVisibleBbox({ element, point })) {
-          const url = this.scoutBaseURL + '/' + element.id + '/pin'
-          console.log(`Visit ${url}: scout PIN variant`)
-          await window.open(url, '_blank')
         }
       }
     }, false)
