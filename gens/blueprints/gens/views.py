@@ -73,6 +73,7 @@ def display_case(sample_name):
     return render_template(
         "gens.html",
         ui_colors=current_app.config["UI_COLORS"],
+        scout_base_url=current_app.config.get("SCOUT_BASE_URL"),
         chrom=chrom,
         start=start_pos,
         end=end_pos,

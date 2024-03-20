@@ -5,7 +5,7 @@ import { isElementOverlapping } from './utils.js'
 import { get } from '../fetch.js'
 import { parseRegionDesignation } from '../navigation.js'
 import { drawRect, drawText } from '../draw.js'
-import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 
 // Convert to 32bit integer
@@ -176,7 +176,7 @@ export class AnnotationTrack extends BaseAnnotationTrack {
         open: false
       })
       // get onscreen positions for offscreen xy coordinates
-      updateVisableElementCoordinates({
+      updateVisibleElementCoordinates({
         element: annotationObj,
         screenPosition: this.onscreenPosition,
         scale: this.offscreenPosition.scale

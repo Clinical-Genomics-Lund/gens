@@ -53,7 +53,6 @@ export class BaseAnnotationTrack {
     this.colorSchema = colorSchema
     // errors preventing fetching of data
     this.preventDrawingTrack = false
-
     // Dimensions of track canvas
     this.width = Math.round(width) // Width of displayed canvas
     this.drawCanvasMultiplier = 4
@@ -109,8 +108,7 @@ export class BaseAnnotationTrack {
     this.trackTitle.style.height = this.minHeight + 'px'
 
     this.trackContainer.parentElement.addEventListener('draw', (event) => {
-      console.log('track recived draw', event.detail.region)
-      this.drawTrack({ ...event.detail.region })
+      this.drawTrack({...event.detail.region})
     })
     // Setup context menu
     this.trackContainer.addEventListener('contextmenu',

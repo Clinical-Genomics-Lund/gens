@@ -76,7 +76,6 @@ class ChromCoverageRequest:
         if not 0 <= value <= 1:
             raise ValueError(f"{value} is not within 0-1")
 
-
 def get_overview_chrom_dim(x_pos, y_pos, plot_width, genome_build):
     """
     Returns the dimensions of all chromosome graphs in screen coordinates
@@ -107,7 +106,7 @@ def get_annotation_data(region, source, genome_build, collapsed):
     if region == "" or source == "":
         msg = "Could not find annotation data in DB"
         LOG.error(msg)
-        retrun (jsonify({"detail": msg}), 404)
+        return (jsonify({"detail": msg}), 404)
 
     genome_build = request.args.get("genome_build", "38")
     res, chrom, start_pos, end_pos = parse_region_str(region, genome_build)
@@ -149,7 +148,7 @@ def get_transcript_data(region, genome_build, collapsed):
     if region == "":
         msg = "Could not find transcript in database"
         LOG.error(msg)
-        retrun (jsonify({"detail": msg}), 404)
+        return (jsonify({"detail": msg}), 404)
 
     # Get transcripts within span [start_pos, end_pos] or transcripts that go over the span
     transcripts = list(

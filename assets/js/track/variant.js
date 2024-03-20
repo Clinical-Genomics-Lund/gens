@@ -1,16 +1,16 @@
 // Variant track definition
 
 import { BaseAnnotationTrack } from './base.js'
-import { isElementOverlapping } from './utils.js'
+import { isElementOverlapping, isWithinElementBbox, isWithinElementVisibleBbox } from './utils.js'
 import { drawRect, drawLine, drawWaveLine, drawText } from '../draw.js'
-import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisableElementCoordinates } from './tooltip.js'
+import { initTrackTooltips, createTooltipElement, makeVirtualDOMElement, updateVisibleElementCoordinates } from './tooltip.js'
 import { createPopper } from '@popperjs/core'
 
 // Draw variants
 const VARIANT_TR_TABLE = { del: 'deletion', dup: 'duplication', cnv: 'copy number variation', inv: 'inversion', bnd: 'break end' }
 
 export class VariantTrack extends BaseAnnotationTrack {
-  constructor (x, width, near, far, caseId, genomeBuild, colorSchema, highlightedVariantId) {
+  constructor (x, width, near, far, caseId, genomeBuild, colorSchema, scoutBaseURL, highlightedVariantId) {
     // Dimensions of track canvas
     const visibleHeight = 100 // Visible height for expanded canvas, overflows for scroll
     const minHeight = 35 // Minimized height
@@ -22,8 +22,21 @@ export class VariantTrack extends BaseAnnotationTrack {
     this.contentCanvas = document.getElementById('variant-content')
     this.trackTitle = document.getElementById('variant-titles')
     this.trackContainer = document.getElementById('variant-track-container')
+    this.scoutBaseURL = scoutBaseURL
+    // Add click menu event listener linking out to the Scout variant
+    this.trackContainer.addEventListener('click', async (event) => {
+      for (const element of this.geneticElements) {
+        const rect = this.contentCanvas.getBoundingClientRect()
+        const point = { x: (event.clientX - rect.left), y: event.clientY - rect.top }
+        if (isWithinElementVisibleBbox({ element, point })) {
+          const url = this.scoutBaseURL + '/document_id/' + element.id
+          console.log(`Visit ${url}: Scout variant`)
+          const win = window.open(url, '_blank')
+          win.focus()
+        }
+      }
+    }, false)
     this.featureHeight = 18
-
     // Setup html objects now that we have gotten the canvas and div elements
     this.setupHTML(x + 1)
 
@@ -36,7 +49,6 @@ export class VariantTrack extends BaseAnnotationTrack {
       variant_category: 'sv',
       case_id: caseId
     }
-
     // Initialize highlighted variant
     this.highlightedVariantId = highlightedVariantId
     initTrackTooltips(this)
@@ -113,7 +125,7 @@ export class VariantTrack extends BaseAnnotationTrack {
       // create variant object
       const featureHeight = variantCategory === 'del' ? 7 : 8
       const variantObj = {
-        id: variant.variant_id,
+        id: variant.document_id,
         name: variant.display_name,
         start: variant.position,
         end: variant.end,
@@ -126,7 +138,7 @@ export class VariantTrack extends BaseAnnotationTrack {
         tooltip: false,
       }
       // get onscreen positions for offscreen xy coordinates
-      updateVisableElementCoordinates({
+      updateVisibleElementCoordinates({
         element: variantObj,
         screenPosition: this.onscreenPosition,
         scale: this.offscreenPosition.scale
@@ -168,7 +180,9 @@ export class VariantTrack extends BaseAnnotationTrack {
           isDisplayed: false
         }
       }
-      this.geneticElements.push(variantObj)
+      if (['dup', 'del', 'cnv'].includes(variantCategory)) {
+        this.geneticElements.push(variantObj)
+      }
 
       // Keep track of latest track
       if (this.heightOrderRecord.latestHeight !== heightOrder) {
