@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  docker-stage-push:
+  docker-push:
     name: Create docker image
     runs-on: ubuntu-latest
     steps:
@@ -33,4 +33,4 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: "clinicalgenomics/gens:${{ github.event.release.tag_name }}, ${{steps.branch-name.outputs.current_branch}}, clinicalgenomics/gens:latest"
+          tags: "clinicalgenomics/gens:${{ github.event.release.tag_name }}, clinicalgenomics/gens:latest"
