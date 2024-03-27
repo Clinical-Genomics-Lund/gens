@@ -13,7 +13,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 - Archive prod docker image with release tag name. Update action versions.
 ### Fixed
 - Error image background static path
-- GitHub action DockerHub push
+- GitHub action DockerHub push on release
 
 ## [2.2]
 ### Added

@@ -1,9 +1,9 @@
 name: Publish to Docker
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types:
+      - created
 
 jobs:
   docker-push:
