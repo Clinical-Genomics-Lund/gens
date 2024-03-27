@@ -1,9 +1,9 @@
 name: Publish preproc to Docker
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types:
+      - created
 
 jobs:
   docker-preproc-push:
