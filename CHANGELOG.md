@@ -7,7 +7,10 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ## [x.x.x]
 ### Added
 ### Changed
+ - Changed cached method from simple to file system as it would be thread safe
+
 ### Fixed
+ - Fixed cache issue that could result in chromosome information not being updated
 
 ## [2.1.1]
 ### Added
