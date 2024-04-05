@@ -23,7 +23,6 @@ gens_bp = Blueprint(
 
 
 @gens_bp.route("/<path:sample_name>", methods=["GET"])
-@cache.cached(timeout=60)
 def display_case(sample_name):
     """
     Renders the Gens template
