@@ -8,6 +8,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 ### Fixed
+- Fixed max arg error when searching for some genes
 
 ## [2.1.1]
 ### Added
