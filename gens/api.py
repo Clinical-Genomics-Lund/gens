@@ -193,7 +193,7 @@ def search_annotation(query: str, genome_build, annotation_type):
         response_code = 404
     else:
         start_elem = elements[0]
-        end_elem = max(elements[1:], key=lambda elem: elem.get("end"))
+        end_elem = max(elements[0:], key=lambda elem: elem.get("end"))
         data = {
             "chromosome": start_elem.get("chrom"),
             "start_pos": start_elem.get("start"),

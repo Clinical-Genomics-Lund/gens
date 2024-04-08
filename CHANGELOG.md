@@ -11,6 +11,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
  - Fixed cache issue that could result in chromosome information not being updated
+ - Fixed max arg error when searching for some genes
 
 ## [2.1.1]
 ### Added
