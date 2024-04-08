@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](http://semver.org/)
 About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [x.x.x]
+
+### Added
+### Changed
+### Fixed
+
+## [2.1.2]
 ### Added
 ### Changed
  - Changed cached method from simple to file system as it would be thread safe
