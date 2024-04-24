@@ -1,0 +1,17 @@
+ // Default colors 
+$default-font-color: #202231;
+$default-bg-color: #F7F9F9;
+// font
+$default-font: Arial, Helvetica, sans-serif;
+$default-font-print: "Times New Roman", Times, serif;
+
+html {
+    font-family: $default-font;
+    color: $default-font-color;
+    background-color: $default-bg-color;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}

@@ -1,0 +1,22 @@
+# http://docs.python.org/distutils/sourcedist.html#manifest-template
+# http://docs.python.org/distutils/sourcedist.html#specifying-the-files-to-distribute
+
+# including
+include CHANGELOG.md
+include LICENSE
+include README.md
+include requirements.txt
+include requirements-dev.txt
+
+# server
+recursive-include gens/templates/ *.html
+recursive-include gens/static/**/ *
+recursive-include scout/blueprints/**/templates/ *.html
+recursive-include scout/blueprints/**/static/ *
+
+# api
+include gens/openapi/openapi.yaml
+
+# excluding
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store

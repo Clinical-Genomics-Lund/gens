@@ -1,0 +1,77 @@
+@use "sass:color";
+ // Define menuebar colors
+$menubar-font-color: #F4FAFF;
+$menubar-bg-color: #4C6D94;
+$menubar-bg-color-dark: adjust-color($menubar-bg-color, $lightness: -10%);
+$menubar-bg-color-print: darkgrey;
+$menubar-font-color-print: white;
+// size
+
+.navbar {
+    font-family: $default-font;
+    font-size: 1.5em;
+    background: $menubar-bg-color;
+    color: $menubar-font-color;
+    // alignment of items in navbar
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    // drop shadow
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+
+    #home-link {
+        text-decoration: none;
+    }
+
+    .logo-container {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 5px 0;
+        background: $menubar-font-color;
+    }
+
+    .active { background-color: $menubar-bg-color-dark}
+
+    .version {
+        font-size: 0.6em;
+        padding: 0 25px 0 8px;
+    }
+
+    .logo {
+        background: url(./svg/gens-logo-only.svg) no-repeat top left;
+        background-size: contain;
+        width: 35px;
+        height: 35px;
+        display: inherit;
+        // center in parent
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    li {
+      float: left;
+      
+      a {
+        display: block;
+        color: inherit;
+        text-align: center;
+        padding: 16px 18px;
+        text-decoration: none;
+      }
+    }
+
+    a:hover {
+      background-color: $menubar-bg-color-dark
+    }
+}

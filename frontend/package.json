@@ -1,0 +1,68 @@
+{
+  "dependencies": {
+    "@popperjs/core": "^2.9.2",
+    "npm": "^10.2.3",
+    "tippy.js": "^6.3.2"
+  },
+  "name": "gens",
+  "version": "2.1.0",
+  "description": "Interactive tool to visualize genomic copy number profiles from WGS data",
+  "main": "gens.js",
+  "scripts": {
+    "build": "gulp build",
+    "lint": "eslint assets",
+    "watch": "gulp watch",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clinical-Genomics-Lund/Gens.git"
+  },
+  "author": "Markus Johansson",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/Clinical-Genomics-Lund/Gens/issues"
+  },
+  "homepage": "https://github.com/Clinical-Genomics-Lund/Gens#readme",
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "ts",
+      "tsx",
+      "jsx"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less|sass|scss)$": "<rootDir>/assets/__mocks__/styleMock.js",
+      "\\.(gif|tff|eot|svg)$": "<rootDir>/assets/__mocks__/fileMock.js"
+    },
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8",
+    "verbose": false
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "css-loader": "^5.2.7",
+    "eslint": "^7.22.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^5.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "jest": "^26.6.3",
+    "process": "^0.11.10",
+    "regenerator-runtime": "^0.13.7",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.76.0",
+    "webpack-cli": "^4.5.0"
+  }
+}
