@@ -7,7 +7,7 @@ from itertools import groupby
 from flask import Blueprint, current_app, render_template, request
 
 from app import version
-from app.db import get_samples, get_timestamps
+from app.api import get_samples, get_timestamps
 
 LOG = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def home():
     # set pagination
     page = request.args.get("page", 1, type=int)
     start = (page - 1) * SAMPLES_PER_PAGE
-    samples, tot_samples = get_samples(db, start=start, n_samples=SAMPLES_PER_PAGE)
+    samples, tot_samples = get_samples(db, skip=start, limit=SAMPLES_PER_PAGE)
     # calculate pagination
     pagination_info = {
         "from": start + 1,

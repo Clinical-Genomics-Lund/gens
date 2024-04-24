@@ -8,6 +8,7 @@ GENS_DBNAME = "gens"
 SCOUT_DBNAME = "scout"
 
 GENS_API_URL = os.getenv("GENS_API_URL", "http://mtlucmds2.lund.skane.se:8815/") 
+REQUEST_TIMEOUT = 60
 
 # Annotation
 DEFAULT_ANNOTATION_TRACK = (

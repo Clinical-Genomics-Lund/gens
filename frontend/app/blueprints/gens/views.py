@@ -6,8 +6,7 @@ from datetime import date
 from flask import Blueprint, abort, current_app, render_template, request
 
 from app import version
-from app.cache import cache
-from app.db import get_sample
+from app.api import get_sample
 from app.io import _get_filepath, parse_region_str
 
 LOG = logging.getLogger(__name__)
@@ -22,7 +21,6 @@ gens_bp = Blueprint(
 
 
 @gens_bp.route("/<path:sample_name>", methods=["GET"])
-@cache.cached(timeout=60)
 def display_case(sample_name):
     """
     Renders the Gens template

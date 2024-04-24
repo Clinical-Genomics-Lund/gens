@@ -7,6 +7,7 @@ from app.crud.annotation import (
     get_annotations_in_region,
     get_track_names,
     search_annotation_db,
+    get_track_info, TrackInfo
 )
 from app.crud.transcript import search_transcript_db
 from app.graph import parse_region_str
@@ -109,3 +110,9 @@ async def search_annotations(
         genome_build=genome_build,
     )
     return position
+
+
+@router.get("/annotations/info", tags=DEFAULT_TAGS)
+async def get_annotation_track_info() -> TrackInfo:
+    info = get_track_info()
+    return info

@@ -1,9 +1,12 @@
 """CRUD operations for annotations."""
+
 import logging
 from typing import Any, Dict, List
+import datetime
 
 from app.db import gens_db
 from app.models.genomic import GenomeBuild, RegionPosition
+from ..models.base import RWModel
 
 from .utils import query_region_helper
 
@@ -64,6 +67,46 @@ def get_track_names(genome_build: GenomeBuild) -> List[str]:
         "source", {"genome_build": str(genome_build.value)}
     )
     return names
+
+
+class TrackInfo(RWModel):
+    track_name: str
+    genome_build: str
+    n_annotations: int
+    timestamp: datetime.datetime
+
+
+def get_track_info() -> List[TrackInfo]:
+    """Get information on the different annotation tracks in the database.
+
+    The info returned are track name, number of annotations, last modified
+
+    :return: List of track information
+    :rtype: List[Dict[str, str]]
+    """
+    result = gens_db.annotations.aggregate(
+        [
+            {
+                "$project": {
+                    "_id": 0,
+                    "source": 1,
+                    "genome_build": 1,
+                    "timestamp": {"$toDate": "$_id"},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$source",
+                    "n_annotations": {"$count": {}},
+                    "genome_build": {"$first": "$genome_build"},
+                    "timestamp": {"$max": "$timestamp"},
+                }
+            },
+            {"$addFields": {"track_name": "$_id"}},
+            {"$project": {"_id": 0}},
+        ]
+    )
+    return [TrackInfo(**info) for info in result]
 
 
 def create_annotation():
