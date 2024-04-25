@@ -2,7 +2,7 @@
 
 import logging
 import os
-from itertools import groupby
+import datetime
 
 from flask import Blueprint, current_app, render_template, request
 
@@ -35,11 +35,13 @@ home_bp = Blueprint(
 @home_bp.route("/", methods=["GET", "POST"])
 @home_bp.route("/home", methods=["GET", "POST"])
 def home():
-    db = current_app.config["GENS_DB"]
+    #db = current_app.config["GENS_DB"]
     # set pagination
     page = request.args.get("page", 1, type=int)
     start = (page - 1) * SAMPLES_PER_PAGE
-    samples, tot_samples = get_samples(db, skip=start, limit=SAMPLES_PER_PAGE)
+    result = get_samples(skip=start, limit=SAMPLES_PER_PAGE)
+    samples = result['samples']
+    tot_samples = result['tot_samples']
     # calculate pagination
     pagination_info = {
         "from": start + 1,
@@ -52,20 +54,20 @@ def home():
         ),
     }
     # parse samples
-    samples = [
+    fmt_samples = [
         {
-            "sample_id": smp.sample_id,
-            "genome_build": smp.genome_build,
-            "has_overview_file": smp.overview_file is not None,
-            "files_present": os.path.isfile(smp.baf_file)
-            and os.path.isfile(smp.coverage_file),
-            "created_at": smp.created_at.strftime("%Y-%m-%d"),
+            "sample_id": smp["sample_id"],
+            "genome_build": smp["genome_build"],
+            "has_overview_file": smp["overview_file"] is not None,
+            "files_present": os.path.isfile(smp["baf_file"])
+            and os.path.isfile(smp["coverage_file"]),
+            "created_at": datetime.datetime.fromisoformat(smp["created_at"]).strftime("%Y-%m-%d"),
         }
         for smp in samples
     ]
     return render_template(
         "home.html",
-        samples=samples,
+        samples=fmt_samples,
         pagination=pagination_info,
         version=version,
     )

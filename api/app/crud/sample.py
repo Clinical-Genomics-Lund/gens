@@ -59,6 +59,7 @@ def get_gens_samples(skip=None, limit=None):
     """
     samples = []
     query = gens_db.samples.find().sort("created_at", DESCENDING)
+    tot_samples = gens_db.samples.estimated_document_count()
     # add limit
     if skip is not None and isinstance(skip, int):
         query = query.skip(skip)
@@ -78,7 +79,7 @@ def get_gens_samples(skip=None, limit=None):
             created_at=res["created_at"],
         )
         results.append(sample_obj)
-    return results
+    return results, tot_samples
 
 
 def get_scout_case(case_name: str, **projection: Dict[str, int]):

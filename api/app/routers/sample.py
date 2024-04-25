@@ -1,6 +1,6 @@
 """Sample related entrypoints, including upload and get coverage."""
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
@@ -27,13 +27,13 @@ DEFAULT_TAGS = ["sample"]
 @router.get("/samples", tags=DEFAULT_TAGS)
 async def get_multiple_samples(
     limit: int | None = None, skip: int | None = None
-) -> List[Sample]:
+) -> Dict[str, Union[List[Sample], int]]:
     """Read multiple samples from the database."""
-    samples = get_gens_samples(skip=skip, limit=limit)
-    return jsonable_encoder(samples)
+    samples, tot_samples = get_gens_samples(skip=skip, limit=limit)
+    return {"samples": jsonable_encoder(samples), "tot_samples": tot_samples}
 
 
-@router.get("/samples/<sample_id>", tags=DEFAULT_TAGS)
+@router.get("/samples/{sample_id}", tags=DEFAULT_TAGS)
 async def get_sample(sample_id: str, genome_build: int) -> Sample:
     """Read info on a single sample."""
     genome_build = GenomeBuild(int(genome_build))
@@ -41,7 +41,7 @@ async def get_sample(sample_id: str, genome_build: int) -> Sample:
     return jsonable_encoder(sample)
 
 
-@router.post("/samples/<sample_id>", tags=DEFAULT_TAGS)
+@router.post("/samples/{sample_id}", tags=DEFAULT_TAGS)
 async def create_sample(sample: Sample) -> Sample:
     """Read info on a single sample."""
     status = create_gens_sample(sample)

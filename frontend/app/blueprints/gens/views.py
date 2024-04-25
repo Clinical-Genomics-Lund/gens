@@ -38,9 +38,9 @@ def display_case(sample_name):
         genome_build = request.args.to_dict().get("genome_build", "38")
 
     # verify that sample has been loaded
-    db = current_app.config["GENS_DB"]
-    sample = get_sample(db, sample_name, genome_build)
+    sample = get_sample(sample_name, genome_build)
 
+    """
     # Check that BAF and Log2 file exists
     try:
         _get_filepath(sample.baf_file)
@@ -59,23 +59,23 @@ def display_case(sample_name):
         "annotation", current_app.config["DEFAULT_ANNOTATION_TRACK"]
     )
 
-    parsed_region = parse_region_str(db, region, genome_build)
     if not parsed_region:
         abort(416)
 
-    api_url = current_app.config["GENS_API_URL"]
     chrom, start_pos, end_pos = parsed_region
+    """
+    api_url = current_app.config["GENS_API_URL"]
     return render_template(
         "gens.html",
         ui_colors=current_app.config["UI_COLORS"],
-        chrom=chrom,
-        start=start_pos,
-        end=end_pos,
+        chrom='12', #chrom,
+        start=1, #start_pos,
+        end=10000, #end_pos,
         sample_name=sample_name,
         genome_build=genome_build,
         print_page=print_page,
-        annotation=annotation,
-        selected_variant=selected_variant,
+        annotation='bar', #annotation,
+        selected_variant='foo', #selected_variant,
         api_url=api_url,
         todays_date=date.today(),
         version=version,

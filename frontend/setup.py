@@ -35,6 +35,7 @@ setup(
         "pyyaml",
         "flask-compress",
         "tabulate",
+        "requests",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "mongomock"],
