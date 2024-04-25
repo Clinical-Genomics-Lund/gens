@@ -40,8 +40,8 @@ LABEL base_image="python:3.8.1-slim"
 LABEL about.home="https://github.com/Clinical-Genomics-Lund/Gens"
 
 # Run commands as non-root user
-RUN useradd -m app && mkdir -p /home/app/app
-WORKDIR /home/app/app
+RUN useradd -m worker && mkdir -p /home/worker/app
+WORKDIR /home/worker/app
 
 # Copy pyhon wheels and install software
 COPY --from=python-builder /usr/src/app/wheels /wheels
@@ -61,6 +61,6 @@ COPY --from=node-builder /usr/src/app/build/css/home.min.css /usr/src/app/build/
 COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/static/
 
 # make mountpoints and change ownership of app
-RUN mkdir -p /access /fs1/results /fs1/results_dev && chown -R app:app /home/app/app /access /fs1
+RUN mkdir -p /access /fs2/results /fs1/results_dev && chown -R worker:worker /home/worker/app /access /fs1
 # Change the user to app
-USER app
+USER worker
