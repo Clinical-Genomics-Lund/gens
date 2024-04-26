@@ -9,7 +9,6 @@ from flask import Flask
 from flask_compress import Compress
 
 from .blueprints import gens_bp, home_bp
-from .cache import cache
 from .errors import (generic_abort_error, generic_exception_error)
 
 
@@ -47,10 +46,6 @@ def create_app():
         LOG.debug("No user configuration set with $GENS_CONFIG environmental variable")
     else:
         app.config.from_envvar("GENS_CONFIG")
-    # initialize database and store db content
-    #with app.app_context():
-    #    init_database()
-    # connect to mongo client
     app.config["DEBUG"] = True
     app.config["SECRET_KEY"] = "pass"
 
@@ -58,20 +53,18 @@ def create_app():
     initialize_extensions(app)
     # register bluprints and errors
     register_blueprints(app)
-    #register_errors(app)
+    register_errors(app)
 
     return app
 
 
 def initialize_extensions(app):
     """Initialize flask extensions."""
-    cache.init_app(app)
     compress.init_app(app)
 
 
 def register_errors(app):
     """Register error pages for gens app."""
-    #app.register_error_handler(SampleNotFoundError, sample_not_found)
     app.register_error_handler(404, generic_abort_error)
     app.register_error_handler(416, generic_abort_error)
     app.register_error_handler(500, generic_abort_error)
