@@ -75,13 +75,13 @@ gulp.task('build', gulp.parallel('build-js', 'build-gens-css',
 
 // DEVELOPMENT tasks
 //
-const devGlobalAssets = 'gens/static'
-const devGensAssets = 'gens/blueprints/gens/static'
-const devAboutAssets = 'gens/blueprints/home/static'
+const devGlobalAssets = 'app/static'
+const devGensAssets = 'app/blueprints/gens/static'
+const devAboutAssets = 'app/blueprints/home/static'
 
 gulp.task('build-js-dev', () => {
   webpackConfig.mode = 'development'
-  webpackConfig.output.path = resolve('./gens/blueprints/gens/static/')
+  webpackConfig.output.path = resolve('./app/blueprints/gens/static/')
   return runWebpack(webpackConfig)
 })
 
