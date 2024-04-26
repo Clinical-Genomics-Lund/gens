@@ -5,8 +5,9 @@ import os
 from fractions import Fraction
 
 import pysam
-from .models import GenomeBuild, Chromosomes
-from .db.chrom_sizes import get_chromosome
+from pydantic import BaseModel
+from typing import Optional, Union, Dict
+#from .api import get_chromosome
 
 BAF_SUFFIX = ".baf.bed.gz"
 COV_SUFFIX = ".cov.bed.gz"
@@ -14,6 +15,14 @@ JSON_SUFFIX = ".overview.json.gz"
 
 
 LOG = logging.getLogger(__name__)
+
+
+class ChromosomeRegion(BaseModel):
+    """Container 0+ """
+
+    chrom: str
+    start: Optional[int]
+    end: Optional[int]
 
 
 def _get_filepath(*args, check=True):
@@ -55,7 +64,7 @@ def tabix_query(tbix, res, chrom, start=None, end=None, reduce=None):
     return [r.split("\t") for r in records]
 
 
-def parse_region_str(db, region: str, genome_build: GenomeBuild):
+def parse_region_str_old(region: str):
     """
     Parses a region string
     """
@@ -69,7 +78,6 @@ def parse_region_str(db, region: str, genome_build: GenomeBuild):
         LOG.error("Wrong region formatting")
         return None
 
-    chrom_data = get_chromosome(db, chrom, genome_build)
     # Set end position if it is not set
     if end == "None":
         end = chrom_data["size"]
@@ -88,3 +96,30 @@ def parse_region_str(db, region: str, genome_build: GenomeBuild):
         end = chrom_data["size"]
 
     return chrom, start, end
+
+
+def parse_region_str(region: str) -> Optional[ChromosomeRegion]:
+    """
+    Parses a region string
+    """
+    try:
+        # Split region in standard format chrom:start-stop
+        if ":" in region:
+            chrom, pos_range = region.split(":")
+            start, end = pos_range.split("-")
+            chrom.replace("chr", "")
+    except ValueError:
+        LOG.error("Wrong region formatting")
+        return None
+
+    start = int(start)
+    end = int(end) if not end == "None" else None
+
+    if end is not None:
+        size = end - start
+        if size <= 0:
+            LOG.error("Invalid input span")
+            result = None
+    else:
+        result = ChromosomeRegion(chrom=chrom, start=start, end=end)
+    return result
