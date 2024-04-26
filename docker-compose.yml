@@ -1,30 +1,18 @@
-version: "3.8"
+version: "3.9"
 services:
   mongodb:
-    container_name: mongodb
-    image: mongo:7
+    image: mongo:4.4.22
     volumes:
       - ./volumes/mongo_db/data:/data/db
     networks:
       - gens-net
-
-  gens:
-    container_name: gens
+  frontend:
     build: .
-    volumes:
-      - ./utils:/home/app/app/utils
-      - ./gens:/home/app/app/gens
-      - ./setup.py:/home/app/app/setup.py
-      - ./volumes/gens/data:/home/app/data
-      - ./volumes/gens/wgs:/home/app/access/wgs
-        #- /media/isilon/backup_hopper/results/wgs:/access/wgs
     environment:
-      - FLASK_APP=gens/app.py
+      - FLASK_APP=app:create_app
       - FLASK_ENV=development
-      - MONGODB_HOST=mongodb
-      - MONGODB_PORT=27017
-      - SCOUT_DBNAME=scout
-      - GENS_DBNAME=gens
+      - FLASK_DEBUG=True
+      - GENS_API_URL=http://api:5001/
     expose:
       - '5000'
     ports:
@@ -34,20 +22,22 @@ services:
     depends_on:
       - mongodb
       - api
+      - mongodb
     command: "flask run --host 0.0.0.0"
 
   api:
-    container_name: api
     build:
       context: api
       network: host
     environment:
       - MONGODB_HOST=mongodb
       - MONGODB_PORT=27017
-    expose:
-      - '5000'
+      - ALLOWED_ORIGINS=*
     ports:
-      - "5001:5000"
+      - "5001:8000"
+    volumes:
+      - ./volumes/gens/data:/home/app/data
+      - ./volumes/gens/wgs:/home/app/access/wgs
     networks:
       - gens-net
     depends_on:
