@@ -130,9 +130,13 @@
 
     // Set first input field value for ic
     let start = {{ start }} === 0 ? 1 : {{ start }};
-    const end = {{ end }}
+    {% if end is not none %}
+        const end = {{ end }}
+    {% else %}
+        const end = null
+    {% endif %}
     const genomeBuild = {{ genome_build }}
-    inputField.value = '{{chrom}}' + ':' + start + '-' + {{end}};
+    inputField.value = '{{chrom}}' + ':' + start + '-' + '{{ end }}';
     inputField.placeholder = inputField.value;
 
     // Redraw when new region is requested
@@ -176,7 +180,7 @@
 
     Promise.all([ic.drawStaticContent(), oc.drawOverviewContent()]).then( () => {
         // setup event managers and draw the tracks
-        gens.drawTrack({chrom: '{{ chrom }}', start: start, end: {{ end }} })
+        gens.drawTrack({chrom: '{{ chrom }}', start: start, end: end })
         document.dispatchEvent(new CustomEvent('data-loaded'))
     })
 

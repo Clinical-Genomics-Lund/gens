@@ -7,7 +7,7 @@ from flask import Blueprint, abort, current_app, render_template, request
 
 from app import version
 from app.api import get_sample
-from app.io import _get_filepath, parse_region_str
+from app.io import parse_region_str
 
 LOG = logging.getLogger(__name__)
 
@@ -40,42 +40,26 @@ def display_case(sample_name):
     # verify that sample has been loaded
     sample = get_sample(sample_name, genome_build)
 
-    """
-    # Check that BAF and Log2 file exists
-    try:
-        _get_filepath(sample.baf_file)
-        _get_filepath(sample.coverage_file)
-        if sample.overview_file:  # verify json if it exists
-            _get_filepath(sample.overview_file)
-    except FileNotFoundError as err:
-        raise err
-    else:
-        LOG.info(f"Found BAF and COV files for {sample_name}")
     # which variant to highlight as focused
     selected_variant = request.args.get("variant")
-
     # get annotation track
     annotation = request.args.get(
         "annotation", current_app.config["DEFAULT_ANNOTATION_TRACK"]
     )
+    parsed_region = parse_region_str(region)
 
-    if not parsed_region:
-        abort(416)
-
-    chrom, start_pos, end_pos = parsed_region
-    """
     api_url = current_app.config["GENS_API_URL"]
     return render_template(
         "gens.html",
         ui_colors=current_app.config["UI_COLORS"],
-        chrom='12', #chrom,
-        start=1, #start_pos,
-        end=10000, #end_pos,
+        chrom=parsed_region.chrom,
+        start=parsed_region.start,
+        end=parsed_region.end,
         sample_name=sample_name,
         genome_build=genome_build,
         print_page=print_page,
-        annotation='bar', #annotation,
-        selected_variant='foo', #selected_variant,
+        annotation=annotation,
+        selected_variant=selected_variant,
         api_url=api_url,
         todays_date=date.today(),
         version=version,
