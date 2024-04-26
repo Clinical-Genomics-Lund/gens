@@ -119,7 +119,7 @@ export function queryRegionOrGene(query, genomeBuild = 38) {
   } else if (CHROMOSOMES.includes(query)) {
     drawTrack({ chrom: query, start: 1, end: null })
   } else {
-    get('search-annotation', { query: query, genome_build: genomeBuild })
+    get('search-annotation', { query: query, genome_build: genomeBuild, annotation_type: 'transcript' })
       .then(result => {
         if (result.status === 200) {
           drawTrack({
