@@ -9,13 +9,8 @@ include requirements.txt
 include requirements-dev.txt
 
 # server
-recursive-include gens/templates/ *.html
-recursive-include gens/static/**/ *
-recursive-include scout/blueprints/**/templates/ *.html
-recursive-include scout/blueprints/**/static/ *
-
-# api
-include gens/openapi/openapi.yaml
+recursive-include app/templates/ *.html
+recursive-include app/static/**/ *
 
 # excluding
 recursive-exclude * *.py[co]

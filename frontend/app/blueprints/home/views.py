@@ -6,7 +6,7 @@ import datetime
 
 from flask import Blueprint, current_app, render_template, request
 
-from app import version
+from app import __version__ as version
 from app.api import get_samples, get_timestamps
 
 LOG = logging.getLogger(__name__)
