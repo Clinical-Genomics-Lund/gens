@@ -1,3 +1,13 @@
+################
+# BUILDER NODE #
+################
+
+FROM node:20.8.1-alpine as node-builder
+WORKDIR /usr/src/app
+COPY package.json package-lock.json webpack.config.js gulpfile.js ./
+COPY assets assets
+RUN npm install && npm run build
+
 ##################
 # BUILDER PYTHON #
 ##################
@@ -10,24 +20,17 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /usr/src/app
 
-RUN python -m venv /usr/app/venv
-ENV PATH="/usr/app/venv/bin:$PATH"
-
-COPY setup.py setup.cfg pyproject.toml ./
+COPY pyproject.toml ./
 COPY app app/
 
+# copy compiled web assetes
+COPY --from=node-builder /usr/src/app/build/css/error.min.css app/static/css/
+COPY --from=node-builder /usr/src/app/build/css/home.min.css /usr/src/app/build/css/about.min.css app/blueprints/home/static/
+COPY --from=node-builder /usr/src/app/build/*/gens.min.* app/blueprints/gens/static/
+
+# build frontend wheel
 RUN pip install --no-cache-dir --upgrade pip &&                 \
-    pip install --no-cache-dir .
-
-################
-# BUILDER NODE #
-################
-
-FROM node:20.8.1-alpine as node-builder
-WORKDIR /usr/src/app
-COPY package.json package-lock.json webpack.config.js gulpfile.js ./
-COPY assets assets
-RUN npm install && npm run build
+    pip wheel --no-cache-dir --wheel-dir /usr/src/app/wheels .
 
 #########
 # FINAL #
@@ -41,25 +44,23 @@ LABEL about.home="https://github.com/Clinical-Genomics-Lund/Gens"
 # Run commands as non-root user
 RUN useradd -m worker && mkdir -p /home/worker/app
 
+# Change the user to app
+WORKDIR /home/worker
+
+# copy application folder
+COPY --chown=worker:worker app app
+
+# copy wheels
+COPY --from=python-builder /usr/src/app/wheels /wheels
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir /wheels/* &&     \ 
+    rm -rf /wheels &&                           \
+    rm -rf /var/lib/apt/lists/*
+
 # make mountpoints and change ownership of app
 RUN mkdir -p /access /fs2/results /fs1/results_dev && chown -R worker:worker /home/worker/app /access /fs1
 
+# use non-root user
 USER worker
-
-# Copy pyhon wheels and install software
-WORKDIR /usr/app
-COPY --from=python-builder /usr/app/venv ./venv
-
-ENV PATH="/usr/app/venv/bin:$PATH"
-
-# Change the user to app
-WORKDIR /home/worker/app
-
-COPY app app
-
-# copy compiled web assetes
-COPY --from=node-builder /usr/src/app/build/css/error.min.css gens/static/css/
-COPY --from=node-builder /usr/src/app/build/css/home.min.css /usr/src/app/build/css/about.min.css gens/blueprints/home/static/
-COPY --from=node-builder /usr/src/app/build/*/gens.min.* gens/blueprints/gens/static/
 
 CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "app.app:create_app" ]

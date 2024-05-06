@@ -1,6 +1,65 @@
 [build-system]
-requires = ["setuptools"]
+requires = [
+    "setuptools", 
+    "setuptools-scm",
+    "flask",
+    "flask-compress",
+    "gunicorn",
+    "requests",
+    "pydantic",
+    "tabulate",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "gens_app"
+dynamic = ["version"]
+authors = [
+  {name = "Markus Johansson", email = "markus.h.johansson@skane.se"},
+]
+description = "Gens frontend"
+requires-python = ">=3.10"
+license = {text = "MIT License"}
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "setuptools",
+    "wheel",
+    "flask",
+    "flask-compress",
+    "gunicorn",
+    "requests",
+    "pydantic",
+    "tabulate",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pytest-flask",
+]
+
+[project.urls]
+Repository = "https://github.com/Clinical-Genomics-Lund/gens.git"
+Issues = "https://github.com/Clinical-Genomics-Lund/gens/issues"
+Changelog = "https://github.com/Clinical-Genomics-Lund/gens/blob/master/CHANGELOG.md"
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.setuptools.dynamic]
+version = {attr = "app.__version__"}
+
+[tool.setuptools.package-data]
+app = ["*.css", "*.js"]
 
 [tool.isort]
 profile = "black"
