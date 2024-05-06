@@ -1,11 +1,8 @@
 """Test IO related functions."""
 
-import os
-from unittest.mock import Mock
-
 import pytest
 
-from gens.io import _get_filepath
+from app.io.coverage import _get_filepath
 
 
 def test_get_filepath():

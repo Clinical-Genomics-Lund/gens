@@ -6,7 +6,6 @@ description = "Gens API"
 dependencies = [
     "setuptools",
     "wheel",
-    "click",
     "requests",
     "fastapi[all]",
     "uvicorn[standard]",
@@ -17,6 +16,17 @@ dependencies = [
 ]
 authors = [
   {name = "Markus Johansson", email = "markus.h.johansson@skane.se"},
+]
+
+[project.optional-dependencies]
+test = [
+    "black",
+    "isort",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pytest-flask",
+    "coveralls",
 ]
 
 [project.urls]
