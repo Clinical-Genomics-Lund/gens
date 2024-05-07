@@ -9,8 +9,7 @@ from flask import Flask
 from flask_compress import Compress
 
 from .blueprints import gens_bp, home_bp
-from .errors import (generic_abort_error, generic_exception_error)
-
+from .errors import generic_abort_error, generic_exception_error
 
 dictConfig(
     {

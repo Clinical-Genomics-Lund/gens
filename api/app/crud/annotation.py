@@ -1,13 +1,13 @@
 """CRUD operations for annotations."""
 
+import datetime
 import logging
 from typing import Any, Dict, List
-import datetime
 
 from app.db import gens_db
 from app.models.genomic import GenomeBuild, RegionPosition
-from ..models.base import RWModel
 
+from ..models.base import RWModel
 from .utils import query_region_helper
 
 LOG = logging.getLogger(__name__)

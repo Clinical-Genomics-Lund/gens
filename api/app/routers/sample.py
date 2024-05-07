@@ -2,22 +2,13 @@
 
 from typing import Dict, List, Union
 
+from app.crud.sample import (create_gens_sample, get_gens_sample,
+                             get_gens_samples, get_multiple_coverages,
+                             get_region_coverage)
+from app.models.sample import (FrequencyQueryObject, GenomeBuild,
+                               MultipleCoverageOutput, Sample)
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
-
-from app.crud.sample import (
-    create_gens_sample,
-    get_gens_sample,
-    get_gens_samples,
-    get_multiple_coverages,
-    get_region_coverage,
-)
-from app.models.sample import (
-    FrequencyQueryObject,
-    GenomeBuild,
-    MultipleCoverageOutput,
-    Sample,
-)
 
 router = APIRouter()
 

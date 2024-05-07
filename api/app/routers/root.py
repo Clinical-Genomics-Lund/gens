@@ -2,9 +2,8 @@
 
 from typing import Dict
 
-from fastapi import APIRouter
-
 from app import VERSION
+from fastapi import APIRouter
 
 router = APIRouter()
 

@@ -3,11 +3,10 @@
 import logging
 from enum import Enum
 
+from app.config import GENS_DB_NAME, SCOUT_DB_NAME
 from pymongo import MongoClient
 from pymongo.database import Database as MongoDatabase
 from pymongo.errors import ServerSelectionTimeoutError
-
-from app.config import GENS_DB_NAME, SCOUT_DB_NAME
 
 from .errors import ConnectionNotConfigured, DatabaseConnectionError
 

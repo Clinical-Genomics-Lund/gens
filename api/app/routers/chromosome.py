@@ -1,9 +1,8 @@
 """Query database for chromosome information."""
-from fastapi import APIRouter, Query
-
 from app.crud.chromosome import get_chromosome
 from app.graph import overview_chrom_dimensions
 from app.models.genomic import Chromosomes, GenomeBuild
+from fastapi import APIRouter, Query
 
 router = APIRouter()
 

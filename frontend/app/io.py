@@ -1,14 +1,14 @@
 """Functions for loading and converting data."""
 import logging
+from typing import Optional
 
 from pydantic import BaseModel
-from typing import Optional
 
 LOG = logging.getLogger(__name__)
 
 
 class ChromosomeRegion(BaseModel):
-    """Container 0+ """
+    """Container 0+"""
 
     chrom: str
     start: Optional[int]

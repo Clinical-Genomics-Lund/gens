@@ -3,11 +3,10 @@
 import logging
 from datetime import date
 
-from flask import Blueprint, abort, current_app, render_template, request
-
 from app import __version__ as version
 from app.api import get_sample
 from app.io import parse_region_str
+from flask import Blueprint, abort, current_app, render_template, request
 
 LOG = logging.getLogger(__name__)
 

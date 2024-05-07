@@ -1,7 +1,6 @@
 """Gens command line interface."""
 
 import click
-
 from app.__version__ import VERSION as version
 
 from .index import index as index_command

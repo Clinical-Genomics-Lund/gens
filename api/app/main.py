@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import allowed_origins
 from .db import close_mongo_connection, connect_to_mongo
-from .routers import annotation, transcript, chromosome, root, sample, variant
+from .routers import annotation, chromosome, root, sample, transcript, variant
 
 
 def configure_cors(application):

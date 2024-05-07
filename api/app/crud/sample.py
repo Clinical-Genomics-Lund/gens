@@ -5,21 +5,15 @@ import logging
 import os
 from typing import Dict
 
-from fastapi import HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from pymongo import DESCENDING
-
 from app.db import gens_db, scout_db
 from app.exceptions import RegionParserError, SampleNotFoundError
 from app.graph import Request, get_coverage
 from app.io import read_tabix_files
-from app.models.sample import (
-    Chromosomes,
-    FrequencyQueryObject,
-    GenomeBuild,
-    MultipleCoverageOutput,
-    Sample,
-)
+from app.models.sample import (Chromosomes, FrequencyQueryObject, GenomeBuild,
+                               MultipleCoverageOutput, Sample)
+from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
+from pymongo import DESCENDING
 
 from ..exceptions import RegionParserError
 

@@ -1,13 +1,13 @@
 """Routers for reading and manipulating variant data."""
 
-from fastapi import APIRouter, HTTPException, status
-
 from app.crud.variant import get_variants as get_variants_data
 from app.exceptions import SampleNotFoundError
 from app.graph import parse_region_str
 from app.models.base import AnnotationTrackBaseOutput
-from app.models.genomic import Chromosomes, GenomeBuild, RegionPosition, VariantCategory
+from app.models.genomic import (Chromosomes, GenomeBuild, RegionPosition,
+                                VariantCategory)
 from app.models.variant import ScoutVariants
+from fastapi import APIRouter, HTTPException, status
 
 DEFAULT_TAGS = ["sample"]
 

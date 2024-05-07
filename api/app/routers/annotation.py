@@ -1,18 +1,14 @@
 """Entrypoints relating to annotation tracks with regions of interest."""
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException, Query, status
-
-from app.crud.annotation import (
-    get_annotations_in_region,
-    get_track_names,
-    search_annotation_db,
-    get_track_info, TrackInfo
-)
+from app.crud.annotation import (TrackInfo, get_annotations_in_region,
+                                 get_track_info, get_track_names,
+                                 search_annotation_db)
 from app.crud.transcript import search_transcript_db
 from app.graph import parse_region_str
 from app.models.base import AnnotationRecordTypes, AnnotationTrackBaseOutput
 from app.models.genomic import Chromosomes, GenomeBuild, RegionPosition
+from fastapi import APIRouter, HTTPException, Query, status
 
 router = APIRouter()
 

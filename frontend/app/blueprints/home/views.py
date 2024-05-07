@@ -1,13 +1,12 @@
 """About the software page."""
 
+import datetime
 import logging
 import os
-import datetime
-
-from flask import Blueprint, current_app, render_template, request
 
 from app import __version__ as version
 from app.api import get_samples, get_timestamps
+from flask import Blueprint, current_app, render_template, request
 
 LOG = logging.getLogger(__name__)
 
@@ -35,13 +34,13 @@ home_bp = Blueprint(
 @home_bp.route("/", methods=["GET", "POST"])
 @home_bp.route("/home", methods=["GET", "POST"])
 def home():
-    #db = current_app.config["GENS_DB"]
+    # db = current_app.config["GENS_DB"]
     # set pagination
     page = request.args.get("page", 1, type=int)
     start = (page - 1) * SAMPLES_PER_PAGE
     result = get_samples(skip=start, limit=SAMPLES_PER_PAGE)
-    samples = result['samples']
-    tot_samples = result['tot_samples']
+    samples = result["samples"]
+    tot_samples = result["tot_samples"]
     # calculate pagination
     pagination_info = {
         "from": start + 1,
@@ -61,7 +60,9 @@ def home():
             "has_overview_file": smp["overview_file"] is not None,
             "files_present": os.path.isfile(smp["baf_file"])
             and os.path.isfile(smp["coverage_file"]),
-            "created_at": datetime.datetime.fromisoformat(smp["created_at"]).strftime("%Y-%m-%d"),
+            "created_at": datetime.datetime.fromisoformat(smp["created_at"]).strftime(
+                "%Y-%m-%d"
+            ),
         }
         for smp in samples
     ]

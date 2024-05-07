@@ -3,7 +3,6 @@
 import logging
 
 import click
-
 from app.db import gens_db
 from app.db.index import create_indexes, update_indexes
 

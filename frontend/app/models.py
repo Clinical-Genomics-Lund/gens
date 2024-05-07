@@ -1,9 +1,10 @@
 """Data models used by the front-end."""
 
-from typing import Optional
-from enum import Enum
-from pydantic import BaseModel
 from datetime import datetime
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 class GenomeBuild(Enum):
