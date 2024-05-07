@@ -48,15 +48,6 @@ async def create_sample(sample: Sample) -> Sample:
     return jsonable_encoder(sample)
 
 
-# region=1:1-248956422
-# sample_id=23MD10254
-# genome_build=38
-# hg_filedir=undefined
-# x_pos=949.8000000000001
-# y_pos=94
-# plot_height=180
-# extra_plot_width=949.8000000000001&
-# top_bottom_padding=8&x_ampl=1424.7&baf_y_start=1&baf_y_end=0&log2_y_start=4&log2_y_end=-4&reduce_data=1
 @router.get("/get-coverage", tags=DEFAULT_TAGS)
 async def get_coverage_for_region(
     sample_id: str,
