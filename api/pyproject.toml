@@ -1,0 +1,44 @@
+[project]
+name = "gens_api"
+dynamic = ["version"]
+readme = "README.md"
+description = "Gens API"
+dependencies = [
+    "setuptools",
+    "wheel",
+    "requests",
+    "fastapi[all]",
+    "uvicorn[standard]",
+    "pydantic-factories",
+    "pymongo==4.5.0",
+    "pysam>=0.15.4",
+    "click==8.1.7",
+]
+authors = [
+  {name = "Markus Johansson", email = "markus.h.johansson@skane.se"},
+]
+
+[project.optional-dependencies]
+test = [
+    "black",
+    "isort",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pytest-flask",
+    "coveralls",
+]
+
+[project.urls]
+Repository = "https://github.com/Clinical-Genomics-Lund/gens.git"
+Issues = "https://github.com/Clinical-Genomics-Lund/gens/issues"
+Changelog = "https://github.com/Clinical-Genomics-Lund/gens/blob/master/CHANGELOG.md"
+
+[project.scripts]
+gens = "app.cli:cli"
+
+[tool.setuptools.dynamic]
+version = {attr = "app.VERSION"}
+
+[tool.isort]
+profile = "black"
