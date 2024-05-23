@@ -9,6 +9,7 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 ### Added
 ### Changed
 ### Fixed
+ - Fixed bug that prevented updating annotation tracks
 
 ## [2.1.2]
 ### Added
