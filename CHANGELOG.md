@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/)
 
 About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
+## [Unreleased]
+### Fixed
+- Pan able to exit chrosome when using genome build 17 
+
 ## [2.3]
 ### Added
 - Link out to Scout: introduce config variable for base URL
