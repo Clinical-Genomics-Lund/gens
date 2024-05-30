@@ -98,7 +98,7 @@ export async function drawTrack({
   exclude = [], force = false, ...kwargs
 }) {
   // update input field
-  const region = await limitRegionToChromosome({ chrom, start, end })
+  const region = await limitRegionToChromosome({ chrom, start, end, genomeBuild })
   updateInputField({ ...region })
   const trackContainer = document.getElementById('visualization-container')
   trackContainer.dispatchEvent(
