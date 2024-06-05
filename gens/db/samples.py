@@ -21,7 +21,7 @@ class SampleNotFoundError(Exception):
         self.sample_id = sample_id
 
 
-def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview):
+def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, force):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
     try:
