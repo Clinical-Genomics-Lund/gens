@@ -62,7 +62,6 @@ def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, 
             )
         except DuplicateKeyError:
             LOG.error(f'DuplicateKeyError while storing sample with sample_id="{sample_id}" and case_id="{case_id}" in database.')
-            raise
 
 
 def get_samples(db, start=0, n_samples=None):
