@@ -24,21 +24,45 @@ class SampleNotFoundError(Exception):
 def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, force):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
-    try:
-        db[COLLECTION].insert_one(
+    if force:
+        db[COLLECTION].update_one(
+            filter=
             {
                 "sample_id": sample_id,
                 "case_id": case_id,
-                "baf_file": baf,
-                "coverage_file": coverage,
-                "overview_file": overview,
                 "genome_build": genome_build,
-                "created_at": datetime.datetime.now(),
-            }
+            },
+            new_values=
+            {
+                "$set":
+                {
+                    "sample_id": sample_id,
+                    "case_id": case_id,
+                    "baf_file": baf,
+                    "coverage_file": coverage,
+                    "overview_file": overview,
+                    "genome_build": genome_build,
+                    "created_at": datetime.datetime.now(),
+                }
+            },
+            upsert=True
         )
-    except DuplicateKeyError:
-        LOG.error(f'DuplicateKeyError while storing sample with sample_id="{sample_id}" and case_id="{case_id}" in database.')
-        raise
+    else:
+        try:
+            db[COLLECTION].insert_one(
+                {
+                    "sample_id": sample_id,
+                    "case_id": case_id,
+                    "baf_file": baf,
+                    "coverage_file": coverage,
+                    "overview_file": overview,
+                    "genome_build": genome_build,
+                    "created_at": datetime.datetime.now(),
+                }
+            )
+        except DuplicateKeyError:
+            LOG.error(f'DuplicateKeyError while storing sample with sample_id="{sample_id}" and case_id="{case_id}" in database.')
+            raise
 
 
 def get_samples(db, start=0, n_samples=None):
