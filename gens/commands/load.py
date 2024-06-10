@@ -58,8 +58,13 @@ def load():
     type=click.Path(exists=True),
     help="Json file that contains preprocessed overview coverage",
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Overwrite any existing sample with the same key.",
+)
 @with_appcontext
-def sample(sample_id, genome_build, baf, coverage, case_id, overview_json):
+def sample(sample_id, genome_build, baf, coverage, case_id, overview_json, force):
     """Load a sample into Gens database."""
     db = app.config["GENS_DB"]
     # if collection is not indexed, crate index
@@ -74,6 +79,7 @@ def sample(sample_id, genome_build, baf, coverage, case_id, overview_json):
         baf=baf,
         coverage=coverage,
         overview=overview_json,
+        force=force,
     )
     click.secho("Finished adding a new sample to database ✔", fg="green")
 
