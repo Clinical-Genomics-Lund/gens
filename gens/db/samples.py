@@ -35,13 +35,11 @@ def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, 
     LOG.info(f'Store sample "{sample_id}" in database')
     if force:
         result = db[COLLECTION].update_one(
-            filter=
             {
                 "sample_id": sample_id,
                 "case_id": case_id,
                 "genome_build": genome_build,
             },
-            new_values=
             {
                 "$set":
                 {
