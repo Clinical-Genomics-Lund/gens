@@ -21,11 +21,20 @@ class SampleNotFoundError(Exception):
         self.sample_id = sample_id
 
 
+class NonUniqueIndexError(Exception):
+    def __init__(self, message, sample_id, case_id, genome_build):
+        super().__init__(message)
+        
+        self.sample_id = sample_id
+        self.case_id = case_id
+        self.genome_build = genome_build
+
+
 def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, force):
     """Store a new sample in the database."""
     LOG.info(f'Store sample "{sample_id}" in database')
     if force:
-        db[COLLECTION].update_one(
+        result = db[COLLECTION].update_one(
             filter=
             {
                 "sample_id": sample_id,
@@ -47,6 +56,10 @@ def store_sample(db, sample_id, case_id, genome_build, baf, coverage, overview, 
             },
             upsert=True
         )
+        if result.modified_count == 1:
+            LOG.error(f'Sample with sample_id="{sample_id}" and case_id="{case_id}" was overwritten.')
+        if result.modified_count > 1:
+            raise NonUniqueIndexError(f'More than one entry matched sample_id="{sample_id}", case_id="{case_id}", and genome_build="{genome_build}". This should never happen.', sample_id, case_id, genome_build)
     else:
         try:
             db[COLLECTION].insert_one(
